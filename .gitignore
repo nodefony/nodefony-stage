@@ -1,0 +1,18 @@
+#Ignore directory 
+
+npm-debug.log
+*.[oa]
+
+#Ignore vin backup
+*.swp
+*.swn
+*.swo
+#emacs
+*~
+# macos
+.DS_Store
+
+# Eclipse file
+/.project
+/.settings
+/nbproject/private/
