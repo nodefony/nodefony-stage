@@ -1906,7 +1906,7 @@ stage.register.call(stage.io.protocols, "sip",function(){
 							this.notificationsCenter.fire("onUnRegister",this, message);
 							return ;
 						}
-						if (this.registered === 401 ) {
+						if (this.registered === 401 || this.registered === null ) {
 							this.notificationsCenter.fire("onRegister", this, message);
 						}
 						this.registered = message.code ;
