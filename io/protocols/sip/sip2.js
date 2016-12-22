@@ -2014,8 +2014,8 @@ stage.register.call(stage.io.protocols, "sip",function(){
 					break;
 					default :
 						this.notificationsCenter.fire("onBye",message);
-						var res = message.transaction.createResponse(200,"OK")
-						res.send();
+						//var res = message.transaction.createResponse(200,"OK")
+						//res.send();
 				}
 			break;
 			case "INFO" :
