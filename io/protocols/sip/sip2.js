@@ -1430,7 +1430,8 @@ stage.register.call(stage.io.protocols, "sip",function(){
 			
 		}
 
-		this.contact = this.sip.generateContact( null, null, true) ;
+		//this.contact = this.sip.generateContact( null, null, true) ;
+		this.contact = this.sip.contact;
 	}
 
 	Dialog.prototype.statusCode = {
@@ -1754,6 +1755,10 @@ stage.register.call(stage.io.protocols, "sip",function(){
 			throw ("BAD FORMAT MESSAGE SIP no header ", 500);
 		}	
 	}
+
+	Message.prototype.getContact = function(){
+		return this.contact;
+	};
 
 	Message.prototype.getHeader = function(){
 		return this.header;
