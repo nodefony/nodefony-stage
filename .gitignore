@@ -1,5 +1,10 @@
 #Ignore directory 
+tmp/**
+public/**
 
+*.db
+
+node_modules/**
 npm-debug.log
 *.[oa]
 
@@ -12,6 +17,7 @@ npm-debug.log
 # macos
 .DS_Store
 
+.srl
 # Eclipse file
 /.project
 /.settings
