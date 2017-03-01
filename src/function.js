@@ -4,6 +4,7 @@
  * @namespace functions
  * 
  */
+var stage = require("stage");
 
 stage.register("functions" , function(){
 

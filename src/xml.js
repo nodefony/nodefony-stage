@@ -8,7 +8,7 @@
  *
  */
 
-stage.register("xml", function(){
+module.exports = function(stage){
 
 	/**
    	* \brief changes the given string to XML doc.
@@ -178,16 +178,10 @@ stage.register("xml", function(){
 		return name ? (name.replace(':',name_space)): name;
 	};
 
-
-
-	return {
+	return stage.xml =  {
 		parseXml:parseXml,
 		//parseNode:parseDOM,
 	  	stringToDocumentXML : stringToDocumentXML ,
 	  	//getDocumentRoot :getDocumentRoot
-	
-	
 	}
-
-
-});
+};
