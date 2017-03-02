@@ -1,5 +1,3 @@
-
-
 /*
  * A JavaScript implementation of the RSA Data Security, Inc. MD5 Message
  * Digest Algorithm, as defined in RFC 1321.
@@ -8,10 +6,8 @@
  * Distributed under the BSD License
  * See http://pajhome.org.uk/crypt/md5 for more info.
  */
-stage.provide("md5");
 
-
-stage.register.call(stage.crypto, "md5", function(){
+module.exports =  function(stage){
 
 	/*
  	 * Configurable variables. You may need to tweak these to be compatible with
@@ -372,7 +368,7 @@ stage.register.call(stage.crypto, "md5", function(){
   		return (num << cnt) | (num >>> (32 - cnt));
 	}
 
-	return {
+	stage.crypto.md5 = {
  		hex_md5:function(s){ 
 			return rstr2hex(rstr_md5(str2rstr_utf8(s)));
 		},
@@ -400,6 +396,7 @@ stage.register.call(stage.crypto, "md5", function(){
  		any_hmac_md5:function(k, d, e){ 
 			return rstr2any(rstr_hmac_md5(str2rstr_utf8(k), str2rstr_utf8(d)), e);
 		}
-	}
-})
+	};
+	return stage.crypto.md5 ; 
+};
 

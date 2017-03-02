@@ -7,6 +7,7 @@
  */
 module.exports =  function(stage){
 
+	'use strict';
    	/*
     	 * default settings
     	 * <pre>
@@ -697,6 +698,7 @@ module.exports =  function(stage){
    		}
 
 	}
-	return stage.syslog = syslog;
+	stage.syslog = syslog;
+	return syslog ; 
 };
 

@@ -7,11 +7,9 @@
  *
  *
  */
-stage.provide("base64");
 
 
-
-stage.register.call(stage.crypto, "base64", function(){
+module.exports =  function(stage){
 
 	// private property
 	var _keyStr = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/=";
@@ -204,11 +202,13 @@ stage.register.call(stage.crypto, "base64", function(){
 	};
 
 
-	return {
+	stage.crypto.base64 =  {
 		decodeArrayBuffer:decodeArrayBuffer,
 		encode:encode64,
 		decode:decode64
-	}
-});
+	};
+
+	return stage.crypto.base64 ;
+};
 
 

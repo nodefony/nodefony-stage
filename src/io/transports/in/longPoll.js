@@ -1,18 +1,5 @@
-/*
- * 
- *  
- *   
- * 
- * 
- * 
- * 
- * 
- * 
- */ 
-stage.provide("longPoll");
+module.exports =  function(stage){
 
-
-stage.register.call(stage.io.transports, "longPoll",function(){
 
 	var defaultSettings = {
 		delay: 0,
@@ -40,47 +27,40 @@ stage.register.call(stage.io.transports, "longPoll",function(){
 		}		
 	};
 	
-	var longPoll = function(url, settings){
-		//this.mother = this.$super;
-		this.$super.constructor(url, settings);
-		this.settings = stage.extend(true, {}, defaultSettings, settings);
-		
-		return this;
-		
-	}.herite(stage.io.transports.poll);
-	
-	
-	longPoll.prototype.start = function(){
-		
-		var ajaxConfig = this.buildAjaxSettings();
-	
-		this.transport = null;
-		ajaxConfig.complete = function(xhr, status){
-			//if(this.transport) this.transport = null;
-			pollling.call(this, ajaxConfig);
-		}.bind(this);
-		pollling.call(this, ajaxConfig);
-			
-		
-		return this;
-	};
-	
-	
-	longPoll.prototype.stop = function(){
+	/*
+ 	 *
+ 	 *
+ 	 */
+	var longPoll = class longPoll extends stage.io.transports.poll  {
 
-		this.transport.abort();
-		this.transport = null;
-		
-		if(this.timer){
-			clearTimeout(this.timer);
+		constructor(url, settings){
+			super(url, settings);
+			this.settings = stage.extend(true, {}, defaultSettings, settings);
 		}
-		
-		this.connectState = false;
-		
-		this.fire('onStop', this);
-		return this;
-	};
 
+		start (){
+			var ajaxConfig = this.buildAjaxSettings();
+			this.transport = null;
+			ajaxConfig.complete = (xhr, status) => {
+				pollling.call(this, ajaxConfig);
+			};
+			pollling.call(this, ajaxConfig);
+			return this;
+		}
+
+		stop (){
+			this.transport.abort();
+			this.transport = null;
+
+			if(this.timer){
+				clearTimeout(this.timer);
+			}
+			this.connectState = false;
+			this.fire('onStop', this);
+			return this;
+		}
+	}
+
+	stage.io.transports.longPoll = longPoll ;
 	return longPoll;
-
-});
+};

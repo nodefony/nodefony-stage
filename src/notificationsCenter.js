@@ -1,9 +1,3 @@
-/**
- * @module library
- * @namespace NotificationCenter
- * 
- */
-
 module.exports =  function(stage){
  
 	'use strict';
@@ -51,9 +45,9 @@ module.exports =  function(stage){
                         	});
                 	}
                 	return function() {
-                        	Array.prototype.unshift.call(arguments, event)
-                        		return ContextClosure.fire.apply(ContextClosure, arguments);
-                	}
+                        	Array.prototype.unshift.call(arguments, event);
+                        	return ContextClosure.fire.apply(ContextClosure, arguments);
+                	};
 		}
 
 		/**
@@ -132,17 +126,14 @@ module.exports =  function(stage){
 				return this.clearNotifications();	
 			}
         	}
-	}
+	};
 
-        return stage.notificationsCenter  =   {
+        stage.notificationsCenter = {
                 notification:Notification,
-                /**
-                 *
-                 *      @method create 
-                 *
-                 */
                 create: function(settings, context) {
                         return new Notification(settings, context);
                 }
         };
+
+	return Notification ;
 };

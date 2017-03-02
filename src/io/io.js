@@ -1,26 +1,6 @@
-/*
- *
- *
- *
- *
- *
- *
- *
- *
- *
- */
-stage.provide("io");
+module.exports =  function(stage){
 
-
-
-stage.require("jquery");
-
-
-
-stage.register("io",function(){
-
-
-
+	'use strict';
 
 	var isSameOrigin = function (url) {
 		var loc = window.location;
@@ -50,63 +30,63 @@ stage.register("io",function(){
  	 *
  	 *
  	 */
+	var authenticate = class authenticate  {
 
-	var authenticate = function(url, request, settings ){
-		this.url = typeof url === "object" ? url : stage.io.urlToOject(url) ;
-		this.crossDomain = ! stage.io.isSameOrigin(url);
-		// notification center
-		this.notificationCenter = stage.notificationsCenter.create(settings);
-		// get header WWW-Authenticate
-		var authenticate = request["WWW-Authenticate"].split(" ") ;
-		//  get type authentification
-		var authType = Array.prototype.shift.call(authenticate);
-		var headers = request["WWW-Authenticate"].replace(authType+" ","") 
-		//console.log(authType);
-		this.method = "POST";
-		var body = request.body;
+		constructor(url, request, settings){
+			this.url = typeof url === "object" ? url : stage.io.urlToOject(url) ;
+			this.crossDomain = ! stage.io.isSameOrigin(url);
+			// notification center
+			this.notificationCenter = stage.notificationsCenter.create(settings);
+			// get header WWW-Authenticate
+			var authenticate = request["WWW-Authenticate"].split(" ") ;
+			//  get type authentification
+			var authType = Array.prototype.shift.call(authenticate);
+			var headers = request["WWW-Authenticate"].replace(authType+" ","") 
+				//console.log(authType);
+				this.method = "POST";
+			var body = request.body;
 
-		// intance of authentication
-		var auth = this.getAuthenticationType(authType);
-		this.authentication = new auth(this.url,  this.method, headers, body )
-		this.ajax = false;
-		if (settings.ajax){
-			this.ajax = true;
+			// intance of authentication
+			var auth = this.getAuthenticationType(authType);
+			this.authentication = new auth(this.url,  this.method, headers, body )
+				this.ajax = false;
+			if (settings.ajax){
+				this.ajax = true;
+			}
 		}
-	};
-
-	authenticate.prototype.getAuthenticationType = function(type){
-		if (type in stage.io.authentication){
-			return stage.io.authentication[type];
-		}else{
-			throw new Error("SSE client can't negociate : "+type )
+		
+		getAuthenticationType (type){
+			if (type in stage.io.authentication){
+				return stage.io.authentication[type];
+			}else{
+				throw new Error("SSE client can't negociate : "+type )
+			}
 		}
-	};
 
-	authenticate.prototype.register = function(username, password){
-
-		var line = this.authentication.getAuthorization(username, password);
-		this.notificationCenter.fire("onRegister", this, line);	
-		if (this.ajax){
-			$.ajax({
-				type:		this.method,
-				url:		this.url.href,
-				cache:		false,
-				crossDomain:	this.crossDomain ? false : true ,
-				error:function(obj, type, message){
-					this.notificationCenter.fire("onError", obj, type, message);	
-				}.bind(this),
-				beforeSend:function(xhr){
-					xhr.setRequestHeader("Authorization", line );
-					//if (this.crossDomain)
+		register (username, password){
+			var line = this.authentication.getAuthorization(username, password);
+			this.notificationCenter.fire("onRegister", this, line);	
+			if (this.ajax){
+				$.ajax({
+					type:		this.method,
+					url:		this.url.href,
+					cache:		false,
+					crossDomain:	this.crossDomain ? false : true ,
+					error:function(obj, type, message){
+						this.notificationCenter.fire("onError", obj, type, message);	
+					}.bind(this),
+					beforeSend:function(xhr){
+						xhr.setRequestHeader("Authorization", line );
+						//if (this.crossDomain)
 						//xhr.setRequestHeader("X-Requested-With", "XMLHttpRequest");
-				}.bind(this),
-				success:function(data, state, obj){
-					this.notificationCenter.fire("onSuccess", data, state, obj);
-				}.bind(this)
-			});
-		}		
+					}.bind(this),
+					success:function(data, state, obj){
+						this.notificationCenter.fire("onSuccess", data, state, obj);
+					}.bind(this)
+				});
+			}		
+		}
 	};
-
 
 	/**
  	 * We need our custom method because encodeURIComponent is too aggressive and doesn't follow
@@ -221,8 +201,6 @@ stage.register("io",function(){
 		return null;
 	};
 
-   
-
 	var urlToOject = function(url){
 		var result = {};
 
@@ -246,19 +224,22 @@ stage.register("io",function(){
 
 	var nativeWebSocket = window.WebSocket  ? true : false ; 
 
-	var transportCore = function(url, settings, context){
-		this.$super.constructor(settings, context || this);	
-		// Manage Url
-		if (url){
-			this.url = urlToOject(url);
-			this.crossDomain = !isSameOrigin(url);
-			this.error = null;
-		}else{
-			this.fire("onError", new Error("Transport URL not defined") );
-		}
-	}.herite(stage.notificationsCenter.notification);
+	var transportCore = class transportCore  extends stage.notificationsCenter.notification {
 
-	return {
+		constructor(url, settings, context){
+			super(settings, context || this);	
+			// Manage Url
+			if (url){
+				this.url = urlToOject(url);
+				this.crossDomain = !isSameOrigin(url);
+				this.error = null;
+			}else{
+				this.fire("onError", new Error("Transport URL not defined") );
+			}	
+		}
+	};
+	
+	stage.io = {
 		nativeWebSocket: nativeWebSocket,
 		urlToOject: urlToOject,
 		parseKeyValue:parseKeyValue,
@@ -275,8 +256,9 @@ stage.register("io",function(){
 		},
 		transport: transportCore,
 		transports: {}
-	}
+	};
 
-});
+	return stage.io ;
+};
 
 

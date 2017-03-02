@@ -1,9 +1,6 @@
-/*
- *
- *
- */
+module.exports =  function(stage){
 
-stage.register.call(stage.io.protocols, "sip",function(){
+	'use strict';
 
 	/*
  	 *
@@ -15,8 +12,24 @@ stage.register.call(stage.io.protocols, "sip",function(){
 		return '"'+value+'"';
 	}
 
+	var reg =/^([^=]+)=(.+)$/;
+	var parserAuthenticate = function(str){
+		var ret = str.replace(/"/g,"");
+		ret = ret.replace(/Digest /g,"");
+		var head = ret.split(",");
+		var obj = []
+		for (var i= 0 ; i < head.length ; i++){
+			var res = reg.exec(head[i]);
+			var key = res[1].replace(/ |\n|\r/g,"");
+			if (res && key)
+				obj[key] = res[2]
+		}	
+		return obj
+	};
+
 	var MD5 = stage.crypto.md5.hex_md5_noUTF8 ;
 	var BASE64 = stage.crypto.base64.encode ;
+
 	var digest = {
 		generateA1:function(username, realm, password, nonce, cnonce){
 			if (cnonce)
@@ -41,7 +54,6 @@ stage.register.call(stage.io.protocols, "sip",function(){
 			}
 			//console.log(A2)
 			return MD5(A2);
-			//return MD5("sboob")
 		},
 		generateResponse:function(A1, nonce, noncecount, cnonce, qop, A2){
 			var res = ""
@@ -55,91 +67,84 @@ stage.register.call(stage.io.protocols, "sip",function(){
 		}		
 	};
 
-	var authenticate = function(message, username, password){
-		if (message instanceof Message)
-			this.dialog = message.dialog ; 
-		else
-			this.dialog = message ;
-		this.userName = username ;
-		this.password = password;
-		this.uri = "sip:" +this.dialog.sip.server ;	
-		this.realm = "stage";
-		this.nonce = null;
-		this.cnonce =null;
-		this.nonceCount = null;
-		this.qop =null;
-		this.algorithm = null;
-		this.entity_body = null;
-	};
 
-	authenticate.prototype.register = function(message){
-		/*if (transaction.sended){
-			console.log("WWW-Authenticate error")
-			return ;
-		}*/	
-		var head = message.authenticate ;	
-		this.realm = head.realm	
-		this.nonce = head.nonce;
-		this.cnonce = head.cnonce;
-		this.qop = head.qop;
-		this.algorithm = head.Digestalgorithm ? head.Digestalgorithm : "md5" ;	
-		if ( message.rawBody )
-			this.entity_body = message.rawBody;
+	var authenticate  = class authenticate {
 
-		switch (this.algorithm.toLowerCase()){
-			case "md5" :
-				this.response = this.digestMD5(message.method);
-			break;
+		constructor(dialog, username, password){
+			
+			this.dialog = dialog ;
+			this.userName = username ;
+			this.password = password;
+			this.uri = "sip:" +this.dialog.sip.server ;	
+			this.realm = "nodefony.com";
+			this.nonce = null;
+			this.cnonce =null;
+			this.nonceCount = null;
+			this.qop =null;
+			this.algorithm = null;
+			this.entity_body = null;
 		}
 
-		var method = "Authorization: ";
-		var line = "Digest username=" +stringify(this.userName)+", realm="+stringify(this.realm)+ ", nonce=" + stringify(this.nonce) +", uri="+stringify(this.uri)+", algorithm="+this.algorithm+", response="+stringify(this.response);
-		this.lineResponse = method + line ; 
-		//if ( ! transaction.sended){
-			//var transac = this.dialog.createTransaction(message.to) ;
-			var transac = message.transaction
-			var request = transac.createRequest(this.dialog.sdp);
-			//console.log(request);
+		register (message, type){
+			/*if (transaction.sended){
+				console.log("WWW-Authenticate error")
+				return ;
+			}*/	
+			//console.log("AUTH REGISTER")
+			//console.log(message);
+			var head = message.authenticate ;	
+			this.realm = head.realm	
+			this.nonce = head.nonce;
+			this.cnonce = head.cnonce;
+			this.qop = head.qop;
+			this.algorithm = head.Digestalgorithm ? head.Digestalgorithm : "md5" ;	
+			if ( message.rawBody )
+				this.entity_body = message.rawBody;
+
+			switch (this.algorithm.toLowerCase()){
+				case "md5" :
+					this.response = this.digestMD5(message.method);
+				break;
+			}
+
+			if ( ! type ){
+				var method = "Authorization: ";
+			}else{
+				if ( type === "proxy"){
+					var method = "Proxy-Authorization: ";
+				}else{
+					var method = "Authorization: ";	
+				}
+			}
+			var line = "Digest username=" +stringify(this.userName)+", realm="+stringify(this.realm)+ ", nonce=" + stringify(this.nonce) +", uri="+stringify(this.uri)+", algorithm="+this.algorithm+", response="+stringify(this.response);
+			this.lineResponse = method + line ; 
+
+			//var transac = message.transaction ;
+			var transac = this.dialog.createTransaction(message.transaction.to);
+			this.dialog.tagTo = null ;	
+			//this.dialog.sip.fire("onInitCall", this.dialog.toName, this.dialog, transac);
+			var request = transac.createRequest(this.dialog.body, this.dialog.bodyType);
 			request.header.response=this.lineResponse;
-			transac.sendRequest();
-			transac.sended = true;
-		//}
+			request.send();
+			return transac ;
 
+		}
+		
+		digestMD5 (method){
+			var A1 = digest.generateA1(this.userName, this.realm, this.password, this.nonce, this.cnonce );
+			var A2 = digest.generateA2(method, this.uri, this.entity_body, this.qop );
+			return  digest.generateResponse(A1, this.nonce, this.nonceCount, this.cnonce, this.qop, A2);
+		}
 	};
-	
-	authenticate.prototype.digestMD5 = function(method){
-		var A1 = digest.generateA1(this.userName, this.realm, this.password, this.nonce, this.cnonce );
-		var A2 = digest.generateA2(method, this.uri, this.entity_body, this.qop );
-		return  digest.generateResponse(A1, this.nonce, this.nonceCount, this.cnonce, this.qop, A2);
-	};
-
-
-	var reg =/^([^=]+)=(.+)$/;
-	var parserAuthenticate = function(str){
-		var ret = str.replace(/"/g,"");
-		ret = ret.replace(/Digest /g,"");
-		var head = ret.split(",");
-		var obj = []
-		for (var i= 0 ; i < head.length ; i++){
-			var res = reg.exec(head[i]);
-			var key = res[1].replace(" ","");
-			if (res && key)
-				obj[key] = res[2]
-		}	
-		return obj
-	};
-
-
-
 
 
 	/*
  	 *
- 	 * CLASS HEADER SIP
- 	 *
+ 	 * CLASS PARSER HEADER SIP
  	 *
  	 *
  	 */
+	//var regContact = /.*<(sip:.*)>(.*)|.*<(sips:.*)>(.*)/g;
 	var regHeaders = {
 		line:/\r\n|\r|\n/,
 		headName:/: */,
@@ -147,7 +152,8 @@ stage.register.call(stage.io.protocols, "sip",function(){
 		Via:/; */,
 		CallId:/^(.*)@.*$/,
 		algorithm:/= */,
-		fromTo:/(.*)<sip:(.*)>/
+		fromTo:/<sip:(.*)@(.*)>/,
+		fromToG:/(.*)?<sip:(.*)@(.*)>/
 	};
 
 	var parsefromTo = function(type, value){
@@ -155,11 +161,21 @@ stage.register.call(stage.io.protocols, "sip",function(){
 		this.message[type+"Tag"] = null;
 		var res = sp.shift();
 		var res2 = regHeaders.fromTo.exec(res);
-		this.message[type+"Name"] = (res2.length > 2)  ? res2[1].replace(" ","").replace(/"/g,"") : "" ;
- 	        this.message[type] = (res2.length >2)  ? res2[2].replace(" ","") : res2[1].replace(" ","") ;	
+		//console.log(regHeaders.fromToG.exec(res))
+		//console.log(res2)
+		this.message[type+"Name"] = (res2.length > 2)  ? res2[1].replace(/ |\n|\r/g,"").replace(/"/g,"") : "" ;
+ 	        this.message[type] =  res2[1].replace(" ","") +"@"+ res2[2].replace(/ |\n|\r/g,"") ;
+		var ret = regHeaders.fromToG.exec(res) ;	
+		if ( ret && ret[1] ){
+			var displayName =  ret[1].replace(/"/g,"")  ;
+			//this.message[type+"Name"] = displayName ;
+			this.message[type+"NameDisplay"] = displayName ;
+			//console.log(displayName)
+		}
+
 		for (var i = 0 ; i < sp.length ;i++){
 			var res3 = sp[i].split("=");
-			if(res3[0].replace(" ","") === "tag")
+			if(res3[0].replace(/ |\n|\r/g,"") === "tag")
 				this.message[type+"Tag"] = res3[1] ;
 			else
 				this.message[res3[0]] = res3[1] ;
@@ -167,185 +183,275 @@ stage.register.call(stage.io.protocols, "sip",function(){
 		return value;
 	};
 
-	var headerSip = function(message, header){
-		this.message = message; 
-		this.method = null; 
-		this.firstLine = null;
-		this.Via = [];
-		if (header && typeof header === "string"){
-			try {
-				this.parse(header);
-			}catch(e){
-				console.log(e)
-			}
-		}
-	};
 
-	headerSip.prototype.parse = function(header){
-		var tab = header.split(regHeaders.line);
-		var type = tab.shift();
-		this.firstLine = type.split(" ");
-		$.each(tab, function(index, ele){
-			var res = regHeaders.headName.exec(ele);
-			var size = res[0].length;
-			var headName = res.input.substr(0,res.index);
-			var headValue = res.input.substr(res.index+size);
-			var func = "set"+headName;
-			if (func === "setVia"){
-				var index = this.Via.push(headValue);	
-				this[headName][index-1] = this[func](headValue, ele);
-			}else{
-				this[headName] = headValue;
-				if (this[func]){
-					this[headName] = this[func](headValue);	
-				}	
-			}
-		}.bind(this))
-		if (!this["Content-Type"])
-			this.message.contentType = null;
-	};
+	var headerSip  = class headerSip {
 
-	headerSip.prototype.setFrom = function(value){
-		parsefromTo.call(this, "from", value)	
-		return value;
-	};
-
-	headerSip.prototype.setTo = function(value){
-		parsefromTo.call(this, "to", value)
-		return value;
-	};
-
-	headerSip.prototype["setWWW-Authenticate"] = function(value){
-		this.message.authenticate = parserAuthenticate(value);
-		/*var ele ={};
-		var res = value.split(",")
-		for (var i=0 ; i < res.length ;i++){
-			var ret = regHeaders.algorithm.exec(res[i]);
-			var size = ret[0].length;
-			var headName = ret.input.substr(0,ret.index).replace(" ","");
-			var headValue = ret.input.substr(ret.index+size).replace(/"/g,"");
-			ele[headName] = headValue.replace(/"/g,"");
-		}
-		this.message.authenticate = ele ;*/
-		return value;
-	};
-
-	headerSip.prototype.setDate = function(value){
-		try{
-			this.message.date = new Date(value)
-		}
-		catch(e){
-			this.message.date = value;
-		}
-		return value
-	};
-
-	headerSip.prototype["setCall-ID"] = function(value){
-		var res = regHeaders.CallId.exec(value);	
-		if (res){
-			this.message.callId =res[1]; 
-			return res[1];
-			
-		}else{
-			this.message.callId =value;	
-			return value;
-		}
-	};
-
-	headerSip.prototype.setCSeq = function(value){
-		var res = value.split(" ");
-		this.message.cseq = parseInt(res[0],10);
-		this.message.method = res[1];
-		return value;
-	};
-
-	var regContact = /<sip:(.*)>/g;
-	headerSip.prototype.setContact = function(value){
-		var parseValue = value.replace(regContact,"$1");
-		var sp = parseValue.split(";");
-		var contact = sp.shift();
- 	        var tab = contact.split(":");	
-		this.message.contact  = tab[0];
-		this.message.rport = tab[1];
-		for (var i = 0 ; i < sp.length ;i++){
-			var res3 = sp[i].split("=");
-			//console.log(res3[0] +" : "+  res3[1] );
-			this["contact"+res3[0]] = res3[1]; 
-		}
-		return value; 
-	};
-
-	headerSip.prototype.setAllow = function(value){
-		if (value ){
-			return this.Allow.split(regHeaders.Allow);
-		}else{
-			return this.Allow;
-		}
-	};
-	headerSip.prototype.setSupported = function(value){
-		if (value ){
-			return this.Supported.split(regHeaders.Allow);
-		}else{
-			return this.Supported;
-		}
-	};
-
-	headerSip.prototype.setVia = function(value,raw){
-		if (value){
-			var res = value.split(regHeaders.Via);
-			//console.log(res)
-			var obj = {
-				line :Array.prototype.shift.call(res),
-				raw:raw
-			};
-			for (var i = 0 ; i< res.length ;i++){
-				var tab = res[i].split('=');
-				if ( tab ){
-					if (tab[0] === "branch")
-						this.branch = tab[1];
-					obj[tab[0]] = tab[1];
+		constructor(message, header){
+			this.rawHeader = {} ;
+			this.message = message; 
+			this.method = null; 
+			this.firstLine = null;
+			this.branch = null ;
+			this.Via = [];
+			this.routes = [];
+			this.recordRoutes = [];
+			if (header && typeof header === "string"){
+				try {
+					this.parse(header);
+				}catch(e){
+					console.log(e);
+					throw new Error("PARSE ERROR MESSAGE SIP", 500);
 				}
 			}
-			return obj
-		}else{
+		}
+
+		parse (header){
+			var tab = header.split(regHeaders.line);
+			var type = tab.shift();
+			this.firstLine = type.split(" ");
+			$.each(tab, (index, ele) => {
+				var res = regHeaders.headName.exec(ele);
+				var size = res[0].length;
+				var headName = res.input.substr(0,res.index);
+				var headValue = res.input.substr(res.index+size);
+				this.rawHeader[headName] = headValue ;
+				var func = "set"+headName;
+				if (func === "setVia"){
+					var index = this.Via.push(headValue);	
+					this[headName][index-1] = this[func](headValue, ele);
+				}else{
+					this[headName] = headValue;
+					if (this[func]){
+						this[headName] = this[func](headValue);	
+					}	
+				}
+			})
+			if (!this["Content-Type"])
+				this.message.contentType = null;
+			else
+				this.message.contentType = this["Content-Type"] ;
+		}
+
+		setFrom (value){
+			parsefromTo.call(this, "from", value)	
+				return value;
+		}
+
+		setTo (value){
+			parsefromTo.call(this, "to", value)
+				return value;
+		}
+
+		"setWWW-Authenticate" (value){
+			this.message.authenticate = parserAuthenticate(value);
+			/*var ele ={};
+		  	var res = value.split(",")
+		  	for (var i=0 ; i < res.length ;i++){
+		  	var ret = regHeaders.algorithm.exec(res[i]);
+		  	var size = ret[0].length;
+		  	var headName = ret.input.substr(0,ret.index).replace(" ","");
+		  	var headValue = ret.input.substr(ret.index+size).replace(/"/g,"");
+		  	ele[headName] = headValue.replace(/"/g,"");
+		  	}
+		  	this.message.authenticate = ele ;*/
 			return value;
+		}
+
+		"setProxy-Authenticate" (value){
+			this.message.authenticate = parserAuthenticate(value);
+			return value;
+		}
+
+		"setRecord-Route" (value){
+			this.recordRoutes.push(value);
+			return value ;
+		}
+
+		"setRoute" (value){
+			this.routes.push(value);
+			return value ;
+		}
+
+		setDate (value){
+			try{
+				this.message.date = new Date(value)
+			}
+			catch(e){
+				this.message.date = value;
+			}
+			return value
+		}
+
+		"setCall-ID" (value){
+			this.message.callId = value ;
+			return value ;
+			/*this.callIdRaw = value ;
+		  	var res = regHeaders.CallId.exec(value);	
+		  	if (res){
+		  	this.message.callId =res[1]; 
+		  	return res[1];
+
+		  	}else{
+		  	this.message.callId =value;	
+		  	return value;
+		  	}*/
+		}
+
+		setCSeq (value){
+			var res = value.split(" ");
+			this.message.cseq = parseInt(res[0],10);
+			this.message.method = res[1];
+			return value;
+		}
+
+		/*setContact (value){
+	  		var parseValue = value.replace(regContact,"$1");
+	  		console.log(parseValue)
+	  		var sp = parseValue.split(";");
+	  		var contact = sp.shift();
+ 	  		var tab = contact.split(":");	
+	  		this.message.contact  = tab[0];
+	  		this.message.rport = tab[1];
+	  		for (var i = 0 ; i < sp.length ;i++){
+	  		var res3 = sp[i].split("=");
+			//console.log(res3[0] +" : "+  res3[1] );
+			this["contact"+res3[0]] = res3[1]; 
+			}
+			return value; 
+		}*/
+
+
+		setContact (value){
+			var regContact = /.*<(sips?:.*)>.*/g;
+			//console.log(value)
+			var parseValue = regContact.exec(value) ;
+			//console.log(parseValue)
+			if ( parseValue  ){
+				this.message.contact = parseValue[1] ;
+			}
+			/*if ( parseValue[2] ){
+		  	console.log(parseValue[2])
+		  	var clean = parseValue[2].replace("^;(.*)","$1")
+		  	var sp = clean.split(";");
+
+		  	for (var i = 0 ; i < sp.length ;i++){
+		  	var res3 = sp[i].split("=");
+		  	console.log(res3[0] +" : "+  res3[1] );
+			//this["contact"+res3[0]] = res3[1]; 
+			}
+			}*/
+			return value; 
+		}
+
+		setAllow (value){
+			if (value ){
+				return this.Allow.split(regHeaders.Allow);
+			}else{
+				return this.Allow;
+			}
+		}
+
+		setSupported (value){
+			if (value ){
+				return this.Supported.split(regHeaders.Allow);
+			}else{
+				return this.Supported;
+			}
+		}
+
+		setVia (value,raw){
+			if (value){
+				var res = value.split(regHeaders.Via);
+				var obj = {
+					line :Array.prototype.shift.call(res),
+					raw:raw
+				};
+				for (var i = 0 ; i< res.length ;i++){
+					var tab = res[i].split('=');
+					if ( tab ){
+						if (tab[0] === "branch"){
+							if ( ! this.branch ){
+								this.branch = tab[1];
+							}
+						}
+						obj[tab[0]] = tab[1];
+					}
+				}
+				return obj
+			}else{
+				return value;
+			}
 		}
 	};
 	
-
+				
 	/*
  	 *
- 	 * CLASS BODY SIP
+ 	 * CLASS PARSER BODY SIP
  	 *
  	 *
  	 *
  	 */
-	var bodySip = function(message, body){
-		message.rawBody = body ;
-		this.size = message.contentLength;
-		if ( this.size !== body.length ){
-			//console.log("BODY LENGTH: "+body.length)
-			//console.log("CONTENT LENGTH :"+this.size)
-			throw new Error("BAD SIZE");
+	var bodySip  = class bodySip {
+
+		constructor(message, body){
+			this.message = message ;
+			this.message.rawBody = body ;
+			this.size = this.message.contentLength;
+			if ( this.size !== body.length ){
+				throw new Error("BAD SIZE SIP BODY ");
+			}
+			if (body){
+				this.parse(this.message.contentType, body)
+			}
 		}
-		if (body){
-			this.parse(message.contentType, body)
+
+		parse (type, body){
+			switch (type){
+				case "application/sdp":
+					this.sdpParser(body);
+				break;
+				case "application/dtmf-relay":
+					this.dtmfParser(body);
+				break;
+				default:
+					this.body = body;
+			}
 		}
-	
-	};
-	bodySip.prototype.parse = function(type, body){
-		switch (type){
-			case "application/sdp":
-				this.sdpParser(body);
-			break;
-			default:
-				this.payload = body;
+		
+		sdpParser (body){
+			// Parser SDP
+			this.body = body || "" ;
+			if ( ! body ){
+				this.sdp  = null ; 	
+			}else{
+				try {
+					this.sdp = new stage.io.protocols.sdp(body);
+					//console.log(this.sdp)
+				}catch(e){
+					throw e ;
+				}
+			}
+		}
+
+		dtmfParser (body){
+			// Parser DTMF
+			this.body = body || "" ;
+			if ( ! body ){
+				this.dtmf  = null ; 	
+			}else{
+				// Parser dtmf 
+				var obj = {};
+				var line = body.split("\n");
+				for (var i = 0 ; i< line.length ; i++){
+					var res = line[i].split("=");
+					obj[res[0].replace(/ |\n|\r/g,"")] = res[1];
+				}
+				this.dtmf = obj ;
+			}
 		}
 	};
 
-	bodySip.prototype.sdpParser = function(body){
-		this.sdp = body || "";
-	};
 
 	/*
  	 *
@@ -354,108 +460,122 @@ stage.register.call(stage.io.protocols, "sip",function(){
  	 *
  	 *
  	 */
-	var sipRequest = function(transaction, bodyMessage, typeBody){
-		this.transaction = transaction;
-		this["request-uri"] = this.transaction.dialog.sip.server ; 
-		this["request-port"] = this.transaction.dialog.sip.serverPort ; 
-		
-		this.type = "request";
-		this.requestLine ={}; 
-		this.buildRequestline();
-
-		this.header = {};
-		this.buildHeader();
-
-		this.buildBody(bodyMessage || "", typeBody) ;
-		//this.rawMessage = this.getMessage();	
-	};
-
 	var endline = "\r\n";
 	var endHeader = "\r\n\r\n";
-	sipRequest.prototype.buildRequestline = function(){
-		this.requestLine.method = this.transaction.method.toUpperCase();
-		this.requestLine.version = this.transaction.dialog.sip.version ;
-		this.requestLine["request-uri"] = this["request-uri"] ;
-	};
 
-	sipRequest.prototype.getRequestline = function(uri){
-		switch (this.transaction.method){
-			case "REGISTER":
-				return  this.transaction.method + " sip:" +this["request-uri"] + " " + this.requestLine.version + endline ;
-			break;
-			case "INVITE":
-			case "BYE":
-			case "ACK":
-				return this.transaction.method + " " + "sip:"+this.transaction.to+"@"+this.transaction.dialog.sip.server +" " + this.requestLine.version + endline ;
-			break;
-			case "NOTIFY":
-				return this.transaction.method + " " + "sip:"+this.transaction.to+"@"+this.transaction.dialog.sip.server +" " + this.requestLine.version + endline ;
-			break;
+	var sipRequest  = class sipRequest {
+
+		constructor(transaction, bodyMessage, typeBody){
+			this.transaction = transaction;
+			this["request-port"] = this.transaction.dialog.sip.serverPort ; 
+			
+			this.type = "request";
+			this.requestLine ={}; 
+			this.buildRequestline();
+
+			this.header = {};
+			this.buildHeader();
+
+			this.buildBody(bodyMessage || "", typeBody) ;
 		}
-	};
-	
-	sipRequest.prototype.buildHeader = function(){
-		//FIXE ME RPORT IN VIA PARSER 
-		//console.log(this.transaction.dialog.sip.rport)
+
+		buildRequestline (){
+			this.requestLine.method = this.transaction.method.toUpperCase();
+			this.requestLine.version = this.transaction.dialog.sip.version ;
+		}
+
+		getRequestline (uri){
+			switch (this.transaction.method){
+				case "REGISTER":
+					this["request-uri"] = "sip:"+this.transaction.dialog.sip.server ;
+					return  this.transaction.method + " "+ this["request-uri"] + " " + this.requestLine.version + endline ;
+				break;
+				case "INVITE":
+				case "BYE":
+				case "NOTIFY":
+				case "INFO":
+				case "CANCEL":
+				case "ACK":
+					this["request-uri"] = this.transaction.dialog["request-uri"]  ;
+					return this.transaction.method + " " + this["request-uri"] +" " + this.requestLine.version + endline ;
+				break;
+			}
+		}
 		
-		var rport = this.transaction.dialog.sip.rport ;
-		var from = this.transaction.from; //dialog.sip.userName ;
-		//FIXME GET IP
-		//var ip = this.transaction.dialog.sip.server ;
-		var ip = this.transaction.dialog.sip.publicAddress;
+		buildHeader (){
+			//FIXE ME RPORT IN VIA PARSER 
+			//console.log(this.transaction.dialog.sip.rport)
+			
+			var rport = this.transaction.dialog.sip.rport ;
+			var ip = this.transaction.dialog.sip.publicAddress;
 
-		var fromSip = "<sip:"+this.transaction.from+"@"+ip+">" ; //"<sip:"+ this.sip.userName+"@"+this.sip.server+">";
-		//var fromSip = "<sip:"+this.transaction.from+"@"+this.transaction.dialog.sip.server+">" ; //"<sip:"+ this.sip.userName+"@"+this.sip.server+">";
+			//if ( rport ){
+				//this.header.via  = "Via: "+this.transaction.dialog.sip.version+"/"+this.transaction.dialog.sip.settings.transport+" " +ip+":"+rport+";"+"branch="+this.transaction.branch;
+				this.header.via  = "Via: "+this.transaction.dialog.sip.via+";"+"branch="+this.transaction.branch;
+			//}else{
+				//this.header.via  = "Via: "+this.transaction.dialog.sip.version+"/"+this.transaction.dialog.sip.settings.transport+" " +ip+":"+this["request-port"]+";"+"branch="+this.transaction.branch;	
+			//}	
+			this.header.cseq = "CSeq: "+this.transaction.dialog.cseq + " " + this.transaction.method;
 
-		var to = this.transaction.to ;
-		var toSip = "<sip:"+this.transaction.to+"@"+this.transaction.dialog.sip.server+">";// "<sip:"+ this.to+"@"+this.sip.server+">";
-		var tagTo = this.transaction.dialog.tagTo ? ";tag="+this.transaction.dialog.tagTo : "" ;
+			this.header.from = "From: " +this.transaction.dialog.from + ";tag="+this.transaction.dialog.tagFrom ;
 
-		//this.header.via  = "Via: "+this.transaction.dialog.sip.version+"/"+this.transaction.dialog.sip.settings.transport+" " +this["request-uri"]+":"+this["request-port"]+";rport;"+"branch=z9hG4bK16C8CB9433A5";	
-		if ( rport ){
-			this.header.via  = "Via: "+this.transaction.dialog.sip.version+"/"+this.transaction.dialog.sip.settings.transport+" " +ip+":"+rport+";"+"branch="+this.transaction.branch;
-		}else{
-			this.header.via  = "Via: "+this.transaction.dialog.sip.version+"/"+this.transaction.dialog.sip.settings.transport+" " +ip+":"+this["request-port"]+";"+"branch="+this.transaction.branch;	
-		}	
-		this.header.cseq = "CSeq: "+this.transaction.dialog.cseq + " " + this.transaction.method;
-		this.header.from = "From: "+ from+ " " + fromSip + ";tag="+this.transaction.dialog.tagFrom ;
-		//console.log("toSip : "+toSip);
-		this.header.to = "To: "+ to + " "+ toSip + tagTo;
-		this.header.callId = "Call-ID: " + this.transaction.dialog.callIdSip;
-		this.header.expires = "Expires: " + this.transaction.dialog.expires;
-		this.header.maxForward = "Max-Forwards: " + this.transaction.dialog.maxForward;
-		this.header.userAgent = "User-Agent: " + this.transaction.dialog.sip.settings.userAgent;
-		if ( rport )
-			this.header.contact = "Contact: <sip:" +from+"@"+ip+":"+rport+";transport="+this.transaction.dialog.sip.settings.transport.toLowerCase()+">";
-		else
-			this.header.contact = "Contact: <sip:" +from+"@"+ip+";transport="+this.transaction.dialog.sip.settings.transport.toLowerCase()+">";
-	};
+			var tagTo = this.transaction.dialog.tagTo ? ";tag="+this.transaction.dialog.tagTo : "" ;
+			this.header.to = "To: "+ this.transaction.to  + tagTo;
 
-	sipRequest.prototype.getHeader = function(){
-		var head = "";
-		for (var line in this.header ){
-			head+=this.header[line]+endline;
+			this.header.callId = "Call-ID: " + this.transaction.dialog.callId;
+			this.header.expires = "Expires: " + this.transaction.dialog.expires;
+			this.header.maxForward = "Max-Forwards: " + this.transaction.dialog.maxForward;
+			this.header.userAgent = "User-Agent: " + this.transaction.dialog.sip.settings.userAgent;
+
+			this.header.contact = "Contact: "+this.transaction.dialog.contact
+
+			if (  this.transaction.dialog.routes && this.transaction.dialog.routes.length){
+				this.header.routes = [];
+				for (var i = this.transaction.dialog.routes.length - 1 ; i >= 0 ; i--){
+					this.header.routes.push( "Route: "+ this.transaction.dialog.routes[i] ) ; 		
+				}
+			}
 		}
-		return head ;
+
+		getHeader (){
+			var head = "";
+			for (var line in this.header ){
+				switch ( stage.typeOf( this.header[line] ) ){
+					case "string":
+						head+=this.header[line]+endline;
+					break;
+					case "array":
+						for (var i = 0 ; i <  this.header[line].length ; i++){
+							head+=this.header[line][i] + endline ;
+						}
+					break;
+				}
+			}
+			return head ;
+		}
+
+		buildBody (body, type){
+			this.header.contentLength  = "Content-Length: " + body.length ;
+			if (type)
+				this.header.contentType  = "Content-Type: " + type ;
+			this.body = body || "" ;
+		}
+
+		getBody (){
+			return this.body ;
+		}
+
+		getMessage (){
+			//console.log(this.getRequestline() + this.getHeader() + endline + this.getBody())
+			//console.log(this.getRequestline() + this.getHeader() + endline + this.getBody())
+			return this.rawResponse = this.getRequestline() + this.getHeader() + endline + this.getBody() ;
+		}
+
+		send (){
+			return this.transaction.send( this.getMessage() );	
+		}
 	};
 
-	sipRequest.prototype.buildBody = function(body, type){
-		this.header.contentLength  = "Content-Length: " + body.length ;
-		if (type)
-			this.header.contentType  = "Content-Type: " + type ;
-		this.body = body || "" ;
-	};
-
-	sipRequest.prototype.getBody = function(){
-		return this.body ;
-	};
-	
-
-	sipRequest.prototype.getMessage = function(){
-		//console.log(this.getRequestline() + this.getHeader() + endline + this.getBody())
-		//console.log(this.getRequestline() + this.getHeader() + endline + this.getBody())
-		return this.rawResponse = this.getRequestline() + this.getHeader() + endline + this.getBody() ;
-	};
 
 	/*
  	 *
@@ -464,205 +584,530 @@ stage.register.call(stage.io.protocols, "sip",function(){
  	 *
  	 *
  	 */
-
-	var sipResponse = function(message, code ,messageCode, bodyMessage, typeBody){
-		this.message = message ;
-		this.transaction = message.transaction;
-		this.dialog = message.dialog;
-		this.responseLine ={}; 
-		this.buildResponseLine(code ,messageCode);
-		this.header =[];// message.header.messageHeaders;
-		this.buildHeader();
-		this.buildBody(bodyMessage || "", typeBody) ;
-
-	};
-
 	var codeMessage = {
 		200	:	"OK"
 	};
 
-	sipResponse.prototype.buildHeader = function(){
-		var rport = this.transaction.dialog.sip.rport ;
-		var ip = this.transaction.dialog.sip.publicAddress;
-		
-		// from 
-		var from = this.transaction.from ;
-		var fromSip = "<sip:"+from+"@"+ip+">" ; 
-		this.header.push ( "From: "+ from+ " " + fromSip + ";tag="+this.transaction.dialog.tagFrom) ;
+	var sipResponse  = class sipResponse {
+	
+		constructor(message, code ,messageCode, bodyMessage, typeBody){
+			this.message = message ;
+			this.transaction = message.transaction;
+			this.dialog = message.dialog;
+			this.responseLine ={}; 
+			this.buildResponseLine(code ,messageCode);
+			this.header =[];// message.header.messageHeaders;
+			this.buildHeader(message);
+			this.buildBody(bodyMessage || "", typeBody) ;
+		}
 
-		// to
-		var to = this.transaction.to ;
-		var toSip = "<sip:"+this.transaction.to+"@"+this.transaction.dialog.sip.server+">";
-		var tagTo = this.transaction.dialog.tagTo ? ";tag="+this.transaction.dialog.tagTo : "" ;
-		this.header.push ( "To: "+ to + " "+ toSip + tagTo);
-
-
-		this.header.push(  "Call-ID: " + this.transaction.dialog.callIdSip);
-		//this.header.push(  "Call-ID: " + this.message.callId);
-		//this.header.push( "Expires: " + this.transaction.dialog.expires);
-		this.header.push( "Max-Forwards: " + this.transaction.dialog.maxForward);
-		this.header.push( "User-Agent: " + this.transaction.dialog.sip.settings.userAgent);
-		//console.log(this.message.header.Via)
-
-		for (var i = 0, j = 0   ; i<this.message.header.Via.length ; i++){
-			if ( i != 0 ){
-				this.header.push(this.message.header.Via[j++].raw);	
+	
+		buildHeader (message){
+			for ( var head in  message.rawHeader){
+				switch (head){
+					case "Allow":
+					case "Supported":
+						var ptr = ""
+						for (var i = 0 ; i< message.header[head].length ; i++){
+							if ( i < message.header[head].length - 1 )
+								ptr += message.header[head][i] + ",";
+							else
+								ptr += message.header[head][i] ;
+						}
+						this.header.push( head + ": "+ptr);
+					break;
+					case "Via":
+						if ( this.responseLine.code == "487"  ) {
+							for (var i = 0 ; i < this.dialog[head].length ; i++){
+								this.header.push(this.dialog[head][i].raw);	
+							}	
+						}else{
+							for (var i = 0 ; i< message.header[head].length ; i++){
+								this.header.push(message.header[head][i].raw);	
+							}
+						}
+					break;
+					case "User-Agent" :
+						this.header.push( "User-Agent: " + this.transaction.dialog.sip.settings.userAgent);
+					break;
+					case "Contact":
+						/*var rport = this.transaction.dialog.sip.rport ;
+						var ip = this.transaction.dialog.sip.publicAddress;
+						if ( rport ){
+							this.header.push( "Contact: <sip:" +this.transaction.to+"@"+ip+":"+rport+";transport="+this.transaction.dialog.sip.settings.transport.toLowerCase()+">");
+						}else{
+							this.header.push( "Contact: <sip:" +this.transaction.to+"@"+ip+";transport="+this.transaction.dialog.sip.settings.transport.toLowerCase()+">");
+						}*/
+						this.header.push( "Contact: "+this.dialog.contact );
+					break;
+					case "To":
+						//console.log(message.header[head] )
+						//console.log(this.dialog.sip.displayName )
+						var ret = regHeaders.fromToG.exec( message.header[head] ) ;	
+						//console.log(ret)
+						if ( ret &&  ( ! ret[1] ) ){
+							//console.log("traff to")
+							message.header[head] = '"'+this.dialog.sip.displayName+'"'+message.header[head] ;	
+						}
+						//console.log(message.header[head])
+						if ( !  message.header[head].match(/;tag=/) ){
+							this.header.push(head + ": "+message.header[head]+ ( this.transaction.dialog.tagFrom ? ";tag="+this.transaction.dialog.tagFrom : "" ) );
+						}else{
+							this.header.push( head + ": "+message.header[head]);	
+						}	
+					break;
+					case "Record-Route":
+						for (var i = this.message.dialog.routes.length - 1  ; i >= 0 ; i--){
+							this.header.push(head + ": "+ this.message.header.recordRoutes[i]);	
+						}
+					break;
+					case "CSeq":
+						if ( this.responseLine.code == "487" && this.dialog.method === "CANCEL"){
+							this.header.push( head + ": "+message.header[head].replace("CANCEL", "INVITE"));	
+						}else{
+							this.header.push( head + ": "+message.header[head]);
+						}
+					break;
+					case "Content-Type": 
+					case "Organization": 
+					case "Server": 
+					case "Content-Length":
+					break;
+					default :
+						this.header.push( head + ": "+message.header[head]);
+				}
 			}
 		}
-		this.header.push( "CSeq: "+this.transaction.dialog.cseq + " " + this.transaction.method);
-		if ( rport ){
-			this.header.push( "Contact: <sip:" +this.transaction.to+"@"+ip+":"+rport+";transport="+this.transaction.dialog.sip.settings.transport.toLowerCase()+">");
-		}else{
-			this.header.push( "Contact: <sip:" +this.transaction.to+"@"+ip+";transport="+this.transaction.dialog.sip.settings.transport.toLowerCase()+">");
+		
+		getHeader (){
+			var head = "";
+			for (var line in this.header ){
+				head+=this.header[line]+endline;
+			}
+			return head ;
+		}
+
+		buildBody (body, type){
+			this.header.contentLength  = "Content-Length: " + body.length ;
+			if (type)
+				this.header.contentType  = "Content-Type: " + type ;
+			this.body = body || "" ;
+		}
+
+		getBody (){
+			return this.body ;
+		}
+
+		buildResponseLine (code, messageCode){
+			this.responseLine.method = this.transaction.method.toUpperCase();
+			this.responseLine.version = this.transaction.dialog.sip.version ;
+			this.responseLine.code = code ;
+			this.responseLine.message = messageCode || codeMessage[code] ;
+		}
+
+		getResponseline (){
+			if (this.responseLine.method == "ACK")
+				return 	this.responseLine.method +" "+ "sip:"+this.transaction.from+"@"+this.transaction.dialog.sip.server +" "+this.responseLine.version + endline ;		
+			return  this.responseLine.version + " " + this.responseLine.code + " " + this.responseLine.message +  endline ;	
+		}
+
+		getMessage (){
+			//console.log("RESPONSE : " +this.getResponseline() + this.getHeader() + endline + this.getBody())
+			return this.rawResponse = this.getResponseline() + this.getHeader() + endline + this.getBody() ;
+		}
+
+		send (){
+			return this.transaction.send( this.getMessage() );	
 		}
 	};
-	
-	sipResponse.prototype.getHeader = function(){
-		var head = "";
-		for (var line in this.header ){
-			head+=this.header[line]+endline;
-		}
-		return head ;
-	};
 
-	sipResponse.prototype.buildBody = sipRequest.prototype.buildBody ;
-
-	sipResponse.prototype.getBody = sipRequest.prototype.getBody ;
-
-	sipResponse.prototype.buildResponseLine = function(code, messageCode){
-		this.responseLine.method = this.transaction.method.toUpperCase();
-		this.responseLine.version = this.transaction.dialog.sip.version ;
-		this.responseLine.code = code ;
-		this.responseLine.message = messageCode || codeMessage[code] ;
-	};
-
-	sipResponse.prototype.getResponseline = function(){
-		if (this.responseLine.method == "ACK")
-			return 	this.responseLine.method +" "+ "sip:"+this.transaction.from+"@"+this.transaction.dialog.sip.server +" "+this.responseLine.version + endline ;		
-		return  this.responseLine.version + " " + this.responseLine.code + " " + this.responseLine.message +  endline ;	
-	};
-
-	sipResponse.prototype.getMessage = function(){
-		//console.log("RESPONSE : " +this.getResponseline() + this.getHeader() + endline + this.getBody())
-		return this.rawResponse = this.getResponseline() + this.getHeader() + endline + this.getBody() ;
-	};
 
 	/*
  	 *
  	 * CLASS TRANSACTION
  	 *
  	 *
- 	 *
  	 */
-	var transaction = function(to, dialog){
-		this.setMessage(to);
-		if (! this.message ){
-			this.to = to ;
-			this.from = dialog.from ;
-			this.cseq = ++dialog.cseq;
-			this.dialog = dialog;
-			this.message = null;
-			this.method = dialog.method;
-			this.branch = this.generateBranchId() ;
-		}	
-		this.response = null;
-		this.request = null;
-		this.intervalID = null;	
-		this.timeInterval = 60000;
-		this.error = null;
-		this.nbSend = 0;		
-		this.sended = false;
-	};
-
-	transaction.prototype.setMessage = function(message){
-		if (message instanceof Message){
-			this.message = message;
-			this.to = this.message.toName
-			this.from = this.message.fromName
-			this.dialog = this.message.dialog;
-			this.cseq = this.message.cseq;
-			this.method = this.message.method;
-			this.branch = this.message.header.branch;
-			return message;
-		}
-		this.message = null;
-		return null;
-	};
-
-
-	transaction.prototype.createRequest = function(body, typeBody){
-		this.request = new sipRequest(this, body || "", typeBody);
-		this.message = null;
-		return this.request ;
-	};
-
-	transaction.prototype.sendRequest = function(){
-		//console.log(this.request.getMessage())
-		this.send(this.request.getMessage());
-	};
-
-
-	transaction.prototype.createResponse = function(code ,message, body, typeBody){
-		this.response = new sipResponse(this.message, code, message, body , typeBody );
-		return this.response ;
-	};
-
-	transaction.prototype.sendResponse = function(){
-		this.send(this.response.getMessage());
-	};
-
 	var generateHex = function(){
 		return Math.floor(Math.random()*167772150000000).toString(16) ;
 	};
-	transaction.prototype.generateBranchId = function(){
-		var hex = generateHex();
-		if ( hex.length === 12 )
-			return "z9hG4bK"+hex;
-		else
-			return arguments.callee();
+
+	var Transaction  = class Transaction {
+
+		constructor(to, dialog){
+			this.dialog = dialog ;	
+			if ( to instanceof Message){
+				this.hydrate(to);
+			}else{
+				this.to = to ;
+				this.from = dialog.from ;
+				this.method = dialog.method;
+				this.branch = this.generateBranchId() ;
+			}
+			this.responses = {};
+			this.requests = {};	
+			this.interval = null;
+		}
+
+		hydrate (message){
+			this.message = message;
+			if ( message.type === "REQUEST" ){
+				this.to = this.dialog.to
+				this.from = this.dialog.from
+				this.method = this.dialog.method;
+				this.branch = this.message.header.branch;	 
+			}
+			if ( message.type === "RESPONSE" ){
+				this.to = this.dialog.to
+				this.from = this.dialog.from
+				this.method = this.dialog.method;
+				this.branch = this.message.header.branch;
+			}
+
+		}
+
+		
+		generateBranchId (){
+			var hex = generateHex();
+			if ( hex.length === 12 ){
+				return "z9hG4bK"+hex;
+			}else{
+				return this.generateBranchId() ;
+			}
+		}
+
+		createRequest (body, typeBody){
+			if (this.method != "ACK" && this.method != "CANCEL" ){
+				this.dialog.incCseq();
+			}
+			this.request = new sipRequest(this, body || "", typeBody);
+			this.message = null;
+			return this.request ;
+		}
+
+		createResponse (code ,message, body, typeBody){
+			if (this.method === "INVITE" || this.method === "ACK" ){
+				switch ( true ){
+					case code < 200 : 
+						this.dialog.status = this.dialog.statusCode.EARLY ; 
+					break;
+					case code < 300 :
+						this.dialog.status = this.dialog.statusCode.ESTABLISHED ;
+					break;
+					default:
+						this.dialog.status = this.dialog.statusCode.TERMINATED ;	
+				}
+			}
+			this.response = new sipResponse(this.message, code, message, body , typeBody );
+			return this.response ;
+		}
+
+		send (message){
+			return this.dialog.sip.send( message )
+		}
+
+		cancel (){
+			this.method = "CANCEL";
+			this.dialog.routes = null ;
+			this.dialog.tagTo = "" ;
+			var request = this.createRequest();
+			request.send();
+			this.dialog.status = this.dialog.statusCode.CANCEL ;
+			return request ;
+		}
+
+		decline (){
+			var ret = this.createResponse(
+				603,
+				"Declined"	
+			);
+			ret.send();
+			return ret ;
+		}
+
+		clear (){
+			// CLEAR INTERVAL	
+			if (this.interval){
+				clearInterval(this.interval);
+			}
+		}
 	};
 
-	transaction.prototype.send = function(message){
-		this.dialog.sip.send(message)
-		++this.nbSend ;
-		if (this.method !== "ACK"){
-			/*this.intervalID = setInterval(function(){
-				var lastMessage = message ;
-				if ( this.message ){
-					this.clear();
+	/*
+ 	 *
+ 	 * CLASS DIALOG
+ 	 *
+ 	 */
+	var statusCode = {
+		INITIAL:	0,
+		EARLY:		1,	// on 1xx
+		ESTABLISHED:	2,	// on 200 ok
+		TERMINATED:	3,	// on by	
+		CANCEL:		4	// cancel
+	};
+
+	var Dialog  = class Dialog {
+
+		constructor(method, sip){
+			this.sip = sip;
+			this.transactions = {};
+			this.statusCode = statusCode ;
+			this.status = this.statusCode.INITIAL ;
+			this.routes = null ;
+			this.from = this.sip.from;
+			this.maxForward = this.sip.settings.maxForward;
+ 			this.expires = this.sip.settings.expires;
+			this.tagFrom = this.generateTag() ;
+			this.cseq = this.generateCseq();
+			if (method instanceof Message ){
+				this.hydrate( method );
+			}else{
+			
+				this.method = method;
+			
+				this.callId = this.generateCallId(); 
+				this.status = this.statusCode.INITIAL ;
+			 	
+				this.to = null ;
+				this.tagTo = null ; 
+				
+			}
+			//this.contact = this.sip.generateContact( null, null, true) ;
+			this.contact = this.sip.contact;
+		}
+	
+		hydrate (message){
+
+			if ( message.type === "REQUEST" ){
+				this.cseq = message.cseq; 
+				this.method = message.method ;
+				this.callId = message.callId;
+
+				// to
+				if ( message.fromNameDisplay ){
+					this.to = '"'+message.fromNameDisplay+'"' + "<sip:"+message.from+">" ;
 				}else{
-					//console.log("send" + message)
-					this.dialog.sip.send(lastMessage);
-					++this.nbSend ;
+					this.to = "<sip:"+message.from+">" ;	
 				}
-			}.bind(this),this.timeInterval);*/
+				this.toName = message.fromName;
+				this.tagTo = message.fromTag || this.generateTag() ; 
+				//from
+				this.tagFrom = message.toTag || this.tagFrom;
+ 		        	if (message.toNameDisplay){
+					this.from ='"'+message.toNameDisplay+'"' + '<sip:'+message.to+'>';
+				}else{
+					this.from = "<sip:"+message.to+">";
+				}	
+				this.fromName= message.toName; 
+
+
+				// manage routes
+				if ( message.header.recordRoutes.length ){
+					this.routes = message.header.recordRoutes.reverse();  	
+				}
+
+				// FIXME if (  ! this["request-uri"] &&  message.contact ) 
+				if (  message.contact ){
+					//this["request-uri"] =  message.contact + ":" + message.rport
+					this["request-uri"] =  message.contact ;
+				}
+
+			}
+			if ( message.type === "RESPONSE" ){
+				this.cseq = message.cseq;
+				if ( !  this.callId )
+					this.callId = message.callId;
+				if ( !  this.to ){
+					if ( message.toNameDisplay ){
+						this.to =  '"'+message.toNameDisplay+'"' + "<sip:"+message.to+">" ;
+					}else{
+						this.to =  "<sip:"+message.to+">" ;
+					}
+				}else{
+					if ( message.toNameDisplay ){
+						this.to =  '"'+message.toNameDisplay+'"' + "<sip:"+message.to+">" ;
+					}
+				}
+
+				if ( message.toTag ){
+					this.tagTo = message.toTag ;	
+				}
+				if ( message.fromTag ){
+					this.tagFrom = message.fromTag ;	
+				}
+				// FIXME if (  ! this["request-uri"] &&  message.contact ) 
+				if (  message.contact ){
+					//this["request-uri"] =  message.contact + ":" + message.rport
+					this["request-uri"] =  message.contact ;
+				}
+
+				// manage routes
+				if ( message.header.recordRoutes.length ){
+					this.routes = message.header.recordRoutes ;	
+				}
+			}
+		}
+
+		generateCallId (){
+			return parseInt(Math.random()*1000000000,10);
+		}
+
+		generateTag (){
+			return "nodefony"+parseInt(Math.random()*1000000000,10);
+		}
+
+		generateCseq (){
+			return 1;
+		}
+
+		incCseq (){
+			this.cseq = this.cseq + 1 ;
+			return this.cseq ;
+		}
+
+		getTransaction (id){
+			if ( id in this.transactions ){
+				return this.transactions[id] ;
+			}
+			return null ;	
+		}
+
+		createTransaction (to){
+			this.currentTransaction = new Transaction( to || this.to , this);
+			console.log("SIP NEW TRANSACTION :" + this.currentTransaction.branch);
+			this.transactions[this.currentTransaction.branch] = this.currentTransaction;
+			return this.currentTransaction;	
+		}
+
+		register (){
+			var trans = this.createTransaction(this.from);
+			this.to = this.from ;
+			var request = trans.createRequest();
+			request.send();
+			return trans;
+
+		};
+
+		unregister (){
+			this.expires = 0 ;
+			this.contact = "*" ;
+			var trans = this.createTransaction(this.from);
+			this.to = this.from ;
+			var request = trans.createRequest();
+			request.send();
+			return trans;		
+		};
+
+
+		ack (message){
+			if ( ! this["request-uri"] ){
+				this["request-uri"] = this.sip["request-uri"] ;
+			}
+			//this.method = "ACK" ;
+			var trans = this.createTransaction();	
+			trans.method = "ACK" ;
+			var request = trans.createRequest();
+			request.send();
+			return request ;
+		};
+
+		invite (userTo, description, type){
+
+			if ( this.status  === this.statusCode.CANCEL ){
+				return null ;
+			}
+			console.log("SIP INVITE DIALOG")
+				if ( userTo ){
+					this.to = "<sip:"+userTo+">" ;
+				}
+			this.method = "INVITE" ;
+			if ( ! this["request-uri"] ){
+				this["request-uri"] = "sip:"+userTo ;
+			}
+
+			if ( description.sdp ){
+				this.bodyType = "application/sdp" ;
+				this.body = description.sdp ;
+			}else{
+				this.bodyType = type ;
+				this.body = description ;
+			}
+			var trans = this.createTransaction(this.to);
+			var request = trans.createRequest(this.body, this.bodyType);
+			request.send();
+			return trans;
+
+		}
+
+		notify (userTo, notify, typeNotify){
+			this.method = "NOTIFY" ;	
+			if ( userTo )
+				this.to = "<sip:"+userTo+">" ;
+
+			if ( ! this["request-uri"] ){
+				this["request-uri"] = "sip:"+userTo ;
+			}
+			if (typeNotify){
+				this.bodyType = typeNotify ;
+			}
+			if ( notify ){
+				this.body = notify ;
+			}
+			var trans = this.createTransaction(this.to);
+			var request = trans.createRequest(this.body, this.bodyType);
+			request.send();
+			return this;
+
+		}
+
+		info ( info, typeInfo){
+			this.method = "INFO" ;	
+
+			if (typeInfo){
+				this.bodyType = typeInfo ;
+			}
+			if ( info ){
+				this.body = info ;
+			}
+			var trans = this.createTransaction(this.to);
+			var request = trans.createRequest(this.body, this.bodyType);
+			request.send();
+			return this;
+
+		}
+
+		bye (){
+			this.method = "BYE" ;
+			var trans = this.createTransaction();
+			var request = trans.createRequest();
+			request.send();
+			return this;
+
+		}
+
+		clear (id){
+			if ( id ){
+				if (this.transactions[id]){
+					this.transactions[id].clear();
+				}else{
+					throw new Error("TRANSACTION not found :" + id);
+				}
+			}else{
+				for ( var transac in this.transactions ){
+					this.transactions[transac].clear();	
+				}	
+			}
 		}
 	};
 	
-	transaction.prototype.clear = function(){
-		//console.log("clear transaction cseq : "+ this.cseq)
-		if ( this.intervalID ){
-			clearInterval(this.intervalID);
-			this.intervalID = null;
-		}
-	};
-	
-	transaction.prototype.ack = function(){
-		this.method = "ACK";
-		var request = this.createResponse(200,"OK")
-		this.sendResponse();
-		this.clear();
-	};
 
 
 	/*
  	 *
- 	 * CLASS MESSAGE
+ 	 *	MESSAGE SIP 
  	 *
  	 *
- 	 *
- 	 */
-
+ 	 */ 
 	var firstline = function(firstLine){
 		var method = firstLine[0];	
 		var code = firstLine[1];
@@ -678,204 +1123,151 @@ stage.register.call(stage.io.protocols, "sip",function(){
 			code : code,
 			message : message
 		}	
-	
 	};
 
-	var parseMessage = function(message){
-		var splt = message.split(/\r\n\r\n/);
-		if (splt.length && splt.length <= 2){
-			this.header = new headerSip(this,  splt[0]);
-			this.contentLength = parseInt(this.header["Content-Length"],10);
-			if ( splt[1] )
-				this.body = new bodySip(this, splt[1]);
-			else
-				this.body = new bodySip(this, ""); ;
-			this.statusLine =firstline(this.header.firstLine) 
-			this.code = parseInt( this.statusLine.code, 10);
-		}else{
-			throw splt ;
-		}
-	};
+	var regSIP = /\r\n\r\n/ ;
+	var Message  = class Message {
 
-	var Message = function(response, sip){
-		this.sip = sip ;
-		if (response){
-			this.rawResponse = response;
-			this.header = null;
-			this.body = null;
-			this.statusLine = null;
-			try {
-				parseMessage.call(this, response);
-			}catch(e){
-				throw e
+		constructor(message, sip){	
+			this.sip = sip ;
+			if (message){
+				this.rawMessage = message ;
+				this.header = null;
+				this.body = null;
+				this.statusLine = null;
+				this.contentLength = 0 ;
+				this.code = null ;
+				this.statusLine = "" ;	
+				this.split = message.split( regSIP );
+				if (this.split.length && this.split.length <= 2){ 
+					try {
+						this.parseHeader();
+						this.contentLength = parseInt(this.header["Content-Length"], 10) ;
+						this.parseBody();	
+						this.statusLine =firstline(this.header.firstLine) 
+							this.code = parseInt( this.statusLine.code, 10);
+						this.getType(); 
+					}catch(e){
+						throw e
+					}
+
+					this.rawHeader = this.header.rawHeader ;
+					//console.log(this.rawHeader)
+				}
+				this.getDialog();
+				this.getTransaction();
+
+			}else{
+				throw new Error( "BAD FORMAT MESSAGE SIP no message" , 500);
 			}
-			//var callid = this.header["Call-ID"] ;
-			//this.dailog = this.dialogs[callid] ;
 		}
-		this.dialog = this.sip.dialogs[this.header["Call-ID"]];
-		if ( ! this.dialog ){
-			this.dialog = new dialog(this, this.sip);
-			this.sip.dialogs[this.dialog.callId] = this.dialog;
+
+		getType ( ){
+			if ( this.code ){
+				if ( ( typeof this.code ) === "number" &&  ! isNaN (this.code) ){
+					this.type = "RESPONSE" ;
+				}else{
+					throw new Error("BAD FORMAT MESSAGE SIP message code   ") ;	
+				}
+			}else{
+				if ( this.method ){
+					this.type = "REQUEST" ;
+				}else{
+					this.type = null ;
+					throw new Error("BAD FORMAT MESSAGE SIP message type not defined  ") ;
+				}
+			}
 		}
-		this.transaction = this.dialog.transactions[this.cseq];
-		if ( ! this.transaction) {
-			this.transaction = this.dialog.createTransaction(this) ;
-		}else{
-			this.transaction.setMessage(this)
-		}	
-		//console.log(this)
-	}; 
 
-	Message.prototype.getHeader = function(){
-		return this.header;
-	};
-
-	Message.prototype.getBody = function(){
-		return this.body;
-	};
-
-	Message.prototype.getStatusLine = function(){
-		return this.statusLine;
-	};
-
-	
-
-
-	/*
- 	 *
- 	 * CLASS DIALOG
- 	 *
- 	 *
- 	 *
- 	 */
-	var dialog = function(method, sip){
-
-		this.sip = sip;
-		this.transactions = {};
-		//this.id = ++identifiant;
-		this.from = this.sip.userName;
-		this.maxForward = this.sip.settings.maxForward;
- 		this.expires = this.sip.settings.expires;
-
-		if (method instanceof Message ){
-			this.cseq = method.cseq; 
-			this.method = method.method ;
-			this.callId = method.callId;
-			this.callIdSip = this.callId+"@"+this.sip.server;
-			this.to = method.fromName;
-			//FIXME
-			//this.tagTo = method.fromTag 
-			this.tagTo = method.toTag || parseInt(Math.random()*1000000000,10); 
-			//FIXME
-			//this.tagFrom = method.toTag || parseInt(Math.random()*1000000000,10); 
-			this.tagFrom = method.fromTag ; 
-			//this.createTransaction(this.to, this.cseq, method.header.branch) ;
-
-		}else{
-			this.tagFrom = parseInt(Math.random()*1000000000,10);
-			//this.tagTo = parseInt(Math.random()*1000000000,10);
-			this.cseq = 0;
-			this.method = method;
-			this.callId = parseInt(Math.random()*1000000000,10);
-			this.callIdSip = this.callId+"@"+this.sip.server;
-			this.currentTransaction = null;	
+		parseBody ( ){
+			if ( this.split[1] ){
+				this.body = new bodySip(this, this.split[1]);
+			}else{
+				this.body = new bodySip(this, ""); 
+			}
 		}
-		if (sip.authenticate) {
-			this.authenticate = new authenticate(this, sip.userName , sip.settings.password) 
+
+		parseHeader ( ){
+			if ( this.split[0] ){
+				this.header = new headerSip(this, this.split[0]);
+			}else{
+				throw ("BAD FORMAT MESSAGE SIP no header ", 500);
+			}	
 		}
-	};
 
-	dialog.prototype.createTransaction = function(to){
-		this.currentTransaction = new transaction(to , this);
-		this.transactions[this.cseq] = this.currentTransaction;
-		return this.currentTransaction;
-	};
-
-	dialog.prototype.clearTransaction = function(cseq){
-		if (cseq in this.transactions){
-			this.transactions[cseq].clear();
+		getContact (){
+			return this.contact;
 		}
-		delete this.transactions[cseq];
-	};
-	
-	dialog.prototype.register = function(){
-		var trans = this.createTransaction(this.from);
-		//this.cseqType = this.cseq+ " REGISTER";
-		var request = trans.createRequest();
-		trans.sendRequest();
-		this.to = this.from ;
-		return trans;
-				
-	};
 
-	dialog.prototype.invite = function(userTo, description, type){
-		this.to = userTo ;
-		this.sdp = description.sdp ;
-		var trans = this.createTransaction(userTo);
-		if (description.sdp){
-			var Type = "application/sdp" 
-			var request = trans.createRequest(this.sdp, Type);
-			trans.sendRequest();
-		}else{
-			var request = trans.createRequest(description, type);
-			trans.sendRequest();
+		getHeader (){
+			return this.header;
 		}
-		return trans;
-	};
 
-	
-	dialog.prototype.notify = function(userTo, notify, typeNotify){
-		this.notify = notify ;
-		var trans = this.createTransaction(userTo);
-		if (typeNotify){
-			var type = typeNotify; 
-			var request = trans.createRequest(this.notify, typeNotify);
-			trans.sendRequest();
-		}else{
-			var request = trans.createRequest(this.notify, null);
-			trans.sendRequest();
+		getBody (){
+			return this.body;
 		}
-		return trans;
-	};
 
-	dialog.prototype.by = function(){
-		this.method = "BYE";
-		if (this.to){
-			var trans = this.createTransaction(this.to);
-			var request = trans.createRequest();
-			trans.sendRequest();
+		getStatusLine (){
+			return this.statusLine;
+		};
+
+		getCode (){
+			return this.code ;
+		}
+
+		getDialog (){
+			if (  this.header["Call-ID"] ){
+				this.dialog = this.sip.getDialog( this.header["Call-ID"] ) ;
+				if ( ! this.dialog ){
+					this.dialog = this.sip.createDialog(this)
+				}else{
+					console.log("SIP HYDRATE DIALOG :" + this.dialog.callId)
+						this.dialog.hydrate(this);	
+				}
+				return this.dialog ;
+			} else{
+				throw new Error("BAD FORMAT SIP MESSAGE no Call-ID" , 500);
+			}
+		}
+
+		getTransaction (){
+			if ( this.header["branch"] ){
+				if ( ! this.dialog ){
+					this.getDialog();
+				}
+				if ( this.dialog ){
+					this.transaction = this.dialog.getTransaction( this.header["branch"] ) ;
+					if ( ! this.transaction ){
+						this.transaction = this.dialog.createTransaction(this);	
+					}else{
+						console.log("SIP HYDRATE TRANSACTION :" + this.transaction.branch)
+							this.transaction.hydrate(this);	
+					}
+				}else{
+					this.transaction = null ;
+				}
+				return this.transaction ;
+			}else{
+				// TODO CSEQ mandatory
+				console.log( this.rawMessage )
+					throw new Error("BAD FORMAT SIP MESSAGE no Branch" , 500);
+			}	
 		}
 	};
 
 	/*
  	 *
- 	 *	CLASS SIP
  	 *
+ 	 *	CLASS SIP 
  	 *
  	 *
  	 */
-	var defaultSettings = {
-		expires		: 1800,
-		registerTimeout : 60000,
-		maxForward	: 70,
-		version		: "SIP/2.0",
-		userAgent	: "nodefony",
-	 	portServer	: "5060",
-	 	userName	: "userName",		
-	 	pwd		: "password",
-		transport	: "TCP"
-	};
-
-	var onStart = function(){
-		//var diagReg = this.register()	
-		this.notificationsCenter.fire("onStart",this);
-	};
-
-	var onStop = function(){
-		this.stop();	
-	};
-
+	// entry point response transport
 	var onMessage = function(response){
+		
+		console.log("RECIEVE SIP MESSAGE ");	
+		console.log(response);	
+
 		try {
 			//console.log(this.fragment)
 			if ( this.fragment ){
@@ -887,6 +1279,7 @@ stage.register.call(stage.io.protocols, "sip",function(){
 			var message = new Message(this.lastResponse, this);
 			this.fragment = false ;
 		}catch(e){
+			console.log(e)
 			// bad split 
 			for ( var i = 0 ; i < e.length ; i++){
 				if ( e[i] ){
@@ -901,117 +1294,162 @@ stage.register.call(stage.io.protocols, "sip",function(){
 				}
 			}	
 			return ;
-				
 		}
-		//console.log("SIP RECEIVE :"+ response);
-		//console.log(message.method)
+		this.fire("onMessage", message.rawMessage);	
+		//console.log( message.type + " : " + response);
 		switch (message.method){
 			case "REGISTER" :
-					this.rport = message.header.Via[0].rport;
-					switch ( message.code ){
-						case 401 :
-						case 407 :
-							if (this.registered === 200 ) {
+				this.rport = message.header.Via[0].rport;
+				if (this.rport ){
+					this["request-uri"] =  "sip:"+this.userName+"@"+this.publicAddress+":"+ this.rport +";transport="+this.transportType;	
+				}
+				switch ( message.code ){
+					case 401 :
+					case 407 :
+						if (this.registered === 200 ) {
+							if ( this.registerInterval )
 								clearInterval(this.registerInterval);
+							this.registerInterval = null ;	
+						}else{
+							
+							if ( this.registered === 401 || this.registered === 407){
+								if ( this.registerInterval )
+									clearInterval(this.registerInterval);
 								this.registerInterval = null ;	
-							}else{
-								if ( this.registered === 401 || this.registered === 407){
-									break; 
-								}
-								this.registered = message.code ;
-							}
-							
-							this.authenticate = new authenticate(message, this.userName , this.settings.password) ;
-							this.authenticate.register(message);
-							
-						break;	
-						case 403 :
-							this.registered = message.code ;
-							//console.log("Forbidden (bad auth)")
-							this.authenticate = false;
-						break;	
-						case 200 :
-							if (this.registered === 401 ) {
-								this.notificationsCenter.fire("onRegister",message);
+								this.registered = null;
+								this.notificationsCenter.fire("onError", this, message);
+								break; 
 							}
 							this.registered = message.code ;
-							this.registerInterval = setInterval(function(){
-								message.dialog.register();
-							}.bind(this) ,this.settings.registerTimeout);
-						break;
-						default:
-							//console.log(message);
-							this.notificationsCenter.fire("on"+message.code,message);
-						break;
-					}
-				
+						}
+
+						delete this.authenticate ;
+						this.authenticate = null;	
+						this.authenticate = new authenticate(message.dialog, this.userName , this.settings.password) ;
+						var transaction = this.authenticate.register(message, message.code === 407 ? "proxy" : null);
+						
+					break;	
+					case 403 :
+						this.registered = message.code ;
+						//console.log("Forbidden (bad auth)")
+						delete this.authenticate ;
+						this.authenticate = null;
+						this.notificationsCenter.fire("onError", this, message);
+					break;	
+					case 404 :
+						this.registered = message.code ;
+						delete this.authenticate ;
+						this.authenticate = null;
+						this.notificationsCenter.fire("onError", this, message);
+					break;
+					case 200 :
+						if ( this.registerInterval ){
+							clearInterval( this.registerInterval );	
+						}
+						if ( ! message.contact ){
+							this.registered = "404" ;
+							this.notificationsCenter.fire("onUnRegister",this, message);
+							return ;
+						}
+						if (this.registered === 401 || this.registered === null ) {
+							this.notificationsCenter.fire("onRegister", this, message);
+						}
+						this.registered = message.code ;
+						this.registerInterval = setInterval(() => {
+							this.register(this.userName, this.settings.password);
+						} ,  this.settings.expires * 900  );
+					break;
+					default:
+						this.registered = message.code ;
+						delete this.authenticate ;
+						this.authenticate = null;
+						//console.log(message);
+						this.notificationsCenter.fire("on"+message.code, this, message);
+					break;
+				}
 			break;
 			case "INVITE" :
-				this.rport = message.rport || this.rport;
-				if (( typeof message.code ) === "number" &&  ! isNaN (message.code) ){
-					switch(message.code){
-						case 401 :
-							this.authenticate = new authenticate(message, this.userName , this.settings.password) ;
-							this.authenticate.register(message);
-						break;
-						case 180 : 
-							this.notificationsCenter.fire("onRinging",message);
-						break;
-						case 100 : 
-							//console.log("case 100 trying")
-							this.notificationsCenter.fire("onTrying",message);
-						break;
-						case 603 : 
-							this.notificationsCenter.fire("onDecline",message);
-						break;
-						case 403 :
-							//console.log("Forbidden (bad auth)")
-							this.authenticate = false;
-							this.notificationsCenter.fire("onError",message);
-						break;
-						case 408 :
-							//console.log("Time out")
-							this.notificationsCenter.fire("onTimeout",message);
-						break;
-						case 404 :
-							this.notificationsCenter.fire("onError",message);
-						break;
-						case 480 :
-							this.notificationsCenter.fire("onError",message);
-						break;
-						case 484 :
-							this.notificationsCenter.fire("onError",message);
-						break;
-						case 488 :
-							this.notificationsCenter.fire("onError",message);
-						break;
-						case 477 :
-							//console.log("send failed")
-							//console.log(message)
-							this.notificationsCenter.fire("onError",message);
-						break;
-						case 200 :
-							//console.log("case 200")
-							//console.log(message);
-							//ACK
-							message.transaction.ack();
-							this.notificationsCenter.fire("onCall",message);
-						break;
-						case 500 :
-							this.notificationsCenter.fire("onError",message);
-						break;
-						default:
-							this.notificationsCenter.fire("on"+message.code,message);
-						break;
-					}
-				}else{
-					//console.log("INVITE :::::::::::::::::::: FROM : "+message.fromName)
-					this.notificationsCenter.fire("onInvite", message, message.dialog);
+				//this.rport = message.rport || this.rport;
+
+				switch ( message.type ){
+					case "REQUEST":
+						if ( message.dialog.status === message.dialog.statusCode.INITIAL ){
+							this.fire("onInitCall", message.dialog.toName, message.dialog, message.transaction);
+							if ( message.header.Via ){
+								message.dialog.Via = message.header.Via ;	
+							}
+							this.notificationsCenter.fire("onInvite", message, message.dialog);
+						}else{
+							//console.log(message.dialog.statusCode[message.dialog.status])
+							if ( message.dialog.status === message.dialog.statusCode.ESTABLISHED ){
+								this.notificationsCenter.fire("onInvite", message, message.dialog);
+							}else{
+								var ret = message.transaction.createResponse(200, "OK");
+								ret.send();
+							}
+						}
+					break;
+					case "RESPONSE":
+						if ( message.code >= 200 ){
+							message.dialog.ack(message);	
+						}
+						switch(message.code){
+							case 407 :
+							case 401 :
+								delete this.authenticate ;
+								this.authenticate = null;
+								this.authenticate = new authenticate(message.dialog, this.userName , this.settings.password) ;
+								var transaction = this.authenticate.register(message, message.code === 407 ? "proxy" : null);
+								this.fire("onInitCall", message.dialog.toName, message.dialog, transaction);
+							break;
+							case 180 : 
+								this.notificationsCenter.fire("onRinging",this, message);
+								message.dialog.status = message.dialog.statusCode.EARLY ;
+							break;
+							case 100 : 
+								this.notificationsCenter.fire("onTrying",this, message);
+								message.dialog.status = message.dialog.statusCode.EARLY ;
+							break;
+							case 200 :
+								this.notificationsCenter.fire("onCall",message);
+								message.dialog.status = message.dialog.statusCode.ESTABLISHED ;
+							break;
+							case 486 : 
+							case 603 : 
+								this.notificationsCenter.fire("onDecline", message);
+							break;
+							case 403 :
+								this.authenticate = false;
+								this.notificationsCenter.fire("onError", this, message);
+							break;
+							case 487 :
+								// ACK !!
+							break;
+							case 404 :
+							case 477 :
+							case 480 :
+							case 484 :
+							case 488 :
+								this.notificationsCenter.fire("onError",this, message);
+							break;
+							case 408 :
+								this.notificationsCenter.fire("onTimeout",this, message);
+							break;
+							case 500 :
+								this.notificationsCenter.fire("onError",this, message);
+							break;
+							default:
+								this.notificationsCenter.fire("on"+message.code, this, message);
+							break;
+						}
+					break;
+					default:
+						// error BAD FORMAT
 				}
 			break;
 			case "ACK" :
 				//console.log("ACK");
-				//TODO manage interval messages
+				//TODO manage interval messages timer retransmission 
 			break;
 			case "BYE" :
 				switch(message.code){
@@ -1021,152 +1459,318 @@ stage.register.call(stage.io.protocols, "sip",function(){
 					break;
 					default :
 						this.notificationsCenter.fire("onBye",message);
-						var request = message.transaction.createResponse(200,"OK", null)
-						message.transaction.sendResponse();
+						if ( message.type === "REQUEST" ){
+                                                        var res = message.transaction.createResponse(200,"OK")
+                                                        res.send();
+                                                }
 				}
-				
+			break;
+			case "INFO" :
+				switch ( message.type ){
+					case "REQUEST":
+						//console.log("SIP   :"+ message.method + " "+" type: "+message.contentType );
+						this.notificationsCenter.fire("onInfo",message);	
+						var res = message.transaction.createResponse(200, "OK")
+						res.send();
+					break;
+					case "RESPONSE":
+						//console.log("SIP   :"+ message.method + " "+" code:"+message.code );
+						this.notificationsCenter.fire("onDrop",message);
+					break;
+				}
+			break;
+
+			case "CANCEL" :
+				switch ( message.type ){
+					case "REQUEST":
+						this.notificationsCenter.fire("onCancel",message);
+						var res = message.transaction.createResponse(200, "OK")
+						res.send();
+						message.dialog.status = message.dialog.statusCode.CANCEL ;
+						var res = message.transaction.createResponse(487, "Request Terminated")
+						res.send();
+						message.dialog.status = message.dialog.statusCode.TERMINATED  ;
+
+					break;
+					case "RESPONSE":
+						
+						this.notificationsCenter.fire("onDrop",message);
+					break;
+				}
+			break;
+			case "REFER":
+				console.log("SIP REFER NOT ALLOWED :"+ message.method );
+				this.notificationsCenter.fire("onDrop",message);	
 			break;
 			default:
-				console.log("DROP :"+ message.method + " "+" code:"+message.code );
-				this.notificationsCenter.fire("onError",message);
-			break;
+				console.log("SIP DROP :"+ message.method + " "+" code:"+message.code );
+				this.notificationsCenter.fire("onDrop",message);
+				// TODO RESPONSE WITH METHOD NOT ALLOWED 
 		}
-		this.notificationsCenter.fire("onMessage",message);
 	};
 
-	var SIP = function(server, transport, settings){
-		//console.log(this)	
-		this.settings = stage.extend({}, defaultSettings, settings);
-		//this.settings.url = stage.io.urlToOject(url)
-		this.notificationsCenter = stage.notificationsCenter.create(this.settings, this);
-		this.dialogs = {};
-		this.version = this.settings.version;
-		this.fragment = false;	
+	var onStart = function(){
+		this.fire("onStart",this);
+	};
 
-		//transport
-		this.transport = transport ;
+	var onStop = function(){
+		this.stop();	
+	};
 
-		// GET REMOTE IP
-		//console.log(this.transport)
-		if (this.transport.publicAddress){
-			//this.publicAddress = this.transport.publicAddress ;	
-			this.publicAddress = this.transport.domain.hostname ;	
-			//console.log(this.publicAddress)
-		}else{
-			this.publicAddress = server ;	
-		}
-
-		this.transport.listen(this, "onSubscribe", function(service, message){
-			if (service === "SIP" || service === "OPENSIP")
-				onStart.call(this, message);
-		} );
+	var defaultSettings = {
+		expires		: 200,		// en secondes
+		maxForward	: 70,
+		version		: "SIP/2.0",
+		userAgent	: "nodefony",
+	 	portServer	: "5060",
+	 	userName	: "userName",		
+		displayName	: "",
+	 	pwd		: "password",
+		transport	: "TCP"
+	};
 		
-		this.transport.listen(this, "onUnsubscribe", function(service, message){
-			if (service === "SIP" || service === "OPENSIP")
-				onStop.call(this, message);
-		} );
-		this.transport.listen(this, "onMessage", function(service, message){
-			if (service === "SIP" || service === "OPENSIP")
-				onMessage.call(this, message);
-		} );
 
-		this.transport.listen(this, "onClose", function( message){
-			this.notificationsCenter.fire("onQuit",this);
-		} );
+	// CLASS
+	var SIP  = class SIP {
 
-		
-		// URL
-		this.server = server ;
-		this.serverPort = this.settings.portServer;
-		//this.server = this.settings.url.hostname;
-		//this.serverPort = this.settings.url.port;
-		//this.urnServer = this.settings.url.requestUri ;
-		//this.url =  this.settings.url.href ;
+		constructor(server, transport, settings){
+			this.settings = stage.extend({}, defaultSettings, settings);
+			//this.settings.url = stage.io.urlToOject(url)
+			this.notificationsCenter = stage.notificationsCenter.create(this.settings, this);
+			this.dialogs = {};
+			this.version = this.settings.version;
 
-		// LOGIN
-		this.userName = this.settings.userName ;
-		this.authenticate = false;
-		this.registerInterval = null;
-		this.registered = null ;
+			//
+			this.server = server ;
+			this.serverPort = this.settings.portServer;
 
+			this.authenticate = false;
 
-	};
+			// REGISTER
+			this.registerInterval = null;
+			this.registered = null ;
 
-	SIP.prototype.listen = function(){
-		return this.notificationsCenter.listen.apply(this.notificationsCenter, arguments);
-	};
+			// TRANSPORT
+			this.transport = transport ;
+			if ( this.transport ){
+				this.initTransport();
+			}
+			this.transportType = this.settings.transport.toLowerCase() ;
 
-	SIP.prototype.start = function(){
-		this.state = "CONNECTING";
-		this.notificationsCenter.fire("onStateChanged", this.state);
-		//this.transport.start(this.settings);	
-	};
-
-	SIP.prototype.stop = function(){
-		this.state = "DISCONNECTING";
-		this.notificationsCenter.fire("onStateChanged", this.state);
-		if (this.registerInterval){
-			clearInterval(this.registerInterval);	
+			this.contact = null ;
+			this.via = null ;
+			// IDENTIFIANT
+			//  USER
+			//this.userName = this.settings.userName ;
+			//this.from = "<sip:"+this.userName+"@"+this.publicAddress+">" ; 
+			//this.contact = this.generateContact();
+			//this["request-uri"] =  "sip:"+this.userName+"@"+this.publicAddress+";transport="+this.transportType ;	
 		}
-		//this.transport.stop();
-	};
 
-	SIP.prototype.send = function(data){
-		//console.log("send : " +data)
-		this.transport.sendMessage("OPENSIP", data );
-	};
-
-	SIP.prototype.register = function(){
-		this.diagRegister = new dialog("REGISTER", this);
-		this.dialogs[this.diagRegister.callId] = this.diagRegister;
-		this.diagRegister.register();
-		
-		return this.diagRegister;
-	};
-
-	SIP.prototype.invite = function(userTo, description){
-		var diagInv = new dialog("INVITE", this);
-		this.dialogs[diagInv.callId] = diagInv;
-		diagInv.invite(userTo, description);
-		return diagInv; 
-	};
-
-	SIP.prototype.notify = function(userTo, notifyData, type){
-		var diagInv = new dialog("NOTIFY", this);
-		this.dialogs[diagInv.callId] = diagInv;
-		return diagInv.notify(userTo, notifyData, type);
-		//return diagInv; 
-	};
-
-	SIP.prototype.byAll = function(){
-		for(var dia in this.dialogs){
-			this.by(dia);	
-		}	
-	};
-
-	SIP.prototype.clear = function(){
-		if (this.diagRegister){
-			this.diagRegister.by();	
+		generateInvalid (){
+			return parseInt(Math.random()*1000000000,10)+".nodefony.invalid" ;
 		}
-		for (var diag in this.dialogs ){
-			this.dialogs[diag].by();	
-		}
-		this.stop();
-		//this.transport.stop();
-		//this.transport = null ;	
-	} 
 
-	SIP.prototype.by = function(callId){
-		if( ! callId){
+		generateVia (addr){
+			if ( this.rport ){
+				return  this.version+"/"+this.settings.transport+" " +addr+";rport" ;
+			}else{
+				return  this.version+"/"+this.settings.transport+" " +addr ;
+			}
+		}
+
+		generateContact ( userName, password , force, settings){
+			if ( userName ) {
+				this.userName = userName  ;
+				if ( settings && settings.displayName ){
+					this.displayName = settings.displayName ; 
+				}else{
+					this.displayName = userName ;
+				}
+				this.from = '"'+this.displayName+'"'+'<sip:'+this.userName+'@'+this.publicAddress+'>' ;
+				this["request-uri"] =  "sip:"+this.userName+"@"+this.publicAddress+";transport="+this.transportType ;
+				if ( password ){
+					this.settings.password = password ;
+				}
+			}
+
+			if ( ! this.contact  || force ){
+				switch ( this.transportType ){
+					case "ws":
+					case "wss":
+						var invalid = this.generateInvalid() ;
+						this.via = this.generateVia(invalid);
+						if ( this.rport ){
+							return  '"'+this.displayName+'"'+"<sip:"+this.userName+"@"+ invalid +":"+ this.rport +";transport="+this.transportType+">" ;
+						}else{
+							return  '"'+this.displayName+'"'+"<sip:"+this.userName+"@"+ invalid +";transport="+this.transportType+">" ; 
+						}
+						break;
+					case "tcp" :
+					case "udp" :
+						var invalid = this.generateInvalid() ;
+						this.via = this.generateVia(invalid);
+						//this.via = this.generateVia(this.publicAddress);
+						if ( this.rport ){
+							return  '"'+this.displayName+'"'+"<sip:"+this.userName+"@"+invalid+":"+this.rport+";transport="+this.transportType+">" ;
+						}else{
+							return  '"'+this.displayName+'"'+"<sip:"+this.userName+"@"+invalid+";transport="+this.transportType+">" ;
+						}
+						break;
+					default :
+						throw new Error("SIP TRANSPORT TYPE NOT ALLOWED") ;
+				}
+			}
+			return this.contact ;
+		}
+
+		getDialog (id){
+			if ( id in this.dialogs ){
+				return this.dialogs[id] ;
+			}
+			return null ;	
+		}
+
+		initTransport (transport){
+			if ( transport ){
+				this.transport = transport ; 
+			}
+
+			// GET REMOTE IP
+			if (this.transport.publicAddress){
+				this.publicAddress = this.transport.domain.hostname ;	
+				this.publicAddress = this.server ;
+			}else{
+				this.publicAddress = this.server ;	
+			}
+
+			switch(this.settings.transport) {
+				// realtime nodefony
+				case "TCP" :
+				case "UDP" :
+					this.transport.listen(this, "onSubscribe", function(service, message){
+						if (service === "SIP" || service === "OPENSIP")
+						onStart.call(this, message);
+					} );
+
+					this.transport.listen(this, "onUnsubscribe", function(service, message){
+						if (service === "SIP" || service === "OPENSIP")
+						onStop.call(this, message);
+					} );
+					this.transport.listen(this, "onMessage", function(service, message){
+						if (service === "SIP" || service === "OPENSIP")
+						onMessage.call(this, message);
+					} );
+
+					this.transport.listen(this, "onClose", function( message){
+						this.quit(message)
+					} );
+					break;
+				case "WS":
+				case "WSS":
+					this.transport.listen(this, "onMessage",  function( message){
+						//this.notificationsCenter.fire("onMessage",message.data);
+						onMessage.call(this, message.data);
+					});
+					this.transport.listen(this, "onError",function( message ){
+						this.notificationsCenter.fire("onError", this.transport, message);
+					});
+					this.transport.listen(this, "onConnect", function(message){
+						this.connect(message);
+					});
+					this.transport.listen(this, "onClose", function( message){
+						this.quit(message)
+					} );
+					break;
+				default :
+					this.fire("onError", new Error("TRANSPORT LAYER NOT DEFINED") ) ;
+			}
+		}
+
+		clear (){
+			if ( this.registerInterval  ){
+				clearInterval(this.registerInterval);
+			}
+			//TODO
+			//clean all setinterval	
+			for (var dia in this.dialogs){
+				this.dialogs[dia].clear();	
+			}
+		}
+
+		quit (message){
+			this.fire("onQuit",this, message);
+			this.unregister();
 			this.clear();
-			this.notificationsCenter.fire("onQuit",this);	
-		}else{
-			if (callId in this.dialogs ){
-				this.dialogs[callId].by();	
+		}
+
+		connect (message){
+			this.fire("onConnect",this, message);
+		}
+
+		listen (){
+			return this.notificationsCenter.listen.apply(this.notificationsCenter, arguments);
+		}
+
+		fire (){
+			return this.notificationsCenter.fire.apply(this.notificationsCenter, arguments);
+		}
+
+		createDialog (method){
+			var dialog = new Dialog( method , this);
+			console.log("SIP NEW DIALOG :" + dialog.callId);
+			this.dialogs[dialog.callId] = dialog;
+			return dialog ;
+		}
+
+		register (userName, password, settings){
+			console.log("TRY TO REGISTER SIP : " + userName + password)
+				this.contact = this.generateContact(userName, password, false, settings);
+			this.diagRegister = this.createDialog("REGISTER");
+			this.diagRegister.register();
+			return this.diagRegister;
+		}
+
+		unregister (){
+			var diagRegister = this.createDialog("REGISTER");
+			diagRegister.unregister();
+			return diagRegister;
+		}
+
+		invite (userTo, description){
+			var diagInv = this.createDialog("INVITE");
+			var transaction = diagInv.invite( userTo+"@"+this.publicAddress , description);
+			diagInv.toName = userTo ;
+			this.fire("onInitCall", userTo ,diagInv, transaction);
+			return diagInv; 
+		}
+
+		notify (userTo, description, type){
+			var diagNotify = this.createDialog("NOTIFY");
+			diagNotify.notify( userTo+"@"+this.publicAddress , description, type);
+			return diagNotify; 
+		}
+
+		send (data){
+			console.log("SIP SEND : " +data)
+				this.fire("onSend", data) ;
+			this.transport.send( data );
+		}
+
+		bye (callId){
+			for ( var dialog in this.dialogs ){
+				if (   callId ){
+					if ( this.dialogs[dialog].callId === callId && this.dialogs[dialog].method !== "REGISTER" && this.dialogs[dialog].status === this.dialogs[dialog].statusCode.ESTABLISHED   ){
+						this.dialogs[dialog].bye();
+						break ;
+					}
+				}else{
+					this.dialogs[dialog].bye();
+				}
 			}
 		}
 	};
 
-
-	return SIP;
-});
+	stage.io.protocols.sip = SIP ;	
+	return SIP ;
+};

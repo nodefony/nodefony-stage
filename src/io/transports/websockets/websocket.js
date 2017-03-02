@@ -1,55 +1,45 @@
-/*
- *
- *
- *
- *
- *
- *
- *
- *
- *
- */
-stage.provide("websocket");
+module.exports =  function(stage){
+
+	/*
+ 	 *
+ 	 */
+	var websocket = class websocket extends stage.io.transport  {
+
+		constructor(url, settings){
+			if (url){
+				super(url, settings, this);
+				this.connect(url, settings);
+			}else{
+				super();
+				this.socket = null;
+			}
+		}
+
+		connect (url, settings){
+			this.socket = new WebSocket(url, settings.protocol );
+			this.socket.onmessage = this.listen(this, "onMessage");
+			this.socket.onerror = this.listen(this, "onError");
+			this.socket.onopen = this.listen(this, "onConnect");
+			this.socket.onclose = this.listen(this, "onClose");
+			return this.socket ;
+		}
 
 
-stage.register.call(stage.io.transports, "websocket",function(){
+		close (url, settings){
+			this.socket.close();
+		}
 
-	var websocket = function(url, settings){
-		if (url){
-			this.$super.constructor(url, settings, this)
-			this.connect(url, settings);
-		}else{
-			this.$super.constructor();
+		send (data){
+			this.socket.send(data);
+		}
+
+		destroy (data){
+			delete this.socket ;
 			this.socket = null;
 		}
-	}.herite(stage.io.transport);
-
-
-	websocket.prototype.connect = function(url, settings){
-		this.socket = new WebSocket(url,settings.protocol );
-		this.socket.onmessage = this.listen(this, "onMessage");
-		this.socket.onerror = this.listen(this, "onError");
-		this.socket.onopen = this.listen(this, "onConnect");
-		this.socket.onclose = this.listen(this, "onClose");
-		return this.socket ;
-	}
-
-
-	websocket.prototype.close = function(url, settings){
-		this.socket.close();
 	};
 
-	websocket.prototype.send = function(data){
-		this.socket.send(data);
-	};
-
-	websocket.prototype.destroy = function(data){
-		delete this.socket ;
-		this.socket = null;
-	};
-
-
+	stage.io.transports.websocket = websocket ;
 
 	return websocket;
-
-});
+};

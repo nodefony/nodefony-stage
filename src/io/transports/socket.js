@@ -1,77 +1,58 @@
-/*
- *
- *
- *
- *
- *
- */
-
-stage.provide("socket");
-
-stage.register.call(stage.io, "socket", function(){
-
+module.exports =  function(stage){
 
 	var defaultSettings = {
-		type:"websocket", //   websocket | poll | longPoll 
-	}
-
+		type:"websocket" //   websocket | poll | longPoll 
+	};
 
 	var bestTransport = function(){
 	
 	}; 
 
+	var socket = class socket extends stage.notificationsCenter.notification  {
 
+		constructor(url, localSettings){
+			this.settings = stage.extend({}, defaultSettings, localSettings);
+			super(this.settings, this);	
 
-	var socket = function(url, localSettings){
+			switch (this.settings.type){
+				case "websocket":
+					this.socket = stage.io.transports.websocket ; 
+					break;
+				case "poll":
+					this.socket = stage.io.transports.ajax ;
+					break;
+				case "longPoll":
+					this.socket = stage.io.transports.ajax ;
+					break;
+			}
 
-		this.settings = stage.extend({}, defaultSettings, localSettings);
-		this.$super.constructor(this.settings, this);	
-
-		switch (this.settings.type){
-			case "websocket":
-				this.socket = stage.io.transports.websocket ; 
-			break;
-			case "poll":
-				this.socket = stage.io.transports.ajax ;
-			break;
-			case "longPoll":
-				this.socket = stage.io.transports.ajax ;
-			break;
+			this.listen(this, "onConnect");
+			this.listen(this, "onClose");
+			this.listen(this, "onError");
+			this.listen(this, "onMessage");
+			this.listen(this, "onTimeout");
 		}
 
-		this.listen(this, "onConnect");
-		this.listen(this, "onClose");
-		this.listen(this, "onError");
-		this.listen(this, "onMessage");
-		this.listen(this, "onTimeout");
+		write(settings){
+			this.transport.send();
+		}
 
-	}.herite(stage.notificationsCenter.notification);
+		close (settings){
+			this.transport.close();
+		}
 
+		connect (url, settings){
+			this.transport = new this.socket(url, settings);
+			this.transport.onmessage = this.listen(this, "onMessage");
+		}
 
-	socket.prototype.write = function(settings){
-		this.transport.send();
+		destroy (settings){
+			this.transport = null ;
+			this.clearNotifications();
+		}
 	};
 
-	socket.prototype.close = function(settings){
-		this.transport.close();
-	};
-
-	socket.prototype.connect = function(url, settings){
-
-		this.transport = new this.socket(url, settings);
-		this.transport.onmessage = this.listen(this, "onMessage");
-		
-	};
-
-
-	socket.prototype.destroy = function(settings){
-		this.transport = null ;
-		this.clearNotifications();
-	}
-
-
-
+	stage.io.socket = socket ;
 	return socket ;
 
-
-});
+};

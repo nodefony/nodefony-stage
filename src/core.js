@@ -35,15 +35,39 @@
  *	knowledge of the CeCILL-B license and that you accept its terms.
  *
  */
+
 var jQuery = require("jquery");
 var stage = require('./stage.js')(jQuery);
 
-
+// CORE
 require('./notificationsCenter.js')(stage);
-require('./xml.js')(stage);
 require('./syslog/syslog.js')(stage);
+require('./xml.js')(stage);
+
+// CRYPTO
+require('./crypto/base64.js')(stage);
+require('./crypto/md5.js')(stage);
+
+// IO
+require('./io/io.js')(stage);
+require('./io/authentication/mechanisms/digest-md5/digestMd5.js')(stage);
+require('./io/authentication/sasl/sasl.js')(stage);
+
+// IO TRANSPORT
+require('./io/transports/socket.js')(stage);
+require('./io/transports/websockets/websocket.js')(stage);
+require('./io/transports/in/poll.js')(stage);
+require('./io/transports/in/longPoll.js')(stage);
+
+// IO PROTOCOLS
+require('./io/protocols/bayeux/bayeux.js')(stage);
+require('./io/protocols/sip/sdp.js')(stage);
+require('./io/protocols/sip/sip.js')(stage);
+
+// IO REALTIME
+require('./io/realtime/realtime.js')(stage);
 
 
+
+// EXPORT
 module.exports = stage ;
-
-

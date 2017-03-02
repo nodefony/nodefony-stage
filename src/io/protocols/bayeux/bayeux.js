@@ -1,10 +1,6 @@
-/*
- *
- *	CLIENT
- *
- */
+module.exports =  function(stage){
 
-stage.register.call(stage.io.protocols, "bayeux",function(){
+	'use strict';
 
 	var clientsCapabilities = function(){
 		var tab = [];
@@ -20,19 +16,19 @@ stage.register.call(stage.io.protocols, "bayeux",function(){
 			try {
 				var socket  = this.getBestConnection(message.supportedConnectionTypes);
 				this.socket = new socket.Class( socket.url );
-				this.socket.onmessage = function(message){
+				this.socket.onmessage = (message) => {
 					if (message.data )
 						this.onMessage(message.data);
-				}.bind(this); 
-				this.socket.onopen = function(){
+				}; 
+				this.socket.onopen = () => {
 					this.socket.send( this.connect(message) );	
 					this.notificationCenter.fire("onHandshake", message, this.socket);
-				}.bind(this);
+				};
 				this.socket.onerror = this.notificationCenter.listen(this, "onError");
-				this.socket.onclose = function(err){
+				this.socket.onclose = (err) => {
 					delete this.socket ;
 					this.notificationCenter.fire("onClose",err );
-				}.bind(this)
+				};
 			}catch(e){
 				throw new Error (e)
 			}
@@ -110,12 +106,12 @@ stage.register.call(stage.io.protocols, "bayeux",function(){
 					break;
 					case "object":
 						if (message.error){
-							return arguments.callee.call(this, message.error)
+							return onError.call(this, message.error)
 						}
 					break;
 					case "Error":
 						message.error = "500::"+message.error.message;
-						return arguments.callee.call(this, message.error)
+						return onError.call(this, message.error)
 					break;
 					default:
 						throw new Error("Bad protocole error BAYEUX");
@@ -132,143 +128,146 @@ stage.register.call(stage.io.protocols, "bayeux",function(){
  	 *	BAYEUX PROTOCOL
  	 *
  	 */
-	var bayeux = function(url){
-		this.name = "bayeux" ;	
-		this.notificationCenter = stage.notificationsCenter.create(this.settings, this);
-		this.url = url ; 
-		this.socket = null;
-		this.connected = false;
-		this.request = {
-			version:"1.0"
-		}
-	};
-
-	bayeux.prototype.getBestConnection = function(supportedConnectionTypes){
-		if (this.url.protocol === "https:" || this.url.protocol === "wss:")
-			this.url.protocol = "wss:";
-		else
-			this.url.protocol = "ws:";
-		this.socketType = "WEBSOCKET";
-		return {
-			Class: window.WebSocket,
-			url:this.url.protocol+"//"+this.url.host+this.url.requestUri
-		}	
-	};
-
-	bayeux.prototype.build = function(obj){
-		var res = [];
-		res.push(obj)
-		return res ;
-	};
-
-	bayeux.prototype.handshake = function(){
-		var req = JSON.stringify( stage.extend({}, this.request , {
-			channel : "/meta/handshake",
-			minimumVersion: "1.0",
-			supportedConnectionTypes:clientsCapabilities
-		}));
-		return this.send(req);	
-	};
-
-	bayeux.prototype.connect = function(message){
-		return JSON.stringify({
-			channel: "/meta/connect",
-			clientId: message.clientId,
-			connectionType: this.socketType
-		})
-	};
-
-	bayeux.prototype.stopReConnect = function(message){
-		this.notificationCenter.unListen("onClose", reconnect);
-	};
-
-
-	bayeux.prototype.disconnect =function(){
-		return JSON.stringify({
-			channel: "/meta/disconnect",
-			clientId: this.idconnection,
-		});	
-	};
-
-	bayeux.prototype.subscribe = function(name, data){
-		return JSON.stringify({
-			channel: "/meta/subscribe",
-			clientId: this.idconnection,
-			subscription: "/service/"+name,
-			data:data
-		});
-	};
-
-	bayeux.prototype.unSubscribe = function(name, clientId, data){
-		return JSON.stringify({
-			channel: "/meta/unsubscribe",
-			clientId: clientId,
-			subscription: "/service/"+name,
-			data:data
-		});
-	};
-
-	bayeux.prototype.sendMessage = function(service, data, clientId){
-		return JSON.stringify({
-			channel: "/service/"+service,
-			clientId: clientId,
-			id: new Date().getTime(),
-			data:data
-		});	
-	};
-
-	bayeux.prototype.onMessage = function(message){
-		try {
-			if (typeof message === "string" ){
-				message = JSON.parse(message);
+	var bayeux = class bayeux {
+		
+		constructor(url){
+			this.name = "bayeux" ;	
+			this.notificationCenter = stage.notificationsCenter.create(this.settings, this);
+			this.url = url ; 
+			this.socket = null;
+			this.connected = false;
+			this.request = {
+				version:"1.0"
 			}
-		}catch (e){
-			message.error = e ;
-			onError.call(this, message);
-			return ;
 		}
-		switch (message.channel){
-			case "/meta/handshake":
-				return onHandshakeResponse.call(this, message);
-			break;
-			case "/meta/connect":
-				return onConnectResponse.call(this, message);
-			break;
-			case "/meta/disconnect":
-				return onDisconnectResponse.call(this, message);
-			break;
-			case "/meta/subscribe":
-				return onSubscribeResponse.call(this, message);
-			break;
-			case "/meta/unsubscribe":
-				return onUnsubscribeResponse.call(this, message);
-			break;
-			default:
-				// /some/channel
-				this.notificationCenter.fire("onMessage", message);
+
+		getBestConnection (supportedConnectionTypes){
+			if (this.url.protocol === "https:" || this.url.protocol === "wss:")
+				this.url.protocol = "wss:";
+			else
+				this.url.protocol = "ws:";
+			this.socketType = "WEBSOCKET";
+			return {
+				Class: window.WebSocket,
+				url:this.url.protocol+"//"+this.url.host+this.url.requestUri
+			}	
+		}
+
+		build (obj){
+			var res = [];
+			res.push(obj)
+				return res ;
+		}
+
+		handshake (){
+			var req = JSON.stringify( stage.extend({}, this.request , {
+				channel : "/meta/handshake",
+			    minimumVersion: "1.0",
+			    supportedConnectionTypes:clientsCapabilities
+			}));
+			return this.send(req);	
+		}
+
+		connect (message){
+			return JSON.stringify({
+				channel: "/meta/connect",
+			       clientId: message.clientId,
+			       connectionType: this.socketType
+			})
+		}
+
+		stopReConnect (message){
+			this.notificationCenter.unListen("onClose", reconnect);
+		}
+
+		disconnect (){
+			return JSON.stringify({
+				channel: "/meta/disconnect",
+			       clientId: this.idconnection,
+			});	
+		}
+
+		subscribe (name, data){
+			return JSON.stringify({
+				channel: "/meta/subscribe",
+			       clientId: this.idconnection,
+			       subscription: "/service/"+name,
+			       data:data
+			});
+		}
+
+		unSubscribe (name, clientId, data){
+			return JSON.stringify({
+				channel: "/meta/unsubscribe",
+			       clientId: clientId,
+			       subscription: "/service/"+name,
+			       data:data
+			});
+		}
+
+		sendMessage (service, data, clientId){
+			return JSON.stringify({
+				channel: "/service/"+service,
+			       clientId: clientId,
+			       id: new Date().getTime(),
+			       data:data
+			});	
+		}
+
+		onMessage (message){
+			try {
+				if (typeof message === "string" ){
+					message = JSON.parse(message);
+				}
+			}catch (e){
+				message.error = e ;
+				onError.call(this, message);
+				return ;
+			}
+			switch (message.channel){
+				case "/meta/handshake":
+					return onHandshakeResponse.call(this, message);
+					break;
+				case "/meta/connect":
+					return onConnectResponse.call(this, message);
+					break;
+				case "/meta/disconnect":
+					return onDisconnectResponse.call(this, message);
+					break;
+				case "/meta/subscribe":
+					return onSubscribeResponse.call(this, message);
+					break;
+				case "/meta/unsubscribe":
+					return onUnsubscribeResponse.call(this, message);
+					break;
+				default:
+					// /some/channel
+					this.notificationCenter.fire("onMessage", message);
+			}
+		}
+
+		send (data){
+			if ( this.socket ){
+				return this.socket.send(data);	
+			}
+			return $.ajax({
+            			method: 'POST',
+		               cache:false,
+            		       url: this.url.href ,
+		               dataType:"json",
+		               contentType:"application/json",
+		               data : data,		        
+			       success:(data, type, xhr) => {
+				       this.onMessage(data);			
+			       },
+            		       error: (obj, type, message) => {
+				       this.notificationCenter.fire('onError', obj, type, message);
+            		       }
+        		});
 		}
 	};
 
-	bayeux.prototype.send = function(data){
-		if ( this.socket ){
-			return this.socket.send(data);	
-		}
-		return $.ajax({
-            		method: 'POST',
-		        cache:false,
-            		url: this.url.href ,
-		        dataType:"json",
-		        contentType:"application/json",
-		        data : data,		        
-			success:function(data, type, xhr){
-				this.onMessage(data);			
-			}.bind(this),
-            		error: function(obj, type, message) {
-				this.notificationCenter.fire('onError', obj, type, message);
-            		}.bind(this)
-        	});
-	};
-
+	stage.io.protocols.bayeux = bayeux ;
 	return bayeux ;
-});
+};
 
