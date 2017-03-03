@@ -13,8 +13,8 @@ install:
 
 
 build:
-	npm run build-prod -- --colors
+	npm run build-prod
 
 
 build-dev:
-	npm run build-dev -- --colors
+	npm run build-dev

@@ -48,7 +48,6 @@ stage.register("webRtc",function(){
 	}
 
 
-
 	/*
  	 *
  	 *	CLASS USER

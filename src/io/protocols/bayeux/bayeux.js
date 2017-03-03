@@ -4,9 +4,9 @@ module.exports =  function(stage){
 
 	var clientsCapabilities = function(){
 		var tab = [];
-		var websocket = stage.io.nativeWebSocket ? tab.push("websocket") : null ;
+		var ws =  stage.io.nativeWebSocket  ? tab.push("websocket") : null ;
 		var poll = stage.io.poll ? tab.push("poll") : null ;
-		var longPoll = stage.io.longPoll ?  tab.push("long-polling") : null ; 
+		var lpoll =stage.io.longPoll ?  tab.push("long-polling") : null ; 
 		var jsonp = stage.io.jsonp ?  tab.push("callback-polling") : null ; 
 		return tab ;
 	}();
@@ -17,8 +17,9 @@ module.exports =  function(stage){
 				var socket  = this.getBestConnection(message.supportedConnectionTypes);
 				this.socket = new socket.Class( socket.url );
 				this.socket.onmessage = (message) => {
-					if (message.data )
+					if (message.data ){
 						this.onMessage(message.data);
+					}
 				}; 
 				this.socket.onopen = () => {
 					this.socket.send( this.connect(message) );	
@@ -30,7 +31,7 @@ module.exports =  function(stage){
 					this.notificationCenter.fire("onClose",err );
 				};
 			}catch(e){
-				throw new Error (e)
+				throw new Error (e);
 			}
 		}else{
 			onError.call(this, message);
@@ -71,7 +72,7 @@ module.exports =  function(stage){
 			if (this.socket){
 				this.socket.close();
 				this.socket = null ;
-				this.notificationCenter.fire("onDisconnect", message)
+				this.notificationCenter.fire("onDisconnect", message);
 			}
 		}else{
 			onError.call(this, message);
@@ -106,18 +107,17 @@ module.exports =  function(stage){
 					break;
 					case "object":
 						if (message.error){
-							return onError.call(this, message.error)
+							return onError.call(this, message.error);
 						}
 					break;
 					case "Error":
 						message.error = "500::"+message.error.message;
-						return onError.call(this, message.error)
-					break;
+						return onError.call(this, message.error);
 					default:
 						throw new Error("Bad protocole error BAYEUX");
 					
 				}
-				this.notificationCenter.fire("onError", code, arg, mess);
+				return this.notificationCenter.fire("onError", code, arg, mess);
 			}catch(e){
 				throw new Error("Bad protocole error BAYEUX"+ e);
 			}
@@ -128,7 +128,7 @@ module.exports =  function(stage){
  	 *	BAYEUX PROTOCOL
  	 *
  	 */
-	var bayeux = class bayeux {
+	const bayeux = class bayeux {
 		
 		constructor(url){
 			this.name = "bayeux" ;	
@@ -138,25 +138,26 @@ module.exports =  function(stage){
 			this.connected = false;
 			this.request = {
 				version:"1.0"
-			}
+			};
 		}
 
 		getBestConnection (supportedConnectionTypes){
-			if (this.url.protocol === "https:" || this.url.protocol === "wss:")
+			if (this.url.protocol === "https:" || this.url.protocol === "wss:"){
 				this.url.protocol = "wss:";
-			else
+			}else{
 				this.url.protocol = "ws:";
+			}
 			this.socketType = "WEBSOCKET";
 			return {
 				Class: window.WebSocket,
 				url:this.url.protocol+"//"+this.url.host+this.url.requestUri
-			}	
+			};	
 		}
 
 		build (obj){
 			var res = [];
-			res.push(obj)
-				return res ;
+			res.push(obj);
+			return res ;
 		}
 
 		handshake (){
@@ -173,7 +174,7 @@ module.exports =  function(stage){
 				channel: "/meta/connect",
 			       clientId: message.clientId,
 			       connectionType: this.socketType
-			})
+			});
 		}
 
 		stopReConnect (message){
@@ -227,19 +228,14 @@ module.exports =  function(stage){
 			switch (message.channel){
 				case "/meta/handshake":
 					return onHandshakeResponse.call(this, message);
-					break;
 				case "/meta/connect":
 					return onConnectResponse.call(this, message);
-					break;
 				case "/meta/disconnect":
 					return onDisconnectResponse.call(this, message);
-					break;
 				case "/meta/subscribe":
 					return onSubscribeResponse.call(this, message);
-					break;
 				case "/meta/unsubscribe":
 					return onUnsubscribeResponse.call(this, message);
-					break;
 				default:
 					// /some/channel
 					this.notificationCenter.fire("onMessage", message);

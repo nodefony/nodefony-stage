@@ -10,43 +10,45 @@ module.exports =  function(stage){
  	 */
 	var stringify = function(value){
 		return '"'+value+'"';
-	}
+	};
 
 	var reg =/^([^=]+)=(.+)$/;
 	var parserAuthenticate = function(str){
 		var ret = str.replace(/"/g,"");
 		ret = ret.replace(/Digest /g,"");
 		var head = ret.split(",");
-		var obj = []
+		var obj = [];
 		for (var i= 0 ; i < head.length ; i++){
 			var res = reg.exec(head[i]);
 			var key = res[1].replace(/ |\n|\r/g,"");
-			if (res && key)
-				obj[key] = res[2]
+			if (res && key){
+				obj[key] = res[2];
+			}
 		}	
-		return obj
+		return obj;
 	};
 
 	var MD5 = stage.crypto.md5.hex_md5_noUTF8 ;
-	var BASE64 = stage.crypto.base64.encode ;
+	//var BASE64 = stage.crypto.base64.encode ;
 
 	var digest = {
 		generateA1:function(username, realm, password, nonce, cnonce){
-			if (cnonce)
-				var A1 = username + ":" + realm + ":" + password + ":" + nonce+ ":" + cnonce ;
-			else
-				var A1 = username + ":" + realm + ":" + password ;//+ ":" + nonce ;
+			var A1 = null ;
+			if (cnonce){
+				A1 = username + ":" + realm + ":" + password + ":" + nonce+ ":" + cnonce ;
+			}else{
+				A1 = username + ":" + realm + ":" + password ;//+ ":" + nonce ;
+			}
 			//console.log(A1)
 			return MD5(A1); 
 		},
-
 		generateA2:function(method, uri, entity_body, qop){
 			var A2 = "";
 			if( ! qop || qop ===  "auth"){
 				A2 = method +":" + uri ;
 			} else if(qop === "auth-int"){
 				if( entity_body ){
-					var entity = auth.MD5(entity_body);
+					var entity = MD5(entity_body);
 					A2 = method + ":" + uri + ":" + entity ; 
 				}else{
 					A2 = method + ":" + uri + ":" + "d41d8cd98f00b204e9800998ecf8427e" ;
@@ -56,7 +58,7 @@ module.exports =  function(stage){
 			return MD5(A2);
 		},
 		generateResponse:function(A1, nonce, noncecount, cnonce, qop, A2){
-			var res = ""
+			var res = "";
 			if(qop === "auth" || qop === "auth-int"){
 				res = A1 + ":" + nonce +":" + noncecount +":" + cnonce +":" + qop + ":" + A2 ;
 			}else{
@@ -93,27 +95,28 @@ module.exports =  function(stage){
 			//console.log("AUTH REGISTER")
 			//console.log(message);
 			var head = message.authenticate ;	
-			this.realm = head.realm	
+			this.realm = head.realm	;
 			this.nonce = head.nonce;
 			this.cnonce = head.cnonce;
 			this.qop = head.qop;
 			this.algorithm = head.Digestalgorithm ? head.Digestalgorithm : "md5" ;	
-			if ( message.rawBody )
+			if ( message.rawBody ){
 				this.entity_body = message.rawBody;
-
+			}
 			switch (this.algorithm.toLowerCase()){
 				case "md5" :
 					this.response = this.digestMD5(message.method);
 				break;
 			}
 
+			var method ="";
 			if ( ! type ){
-				var method = "Authorization: ";
+				method = "Authorization: ";
 			}else{
 				if ( type === "proxy"){
-					var method = "Proxy-Authorization: ";
+					method = "Proxy-Authorization: ";
 				}else{
-					var method = "Authorization: ";	
+					method = "Authorization: ";	
 				}
 			}
 			var line = "Digest username=" +stringify(this.userName)+", realm="+stringify(this.realm)+ ", nonce=" + stringify(this.nonce) +", uri="+stringify(this.uri)+", algorithm="+this.algorithm+", response="+stringify(this.response);
@@ -175,10 +178,11 @@ module.exports =  function(stage){
 
 		for (var i = 0 ; i < sp.length ;i++){
 			var res3 = sp[i].split("=");
-			if(res3[0].replace(/ |\n|\r/g,"") === "tag")
+			if(res3[0].replace(/ |\n|\r/g,"") === "tag"){
 				this.message[type+"Tag"] = res3[1] ;
-			else
+			}else{
 				this.message[res3[0]] = res3[1] ;
+			}
 		}
 		return value;
 	};
@@ -209,7 +213,7 @@ module.exports =  function(stage){
 			var tab = header.split(regHeaders.line);
 			var type = tab.shift();
 			this.firstLine = type.split(" ");
-			$.each(tab, (index, ele) => {
+			$.each(tab, (Index, ele) => {
 				var res = regHeaders.headName.exec(ele);
 				var size = res[0].length;
 				var headName = res.input.substr(0,res.index);
@@ -225,21 +229,22 @@ module.exports =  function(stage){
 						this[headName] = this[func](headValue);	
 					}	
 				}
-			})
-			if (!this["Content-Type"])
+			});
+			if (!this["Content-Type"]){
 				this.message.contentType = null;
-			else
+			}else{
 				this.message.contentType = this["Content-Type"] ;
+			}
 		}
 
 		setFrom (value){
-			parsefromTo.call(this, "from", value)	
-				return value;
+			parsefromTo.call(this, "from", value);
+			return value;
 		}
 
 		setTo (value){
-			parsefromTo.call(this, "to", value)
-				return value;
+			parsefromTo.call(this, "to", value);
+			return value;
 		}
 
 		"setWWW-Authenticate" (value){
@@ -274,12 +279,12 @@ module.exports =  function(stage){
 
 		setDate (value){
 			try{
-				this.message.date = new Date(value)
+				this.message.date = new Date(value);
 			}
 			catch(e){
 				this.message.date = value;
 			}
-			return value
+			return value;
 		}
 
 		"setCall-ID" (value){
@@ -377,7 +382,7 @@ module.exports =  function(stage){
 						obj[tab[0]] = tab[1];
 					}
 				}
-				return obj
+				return obj;
 			}else{
 				return value;
 			}
@@ -402,7 +407,7 @@ module.exports =  function(stage){
 				throw new Error("BAD SIZE SIP BODY ");
 			}
 			if (body){
-				this.parse(this.message.contentType, body)
+				this.parse(this.message.contentType, body);
 			}
 		}
 
@@ -489,7 +494,6 @@ module.exports =  function(stage){
 				case "REGISTER":
 					this["request-uri"] = "sip:"+this.transaction.dialog.sip.server ;
 					return  this.transaction.method + " "+ this["request-uri"] + " " + this.requestLine.version + endline ;
-				break;
 				case "INVITE":
 				case "BYE":
 				case "NOTIFY":
@@ -498,7 +502,6 @@ module.exports =  function(stage){
 				case "ACK":
 					this["request-uri"] = this.transaction.dialog["request-uri"]  ;
 					return this.transaction.method + " " + this["request-uri"] +" " + this.requestLine.version + endline ;
-				break;
 			}
 		}
 		
@@ -527,7 +530,7 @@ module.exports =  function(stage){
 			this.header.maxForward = "Max-Forwards: " + this.transaction.dialog.maxForward;
 			this.header.userAgent = "User-Agent: " + this.transaction.dialog.sip.settings.userAgent;
 
-			this.header.contact = "Contact: "+this.transaction.dialog.contact
+			this.header.contact = "Contact: "+this.transaction.dialog.contact;
 
 			if (  this.transaction.dialog.routes && this.transaction.dialog.routes.length){
 				this.header.routes = [];
@@ -556,8 +559,9 @@ module.exports =  function(stage){
 
 		buildBody (body, type){
 			this.header.contentLength  = "Content-Length: " + body.length ;
-			if (type)
+			if (type){
 				this.header.contentType  = "Content-Type: " + type ;
+			}
 			this.body = body || "" ;
 		}
 
@@ -604,25 +608,27 @@ module.exports =  function(stage){
 	
 		buildHeader (message){
 			for ( var head in  message.rawHeader){
+				var i = 0 ;
 				switch (head){
 					case "Allow":
 					case "Supported":
-						var ptr = ""
-						for (var i = 0 ; i< message.header[head].length ; i++){
-							if ( i < message.header[head].length - 1 )
+						var ptr = "";
+						for ( i = 0 ; i< message.header[head].length ; i++){
+							if ( i < message.header[head].length - 1 ){
 								ptr += message.header[head][i] + ",";
-							else
+							}else{
 								ptr += message.header[head][i] ;
+							}
 						}
 						this.header.push( head + ": "+ptr);
 					break;
 					case "Via":
 						if ( this.responseLine.code == "487"  ) {
-							for (var i = 0 ; i < this.dialog[head].length ; i++){
+							for ( i = 0 ; i < this.dialog[head].length ; i++){
 								this.header.push(this.dialog[head][i].raw);	
 							}	
 						}else{
-							for (var i = 0 ; i< message.header[head].length ; i++){
+							for ( i = 0 ; i< message.header[head].length ; i++){
 								this.header.push(message.header[head][i].raw);	
 							}
 						}
@@ -657,7 +663,7 @@ module.exports =  function(stage){
 						}	
 					break;
 					case "Record-Route":
-						for (var i = this.message.dialog.routes.length - 1  ; i >= 0 ; i--){
+						for ( i = this.message.dialog.routes.length - 1  ; i >= 0 ; i--){
 							this.header.push(head + ": "+ this.message.header.recordRoutes[i]);	
 						}
 					break;
@@ -689,8 +695,9 @@ module.exports =  function(stage){
 
 		buildBody (body, type){
 			this.header.contentLength  = "Content-Length: " + body.length ;
-			if (type)
+			if (type){
 				this.header.contentType  = "Content-Type: " + type ;
+			}
 			this.body = body || "" ;
 		}
 
@@ -706,8 +713,9 @@ module.exports =  function(stage){
 		}
 
 		getResponseline (){
-			if (this.responseLine.method == "ACK")
+			if (this.responseLine.method == "ACK"){
 				return 	this.responseLine.method +" "+ "sip:"+this.transaction.from+"@"+this.transaction.dialog.sip.server +" "+this.responseLine.version + endline ;		
+			}
 			return  this.responseLine.version + " " + this.responseLine.code + " " + this.responseLine.message +  endline ;	
 		}
 
@@ -732,7 +740,7 @@ module.exports =  function(stage){
 		return Math.floor(Math.random()*167772150000000).toString(16) ;
 	};
 
-	var Transaction  = class Transaction {
+	const Transaction  = class Transaction {
 
 		constructor(to, dialog){
 			this.dialog = dialog ;	
@@ -752,20 +760,18 @@ module.exports =  function(stage){
 		hydrate (message){
 			this.message = message;
 			if ( message.type === "REQUEST" ){
-				this.to = this.dialog.to
-				this.from = this.dialog.from
+				this.to = this.dialog.to;
+				this.from = this.dialog.from;
 				this.method = this.dialog.method;
 				this.branch = this.message.header.branch;	 
 			}
 			if ( message.type === "RESPONSE" ){
-				this.to = this.dialog.to
-				this.from = this.dialog.from
+				this.to = this.dialog.to;
+				this.from = this.dialog.from;
 				this.method = this.dialog.method;
 				this.branch = this.message.header.branch;
 			}
-
 		}
-
 		
 		generateBranchId (){
 			var hex = generateHex();
@@ -803,7 +809,7 @@ module.exports =  function(stage){
 		}
 
 		send (message){
-			return this.dialog.sip.send( message )
+			return this.dialog.sip.send( message );
 		}
 
 		cancel (){
@@ -846,7 +852,7 @@ module.exports =  function(stage){
 		CANCEL:		4	// cancel
 	};
 
-	var Dialog  = class Dialog {
+	const Dialog  = class Dialog {
 
 		constructor(method, sip){
 			this.sip = sip;
@@ -915,8 +921,9 @@ module.exports =  function(stage){
 			}
 			if ( message.type === "RESPONSE" ){
 				this.cseq = message.cseq;
-				if ( !  this.callId )
+				if ( !  this.callId ){
 					this.callId = message.callId;
+				}
 				if ( !  this.to ){
 					if ( message.toNameDisplay ){
 						this.to =  '"'+message.toNameDisplay+'"' + "<sip:"+message.to+">" ;
@@ -986,7 +993,7 @@ module.exports =  function(stage){
 			request.send();
 			return trans;
 
-		};
+		}
 
 		unregister (){
 			this.expires = 0 ;
@@ -996,8 +1003,7 @@ module.exports =  function(stage){
 			var request = trans.createRequest();
 			request.send();
 			return trans;		
-		};
-
+		}
 
 		ack (message){
 			if ( ! this["request-uri"] ){
@@ -1009,17 +1015,17 @@ module.exports =  function(stage){
 			var request = trans.createRequest();
 			request.send();
 			return request ;
-		};
+		}
 
 		invite (userTo, description, type){
 
 			if ( this.status  === this.statusCode.CANCEL ){
 				return null ;
 			}
-			console.log("SIP INVITE DIALOG")
-				if ( userTo ){
-					this.to = "<sip:"+userTo+">" ;
-				}
+			console.log("SIP INVITE DIALOG");
+			if ( userTo ){
+				this.to = "<sip:"+userTo+">" ;
+			}
 			this.method = "INVITE" ;
 			if ( ! this["request-uri"] ){
 				this["request-uri"] = "sip:"+userTo ;
@@ -1041,9 +1047,9 @@ module.exports =  function(stage){
 
 		notify (userTo, notify, typeNotify){
 			this.method = "NOTIFY" ;	
-			if ( userTo )
+			if ( userTo ){
 				this.to = "<sip:"+userTo+">" ;
-
+			}
 			if ( ! this["request-uri"] ){
 				this["request-uri"] = "sip:"+userTo ;
 			}
@@ -1122,7 +1128,7 @@ module.exports =  function(stage){
 			method : method,
 			code : code,
 			message : message
-		}	
+		};	
 	};
 
 	var regSIP = /\r\n\r\n/ ;
@@ -1144,11 +1150,11 @@ module.exports =  function(stage){
 						this.parseHeader();
 						this.contentLength = parseInt(this.header["Content-Length"], 10) ;
 						this.parseBody();	
-						this.statusLine =firstline(this.header.firstLine) 
-							this.code = parseInt( this.statusLine.code, 10);
+						this.statusLine =firstline(this.header.firstLine); 
+						this.code = parseInt( this.statusLine.code, 10);
 						this.getType(); 
 					}catch(e){
-						throw e
+						throw e;
 					}
 
 					this.rawHeader = this.header.rawHeader ;
@@ -1209,7 +1215,7 @@ module.exports =  function(stage){
 
 		getStatusLine (){
 			return this.statusLine;
-		};
+		}
 
 		getCode (){
 			return this.code ;
@@ -1219,10 +1225,10 @@ module.exports =  function(stage){
 			if (  this.header["Call-ID"] ){
 				this.dialog = this.sip.getDialog( this.header["Call-ID"] ) ;
 				if ( ! this.dialog ){
-					this.dialog = this.sip.createDialog(this)
+					this.dialog = this.sip.createDialog(this);
 				}else{
-					console.log("SIP HYDRATE DIALOG :" + this.dialog.callId)
-						this.dialog.hydrate(this);	
+					console.log("SIP HYDRATE DIALOG :" + this.dialog.callId);
+					this.dialog.hydrate(this);	
 				}
 				return this.dialog ;
 			} else{
@@ -1231,17 +1237,17 @@ module.exports =  function(stage){
 		}
 
 		getTransaction (){
-			if ( this.header["branch"] ){
+			if ( this.header.branch ){
 				if ( ! this.dialog ){
 					this.getDialog();
 				}
 				if ( this.dialog ){
-					this.transaction = this.dialog.getTransaction( this.header["branch"] ) ;
+					this.transaction = this.dialog.getTransaction( this.header.branch ) ;
 					if ( ! this.transaction ){
 						this.transaction = this.dialog.createTransaction(this);	
 					}else{
-						console.log("SIP HYDRATE TRANSACTION :" + this.transaction.branch)
-							this.transaction.hydrate(this);	
+						console.log("SIP HYDRATE TRANSACTION :" + this.transaction.branch);
+						this.transaction.hydrate(this);	
 					}
 				}else{
 					this.transaction = null ;
@@ -1249,8 +1255,8 @@ module.exports =  function(stage){
 				return this.transaction ;
 			}else{
 				// TODO CSEQ mandatory
-				console.log( this.rawMessage )
-					throw new Error("BAD FORMAT SIP MESSAGE no Branch" , 500);
+				console.log( this.rawMessage );
+				throw new Error("BAD FORMAT SIP MESSAGE no Branch" , 500);
 			}	
 		}
 	};
@@ -1268,6 +1274,8 @@ module.exports =  function(stage){
 		console.log("RECIEVE SIP MESSAGE ");	
 		console.log(response);	
 
+		var message = null ;
+		var res = null ;
 		try {
 			//console.log(this.fragment)
 			if ( this.fragment ){
@@ -1276,10 +1284,10 @@ module.exports =  function(stage){
 			}else{
 				this.lastResponse = response ;
 			}
-			var message = new Message(this.lastResponse, this);
+			message = new Message(this.lastResponse, this);
 			this.fragment = false ;
 		}catch(e){
-			console.log(e)
+			console.log(e);
 			// bad split 
 			for ( var i = 0 ; i < e.length ; i++){
 				if ( e[i] ){
@@ -1297,24 +1305,28 @@ module.exports =  function(stage){
 		}
 		this.fire("onMessage", message.rawMessage);	
 		//console.log( message.type + " : " + response);
+		
 		switch (message.method){
 			case "REGISTER" :
 				this.rport = message.header.Via[0].rport;
 				if (this.rport ){
 					this["request-uri"] =  "sip:"+this.userName+"@"+this.publicAddress+":"+ this.rport +";transport="+this.transportType;	
 				}
+				var transaction = null ;
 				switch ( message.code ){
 					case 401 :
 					case 407 :
 						if (this.registered === 200 ) {
-							if ( this.registerInterval )
+							if ( this.registerInterval ){
 								clearInterval(this.registerInterval);
+							}
 							this.registerInterval = null ;	
 						}else{
 							
 							if ( this.registered === 401 || this.registered === 407){
-								if ( this.registerInterval )
+								if ( this.registerInterval ){
 									clearInterval(this.registerInterval);
+								}
 								this.registerInterval = null ;	
 								this.registered = null;
 								this.notificationsCenter.fire("onError", this, message);
@@ -1326,7 +1338,7 @@ module.exports =  function(stage){
 						delete this.authenticate ;
 						this.authenticate = null;	
 						this.authenticate = new authenticate(message.dialog, this.userName , this.settings.password) ;
-						var transaction = this.authenticate.register(message, message.code === 407 ? "proxy" : null);
+						transaction = this.authenticate.register(message, message.code === 407 ? "proxy" : null);
 						
 					break;	
 					case 403 :
@@ -1399,7 +1411,7 @@ module.exports =  function(stage){
 								delete this.authenticate ;
 								this.authenticate = null;
 								this.authenticate = new authenticate(message.dialog, this.userName , this.settings.password) ;
-								var transaction = this.authenticate.register(message, message.code === 407 ? "proxy" : null);
+								transaction = this.authenticate.register(message, message.code === 407 ? "proxy" : null);
 								this.fire("onInitCall", message.dialog.toName, message.dialog, transaction);
 							break;
 							case 180 : 
@@ -1460,7 +1472,7 @@ module.exports =  function(stage){
 					default :
 						this.notificationsCenter.fire("onBye",message);
 						if ( message.type === "REQUEST" ){
-                                                        var res = message.transaction.createResponse(200,"OK")
+                                                        res = message.transaction.createResponse(200,"OK");
                                                         res.send();
                                                 }
 				}
@@ -1470,7 +1482,7 @@ module.exports =  function(stage){
 					case "REQUEST":
 						//console.log("SIP   :"+ message.method + " "+" type: "+message.contentType );
 						this.notificationsCenter.fire("onInfo",message);	
-						var res = message.transaction.createResponse(200, "OK")
+						res = message.transaction.createResponse(200, "OK");
 						res.send();
 					break;
 					case "RESPONSE":
@@ -1484,10 +1496,10 @@ module.exports =  function(stage){
 				switch ( message.type ){
 					case "REQUEST":
 						this.notificationsCenter.fire("onCancel",message);
-						var res = message.transaction.createResponse(200, "OK")
+						res = message.transaction.createResponse(200, "OK");
 						res.send();
 						message.dialog.status = message.dialog.statusCode.CANCEL ;
-						var res = message.transaction.createResponse(487, "Request Terminated")
+						res = message.transaction.createResponse(487, "Request Terminated");
 						res.send();
 						message.dialog.status = message.dialog.statusCode.TERMINATED  ;
 
@@ -1531,7 +1543,7 @@ module.exports =  function(stage){
 		
 
 	// CLASS
-	var SIP  = class SIP {
+	const SIP  = class SIP {
 
 		constructor(server, transport, settings){
 			this.settings = stage.extend({}, defaultSettings, settings);
@@ -1595,10 +1607,11 @@ module.exports =  function(stage){
 			}
 
 			if ( ! this.contact  || force ){
+				var invalid = null ;
 				switch ( this.transportType ){
 					case "ws":
 					case "wss":
-						var invalid = this.generateInvalid() ;
+						invalid = this.generateInvalid() ;
 						this.via = this.generateVia(invalid);
 						if ( this.rport ){
 							return  '"'+this.displayName+'"'+"<sip:"+this.userName+"@"+ invalid +":"+ this.rport +";transport="+this.transportType+">" ;
@@ -1608,7 +1621,7 @@ module.exports =  function(stage){
 						break;
 					case "tcp" :
 					case "udp" :
-						var invalid = this.generateInvalid() ;
+						invalid = this.generateInvalid() ;
 						this.via = this.generateVia(invalid);
 						//this.via = this.generateVia(this.publicAddress);
 						if ( this.rport ){
@@ -1649,21 +1662,24 @@ module.exports =  function(stage){
 				case "TCP" :
 				case "UDP" :
 					this.transport.listen(this, "onSubscribe", function(service, message){
-						if (service === "SIP" || service === "OPENSIP")
-						onStart.call(this, message);
+						if (service === "SIP" || service === "OPENSIP"){
+							onStart.call(this, message);
+						}
 					} );
 
 					this.transport.listen(this, "onUnsubscribe", function(service, message){
-						if (service === "SIP" || service === "OPENSIP")
-						onStop.call(this, message);
+						if (service === "SIP" || service === "OPENSIP"){
+							onStop.call(this, message);
+						}
 					} );
 					this.transport.listen(this, "onMessage", function(service, message){
-						if (service === "SIP" || service === "OPENSIP")
-						onMessage.call(this, message);
+						if (service === "SIP" || service === "OPENSIP"){
+							onMessage.call(this, message);
+						}
 					} );
 
 					this.transport.listen(this, "onClose", function( message){
-						this.quit(message)
+						this.quit(message);
 					} );
 					break;
 				case "WS":
@@ -1679,7 +1695,7 @@ module.exports =  function(stage){
 						this.connect(message);
 					});
 					this.transport.listen(this, "onClose", function( message){
-						this.quit(message)
+						this.quit(message);
 					} );
 					break;
 				default :
@@ -1724,8 +1740,8 @@ module.exports =  function(stage){
 		}
 
 		register (userName, password, settings){
-			console.log("TRY TO REGISTER SIP : " + userName + password)
-				this.contact = this.generateContact(userName, password, false, settings);
+			console.log("TRY TO REGISTER SIP : " + userName + password);
+			this.contact = this.generateContact(userName, password, false, settings);
 			this.diagRegister = this.createDialog("REGISTER");
 			this.diagRegister.register();
 			return this.diagRegister;
@@ -1752,7 +1768,7 @@ module.exports =  function(stage){
 		}
 
 		send (data){
-			console.log("SIP SEND : " +data)
+			console.log("SIP SEND : " +data);
 				this.fire("onSend", data) ;
 			this.transport.send( data );
 		}

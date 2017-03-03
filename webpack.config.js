@@ -1,7 +1,67 @@
 const webpack = require('webpack');
 const path = require('path');
+//const UglifyJSPlugin = require('uglifyjs-webpack-plugin');
 
 var env = process.env.WEBPACK_ENV;
+
+var transcode =  {
+      	// the "loader"
+      	loader: "babel-loader", // or "babel" because webpack adds the '-loader' automatically
+	query: {
+		presets: ['es2015'],
+		//plugins: ['transform-runtime']
+      	}
+};
+
+var jsint = {
+        loader: "jshint-loader",
+	options:{
+		//modules: true
+		esversion: 6,
+        	// any jshint option http://www.jshint.com/docs/options/
+        	// i. e.
+        	//camelcase: true,
+
+        	// jshint errors are displayed by default as warnings
+        	// set emitErrors to true to display them as errors
+        	emitErrors: false,
+
+        	// jshint to not interrupt the compilation
+        	// if you want any file with jshint errors to fail
+        	// set failOnHint to true
+        	failOnHint: false,
+
+        	// custom reporter function
+        	reporter: function(errors) { 
+			for ( var i = 0 ; i< errors.length ; i++ ){
+				console.log(errors[i].id + " : " + errors[i].reason  + " LINE : " +errors[i].line)
+			}	
+		}
+	}
+};
+
+
+if ( env === 'prod' ){
+	// https://github.com/webpack/webpack/issues/2545 for compress ES6
+	var plugins = [ new webpack.optimize.UglifyJsPlugin({minimize: true})];
+		/*new webpack.optimize.UglifyJsPlugin({
+    			compress: {
+      				warnings: true,
+				drop_console: true,
+    			},
+  		})
+	];*/
+	var rulesES6 = [];
+
+	var rulesES5 = [ transcode ];
+
+}else{
+	var plugins = [];
+
+	var rulesES6 = [ jsint ];
+
+	var rulesES5 = [ jsint , transcode ] ;
+}
 
 
 
@@ -17,75 +77,17 @@ const ES5 = {
 		libraryTarget: 'umd'
 	},
 	module: {
-		
-		rules: [
-    			{
-      				// "test" is commonly used to match the file extension
-      				test: /\.js$/,
-
-      				// "include" is commonly used to match the directories
-      				
-      				// "exclude" should be used to exclude exceptions
-      				// try to prefer "include" when possible
-
-      				// the "loader"
-      				loader: "babel-loader", // or "babel" because webpack adds the '-loader' automatically
-				query: {
-					presets: ['es2015'],
-					//plugins: ['transform-runtime']
-      				}
-    			},
-			{
-                		test: /\.js$/, // include .js files
-                		exclude: /node_modules/, // exclude any and all files in the node_modules folder
-                		loader: "jshint-loader"
-            		}
-  		]
+		rules: [{
+			use:rulesES5
+ 		}]	
 	},
 	externals: {
 		// require("jquery") is external and available
 		//  on the global var jQuery
 		"jquery": "jQuery"
 	},
-	plugins: env === 'prod' ? [
-		new webpack.optimize.UglifyJsPlugin({minimize: true})
-	] : [
-		new webpack.LoaderOptionsPlugin({
-			test: /\.js$/, // optionally pass test, include and exclude, default affects all loaders
-			exclude: /node_modules/,
-			include: [
-        			path.resolve(__dirname, "src")
-      			],
-			options: {
-				// pass stuff to the loader
-				// more options in the optional jshint object
-    				jshint: {
-					esversion: 5,
-        				// any jshint option http://www.jshint.com/docs/options/
-        				// i. e.
-        				//camelcase: true,
-
-        				// jshint errors are displayed by default as warnings
-        				// set emitErrors to true to display them as errors
-        				emitErrors: false,
-
-        				// jshint to not interrupt the compilation
-        				// if you want any file with jshint errors to fail
-        				// set failOnHint to true
-        				failOnHint: false,
-
-        				// custom reporter function
-        				reporter: function(errors) { 
-						for ( var i = 0 ; i< errors.length ; i++ ){
-							console.log(errors[i].id + " : " + errors[i].reason  + " LINE : " +errors[i].line)
-						}	
-					}
-				}
-			}
-		})
-	]
-
-}
+	plugins: plugins
+};
 
 
 
@@ -101,61 +103,20 @@ const ES6 = {
 		libraryTarget: 'umd'
 	},
 	module: {
-		rules: [
-			{
-                		test: /\.js$/, // include .js files
-                		exclude: /node_modules/, // exclude any and all files in the node_modules folder
-                		loader: "jshint-loader"
-            		}
-  		]
+		rules: [{
+			use:rulesES6
+ 		}]
 	},
 	externals: {
 		// require("jquery") is external and available
 		//  on the global var jQuery
 		"jquery": "jQuery"
 	},
-	plugins: env === 'prod' ? [
-		new webpack.optimize.UglifyJsPlugin({minimize: true})
-	] : [
-		new webpack.LoaderOptionsPlugin({
-			test: /\.js$/, // optionally pass test, include and exclude, default affects all loaders
-			exclude: /node_modules/,
-			include: [
-        			path.resolve(__dirname, "src")
-      			],
-			options: {
-				// pass stuff to the loader
-				// more options in the optional jshint object
-    				jshint: {
-					esversion: 6,
-        				// any jshint option http://www.jshint.com/docs/options/
-        				// i. e.
-        				//camelcase: true,
-
-        				// jshint errors are displayed by default as warnings
-        				// set emitErrors to true to display them as errors
-        				emitErrors: false,
-
-        				// jshint to not interrupt the compilation
-        				// if you want any file with jshint errors to fail
-        				// set failOnHint to true
-        				failOnHint: false,
-
-        				// custom reporter function
-        				reporter: function(errors) { 
-						for ( var i = 0 ; i< errors.length ; i++ ){
-							console.log(errors[i].id + " : " + errors[i].reason  + " LINE : " +errors[i].line)
-						}	
-					}
-				}
-			}
-		})
-	]
-
-}
+	plugins: plugins
+};
 
 
-const config = [/*ES5,*/ES6];
+const config = [/*ES5,*/ ES6];
 	
 
 module.exports = config;

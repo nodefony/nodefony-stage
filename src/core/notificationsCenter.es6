@@ -16,7 +16,7 @@ module.exports =  function(stage){
          *
          *      
          */
-	var Notification = class Notification  {
+	 const Notification = class Notification  {
 		
 		constructor(settings, context){
 			this.events = {};
@@ -104,8 +104,9 @@ module.exports =  function(stage){
         	settingsToListen (localSettings, context) {
                 	for (var i in localSettings) {
                         	var res = regListenOn.exec(i);
-                        	if (!res)
+                        	if (!res){
                                 	continue;
+				}
                         	this.listen(context || this, res[0], localSettings[i]);
                 	}
         	}
@@ -126,7 +127,7 @@ module.exports =  function(stage){
 				return this.clearNotifications();	
 			}
         	}
-	};
+	}
 
         stage.notificationsCenter = {
                 notification:Notification,

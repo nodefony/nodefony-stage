@@ -19,8 +19,9 @@ module.exports =  function(stage){
 	var realtime = class realtime  {
 
 		constructor(urlServer, settings){
-			if (! urlServer)
-				throw new Error("realtime url server is not defined")
+			if (! urlServer){
+				throw new Error("realtime url server is not defined");
+			}
 			this.settings = stage.extend({}, defaultSettings, settings); 
 			this.notificationCenter = stage.notificationsCenter.create(this.settings, this);
 			this.syslog =  new stage.syslog(settingsSyslog);
@@ -96,7 +97,6 @@ module.exports =  function(stage){
 					delete this.subscribedService[service];
 				}
 			});
-
 			//this.start();	
 		}
 

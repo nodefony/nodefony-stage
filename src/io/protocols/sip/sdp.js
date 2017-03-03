@@ -4,8 +4,9 @@ module.exports =  function(stage){
 
 
 	var defaultAparser = function(value, block){
-		if ( value )
+		if ( value ){
 			return value ;
+		}
 		return null ;
 	};
 
@@ -18,7 +19,7 @@ module.exports =  function(stage){
 				clockRate		: null,
 				encodingParameters	: null,
 				raw			: value
-			}
+			};
 			var res = value.split(" ");
 			for (var i = 0 ; i< res.length ; i++){
 				switch (i){
@@ -85,7 +86,7 @@ module.exports =  function(stage){
 				generation		: null,
 				networkId		: null,
 				raw			: value
-			}
+			};
 			var res = value.split(" ");
 			for (var i = 0 ; i< res.length ; i++){
 				switch (i){
@@ -133,7 +134,7 @@ module.exports =  function(stage){
 					break;	
 				}
 			}
-			block.candidates.push(obj)
+			block.candidates.push(obj);
 			return value ;
 		}
 		return null;
@@ -195,22 +196,26 @@ module.exports =  function(stage){
 				var res = line[i].split("=");
 				var key = res[0].replace(/ |\n|\r/g,"") ;
 				var value = res[1] ;
+				let data = null ;
+				let size = null ;
+				let media = null ;
+				let type = null ;
 				switch(key){
 					case "m":
 						if (first == 0 ){
-							var data = line.slice(first, i);
-							var size = data.length ;
+							data = line.slice(first, i);
+							size = data.length ;
 						}else{
-							var data = line.slice(first+1, i);
-							var size = data.length ;
+							data = line.slice(first+1, i);
+							size = data.length ;
 						}
-						var parseM = this.parseMline(m) ;
+						let parseM = this.parseMline(m) ;
 						if ( parseM ){
-							var media = parseM ;	
-							var type = parseM.media ;
+							media = parseM ;	
+							type = parseM.media ;
 						}else{
-							var media = null ;
-							var type = "session" ;
+							media = null ;
+							type = "session" ;
 						}
 						this.blocks.push({
 							type		: type,
@@ -234,13 +239,15 @@ module.exports =  function(stage){
 			}	
 			var data = line.slice(first+1, nbLines) ;
 			var size = data.length ;
+			var media = null ;
+			var type = null ;
 			var parseM = this.parseMline(m) ;
 			if ( parseM ){
-				var media = parseM ;
-				var type = parseM.media ;	
+				media = parseM ;
+				type = parseM.media ;	
 			}else{
-				var media = null ;
-				var type = "session" ;
+				media = null ;
+				type = "session" ;
 			}
 			this.blocks.push({
 				type		: type,
@@ -270,7 +277,7 @@ module.exports =  function(stage){
 					proto	: "",
 					fmt	: [],
 					raw	: data
-				}
+				};
 				var res = data.split(" ");
 				for (var i = 0 ; i< res.length ; i++){
 					switch (i){
@@ -290,7 +297,7 @@ module.exports =  function(stage){
 							obj.proto = res[i] ;
 							break;
 						default:
-							obj.fmt.push(res[i])		
+							obj.fmt.push(res[i]);	
 					}
 				}
 				return obj ;
@@ -336,7 +343,7 @@ module.exports =  function(stage){
 					addrtype	: null,
 					address		: null,
 					raw		: data
-				}
+				};
 				var res = data.split(" ");
 				for (var i = 0 ; i< res.length ; i++){
 					switch (i){
@@ -368,7 +375,7 @@ module.exports =  function(stage){
 					addrtype		: null,
 					unicastAddr		: null,
 					raw			: data
-				}
+				};
 				var res = data.split(" ");
 				for (var i = 0 ; i< res.length ; i++){
 					switch (i){
@@ -407,7 +414,7 @@ module.exports =  function(stage){
 					start		: null,
 					stop		: null,
 					raw		: data
-				}
+				};
 				var res = data.split(" ");
 				for (var i = 0 ; i< res.length ; i++){
 					switch (i){
@@ -432,7 +439,7 @@ module.exports =  function(stage){
 					duration	: null,
 					offsets		: null,
 					raw		: data
-				}
+				};
 				var res = data.split(" ");
 				for (var i = 0 ; i< res.length ; i++){
 					switch (i){

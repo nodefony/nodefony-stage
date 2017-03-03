@@ -21,8 +21,8 @@ module.exports =  function(stage){
  	 */
 	var md5_vm_test = function()
 	{
-  		return hex_md5("abc").toLowerCase() == "900150983cd24fb0d6963f7d28e17f72";
-	}
+  		return rstr2hex("abc").toLowerCase() === "900150983cd24fb0d6963f7d28e17f72";
+	};
 
 	/*
  	* Calculate the MD5 of a raw string
@@ -30,7 +30,7 @@ module.exports =  function(stage){
 	var rstr_md5 = function(s)
 	{
   		return binl2rstr(binl_md5(rstr2binl(s), s.length * 8));
-	}
+	};
 
 	/*
  	* Calculate the HMAC-MD5, of a key and some data (raw strings)
@@ -38,8 +38,9 @@ module.exports =  function(stage){
 	var rstr_hmac_md5 = function (key, data)
 	{
   		var bkey = rstr2binl(key);
-  		if(bkey.length > 16) bkey = binl_md5(bkey, key.length * 8);
-
+  		if(bkey.length > 16) {
+			bkey = binl_md5(bkey, key.length * 8);
+		}
   		var ipad = Array(16), opad = Array(16);
   		for(var i = 0; i < 16; i++)
   		{
@@ -49,9 +50,7 @@ module.exports =  function(stage){
 
   		var hash = binl_md5(ipad.concat(rstr2binl(data)), 512 + data.length * 8);
   		return binl2rstr(binl_md5(opad.concat(hash), 512 + 128));
-	}
-
-
+	};
 
 	/*
  	 * Convert a raw string to a hex string
@@ -65,11 +64,10 @@ module.exports =  function(stage){
   		for(var i = 0; i < input.length; i++)
   		{
     			x = input.charCodeAt(i);
-    			output += hex_tab.charAt((x >>> 4) & 0x0F)
-           			+  hex_tab.charAt( x        & 0x0F);
+    			output += hex_tab.charAt((x >>> 4) & 0x0F) + hex_tab.charAt( x  & 0x0F);
   		}
   		return output;
-	}
+	};
 
 	/*
  	 * Convert a raw string to a base-64 string
@@ -87,12 +85,15 @@ module.exports =  function(stage){
                 		| (i + 2 < len ? input.charCodeAt(i+2)      : 0);
     			for(var j = 0; j < 4; j++)
     			{
-      				if(i * 8 + j * 6 > input.length * 8) output += b64pad;
-      				else output += tab.charAt((triplet >>> 6*(3-j)) & 0x3F);
+      				if(i * 8 + j * 6 > input.length * 8){
+					output += b64pad;
+      				}else {
+					output += tab.charAt((triplet >>> 6*(3-j)) & 0x3F);
+				}
     			}
   		}
   		return output;
-	}
+	};
 
 	/*
  	 * Convert a raw string to an arbitrary string encoding
@@ -127,8 +128,9 @@ module.exports =  function(stage){
       				x = (x << 16) + dividend[i];
       				q = Math.floor(x / divisor);
       				x -= q * divisor;
-      				if(quotient.length > 0 || q > 0)
+      				if(quotient.length > 0 || q > 0){
         				quotient[quotient.length] = q;
+				}
     			}
     			remainders[j] = x;
     			dividend = quotient;
@@ -136,11 +138,11 @@ module.exports =  function(stage){
 
   		/* Convert the remainders to the output string */
   		var output = "";
-  		for(i = remainders.length - 1; i >= 0; i--)
+  		for(i = remainders.length - 1; i >= 0; i--){
     			output += encoding.charAt(remainders[i]);
-
+		}
   		return output;
-	}
+	};
 	
 	/*
  	 * Encode a string as utf-8.
@@ -164,23 +166,24 @@ module.exports =  function(stage){
     			}
 
     			/* Encode output as utf-8 */
-    			if(x <= 0x7F)
+    			if(x <= 0x7F){
       				output += String.fromCharCode(x);
-    			else if(x <= 0x7FF)
+    			}else if(x <= 0x7FF){
       				output += String.fromCharCode(0xC0 | ((x >>> 6 ) & 0x1F),
                                     		0x80 | ( x         & 0x3F));
-    			else if(x <= 0xFFFF)
+    			}else if(x <= 0xFFFF){
       				output += String.fromCharCode(0xE0 | ((x >>> 12) & 0x0F),
                                     		0x80 | ((x >>> 6 ) & 0x3F),
                                     		0x80 | ( x         & 0x3F));
-    			else if(x <= 0x1FFFFF)
+    			}else if(x <= 0x1FFFFF){
       				output += String.fromCharCode(0xF0 | ((x >>> 18) & 0x07),
                                     		0x80 | ((x >>> 12) & 0x3F),
                                     		0x80 | ((x >>> 6 ) & 0x3F),
                                     		0x80 | ( x         & 0x3F));
+			}
   		}
   		return output;
-	}
+	};
 
 	/*
  	 * Encode a string as utf-16
@@ -188,20 +191,22 @@ module.exports =  function(stage){
 	var str2rstr_utf16le = function (input)
 	{
   		var output = "";
-  		for(var i = 0; i < input.length; i++)
+  		for(var i = 0; i < input.length; i++){
     			output += String.fromCharCode( input.charCodeAt(i)        & 0xFF,
                                   	(input.charCodeAt(i) >>> 8) & 0xFF);
+		}
   		return output;
-	}
+	};
 
 	var str2rstr_utf16be = function (input)
 	{
   		var output = "";
-  		for(var i = 0; i < input.length; i++)
+  		for(var i = 0; i < input.length; i++){
     			output += String.fromCharCode((input.charCodeAt(i) >>> 8) & 0xFF,
                                    	input.charCodeAt(i)        & 0xFF);
+		}
   		return output;
-	}
+	};
 
 	/*
  	 * Convert a raw string to an array of little-endian words
@@ -210,12 +215,14 @@ module.exports =  function(stage){
 	var rstr2binl = function (input)
 	{
   		var output = Array(input.length >> 2);
-  		for(var i = 0; i < output.length; i++)
+  		for(var i = 0; i < output.length; i++){
     			output[i] = 0;
-  		for(var i = 0; i < input.length * 8; i += 8)
+		}
+  		for(var i = 0; i < input.length * 8; i += 8){
     			output[i>>5] |= (input.charCodeAt(i / 8) & 0xFF) << (i%32);
+		}
   		return output;
-	}
+	};
 
 	/*
  	 * Convert an array of little-endian words to a string
@@ -223,10 +230,11 @@ module.exports =  function(stage){
 	var binl2rstr = function (input)
 	{
   		var output = "";
-  		for(var i = 0; i < input.length * 32; i += 8)
+  		for(var i = 0; i < input.length * 32; i += 8){
     			output += String.fromCharCode((input[i>>5] >>> (i % 32)) & 0xFF);
+		}
   		return output;
-	}
+	};
 
 	/*
  	 * Calculate the MD5 of an array of little-endian words, and a bit length.
@@ -323,7 +331,7 @@ module.exports =  function(stage){
     			d = safe_add(d, oldd);
   		}
   		return Array(a, b, c, d);
-	}
+	};
 
 	/*
  	 * These functions implement the four basic operations the algorithm uses.
@@ -331,23 +339,23 @@ module.exports =  function(stage){
 	var md5_cmn = function (q, a, b, x, s, t)
 	{
   		return safe_add(bit_rol(safe_add(safe_add(a, q), safe_add(x, t)), s),b);
-	}
+	};
 	var md5_ff = function (a, b, c, d, x, s, t)
 	{
   		return md5_cmn((b & c) | ((~b) & d), a, b, x, s, t);
-	}
+	};
 	var md5_gg = function (a, b, c, d, x, s, t)
 	{
   		return md5_cmn((b & d) | (c & (~d)), a, b, x, s, t);
-	}
+	};
 	var md5_hh = function (a, b, c, d, x, s, t)
 	{
   		return md5_cmn(b ^ c ^ d, a, b, x, s, t);
-	}
+	};
 	var md5_ii = function (a, b, c, d, x, s, t)
 	{
   		return md5_cmn(c ^ (b | (~d)), a, b, x, s, t);
-	}
+	};
 
 	/*
  	 * Add integers, wrapping at 2^32. This uses 16-bit operations internally
@@ -358,7 +366,7 @@ module.exports =  function(stage){
   		var lsw = (x & 0xFFFF) + (y & 0xFFFF);
   		var msw = (x >> 16) + (y >> 16) + (lsw >> 16);
   		return (msw << 16) | (lsw & 0xFFFF);
-	}
+	};
 
 	/*
  	 * Bitwise rotate a 32-bit number to the left.
@@ -366,7 +374,7 @@ module.exports =  function(stage){
 	var bit_rol = function (num, cnt)
 	{
   		return (num << cnt) | (num >>> (32 - cnt));
-	}
+	};
 
 	stage.crypto.md5 = {
  		hex_md5:function(s){ 

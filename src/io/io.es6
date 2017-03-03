@@ -5,16 +5,16 @@ module.exports =  function(stage){
 	var isSameOrigin = function (url) {
 		var loc = window.location;
 		var a = urlToOject(url);
-		return a.hostname == loc.hostname &&
+		return a.hostname === loc.hostname &&
 			a.port == loc.port &&
-			a.protocol == loc.protocol;
+			a.protocol === loc.protocol;
 	};
 
 	var isSecure = function(url){
 		var loc = window.location;
 		var a = urlToOject(url);
 		return a.protocol === "https:" ;
-	}
+	};
 
 	/*
  	 *
@@ -41,14 +41,14 @@ module.exports =  function(stage){
 			var authenticate = request["WWW-Authenticate"].split(" ") ;
 			//  get type authentification
 			var authType = Array.prototype.shift.call(authenticate);
-			var headers = request["WWW-Authenticate"].replace(authType+" ","") 
+			var headers = request["WWW-Authenticate"].replace(authType+" ","");
 				//console.log(authType);
 				this.method = "POST";
 			var body = request.body;
 
 			// intance of authentication
 			var auth = this.getAuthenticationType(authType);
-			this.authentication = new auth(this.url,  this.method, headers, body )
+			this.authentication = new auth(this.url,  this.method, headers, body );
 				this.ajax = false;
 			if (settings.ajax){
 				this.ajax = true;
@@ -59,7 +59,7 @@ module.exports =  function(stage){
 			if (type in stage.io.authentication){
 				return stage.io.authentication[type];
 			}else{
-				throw new Error("SSE client can't negociate : "+type )
+				throw new Error("SSE client can't negociate : "+type );
 			}
 		}
 
@@ -72,17 +72,17 @@ module.exports =  function(stage){
 					url:		this.url.href,
 					cache:		false,
 					crossDomain:	this.crossDomain ? false : true ,
-					error:function(obj, type, message){
+					error:(obj, type, message) => {
 						this.notificationCenter.fire("onError", obj, type, message);	
-					}.bind(this),
-					beforeSend:function(xhr){
+					},
+					beforeSend:(xhr) => {
 						xhr.setRequestHeader("Authorization", line );
 						//if (this.crossDomain)
 						//xhr.setRequestHeader("X-Requested-With", "XMLHttpRequest");
-					}.bind(this),
-					success:function(data, state, obj){
+					},
+					success:(data, state, obj) => {
 						this.notificationCenter.fire("onSuccess", data, state, obj);
-					}.bind(this)
+					}
 				});
 			}		
 		}
@@ -147,7 +147,7 @@ module.exports =  function(stage){
 					//console.log(key_value)
 					//console.log(key)
 					if ( key ){
-						var val =  decodeURIComponent(key_value[1])
+						var val =  decodeURIComponent(key_value[1]);
 						if ( ! Object.prototype.hasOwnProperty.call(obj, key) ){
 							obj[key] = val;
 						}else{
@@ -165,7 +165,7 @@ module.exports =  function(stage){
 				}
 			}
 		}
-		return obj	
+		return obj;
 	};
 
 	var toKeyValue = function(obj){
@@ -193,7 +193,7 @@ module.exports =  function(stage){
   		var json = xhr.getResponseHeader("X-Json"); 
   		if (json) {
 			try {
-				return JSON.parse(json)
+				return JSON.parse(json);
 			}catch(e){
 				return json;
 			}
@@ -208,7 +208,7 @@ module.exports =  function(stage){
 		anchor.href = url;
 
 		var keys = 'protocol hostname host pathname port search hash href'.split(' ');
-		for (keyIndex in keys) {
+		for (var keyIndex in keys) {
 			var currentKey = keys[keyIndex]; 
 			result[currentKey] = anchor[currentKey];
 		}

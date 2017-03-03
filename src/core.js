@@ -37,20 +37,22 @@
  */
 
 var jQuery = require("jquery");
-var stage = require('./stage.js')(jQuery);
 
 // CORE
-require('./notificationsCenter.js')(stage);
-require('./syslog/syslog.js')(stage);
-require('./xml.js')(stage);
+var stage = require('./core/stage.es6')(jQuery);
+require('./core/notificationsCenter.es6')(stage);
+require('./syslog/syslog.es6')(stage);
+
+// TOOLS
+require('./tools/xml.js')(stage);
 
 // CRYPTO
 require('./crypto/base64.js')(stage);
 require('./crypto/md5.js')(stage);
 
 // IO
-require('./io/io.js')(stage);
-require('./io/authentication/mechanisms/digest-md5/digestMd5.js')(stage);
+require('./io/io.es6')(stage);
+require('./io/authentication/mechanisms/digest-md5/digestMd5.es6')(stage);
 require('./io/authentication/sasl/sasl.js')(stage);
 
 // IO TRANSPORT
@@ -66,6 +68,10 @@ require('./io/protocols/sip/sip.js')(stage);
 
 // IO REALTIME
 require('./io/realtime/realtime.js')(stage);
+
+
+// MEDIAS
+require('./media/media.js')(stage);
 
 
 

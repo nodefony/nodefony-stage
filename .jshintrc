@@ -1,0 +1,33 @@
+{
+    "esversion":	6,
+    "node":		true,
+    "undef":		true,
+    "unused":		true,
+    "boss":		true,
+    "eqeqeq":		true,
+    "curly":		true,
+    "loopfunc":		true,
+    "multistr":		true,
+    "emitErrors":	false,
+    "failOnHint":	false,
+    "globals": {
+      "$":		true,
+      "window":		true,
+      "document":	true,
+      "navigator":	true,
+      "stage":		true,
+      "indexOf":	true,
+      "Jquery":		true,
+      "require":	true,
+      "console":	true,
+      "module":		true,
+      "exports":	true,
+      "kernel":		true,
+      "yaml":		true,
+      "crypto":		true,
+      "dns":		true,
+      "Promise":	true,
+      "it":		true,
+      "describe":	true
+    }	
+}

@@ -6,31 +6,34 @@ module.exports =  function(stage){
 		charset:true,
 		algorithm:true,
 		nonce:true
-	}
+	};
 
 	var reg =/^([^=]+)=(.+)$/;
 	var parserAuthenticate = function(str){
 		var ret = str.replace(/"/g,"");
 		ret = ret.replace(/Digest /g,"");
 		var head = ret.split(",");
-		var obj = {}
+		var obj = {};
 		for (var i= 0 ; i < head.length ; i++){
 			var res = reg.exec(head[i]);
-			if (res && res[1])
-				obj[res[1]] = res[2]
+			if (res && res[1]){
+				obj[res[1]] = res[2];
+			}
 		}	
-		return obj
-	}
+		return obj;
+	};
 
 	var MD5 = stage.crypto.md5.hex_md5_noUTF8 ;
 	var BASE64 = stage.crypto.base64.encode ;
 	var DBASE64 = stage.crypto.base64.decode;
 
 	var generateA1 = function(username, realm, password, nonce, cnonce){
-		if (cnonce)
-			var A1 = username + ":" + realm + ":" + password + ":" + nonce+ ":" + cnonce ;
-		else
-			var A1 = username + ":" + realm + ":" + password ;//+ ":" + nonce ;
+		var A1 = null ;
+		if (cnonce){
+			A1 = username + ":" + realm + ":" + password + ":" + nonce+ ":" + cnonce ;
+		}else{
+			A1 = username + ":" + realm + ":" + password ;//+ ":" + nonce ;
+		}
 		return MD5(A1); 
 	};
 
@@ -62,7 +65,7 @@ module.exports =  function(stage){
 	/*
  	 *
  	 */
-	var digestMd5 = class digestMd5  {
+	const digestMd5 = class digestMd5  {
 
 		constructor(url, method, headers, body){
 			this.method = method ;
@@ -76,7 +79,7 @@ module.exports =  function(stage){
 					this.parseChallenge(headers);
  					break;	
 				default:
-					throw new Error("digetMD5 bad format header")
+					throw new Error("digetMD5 bad format header");
 			}	
 		}
 
@@ -86,8 +89,7 @@ module.exports =  function(stage){
 			switch (typeof headers){
 				case "string" : 
 					//TODO
-					throw new Error("digetMD5 bad format challenge")
-						break;	
+					throw new Error("digetMD5 bad format challenge");
 				case "object" :
 					for (var ele in headers ){
 						switch (ele){
@@ -105,24 +107,23 @@ module.exports =  function(stage){
 							default:
 								parsing[ele] = headers[ele];
 
-						};
+						}
 					}
 					break;	
 				default:
-					throw new Error("digetMD5 bad format challenge")
+					throw new Error("digetMD5 bad format challenge");
 			}
-			var challenge = stage.extend(parserAuthenticate(this.challengeB64), parsing )
-				//var challenge = parserAuthenticate(this.challengeB64);
-				//console.log(challenge)
-				for (var name in challenge){
-					if (name in keyWord){
-						this[name] = challenge[name];
-					}else{
-						console.warn("digestMd5 parser challenge header name dropped: "+name)
-					}	
-				}
-		};
-
+			var challenge = stage.extend(parserAuthenticate(this.challengeB64), parsing );
+			//var challenge = parserAuthenticate(this.challengeB64);
+			//console.log(challenge)
+			for (var name in challenge){
+				if (name in keyWord){
+					this[name] = challenge[name];
+				}else{
+					console.warn("digestMd5 parser challenge header name dropped: "+name);
+				}	
+			}
+		}
 
 		generateAuthorization (username, password){
 
@@ -135,7 +136,7 @@ module.exports =  function(stage){
 				nonce:'"'+this.nonce+'"',
 				realm:'"'+this.realm+'"',
 				response:null
-			}
+			};
 
 			this["digest-uri"] = this.protocol+"/"+this.host;
 			//this["digest-uri"] = '"'+this.protocol+"/"+this.uri+'"';
@@ -170,14 +171,13 @@ module.exports =  function(stage){
 			}
 			//console.log(line)
 			var toSend = BASE64(line);
-			return toSend
+			return toSend;
 
 		}
 	};
 
 	stage.io.authentication.Digest = digestMd5 ;
 	stage.io.authentication.mechanisms.Digest = digestMd5 ;
-
 	return digestMd5;
 
 };
