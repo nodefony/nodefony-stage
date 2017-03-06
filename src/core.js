@@ -72,7 +72,7 @@ require('./io/realtime/realtime.es6')(stage);
 
 // MEDIAS
 require('./media/media.es6')(stage);
-
+require('./media/webrtc/webrtc.es6')(stage);
 
 
 // KERNEL STAGE ( nodefony )
