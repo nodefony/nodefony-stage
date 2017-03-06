@@ -90,7 +90,6 @@ const ES5 = {
 };
 
 
-
 const ES6 = {
 	entry: path.resolve(__dirname, "src","core.js"),
 	target:  'web' ,
@@ -110,13 +109,14 @@ const ES6 = {
 	externals: {
 		// require("jquery") is external and available
 		//  on the global var jQuery
-		"jquery": "jQuery"
+		"jquery": "jQuery",
+		"twig": "Twig"
 	},
 	plugins: plugins
 };
 
 
-const config = [/*ES5,*/ ES6];
+const config = [ES5, ES6];
 	
 
 module.exports = config;

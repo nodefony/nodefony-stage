@@ -11,8 +11,12 @@ module.exports =  function(stage){
 	var socket = class socket extends stage.notificationsCenter.notification  {
 
 		constructor(url, localSettings){
-			this.settings = stage.extend({}, defaultSettings, localSettings);
-			super(this.settings, this);	
+
+			var settings = stage.extend({}, defaultSettings, localSettings);
+
+			super(settings);	
+
+			this.settings = settings ;
 
 			switch (this.settings.type){
 				case "websocket":

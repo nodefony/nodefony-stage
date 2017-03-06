@@ -227,7 +227,7 @@ module.exports =  function(stage){
 	var transportCore = class transportCore  extends stage.notificationsCenter.notification {
 
 		constructor(url, settings, context){
-			super(settings, context || this);	
+			super(settings, context );	
 			// Manage Url
 			if (url){
 				this.url = urlToOject(url);

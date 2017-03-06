@@ -35,7 +35,9 @@
 		"babel-loader":				"*",
 		"babel-plugin-transform-runtime":	"*",
 		"jshint":				"*",
-		"jshint-loader":			"*"
+		"jshint-loader":			"*",
+		"twig":					"*",
+		"webrtc-adapter":			"*"
   	},
   	"devDependencies": {
     		"chai":			"^3.5.0",

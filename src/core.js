@@ -53,25 +53,29 @@ require('./crypto/md5.js')(stage);
 // IO
 require('./io/io.es6')(stage);
 require('./io/authentication/mechanisms/digest-md5/digestMd5.es6')(stage);
-require('./io/authentication/sasl/sasl.js')(stage);
+require('./io/authentication/sasl/sasl.es6')(stage);
 
 // IO TRANSPORT
-require('./io/transports/socket.js')(stage);
-require('./io/transports/websockets/websocket.js')(stage);
-require('./io/transports/in/poll.js')(stage);
-require('./io/transports/in/longPoll.js')(stage);
+require('./io/transports/socket.es6')(stage);
+require('./io/transports/websockets/websocket.es6')(stage);
+require('./io/transports/in/poll.es6')(stage);
+require('./io/transports/in/longPoll.es6')(stage);
 
 // IO PROTOCOLS
-require('./io/protocols/bayeux/bayeux.js')(stage);
-require('./io/protocols/sip/sdp.js')(stage);
-require('./io/protocols/sip/sip.js')(stage);
+require('./io/protocols/bayeux/bayeux.es6')(stage);
+require('./io/protocols/sip/sdp.es6')(stage);
+require('./io/protocols/sip/sip.es6')(stage);
 
 // IO REALTIME
-require('./io/realtime/realtime.js')(stage);
+require('./io/realtime/realtime.es6')(stage);
 
 
 // MEDIAS
-require('./media/media.js')(stage);
+require('./media/media.es6')(stage);
+
+
+
+// KERNEL STAGE ( nodefony )
 
 
 

@@ -7,7 +7,7 @@ module.exports =  function(stage){
 
 		constructor(url, settings){
 			if (url){
-				super(url, settings, this);
+				super(url, settings);
 				this.connect(url, settings);
 			}else{
 				super();

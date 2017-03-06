@@ -1,5 +1,7 @@
 #Ignore directory 
 tmp/**
+vendors/twig
+vendors/webrtc-adapter
 dist/**
 
 *.db
