@@ -3,7 +3,7 @@ const path = require('path');
 
 
 module.exports = function (options) {
-  	isProd = options.env === 'production';
+  	var isProd = options.env === 'production';
   	return {
 
     		/*
@@ -66,7 +66,7 @@ module.exports = function (options) {
         			},
 
 				/*
-         			* to string and css loader support for *.css files (from Angular components)
+         			* to string and css loader support for *.css files 
          			* Returns file content as string
          			*
          			*/
@@ -77,7 +77,7 @@ module.exports = function (options) {
         			},
 
 				/*
-         			* to string and sass loader support for *.scss files (from Angular components)
+         			* to string and sass loader support for *.scss files 
          			* Returns compiled css content as string
          			*
          			*/

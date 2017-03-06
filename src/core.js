@@ -76,6 +76,9 @@ require('./media/webrtc/webrtc.es6')(stage);
 
 
 // KERNEL STAGE ( nodefony )
+require('./kernel/kernel.es6')(stage);
+require('./kernel/autoload.es6')(stage);
+require('./kernel/container.es6')(stage);
 
 
 

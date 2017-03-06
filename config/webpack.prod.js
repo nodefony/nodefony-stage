@@ -1,7 +1,7 @@
 const webpack = require('webpack');
 const path = require('path');
 
-const ENV = process.env.ENV = process.env.NODE_ENV = 'development';
+const ENV = process.env.ENV = process.env.NODE_ENV = 'production';
 
 const webpackMerge = require('webpack-merge'); // used to merge webpack configs
 
@@ -12,7 +12,7 @@ const commonConfig = require('./webpack.common.js'); // the settings that are co
 var transcode =  {
       	// the "loader"
       	loader: "babel-loader", // or "babel" because webpack adds the '-loader' automatically
-	query: {
+	options: {
 		presets: ['es2015'],
 		//plugins: ['transform-runtime']
       	}

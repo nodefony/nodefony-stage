@@ -12,7 +12,7 @@ const commonConfig = require('./webpack.common.js'); // the settings that are co
 var transcode =  {
       	// the "loader"
       	loader: "babel-loader", // or "babel" because webpack adds the '-loader' automatically
-	query: {
+	options: {
 		presets: ['es2015'],
 		//plugins: ['transform-runtime']
       	}
