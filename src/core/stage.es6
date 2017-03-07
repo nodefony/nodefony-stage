@@ -160,7 +160,7 @@ module.exports = function (jQuery){
 			};
 		}
 
-		/*register (name, closure){
+		register (name, closure){
 			if (typeof closure === "function") {
 				// exec closure 
 				var register = closure(this, name);
@@ -168,7 +168,7 @@ module.exports = function (jQuery){
 				var register = closure;
 			}
 			return this[name] = register;
-		}*/
+		}
 
 		registerModule (name, closure){
 			return this.register.call(this.modules, name, closure);
