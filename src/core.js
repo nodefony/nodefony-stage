@@ -45,6 +45,8 @@ require('./syslog/syslog.es6')(stage);
 
 // TOOLS
 require('./tools/xml.js')(stage);
+require('./structs/hash/hash.es6')(stage);
+require('./structs/queue/queue.es6')(stage);
 
 // CRYPTO
 require('./crypto/base64.js')(stage);
@@ -76,9 +78,16 @@ require('./media/webrtc/webrtc.es6')(stage);
 
 
 // KERNEL STAGE ( nodefony )
+require('./kernel/service.es6')(stage);
 require('./kernel/kernel.es6')(stage);
+require('./kernel/appKernel.es6')(stage);
 require('./kernel/autoload.es6')(stage);
 require('./kernel/container.es6')(stage);
+require('./kernel/controller.es6')(stage);
+require('./kernel/locationService.es6')(stage);
+require('./kernel/module.es6')(stage);
+require('./kernel/routerService.es6')(stage);
+require('./kernel/translationService.es6')(stage);
 
 
 

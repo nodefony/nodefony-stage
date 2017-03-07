@@ -84,23 +84,25 @@ module.exports =  function(stage){
 	*	KERNEL CLASS	
 	*/
 
-	var Kernel = class Kernel  {
+	var Kernel = class Kernel  extends stage.Service {
 
 		constructor(environment, settings){
-			this.container = null; 
+
+			super("KERNEL",null, null ,{
+				syslog:settingsSyslog
+			});
+
 			this.modules = {};
 			this.settings = stage.extend(true, {}, defaultSettings , settings );
 			this.environment = environment;
 			this.debug = this.settings.debug ;
 			this.booted = false;
-			this.container = new stage.Container();
 			this.container.set("kernel", this);
 			this.isDomReady = false;
 			this.uiContainer = null;
 
 			// syslog
-			this.syslog = this.initializeLog(settingsSyslog);
-			this.container.set("syslog", this.syslog);
+			this.initializeLog(settingsSyslog);
 
 			// autoloader
 			this.autoloader = new stage.autoload(this, {
@@ -108,10 +110,6 @@ module.exports =  function(stage){
 			});
 			this.container.set("autoloader", this.autoloader);
 
-			// notificationsCenter
-			this.notificationsCenter =  stage.notificationsCenter.create();
-			this.container.set("notificationsCenter", this.notificationsCenter);
-			
 			// location
 			this.initLocation();
 
@@ -128,10 +126,10 @@ module.exports =  function(stage){
 			this.initRest()
 
 			// EVENT NATIF
-			$(document).ready(this.listen(this, "onDomReady", this.domReady));
-			$(window).resize(this.listen(this,"onResize"));
-			$(window).unload(this.listen(this,"onUnLoad"));	
-			$(window).load(this.listen(this,"onLoad"));	
+			$(document).ready( this.listen(this, "onDomReady", this.domReady) );
+			$(window).resize( this.listen(this,"onResize") );
+			$(window).on( "unload", this.listen(this,"onUnLoad"));
+			$(window).on( "onload", this.listen(this,"onLoad"));
 
 			//BOOT	
 			this.listen(this, "onBoot" , this.boot)
@@ -140,37 +138,7 @@ module.exports =  function(stage){
 
 			this.notificationsCenter.settingsToListen(this.settings, this);
 		}
-
-		set (name, value){
-			return this.container.set(name, value);	
-		}
-
-		get (name, value){
-			return this.container.get(name, value);	
-		}
-			
-		setParameters (name, value){
-			return this.container.setParameters(name, value);	
-		}
-
-		getParameters (name){
-			return this.container.getParameters(name);	
-		}
-
-		listen (){
-			return this.notificationsCenter.listen.apply(this.notificationsCenter, arguments);
-		}
-
-		fire (event){
-			this.logger("EVENT : " + event,"DEBUG");
-			return this.notificationsCenter.fire.apply(this.notificationsCenter, arguments);
-		}
-
-		logger (pci, severity, msgid,  msg){
-			if (! msgid) msgid = "KERNEL "
-			return this.syslog.logger(pci, severity, msgid,  msg);
-		}
-
+		
 		initRouter (){
 			this.router = new stage.router(this, this.container);
 			this.container.set("router", this.router);
@@ -242,8 +210,8 @@ module.exports =  function(stage){
 			this.fire("onDomLoad", this);
 			var element = this.uiContainer ? $(this.uiContainer) : $("body");
 			try {
-				if ( this.modules["app"] ){
-					this.modules["app"].initialize(element);	
+				if ( this.modules.app ){
+					this.modules.app.initialize(element);	
 				}		
 				for (var module in this.modules){
 					if (module === "app") continue;
@@ -264,10 +232,10 @@ module.exports =  function(stage){
 	
 		initializeLog (settings){
 			
-			var syslog =  new stage.syslog(settings);
+			//var syslog =  new stage.syslog(settings);
 			if (this.environment === "dev"){
 			// CRITIC ERROR
-				syslog.listenWithConditions(this,{
+				this.syslog.listenWithConditions(this,{
 					severity:{
 						data:"CRITIC,ERROR"
 					}		
@@ -289,14 +257,14 @@ module.exports =  function(stage){
 				// INFO DEBUG
 				var data ;
 				this.debug ? data = "INFO,DEBUG" : data = "INFO" ;
-				syslog.listenWithConditions(this,{
+				this.syslog.listenWithConditions(this,{
 					severity:{
 						data:data
 					}		
 				},function(pdu){
 					console.info( "SYSLOG " + pdu.severityName +" " + pdu.msgid + " "+new Date(pdu.timeStamp) + " " + pdu.msg+" : "+ pdu.payload);
 				});
-				syslog.listenWithConditions(this,{
+				this.syslog.listenWithConditions(this,{
 					severity:{
 						data:"WARNING"
 					}		
@@ -304,7 +272,7 @@ module.exports =  function(stage){
 					console.warn( "SYSLOG " + pdu.severityName +" " + pdu.msgid + " "+new Date(pdu.timeStamp) + " " + pdu.msg+" : "+ pdu.payload);
 				});
 			}
-			return syslog;
+			return this.syslog;
 		}
 
 		boot (){

@@ -147,6 +147,7 @@ module.exports = function (jQuery){
 			this.crypto = {};
 			this.modules = {};
 			this.media = {};
+			this.structs ={} ;
 			this.controllers = {};
 			this.browser = {
 				navigator:getBrowser,

@@ -8,5 +8,12 @@
 
 {% block javascripts %}
 	{{ parent() }}
+
+	<script>
+	var kernel = new stage.appKernel(null, "dev", {
+		debug:true
+	});
+	</script>
+
 {% endblock %}
 

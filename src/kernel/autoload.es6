@@ -158,6 +158,7 @@ module.exports =  function(stage){
 			this.prefix = this.settings.prefix  ;
 			this.syslog = kernel.syslog || null ;
 			this.transport = this.settings.transport ;
+			this.logger("INITIALIZE AUTOLOAD SERVICE", "DEBUG");
 		}
 
 		load (file, callback){
@@ -184,7 +185,6 @@ module.exports =  function(stage){
 			if (id in this.cache){
 				var tag = this.cache[id]
 				tag.parentNode.removeChild(tag);
-				//delete tag;
 				delete 	this.cache[id] ;	
 				return callback(id);
 			}else{
@@ -195,5 +195,4 @@ module.exports =  function(stage){
 
 	stage.autoload =  autoload ;
 	return autoload ; 
-
 };

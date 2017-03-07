@@ -18,7 +18,7 @@ module.exports =  function(stage){
 
 	var parseParameterString = function(str, value){
 		var ns = null ; 
-		switch( nodefony.typeOf(str) ){
+		switch( stage.typeOf(str) ){
 			case "string" :
 				return parseParameterString.call(this,str.split(".") , value);
 			case "array" :
@@ -37,7 +37,7 @@ module.exports =  function(stage){
 						return value ;
 					default :
 						ns = Array.prototype.shift.call(str);
-						if ( ! this[ns] && ISDefined(value) ){
+						if ( ! this[ns] && ISDefined(value)  ){
 							this[ns] = {};
 						}
 						return parseParameterString.call(this[ns], str, value);	
@@ -221,10 +221,10 @@ module.exports =  function(stage){
 			this.id = generateId();
 
 			this.protoService = function(){};
-			this.protoService.prototype = nodefony.extend({},this.parent.protoService.prototype);
+			this.protoService.prototype = stage.extend({},this.parent.protoService.prototype);
 
 			this.protoParameters = function(){};
-			this.protoParameters.prototype = nodefony.extend({},this.parent.protoParameters.prototype) ;
+			this.protoParameters.prototype = stage.extend({},this.parent.protoParameters.prototype) ;
 		}
 
 		clean (){

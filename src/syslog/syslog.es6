@@ -71,7 +71,7 @@ module.exports =  function(stage){
     	 * @return {PDU}
     	 */
 	var guid = 0;
-	stage.PDU = class PDU {
+	var PDU = class PDU {
 		constructor(pci, severity, moduleName, msgid, msg, date ) {
 			/* timeStamp @type Date*/
                		this.timeStamp = new Date(date).getTime() || new Date().getTime();
@@ -516,6 +516,7 @@ module.exports =  function(stage){
                        					var pdu = createPDU.call(this, payload, severity, this.settings.moduleName, msgid, msg);
                    				}
                				}catch(e){
+						console.error(e);
                    				this.invalid++;
                    				return "INVALID"
                				}
@@ -534,6 +535,7 @@ module.exports =  function(stage){
                    				var pdu = createPDU.call(this, payload, severity, this.settings.moduleName, msgid, msg);
                				}
            			}catch(e){
+					console.error(e);
                				this.invalid++;
                				return "INVALID";
            			}
@@ -699,6 +701,7 @@ module.exports =  function(stage){
 
 	}
 	stage.syslog = syslog;
+	stage.PDU = PDU;
 	return syslog ; 
 };
 
