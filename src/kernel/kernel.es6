@@ -131,7 +131,7 @@ module.exports =  function(stage){
 			$(document).ready( this.listen(this, "onDomReady", this.domReady) );
 			$(window).resize( this.listen(this,"onResize") );
 			$(window).on( "unload", this.listen(this,"onUnLoad"));
-			$(window).on( "onload", this.listen(this,"onLoad"));
+			$(window).on( "load", this.listen(this,"onLoad"));
 
 			//BOOT	
 			this.listen(this, "onBoot" , this.boot)
