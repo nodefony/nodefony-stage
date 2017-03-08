@@ -199,9 +199,9 @@ module.exports =  function(stage){
 			Twig.extendFunction("path", (name, variables, host) => {
 				try {
 					if (host){
-						return  this.generateUrl.apply(this, arguments);	
+						return  this.generateUrl.call(this, name, variables, host);	
 					}else{
-						var generatedPath = this.generateUrl.apply(this, arguments);
+						var generatedPath = this.generateUrl.call(this, name, variables, host);
 						return generatedPath?"#"+generatedPath:"";
 					}
 				}catch(e){
@@ -226,39 +226,7 @@ module.exports =  function(stage){
 				}
 			});
 		}
-
-		/*logger (pci, severity, msgid,  msg){
-			if (! msgid) msgid = "ROUTER "
-			return this.syslog.logger(pci, severity, msgid,  msg);
-		}
-
-		listen (){
-			return this.notificationsCenter.listen.apply(this.notificationsCenter, arguments);
-		}
-
-		fire (){
-			return this.notificationsCenter.fire.apply(this.notificationsCenter, arguments);
 		
-		}
-
-		
-		set (name, value){
-			return this.container.set(name, value);	
-		}
-
-		get (name, value){
-			return this.container.get(name, value);	
-		}
-
-			
-		setParameters (name, value){
-			return this.container.setParameters(name, value);	
-		}
-
-		getParameters (name){
-			return this.container.getParameters
-		}*/
-
 		createRoute (id, path, defaultParams){
 			if (id in this.routes ){
 				this.logger("CREATE ROUTE : "+ id + "Already exist ", "ERROR");	

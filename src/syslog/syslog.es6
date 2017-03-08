@@ -689,10 +689,10 @@ module.exports =  function(stage){
 			}
        			if (Conditions){
 				var func = function(pdu){
-               				var res = myFuncCondition(Conditions, pdu)
-               					if (res){
-                   					callback.apply(context || this, arguments)
-               					}
+               				var res = myFuncCondition(Conditions, pdu);
+               				if (res){
+                   				callback.apply(context || this, arguments)
+               				}
            			};
            			super.listen(this, "onLog", func);
 				return func ;

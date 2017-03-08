@@ -187,7 +187,7 @@ module.exports =  function(stage){
 			});
 
 			//extended FUNCTION
-			Twig.extendFunction("controller", () => {
+			Twig.extendFunction("controller", function() {
 				var pattern = Array.prototype.shift.call(arguments);
 				var sp = pattern.split(":");
 				var module = this.getModule(sp[0]);
@@ -200,7 +200,7 @@ module.exports =  function(stage){
 						}
 					}
 				}
-			});
+			}.bind(this));
 			this.container.set("twig", this.templateEngine);
 			return this.templateEngine ;
 
