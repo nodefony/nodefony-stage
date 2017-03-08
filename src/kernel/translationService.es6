@@ -1,3 +1,5 @@
+var Twig = require("Twig");
+
 module.exports =  function(stage){
 
 	'use strict';
@@ -48,12 +50,12 @@ module.exports =  function(stage){
 
 			this.logger("DEFAULT LOCALE APPLICATION ==> " + this.defaultLocale ,"DEBUG");
 			//this.logger("//FIXME LOCALE getLang in controller etc ..." ,"WARNING");
-			if (window.Twig){
-				window.Twig.extendFunction("getLangs", this.getLangs.bind(this));
-				window.Twig.extendFunction("trans_default_domain", this.trans_default_domain.bind(this));
-				window.Twig.extendFilter("trans", this.translation.bind(this));
-				window.Twig.extendFunction("trans", this.translation.bind(this));
-				window.Twig.extendFilter("getLangs", this.getLangs.bind(this));
+			if (Twig){
+				Twig.extendFunction("getLangs", this.getLangs.bind(this));
+				Twig.extendFunction("trans_default_domain", this.trans_default_domain.bind(this));
+				Twig.extendFilter("trans", this.translation.bind(this));
+				Twig.extendFunction("trans", this.translation.bind(this));
+				Twig.extendFilter("getLangs", this.getLangs.bind(this));
 			}
 		}
 
