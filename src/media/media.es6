@@ -1,3 +1,5 @@
+require("webrtc-adapter");
+
 module.exports =  function(stage){
 
 	'use strict';

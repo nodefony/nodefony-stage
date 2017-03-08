@@ -1,4 +1,4 @@
-const shortId = require('../../node_modules/shortid');
+const shortId = require('shortid');
 
 module.exports =  function(stage){
 

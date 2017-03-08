@@ -1,3 +1,5 @@
+const Twig = require("twig");
+
 module.exports =  function(stage){
 
 	'use strict';
@@ -170,22 +172,22 @@ module.exports =  function(stage){
 		initTwig (){
 			this.logger("INITIALIZE TWIG SERVICE", "DEBUG");
 			if (this.environment === "dev"){
-				window.Twig.cache = false ;	
+				Twig.cache = false ;	
 			}
-			this.templateEngine = window.Twig.twig  ; 
+			this.templateEngine = Twig.twig  ; 
 			//extended log error traf
-			window.Twig.extend((Twig) => {
+			Twig.extend((Twig) => {
 				Twig.log.error = (message) => {
 					this.logger(message, "ERROR");
 				}
 			});
 
-			window.Twig.extend((Twig) => {
+			Twig.extend((Twig) => {
 				Twig.Templates.loadRemote = loadRemoteTwig.bind(this, Twig) 
 			});
 
 			//extended FUNCTION
-			window.Twig.extendFunction("controller", () => {
+			Twig.extendFunction("controller", () => {
 				var pattern = Array.prototype.shift.call(arguments);
 				var sp = pattern.split(":");
 				var module = this.getModule(sp[0]);

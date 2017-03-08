@@ -1,3 +1,5 @@
+const  Twig = require("twig");
+
 module.exports =  function(stage){
 
 	'use strict';
@@ -194,7 +196,7 @@ module.exports =  function(stage){
 			/*
  		 	* Extend Twig js	
  		 	*/
-			window.Twig.extendFunction("path", (name, variables, host) => {
+			Twig.extendFunction("path", (name, variables, host) => {
 				try {
 					if (host){
 						return  this.generateUrl.apply(this, arguments);	

@@ -1,7 +1,6 @@
 const webpack = require('webpack');
 const path = require('path');
 
-
 module.exports = function (options) {
   	var isProd = options.env === 'production';
   	return {
@@ -26,7 +25,7 @@ module.exports = function (options) {
 		       // require("jquery") is external and available
 		       //  on the global var jQuery
 		       "jquery": "jQuery",
-		       "twig": "Twig"
+		       //"twig": "Twig"
 		},
     		/*
      		* Options affecting the resolving of modules.
@@ -42,7 +41,7 @@ module.exports = function (options) {
       			extensions: [ '.js', '.json', '.es6'],
 
       			// An array of directory names to be resolved to the current directory
-      			modules: [path.resolve(__dirname, "src")],
+      			modules: [path.resolve(__dirname, "src"), "node_modules"],
 
     		},
 
