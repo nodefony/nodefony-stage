@@ -13,7 +13,7 @@ module.exports =  function(stage){
 	var Controller = class Controller extends stage.Service{
 
 		constructor(name, container, module){
-			super(name, container, this.container.get("notificationsCenter") );
+			super(name, container, container.get("notificationsCenter") );
 			this.module = module ; 
 			this.i18n = this.kernel.i18n;
 			this.router = this.kernel.router;
