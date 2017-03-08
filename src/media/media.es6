@@ -96,27 +96,29 @@ module.exports =  function(stage){
 		video:true
 	};
 		
-	var attachMediaStream = function(){
+	/*var attachMediaStream = function(){
 		if (stage.browser.Webkit || stage.browser.Opera){
 			return function(element){
 				// Attach a media stream to an element.
 				this.mediaElement = element;
-				element.src = this.getMediaStream(this.stream);
-				element.play();
+				this.mediaElement.srcObject = this.stream ;
+				//element.src = this.getMediaStream(this.stream);
+				this.mediaElement.play();
 			}
 		}
 		if (stage.browser.Gecko){
 			return function(element){
 				// Attach a media stream to an element.
 				this.mediaElement = element;
-				element.mozSrcObject = this.stream;
-				element.play();
+				this.mediaElement.srcObject = this.stream ;
+				//element.mozSrcObject = this.stream;
+				this.mediaElement.play();
 			}
 		}
-  	}();
+  	}();*/
 
 	//FIXME
-	var reattachMediaStream = function (){
+	/*var reattachMediaStream = function (){
 		if (stage.browser.Webkit){
 			return function(to){
 				// reattach a media stream to an element.
@@ -134,7 +136,7 @@ module.exports =  function(stage){
 				this.mediaElement = to;
 			}
 		}
-  	}();
+  	}();*/
 
 	var mediaStream = class mediaStream  {
 
@@ -178,22 +180,24 @@ module.exports =  function(stage){
 			this.videotracks = this.getVideoTracks();
 			this.audiotracks = this.getAudioTracks();
 			return stream ;
-		};
+		}
 
 		stop (){
 			if (this.stream){
 				this.stream.stop();
 			}
-		};
+		}
 
-		attachMediaStream (){
-			return attachMediaStream.call(this);
-			
+		attachMediaStream (element){
+			this.mediaElement = element;
+			this.mediaElement.srcObject = this.stream ;
+			//element.mozSrcObject = this.stream;
+			this.mediaElement.play(); 
   		}
 
-		reattachMediaStream (){
-			return reattachMediaStream.call(this);
-			
+		reattachMediaStream (stream){
+			this.stream = stream;
+			this.attachMediaStream(this.mediaElement);
   		}
 			
 		getVideoTracks (){
