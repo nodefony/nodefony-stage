@@ -168,14 +168,15 @@ module.exports =  function(stage){
 			this.autoloader.load( src, (error, transport) => {
 				if (error){
 					this.logger(error, "ERROR")
-				throw error;
+					throw error;
 				}
-				this.logger("LOAD CONTROLLER : "+name +" ==>"+src ,"DEBUG");
-				var Class = stage.controllers[name]; //.herite(stage.Controller);
-				Class.prototype.container = this.container ;
-				Class.prototype.name = name ;
-				Class.prototype.module = this ;
-				this.controllers[name] = new Class(this.container, this);
+				try {
+					var Class = stage.controllers[name]; 
+					this.controllers[name] = new Class(name, this.container, this);
+					this.logger("LOAD CONTROLLER : "+name +" ==>"+src ,"DEBUG");
+				}catch(e){
+					throw e ;
+				}
 			});
 		}
 

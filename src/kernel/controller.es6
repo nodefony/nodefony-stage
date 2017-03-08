@@ -10,46 +10,15 @@ module.exports =  function(stage){
  	 */
 	var tabFxEvent = ["stage-click", "stage-dblclick", "stage-focus", "stage-blur", "stage-mouseover", "stage-mouseout", "stage-mouseenter", "stage-mouseleave", "stage-change"];
 
-	var Controller = class Controller {
+	var Controller = class Controller extends stage.Service{
 
-		constructor(container, module){
-
-			this.notificationsCenter = this.get("notificationsCenter");
-			this.kernel = this.get("kernel");	
+		constructor(name, container, module){
+			super(name, container, this.container.get("notificationsCenter") );
+			this.module = module ; 
 			this.i18n = this.kernel.i18n;
 			this.router = this.kernel.router;
 		}
-
-		set (name, value){
-			return this.container.set(name, value);	
-		}
-
-		get (name, value){
-			return this.container.get(name, value);	
-		}
-
-		setParameters (name, value){
-			return this.container.setParameters(name, value);	
-		}
-
-		getParameters (name){
-			return this.container.getParameters(name);	
-		}
-
-		logger (pci, severity, msgid,  msg){
-			var syslog = this.get("syslog");
-			if (! msgid) msgid = "MODULE: " +this.module.name +" CONTROLLER: "+this.name ;
-			return syslog.logger(pci, severity, msgid,  msg);
-		}
-
-		listen (){
-			return this.notificationsCenter.listen.apply(this.notificationsCenter, arguments);
-		}
-
-		fire (event){
-			return this.notificationsCenter.fire.apply(this.notificationsCenter, arguments);
-		}
-
+		
 		redirect (url){
 			return this.router.redirect.apply(this.router, arguments)
 		}

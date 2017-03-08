@@ -339,24 +339,24 @@ module.exports =  function(stage){
 		registerModule (name, xml){
 			if (name in stage.modules){
 				var kernelcontext = this;
-				var Class = stage.modules[name].herite(stage.Module);
+				var Class = stage.modules[name]; //.herite(stage.Module);
 				this.container.addScope(name);
 				Class.prototype.name = name;
 				try {
 					if (this.isDomReady){
-							this.modules[name] = new Class(this, xml,{
-								onReady:function(){
-									if (this.initialize){
-										try {
-											this.initialize();
-											this.fire("onInitialize", name);	
-											kernelcontext.fire("onInitializeModule", name);
-										}catch(e){
-											this.logger("INITIALIZE MODULE : "+name +" "+e, "ERRROR");
-											throw e;
-										}
+						this.modules[name] = new Class(this, xml,{
+							onReady:() => {
+								if (this.initialize){
+									try {
+										this.initialize();
+										this.fire("onInitialize", name);	
+										kernelcontext.fire("onInitializeModule", name);
+									}catch(e){
+										this.logger("INITIALIZE MODULE : "+name +" "+e, "ERRROR");
+										throw e;
 									}
-								}});	
+								}
+						}});	
 						
 					}else{
 						this.modules[name] = new Class(this, xml);
