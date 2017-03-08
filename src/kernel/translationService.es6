@@ -19,7 +19,9 @@ module.exports =  function(stage){
 	var service = class service extends stage.Service {
 
 		constructor(kernel, container){
-			super("I18N", container);
+
+			super("I18N", container, container.get("notificationsCenter"));
+
 			this.logger("INITIALIZE I18N SERVICE", "DEBUG");
 
 			this.container.setParameters("translate", translate);
@@ -27,12 +29,12 @@ module.exports =  function(stage){
 			var locale = navigator.language || navigator.userLanguage ;
 			var res = regNavLang.exec(locale);
 			if (res){
-				locale = res[1]
-				this.defaultLocale  = locale+"_"+locale.toUpperCase();
-				translate[this.defaultLocale] = {};
+                                this.defaultLocale = res[1]+"_"+locale.toUpperCase();
 			}else{
 				this.defaultLocale = "fr_FR";	
 			}
+
+                        translate[this.defaultLocale] = {};
 
 			this.listen(this, "onBoot",() => {
 				this.boot();
@@ -42,14 +44,15 @@ module.exports =  function(stage){
 		
 		boot (){
 			//GET APP locale
-			if ( this.kernel.modules.app &&  this.container.getParameters("module.app") )
-				this.defaultLocale = this.container.getParameters("module.app").locale;
+			if ( this.kernel.modules.app &&  this.container.getParameters("module.app") ){
+				this.defaultLocale = this.container.getParameters("module.app").locale || this.defaultLocale;
+			}
 
-			if  ( ! translate[this.defaultLocale])
+			if  ( ! translate[this.defaultLocale]){
 				translate[this.defaultLocale] = {};
+			}
 
 			this.logger("DEFAULT LOCALE APPLICATION ==> " + this.defaultLocale ,"DEBUG");
-			//this.logger("//FIXME LOCALE getLang in controller etc ..." ,"WARNING");
 			if (Twig){
 				Twig.extendFunction("getLangs", this.getLangs.bind(this));
 				Twig.extendFunction("trans_default_domain", this.trans_default_domain.bind(this));
@@ -65,7 +68,7 @@ module.exports =  function(stage){
 				obj.push({
 					name:translateDispo[ele],
 					value:ele
-				})	
+				});	
 			}
 			return obj;
 		}
@@ -77,8 +80,9 @@ module.exports =  function(stage){
 					translate[locale] = stage.extend(true, {}, translate[this.defaultLocale]);	
 			}
 			if ( domain ){
-				if( !translate[locale][domain] )
+				if( !translate[locale][domain] ){
 					translate[locale][domain] = stage.extend(true, {}, translate[this.defaultLocale][domain]);
+				}
 				stage.extend(true, translate[locale][domain], data);		
 			}else{
 				stage.extend(true, translate[locale], data);	
@@ -105,7 +109,7 @@ module.exports =  function(stage){
 			if (args){
 				if (args[0]){
 					for (var ele in args[0]){
-						str = str.replace(ele, args[0][ele])
+						str = str.replace(ele, args[0][ele]);
 					}
 				}
 			}

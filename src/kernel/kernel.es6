@@ -79,8 +79,6 @@ module.exports =  function(stage){
 		}	
 	};
 
-
-
 	/*
 	*
 	*	KERNEL CLASS	
@@ -151,7 +149,6 @@ module.exports =  function(stage){
 			this.container.set("location", this.locationService);
 		}
 
-
 		initRest (){
 			if (stage.Rest) {
 				this.restService = new stage.Rest(this.container);
@@ -165,7 +162,6 @@ module.exports =  function(stage){
 				return
 			}
 			this.i18n = new stage.i18n(this, this.container);
-
 			this.container.set("i18n", this.i18n);
 		}
 
@@ -203,7 +199,6 @@ module.exports =  function(stage){
 			}.bind(this));
 			this.container.set("twig", this.templateEngine);
 			return this.templateEngine ;
-
 		}
 
 		domReady (){
@@ -224,14 +219,12 @@ module.exports =  function(stage){
 			}catch(e){
 				this.logger(e,"ERROR");
 			}
-		};
+		}
 	
 		getModule (name){
 			return this.modules[name] ;
 		}
 
-
-	
 		initializeLog (settings){
 			
 			//var syslog =  new stage.syslog(settings);
