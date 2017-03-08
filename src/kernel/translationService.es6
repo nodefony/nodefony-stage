@@ -1,4 +1,4 @@
-var Twig = require("Twig");
+var Twig = require("twig");
 
 module.exports =  function(stage){
 
