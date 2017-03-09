@@ -153,7 +153,7 @@ module.exports =  function(stage){
 			// EVENT NATIF
 			$(document).ready( this.listen(this, "onDomReady", this.domReady) );
 			$(window).resize( this.listen(this,"onResize") );
-			$(window).on( "unload", this.listen(this,"onUnLoad"));
+			$(window).on( "unload",  this.unLoad);
 			$(window).on( "load", this.listen(this,"onLoad"));
 
 			//BOOT	
@@ -250,6 +250,10 @@ module.exports =  function(stage){
 			}catch(e){
 				this.logger(e,"ERROR");
 			}
+		}
+
+		unLoad (){
+			this.fire("onUnLoad", this);	
 		}
 	
 		getModule (name){
