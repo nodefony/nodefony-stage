@@ -13,11 +13,21 @@ module.exports =  function(stage){
 
 	var defaultSettings = {
 		debug:false,
+		router:true,
+		i18n:true,
 		location:{
 			html5Mode:false,
 			hashPrefix:"/"
 		}
 	};
+
+	var defaultEnvEnable = {
+		dev:		true,
+		development:	true,	
+		prod:		true,
+		production:	true,	
+	};
+
 
 	/*
  	 *	OVERRIDE TWIG IMPORT TEMPLATE
@@ -92,12 +102,29 @@ module.exports =  function(stage){
 				syslog:settingsSyslog
 			});
 
+			this.container.set("kernel", this);
+
 			this.modules = {};
 			this.settings = stage.extend(true, {}, defaultSettings , settings );
-			this.environment = environment;
+
+			if ( environment in defaultEnvEnable ){
+				switch ( environment ){
+					case "dev" :
+					case "development" :
+						this.environment = "dev";
+					break;
+					case "prod" :
+					case "production" :
+						this.environment = "prod";
+					break;
+				}
+			}else{
+				this.logger("Bad Variable environment :" + environment,"WARNING");
+				this.environment = "prod";
+			}
+
 			this.debug = this.settings.debug ;
 			this.booted = false;
-			this.container.set("kernel", this);
 			this.isDomReady = false;
 			this.uiContainer = null;
 
@@ -110,9 +137,7 @@ module.exports =  function(stage){
 			});
 			this.container.set("autoloader", this.autoloader);
 
-			// location
-			this.initLocation();
-
+			
 			// Router
 			this.initRouter();
 
@@ -140,8 +165,12 @@ module.exports =  function(stage){
 		}
 		
 		initRouter (){
-			this.router = new stage.router(this, this.container);
-			this.container.set("router", this.router);
+			if ( this.settings.router ){
+				// location
+				this.initLocation();
+				this.router = new stage.router(this, this.container);
+				this.container.set("router", this.router);
+			}
 		}
 
 		initLocation (){
@@ -157,12 +186,14 @@ module.exports =  function(stage){
 		}
 
 		initTranslation (){
-			if ( ! stage.i18n ){
- 		       		this.logger("you must load transation i18n services js file !!!!!", "ERROR")
-				return
+			if ( this.settings.i18n ){
+				if ( ! stage.i18n ){
+ 		       			this.logger("you must load transation i18n services js file !!!!!", "ERROR")
+					return;
+				}
+				this.i18n = new stage.i18n(this, this.container);
+				this.container.set("i18n", this.i18n);
 			}
-			this.i18n = new stage.i18n(this, this.container);
-			this.container.set("i18n", this.i18n);
 		}
 
 		initTwig (){
@@ -226,10 +257,8 @@ module.exports =  function(stage){
 		}
 
 		initializeLog (settings){
-			
-			//var syslog =  new stage.syslog(settings);
 			if (this.environment === "dev"){
-			// CRITIC ERROR
+				// CRITIC ERROR
 				this.syslog.listenWithConditions(this,{
 					severity:{
 						data:"CRITIC,ERROR"
@@ -249,6 +278,7 @@ module.exports =  function(stage){
 					}
 					console.error( "SYSLOG " + pdu.severityName +" " + pdu.msgid + " "+new Date(pdu.timeStamp) + " " + pdu.msg+" : "+  pdu.payload);*/	
 				});
+
 				// INFO DEBUG
 				var data ;
 				this.debug ? data = "INFO,DEBUG" : data = "INFO" ;
