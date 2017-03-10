@@ -1,8 +1,5 @@
 const webpack = require('webpack');
 const path = require('path');
-//const UglifyJSPlugin = require('uglifyjs-webpack-plugin');
-
-var env = process.env.WEBPACK_ENV;
 
 switch (process.env.WEBPACK_ENV) {
   case 'prod':

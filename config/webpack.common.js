@@ -23,9 +23,7 @@ module.exports = function (options) {
     		},
 		
 		externals: {
-		       // require("jquery") is external and available
-		       //  on the global var jQuery
-		       //"jquery": "jQuery",
+		       
 		},
     		/*
      		* Options affecting the resolving of modules.
@@ -41,8 +39,7 @@ module.exports = function (options) {
       			extensions: [ '.js', '.json', '.es6'],
 
       			// An array of directory names to be resolved to the current directory
-      			modules: [path.resolve(__dirname, "src"), "node_modules"],
-
+      			modules: [path.resolve(__dirname, "src"), "node_modules"]
     		},
 
     		/*
@@ -52,7 +49,17 @@ module.exports = function (options) {
      		*/
     		module: {
       			rules: [
-
+				/*
+ 				 *	JQUERY EXPOSE BROWSER CONTEXT
+ 				 *
+ 				 */
+				{
+            				test: require.resolve("jquery"),
+            				loader: "expose-loader?$!expose-loader?jQuery"
+        			},{
+            				test:   /jquery\..*\.js/,
+            				loader: "imports?$=jquery,jQuery=jquery,this=>window"
+        			},
         			/*
          			* Json loader support for *.json files.
          			*
@@ -119,10 +126,10 @@ module.exports = function (options) {
      		*/
     		plugins: [
 			new webpack.ProvidePlugin({
-				$: "jquery",
-				jQuery: "jquery",
-				"window.jQuery": "jquery"
-			})	
+				"$":			"jquery",
+				"jQuery":		"jquery",
+				"window.jQuery":	"jquery"
+			})
 		]
 	}
-}
+};

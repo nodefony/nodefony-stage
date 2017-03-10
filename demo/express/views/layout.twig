@@ -1,6 +1,8 @@
 <html>
     <head>
-	{% block head %} {% endblock %}
+	{% block head %} 
+		<script src="/javascripts/stage/stage6.js"></script>
+	{% endblock %}
 	{% block meta %}
 		<meta charset="utf-8">
 		<meta http-equiv="content-type" content="text/html; charset=UTF-8">
@@ -21,7 +23,9 @@
 	{% block body %}{% endblock %}
 	{% block footer %}{% endblock %}
         {% block javascripts %}
-		<script src="/javascripts/stage/stage6.js"></script>
+		<script>
+			console.log(jQuery);
+		</script>
 	{% endblock %}
     </body>
 </html>

@@ -47,7 +47,6 @@ var jsint = {
 
 var plugins = [];
 
-
 module.exports = function (options) {
 
   	return [webpackMerge(commonConfig({env: ENV}), {
@@ -56,7 +55,7 @@ module.exports = function (options) {
 		},
 		module: {
 		       rules: [{
-			       use:[ jsint , transcode ]
+			       use:[ /*jsint ,*/ transcode ]
  		       }]	
 		},
 	        plugins: plugins
@@ -67,7 +66,7 @@ module.exports = function (options) {
 		},
 		module: {
 			rules: [{
-				use:[ jsint ]
+				use:[ /*jsint*/ ]
  			}]
 		},
 		plugins: plugins

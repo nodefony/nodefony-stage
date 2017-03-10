@@ -37,7 +37,7 @@
  */
 
 // CORE
-var stage = require('./core/stage.es6')();
+const stage = require('./core/stage.es6')();
 require('./core/notificationsCenter.es6')(stage);
 require('./syslog/syslog.es6')(stage);
 
@@ -85,8 +85,6 @@ require('./kernel/locationService.es6')(stage);
 require('./kernel/module.es6')(stage);
 require('./kernel/routerService.es6')(stage);
 require('./kernel/translationService.es6')(stage);
-
-
 
 // EXPORT
 module.exports = stage ;
