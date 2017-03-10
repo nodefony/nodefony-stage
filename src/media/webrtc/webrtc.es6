@@ -188,7 +188,7 @@ module.exports =  function(stage){
 		createPeerConnection (){
 			try {
 				// CREATE PeerConnection
-				this.RTCPeerConnection = new RTCPeerConnection( location.search.indexOf('turn=true') !== -1 ? this.webrtc.settings.TURN : this.webrtc.settings.STUN, this.webrtc.settings.optional );
+				this.RTCPeerConnection = new RTCPeerConnection( this.webrtc.iceServers , this.webrtc.settings.optional );
 
 				// MANAGE EVENT CANDIDATES
 				this.RTCPeerConnection.onicecandidate =  (event)  => {
@@ -446,14 +446,17 @@ module.exports =  function(stage){
 	var defaultSettings = {
 		audio		: true,
 		video		: true,
-		protocol	: "webrtc",
+		protocol	: "SIP",
 		sipPort		: 5060,
-		sipTransport	: "UDP",
-		dtmf		: "SIP-INFO", // "SIP-INFO", "RTP-EVENT"
+		sipTransport	: "WSS",
+		dtmf		: "SIP-INFO",	// "SIP-INFO", "RTP-EVENT"
+		/*
+ 		 * STUN  => { iceServers: [{ url: ! stage.browser.Gecko ? 'stun:stun.l.google.com:19302' : 'stun:23.21.150.121'}] }
+ 		 * TURN  => { iceServers: [{ url: "turn:webrtc%40live.com@numb.viagenie.ca", credential: ""}] }
+		 */ 		
+		iceServers	: null,	 
 		//constraints	: { mandatory: { 'OfferToReceiveAudio': true, 'OfferToReceiveVideo': true } },
 		//constraintsOffer: stage.browser.Gecko ? {'mandatory': {'MozDontOfferDataChannel':true}} : null,
-		//STUN		: { iceServers: [{ url: ! stage.browser.Gecko ? 'stun:stun.l.google.com:19302' : 'stun:23.21.150.121'}] },
-		//TURN		: { iceServers: [{ url: "turn:webrtc%40live.com@numb.viagenie.ca", credential: ""}] },
 		//optional	: { optional: [{ "RtpDataChannels": true},{'DtlsSrtpKeyAgreement': 'true'}]}
 		//optional	: stage.browser.Gecko ? { optional: [{ "RtpDataChannels": true}]} :  { optional: [{ "RtpDataChannels": true},{'DtlsSrtpKeyAgreement': 'true'}]},
 		optional	: stage.browser.Gecko ? { optional: []} :  { optional: [{'DtlsSrtpKeyAgreement': 'true'}]},

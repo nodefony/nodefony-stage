@@ -125,6 +125,10 @@ module.exports = function (options) {
      		* See: http://webpack.github.io/docs/configuration.html#plugins
      		*/
     		plugins: [
+			/*
+ 			*	EXPOSE JQUERY  IN ALL LIBRARY FILE
+ 			*
+ 			*/
 			new webpack.ProvidePlugin({
 				"$":			"jquery",
 				"jQuery":		"jquery",
