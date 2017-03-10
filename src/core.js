@@ -36,10 +36,8 @@
  *
  */
 
-var jQuery = require("jquery");
-
 // CORE
-var stage = require('./core/stage.es6')(jQuery);
+var stage = require('./core/stage.es6')();
 require('./core/notificationsCenter.es6')(stage);
 require('./syslog/syslog.es6')(stage);
 
@@ -70,7 +68,6 @@ require('./io/protocols/sip/sip.es6')(stage);
 
 // IO REALTIME
 require('./io/realtime/realtime.es6')(stage);
-
 
 // MEDIAS
 require('./media/media.es6')(stage);

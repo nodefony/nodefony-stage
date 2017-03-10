@@ -1,4 +1,4 @@
-module.exports = function (jQuery){
+module.exports = function (){
 
 	'use strict';
 

@@ -45,6 +45,9 @@ var jsint = {
 	}
 };
 
+var plugins = [];
+
+
 module.exports = function (options) {
 
   	return [webpackMerge(commonConfig({env: ENV}), {
@@ -55,7 +58,9 @@ module.exports = function (options) {
 		       rules: [{
 			       use:[ jsint , transcode ]
  		       }]	
-		}
+		},
+	        plugins: plugins
+
 	}),webpackMerge(commonConfig({env: ENV}), {
 		output: {
 			filename: 'stage6.js',
@@ -64,6 +69,7 @@ module.exports = function (options) {
 			rules: [{
 				use:[ jsint ]
  			}]
-		}
+		},
+		plugins: plugins
 	})];
 };

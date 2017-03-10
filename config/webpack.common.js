@@ -21,11 +21,11 @@ module.exports = function (options) {
 			library: 'stage',
 			libraryTarget: 'umd'
     		},
+		
 		externals: {
 		       // require("jquery") is external and available
 		       //  on the global var jQuery
-		       "jquery": "jQuery",
-		       //"twig": "Twig"
+		       //"jquery": "jQuery",
 		},
     		/*
      		* Options affecting the resolving of modules.
@@ -51,7 +51,6 @@ module.exports = function (options) {
      		* See: http://webpack.github.io/docs/configuration.html#module
      		*/
     		module: {
-
       			rules: [
 
         			/*
@@ -118,6 +117,12 @@ module.exports = function (options) {
      		*
      		* See: http://webpack.github.io/docs/configuration.html#plugins
      		*/
-    		plugins: []
+    		plugins: [
+			new webpack.ProvidePlugin({
+				$: "jquery",
+				jQuery: "jquery",
+				"window.jQuery": "jquery"
+			})	
+		]
 	}
 }

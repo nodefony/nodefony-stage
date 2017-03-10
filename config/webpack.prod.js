@@ -19,7 +19,9 @@ var transcode =  {
 };
 
 
-var plugins = [ new webpack.optimize.UglifyJsPlugin({minimize: true})];
+var plugins = [ 
+	new webpack.optimize.UglifyJsPlugin({minimize: true})
+];
 
 
 module.exports = function (options) {
@@ -46,6 +48,5 @@ module.exports = function (options) {
  			}]
 		},
 		plugins: plugins
-
 	})];
 };
