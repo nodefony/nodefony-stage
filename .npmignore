@@ -1,14 +1,3 @@
-#Ignore directory 
-tmp/**
-vendors/twig
-vendors/webrtc-adapter
-#dist/**
-
-*.db
-
-node_modules/**
-npm-debug.log
-
 #Ignore vin backup
 *.swp
 *.swn
@@ -18,8 +7,15 @@ npm-debug.log
 # macos
 .DS_Store
 
-.srl
 # Eclipse file
 /.project
 /.settings
 /nbproject/private/
+
+
+.git
+
+npm-debug.log
+
+
+old/**

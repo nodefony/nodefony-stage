@@ -21,8 +21,9 @@ demo:
 	$(MAKE) -C ./demo/express
 
 clean:
-	rm -rf ./dist/*
-	rm -rf ./node_modules/*
+	rm -rf ./dist/* ; \
+	rm -rf ./node_modules/* ; \
+	rm -rf ./node_modules/.bin ; \
 	$(MAKE) -C ./demo/express clean
 
 .EXPORT_ALL_VARIABLES:
