@@ -272,9 +272,8 @@ module.exports =  function(stage){
 						data:"CRITIC,ERROR"
 					}		
 				},function(pdu){
-						console.log(pdu.payload)
 					if (pdu.payload.stack ){
-							console.error( "SYSLOG " + pdu.severityName +" " + pdu.msgid + " "+new Date(pdu.timeStamp) + " " + pdu.msg+" : "+  pdu.payload.stack);
+						console.error( "SYSLOG " + pdu.severityName +" " + pdu.msgid + " "+new Date(pdu.timeStamp) + " " + pdu.msg+" : "+  pdu.payload.stack);
 					}else{
 						console.error( "SYSLOG " + pdu.severityName +" " + pdu.msgid + " "+new Date(pdu.timeStamp) + " " + pdu.msg+" : "+  pdu.payload);	
 					}
