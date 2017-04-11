@@ -78,9 +78,8 @@ module.exports =  function(stage){
 				return true;
 			}
 			console.error("Browser does not appear to be mediaStream-capable");
-			throw("Browser does not appear to be mediaStream-capable");
 		}catch(e){
-			throw(e);
+			console.error(e)
 		}
 	}();
 

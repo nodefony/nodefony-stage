@@ -50,6 +50,25 @@ module.exports =  function(stage){
                 	};
 		}
 
+		on (eventName, callback){
+			var event = arguments[1];
+                	var ContextClosure = this;
+                	if (! this.events[eventName] ) {
+                        	this.events[eventName] = [];
+                        	this.garbageEvent[eventName] = [];
+                	}
+                	if (typeof callback === 'function') {
+                        	this.garbageEvent[eventName].push(callback);
+                        	this.events[eventName].push(function(args) {
+                                	callback( args );
+                        	});
+                	}
+                	return function() {
+                        	Array.prototype.unshift.call(arguments, event);
+                        	return ContextClosure.fire.apply(ContextClosure, arguments);
+                	};	
+		}
+
 		/**
          	 *
          	 *      @method clearNotifications 
