@@ -1,8 +1,8 @@
 {
   	"name": "nodefony-stage",
-  	"version": "0.0.1",
+  	"version": "0.0.2",
   	"description": "Client Side Nodefony web developpement",
-	"browser": "dist/stage.js",
+	"browser": "dist/stage6.min.js",
 	"main": "dist/stage.js",
 	"scripts": {
 		"build-dev":	"WEBPACK_ENV=dev webpack --verbose",

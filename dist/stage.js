@@ -8256,6 +8256,26 @@ module.exports = function (stage) {
                                         return ContextClosure.fire.apply(ContextClosure, arguments);
                                 };
                         }
+                }, {
+                        key: 'on',
+                        value: function on(eventName, callback) {
+                                var event = arguments[1];
+                                var ContextClosure = this;
+                                if (!this.events[eventName]) {
+                                        this.events[eventName] = [];
+                                        this.garbageEvent[eventName] = [];
+                                }
+                                if (typeof callback === 'function') {
+                                        this.garbageEvent[eventName].push(callback);
+                                        this.events[eventName].push(function (args) {
+                                                callback(args);
+                                        });
+                                }
+                                return function () {
+                                        Array.prototype.unshift.call(arguments, event);
+                                        return ContextClosure.fire.apply(ContextClosure, arguments);
+                                };
+                        }
 
                         /**
                                	 *
@@ -14374,7 +14394,6 @@ module.exports = function (stage) {
 							data: "CRITIC,ERROR"
 						}
 					}, function (pdu) {
-						console.log(pdu.payload);
 						if (pdu.payload.stack) {
 							console.error("SYSLOG " + pdu.severityName + " " + pdu.msgid + " " + new Date(pdu.timeStamp) + " " + pdu.msg + " : " + pdu.payload.stack);
 						} else {
@@ -16537,9 +16556,8 @@ module.exports = function (stage) {
 				return true;
 			}
 			console.error("Browser does not appear to be mediaStream-capable");
-			throw "Browser does not appear to be mediaStream-capable";
 		} catch (e) {
-			throw e;
+			console.error(e);
 		}
 	}();
 
