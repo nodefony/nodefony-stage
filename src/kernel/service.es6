@@ -117,6 +117,11 @@ module.exports =  function(stage){
 		removeListener (){
 			return this.notificationsCenter.unListen.apply(this.notificationsCenter, arguments);
 		}
+		
+		unListen (){
+			return this.notificationsCenter.unListen.apply(this.notificationsCenter, arguments);
+		}
+
 
 		/**
 	 	*	@method removeAllListeners

@@ -2,7 +2,7 @@
   	"name": "nodefony-stage",
   	"version": "0.0.2",
   	"description": "Client Side Nodefony web developpement",
-	"browser": "dist/stage6.min.js",
+	"browser": "dist/stage6.js",
 	"main": "dist/stage.js",
 	"scripts": {
 		"build-dev":	"WEBPACK_ENV=dev webpack --verbose",
@@ -33,7 +33,7 @@
     		"asciify":				"1.3.5",
     		"twig":					"1.10.4",
 		"shortid":				"2.2.8",
-		"webrtc-adapter":			"3.2.0",
+		"webrtc-adapter":			"3.3.4",
 		"jquery":				"3.1.1"
   	},
   	"devDependencies": {

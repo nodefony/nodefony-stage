@@ -40,6 +40,9 @@
 const stage = require('./core/stage.es6')();
 require('./core/notificationsCenter.es6')(stage);
 require('./syslog/syslog.es6')(stage);
+require('./kernel/service.es6')(stage);
+require('./kernel/container.es6')(stage);
+
 
 // TOOLS
 require('./tools/xml.js')(stage);
@@ -75,11 +78,9 @@ require('./media/webrtc/webrtc.es6')(stage);
 
 
 // KERNEL STAGE ( nodefony )
-require('./kernel/service.es6')(stage);
 require('./kernel/kernel.es6')(stage);
 require('./kernel/appKernel.es6')(stage);
 require('./kernel/autoload.es6')(stage);
-require('./kernel/container.es6')(stage);
 require('./kernel/controller.es6')(stage);
 require('./kernel/locationService.es6')(stage);
 require('./kernel/module.es6')(stage);

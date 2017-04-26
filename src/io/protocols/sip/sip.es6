@@ -981,7 +981,7 @@ module.exports =  function(stage){
 
 		createTransaction (to){
 			this.currentTransaction = new Transaction( to || this.to , this);
-			console.log("SIP NEW TRANSACTION :" + this.currentTransaction.branch);
+			this.sip.logger("SIP NEW TRANSACTION :" + this.currentTransaction.branch, "DEBUG");
 			this.transactions[this.currentTransaction.branch] = this.currentTransaction;
 			return this.currentTransaction;	
 		}
@@ -1022,7 +1022,7 @@ module.exports =  function(stage){
 			if ( this.status  === this.statusCode.CANCEL ){
 				return null ;
 			}
-			console.log("SIP INVITE DIALOG");
+			this.sip.logger("SIP INVITE DIALOG");
 			if ( userTo ){
 				this.to = "<sip:"+userTo+">" ;
 			}
@@ -1227,7 +1227,7 @@ module.exports =  function(stage){
 				if ( ! this.dialog ){
 					this.dialog = this.sip.createDialog(this);
 				}else{
-					console.log("SIP HYDRATE DIALOG :" + this.dialog.callId);
+					this.sip.logger("SIP HYDRATE DIALOG :" + this.dialog.callId, "DEBUG");
 					this.dialog.hydrate(this);	
 				}
 				return this.dialog ;
@@ -1246,7 +1246,7 @@ module.exports =  function(stage){
 					if ( ! this.transaction ){
 						this.transaction = this.dialog.createTransaction(this);	
 					}else{
-						console.log("SIP HYDRATE TRANSACTION :" + this.transaction.branch);
+						this.sip.logger("SIP HYDRATE TRANSACTION :" + this.transaction.branch, "DEBUG");
 						this.transaction.hydrate(this);	
 					}
 				}else{
@@ -1255,7 +1255,7 @@ module.exports =  function(stage){
 				return this.transaction ;
 			}else{
 				// TODO CSEQ mandatory
-				console.log( this.rawMessage );
+				this.sip.logger( this.rawMessage, "ERROR" );
 				throw new Error("BAD FORMAT SIP MESSAGE no Branch" , 500);
 			}	
 		}
@@ -1271,8 +1271,9 @@ module.exports =  function(stage){
 	// entry point response transport
 	var onMessage = function(response){
 		
-		console.log("RECIEVE SIP MESSAGE ");	
-		console.log(response);	
+		this.logger("RECIEVE SIP MESSAGE ", "DEBUG");	
+		this.logger(response, "INFO", "RECIEVE")
+
 
 		var message = null ;
 		var res = null ;
@@ -1288,6 +1289,7 @@ module.exports =  function(stage){
 			this.fragment = false ;
 		}catch(e){
 			console.log(e);
+			this.logger(e, "ERROR");
 			// bad split 
 			for ( var i = 0 ; i < e.length ; i++){
 				if ( e[i] ){
@@ -1511,11 +1513,11 @@ module.exports =  function(stage){
 				}
 			break;
 			case "REFER":
-				console.log("SIP REFER NOT ALLOWED :"+ message.method );
+				this.logger("SIP REFER NOT ALLOWED :"+ message.method ,"WARNING");
 				this.notificationsCenter.fire("onDrop",message);	
 			break;
 			default:
-				console.log("SIP DROP :"+ message.method + " "+" code:"+message.code );
+				this.logger("SIP DROP :"+ message.method + " "+" code:"+message.code ,"WARNING");
 				this.notificationsCenter.fire("onDrop",message);
 				// TODO RESPONSE WITH METHOD NOT ALLOWED 
 		}
@@ -1543,12 +1545,14 @@ module.exports =  function(stage){
 		
 
 	// CLASS
-	const SIP  = class SIP {
+	const SIP  = class SIP extends stage.Service {
 
 		constructor(server, transport, settings){
+
+			super("SIP", null, null, settings);
 			this.settings = stage.extend({}, defaultSettings, settings);
 			//this.settings.url = stage.io.urlToOject(url)
-			this.notificationsCenter = stage.notificationsCenter.create(this.settings, this);
+			//this.notificationsCenter = stage.notificationsCenter.create(this.settings, this);
 			this.dialogs = {};
 			this.version = this.settings.version;
 
@@ -1724,23 +1728,23 @@ module.exports =  function(stage){
 			this.fire("onConnect",this, message);
 		}
 
-		listen (){
+		/*listen (){
 			return this.notificationsCenter.listen.apply(this.notificationsCenter, arguments);
 		}
 
 		fire (){
 			return this.notificationsCenter.fire.apply(this.notificationsCenter, arguments);
-		}
+		}*/
 
 		createDialog (method){
 			var dialog = new Dialog( method , this);
-			console.log("SIP NEW DIALOG :" + dialog.callId);
+			this.logger("SIP NEW DIALOG :" + dialog.callId, "DEBUG");
 			this.dialogs[dialog.callId] = dialog;
 			return dialog ;
 		}
 
 		register (userName, password, settings){
-			console.log("TRY TO REGISTER SIP : " + userName + password);
+			this.logger("TRY TO REGISTER SIP : " + userName + password, "DEBUG");
 			this.contact = this.generateContact(userName, password, false, settings);
 			this.diagRegister = this.createDialog("REGISTER");
 			this.diagRegister.register();
@@ -1768,8 +1772,9 @@ module.exports =  function(stage){
 		}
 
 		send (data){
-			console.log("SIP SEND : " +data);
-				this.fire("onSend", data) ;
+			this.logger("SIP SEND : " , "DEBUG");
+			this.logger(data, "INFO", "SEND")
+			this.fire("onSend", data) ;
 			this.transport.send( data );
 		}
 
