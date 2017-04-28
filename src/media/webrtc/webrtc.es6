@@ -90,10 +90,11 @@ module.exports =  function(stage){
  	 *	CLASS TRANSACTION WEBRTC
  	 *
  	 */
-	var Transaction = class Transaction  {
+	var Transaction = class Transaction extends stage.Service {
 		constructor(webrtc, from, to, dialog, settings){
+			super("WEBRTC TRANSACTION", webrtc.container, stage.notificationsCenter.create(settings || {}) )
 			this.webrtc = webrtc ;
-			this.notificationsCenter = stage.notificationsCenter.create(settings || {}, this);
+			//this.notificationsCenter = stage.notificationsCenter.create(settings || {}, this);
 			this.dialog = dialog || null ;
 			this.error = null ;
 			if ( this.dialog ){
@@ -112,7 +113,7 @@ module.exports =  function(stage){
 			}
 			this.asyncCandidates = this.webrtc.settings.asyncCandidates ;
 
-			this.webrtc.logger("CREATE TRANSATION WEBRTC", "DEBUG");
+			this.logger("CREATE TRANSATION WEBRTC", "DEBUG");
 			this.RTCPeerConnection = this.createPeerConnection() ;
 			this.RTCPeerConnection.addStream(this.from.stream)
 
@@ -124,7 +125,7 @@ module.exports =  function(stage){
 					this.webrtc.listen(this, "onKeyPress", this.sendDtmf ) ;
 					// FIXME TRY TO RECEIVE DTMF RTP-EVENT
 					/*this.webrtc.listen(this, "onRemoteStream",function(event, mediaStream, transaction){
-						this.webrtc.logger( "DTMF setRemoteStream", "DEBUG")
+						this.logger( "DTMF setRemoteStream", "DEBUG")
 						this.initDtmfReceiver( this.from.stream );
 					});*/
 				}catch(e){
@@ -140,16 +141,16 @@ module.exports =  function(stage){
 				if ( this.asyncCandidates && this.candidates.length){
 					//console.log( message.dailog)
 					var to = this.dialog.to.replace("<sip:", "").replace(">","") ;
-					this.webrtc.logger("CANDIDATE TO" + to, "DEBUG");
-					this.webrtc.logger("CANDIDATE TO" + this.to.name, "DEBUG");
+					this.logger("CANDIDATE TO" + to, "DEBUG");
+					this.logger("CANDIDATE TO" + this.to.name, "DEBUG");
 					this.dialog.invite(to, JSON.stringify(this.candidates), "ice/candidate")
 				}else{
 					if ( peerConnection.localDescription.type == "offer" ){
 						this.sessionDescription = parseSdp.call(this, peerConnection.localDescription ) ;
 						if ( this.dialog ){
 							var to = this.dialog.to.replace("<sip:", "").replace(">","") ;
-							this.webrtc.logger("CANDIDATE TO" + to, "DEBUG");
-							this.webrtc.logger("CANDIDATE TO" + this.to.name, "DEBUG");
+							this.logger("CANDIDATE TO" + to, "DEBUG");
+							this.logger("CANDIDATE TO" + this.to.name, "DEBUG");
 							this.dialog.invite(to, this.sessionDescription);
 						}else{
 							this.dialog = this.webrtc.protocol.invite(this.to.name, this.sessionDescription);
@@ -173,7 +174,7 @@ module.exports =  function(stage){
 		}
 
 
-		listen (){
+		/*listen (){
 			return this.notificationsCenter.listen.apply(this.notificationsCenter, arguments);
 		}
 
@@ -183,7 +184,7 @@ module.exports =  function(stage){
 
 		fire (){
 			return this.notificationsCenter.fire.apply(this.notificationsCenter, arguments);
-		}
+		}*/
 
 		createPeerConnection (){
 			try {
@@ -208,7 +209,7 @@ module.exports =  function(stage){
     					} else if (event && event.candidate == null) {
 						// candidates null !!!
     					} else {
-						this.webrtc.logger("WEBRTC : ADD CANDIDATE", "DEBUG");
+						this.logger("WEBRTC : ADD CANDIDATE", "DEBUG");
 						if (event.candidate){
 							this.candidates.push(event.candidate);
 						}
@@ -223,11 +224,11 @@ module.exports =  function(stage){
 				this.RTCPeerConnection.onaddstream = (event) => {
 					//console.log(event)
 					this.setRemoteStream( event)
-					this.webrtc.logger("WEBRTC : ADD STREAM ", "DEBUG");
+					this.logger("WEBRTC : ADD STREAM ", "DEBUG");
 				};
 				return this.RTCPeerConnection;
 			}catch (e){
-				this.webrtc.logger(e, "ERROR");
+				this.logger(e, "ERROR");
 				this.webrtc.fire("onError", this, e);
 			}
 		}
@@ -243,7 +244,7 @@ module.exports =  function(stage){
 					var remoteAudioTrack = mediaStream.getAudioTracks()[0];
 					var dtmfSender = this.RTCPeerConnection.createDTMFSender(remoteAudioTrack);
 					dtmfSender.ontonechange = (tone) => {
-						this.webrtc.logger("dtmfOnToneChange", "DEBUG") ;
+						this.logger("dtmfOnToneChange", "DEBUG") ;
 						this.webrtc.fire("dtmfOnToneChange", tone , this);
 					};
 				}catch(e){
@@ -292,7 +293,7 @@ module.exports =  function(stage){
 			if (this.dtmfSender) {
 				var duration = 500;
 				var gap = 50;
-				this.webrtc.logger('DTMF SEND ' + key + '  duration :  '+ duration + ' gap :  ' + gap , "DEBUG");
+				this.logger('DTMF SEND ' + key + '  duration :  '+ duration + ' gap :  ' + gap , "DEBUG");
 				return this.dtmfSender.insertDTMF(key, duration, gap);
 			}
 			throw new Error(" DTMF SENDER not ready");
@@ -430,7 +431,7 @@ module.exports =  function(stage){
 		}
 
 		close (){
-			this.webrtc.logger("WEBRTC CLOSE TRANSACTION  : "+ this.callId, "DEBUG" );
+			this.logger("WEBRTC CLOSE TRANSACTION  : "+ this.callId, "DEBUG" );
 			this.RTCPeerConnection.close();
 			this.webrtc.unListen( "onKeyPress", this.sendDtmf ) ;
 			delete this.RTCPeerConnection ;
@@ -494,10 +495,6 @@ module.exports =  function(stage){
 			this.listen(this, "onInvite", function(transaction , userTo, description){
 				this.transactions[transaction.callId] = transaction ;
 			});
-
-			/*this.listen(this, "onOffer", function(message , userTo, transaction){
-				this.transactions[transaction.callId] = transaction ;
-			});*/
 
 			this.listen(this, "onOffer", function(webrtc, transaction){
 				this.transactions[transaction.callId] = transaction ;

@@ -10854,31 +10854,35 @@ module.exports = function (stage) {
 	};
 
 	var parsefromTo = function parsefromTo(type, value) {
-		var sp = value.split(";");
-		this.message[type + "Tag"] = null;
-		var res = sp.shift();
-		var res2 = regHeaders.fromTo.exec(res);
-		//console.log(regHeaders.fromToG.exec(res))
-		//console.log(res2)
-		this.message[type + "Name"] = res2.length > 2 ? res2[1].replace(/ |\n|\r/g, "").replace(/"/g, "") : "";
-		this.message[type] = res2[1].replace(" ", "") + "@" + res2[2].replace(/ |\n|\r/g, "");
-		var ret = regHeaders.fromToG.exec(res);
-		if (ret && ret[1]) {
-			var displayName = ret[1].replace(/"/g, "");
-			//this.message[type+"Name"] = displayName ;
-			this.message[type + "NameDisplay"] = displayName;
-			//console.log(displayName)
-		}
-
-		for (var i = 0; i < sp.length; i++) {
-			var res3 = sp[i].split("=");
-			if (res3[0].replace(/ |\n|\r/g, "") === "tag") {
-				this.message[type + "Tag"] = res3[1];
-			} else {
-				this.message[res3[0]] = res3[1];
+		try {
+			var sp = value.split(";");
+			this.message[type + "Tag"] = null;
+			var res = sp.shift();
+			var res2 = regHeaders.fromTo.exec(res);
+			//console.log(regHeaders.fromToG.exec(res))
+			//console.log(res2)
+			this.message[type + "Name"] = res2.length > 2 ? res2[1].replace(/ |\n|\r/g, "").replace(/"/g, "") : "";
+			this.message[type] = res2[1].replace(" ", "") + "@" + res2[2].replace(/ |\n|\r/g, "");
+			var ret = regHeaders.fromToG.exec(res);
+			if (ret && ret[1]) {
+				var displayName = ret[1].replace(/"/g, "");
+				//this.message[type+"Name"] = displayName ;
+				this.message[type + "NameDisplay"] = displayName;
+				//console.log(displayName)
 			}
+
+			for (var i = 0; i < sp.length; i++) {
+				var res3 = sp[i].split("=");
+				if (res3[0].replace(/ |\n|\r/g, "") === "tag") {
+					this.message[type + "Tag"] = res3[1];
+				} else {
+					this.message[res3[0]] = res3[1];
+				}
+			}
+			return value;
+		} catch (e) {
+			throw e;
 		}
-		return value;
 	};
 
 	var headerSip = function () {
@@ -10897,8 +10901,8 @@ module.exports = function (stage) {
 				try {
 					this.parse(header);
 				} catch (e) {
-					console.log(e);
-					throw new Error("PARSE ERROR MESSAGE SIP", 500);
+					//throw new Error("PARSE ERROR MESSAGE SIP", 500);
+					throw e;
 				}
 			}
 		}
@@ -11959,7 +11963,11 @@ module.exports = function (stage) {
 			key: 'parseHeader',
 			value: function parseHeader() {
 				if (this.split[0]) {
-					this.header = new headerSip(this, this.split[0]);
+					try {
+						this.header = new headerSip(this, this.split[0]);
+					} catch (e) {
+						throw e;
+					}
 				} else {
 					throw "BAD FORMAT MESSAGE SIP no header ", 500;
 				}
@@ -12046,9 +12054,7 @@ module.exports = function (stage) {
 	var onMessage = function onMessage(response) {
 		var _this2 = this;
 
-		this.logger("RECIEVE SIP MESSAGE ", "DEBUG");
 		this.logger(response, "INFO", "RECIEVE");
-
 		var message = null;
 		var res = null;
 		try {
@@ -12062,8 +12068,7 @@ module.exports = function (stage) {
 			message = new Message(this.lastResponse, this);
 			this.fragment = false;
 		} catch (e) {
-			console.log(e);
-			this.logger(e, "ERROR");
+			//console.log(e);
 			// bad split 
 			for (var i = 0; i < e.length; i++) {
 				if (e[i]) {
@@ -12077,10 +12082,12 @@ module.exports = function (stage) {
 					}
 				}
 			}
+			this.logger(e, "ERROR");
+			this.logger("SIP DROP : " + response, "ERROR");
+			this.notificationsCenter.fire("onDrop", response);
 			return;
 		}
 		this.fire("onMessage", message.rawMessage);
-		//console.log( message.type + " : " + response);
 
 		switch (message.method) {
 			case "REGISTER":
@@ -12498,6 +12505,7 @@ module.exports = function (stage) {
 				//TODO
 				//clean all setinterval	
 				for (var dia in this.dialogs) {
+					//this.dialogs[dia].unregister();
 					this.dialogs[dia].clear();
 				}
 			}
@@ -12505,7 +12513,7 @@ module.exports = function (stage) {
 			key: 'quit',
 			value: function quit(message) {
 				this.fire("onQuit", this, message);
-				this.unregister();
+				//this.unregister();
 				this.clear();
 			}
 		}, {
@@ -12541,9 +12549,11 @@ module.exports = function (stage) {
 		}, {
 			key: 'unregister',
 			value: function unregister() {
-				var diagRegister = this.createDialog("REGISTER");
-				diagRegister.unregister();
-				return diagRegister;
+				if (this.registered) {
+					var diagRegister = this.createDialog("REGISTER");
+					diagRegister.unregister();
+					return diagRegister;
+				}
 			}
 		}, {
 			key: 'invite',
@@ -12564,7 +12574,6 @@ module.exports = function (stage) {
 		}, {
 			key: 'send',
 			value: function send(data) {
-				this.logger("SIP SEND : ", "DEBUG");
 				this.logger(data, "INFO", "SEND");
 				this.fire("onSend", data);
 				this.transport.send(data);
@@ -17597,68 +17606,72 @@ module.exports = function (stage) {
  	 *	CLASS TRANSACTION WEBRTC
  	 *
  	 */
-	var Transaction = function () {
+	var Transaction = function (_stage$Service) {
+		_inherits(Transaction, _stage$Service);
+
 		function Transaction(webrtc, from, to, dialog, settings) {
 			_classCallCheck(this, Transaction);
 
-			this.webrtc = webrtc;
-			this.notificationsCenter = stage.notificationsCenter.create(settings || {}, this);
-			this.dialog = dialog || null;
-			this.error = null;
-			if (this.dialog) {
-				this.callId = this.dialog.callId;
+			var _this = _possibleConstructorReturn(this, (Transaction.__proto__ || Object.getPrototypeOf(Transaction)).call(this, "WEBRTC TRANSACTION", webrtc.container, stage.notificationsCenter.create(settings || {})));
+
+			_this.webrtc = webrtc;
+			//this.notificationsCenter = stage.notificationsCenter.create(settings || {}, this);
+			_this.dialog = dialog || null;
+			_this.error = null;
+			if (_this.dialog) {
+				_this.callId = _this.dialog.callId;
 			}
-			this.protocol = webrtc.protocol;
-			this.from = from;
+			_this.protocol = webrtc.protocol;
+			_this.from = from;
 			try {
 				if (to instanceof User) {
-					this.to = to;
+					_this.to = to;
 				} else {
-					this.to = new User(to, settings);
+					_this.to = new User(to, settings);
 				}
 			} catch (e) {
 				throw e;
 			}
-			this.asyncCandidates = this.webrtc.settings.asyncCandidates;
+			_this.asyncCandidates = _this.webrtc.settings.asyncCandidates;
 
-			this.webrtc.logger("CREATE TRANSATION WEBRTC", "DEBUG");
-			this.RTCPeerConnection = this.createPeerConnection();
-			this.RTCPeerConnection.addStream(this.from.stream);
+			_this.logger("CREATE TRANSATION WEBRTC", "DEBUG");
+			_this.RTCPeerConnection = _this.createPeerConnection();
+			_this.RTCPeerConnection.addStream(_this.from.stream);
 
 			// MANAGE DTMF
-			this.dtmfSender = null;
-			if (this.webrtc.settings.dtmf) {
+			_this.dtmfSender = null;
+			if (_this.webrtc.settings.dtmf) {
 				try {
-					this.initDtmfSender(this.from.stream);
-					this.webrtc.listen(this, "onKeyPress", this.sendDtmf);
+					_this.initDtmfSender(_this.from.stream);
+					_this.webrtc.listen(_this, "onKeyPress", _this.sendDtmf);
 					// FIXME TRY TO RECEIVE DTMF RTP-EVENT
 					/*this.webrtc.listen(this, "onRemoteStream",function(event, mediaStream, transaction){
-     	this.webrtc.logger( "DTMF setRemoteStream", "DEBUG")
+     	this.logger( "DTMF setRemoteStream", "DEBUG")
      	this.initDtmfReceiver( this.from.stream );
      });*/
 				} catch (e) {
-					this.webrtc.logger(e, "ERROR");
+					_this.webrtc.logger(e, "ERROR");
 					throw e;
 				}
 			}
 
 			// MANAGE CANDIDATES
-			this.candidates = [];
-			this.listen(this, "onIcecandidate", function (transaction, candidates, peerConnection) {
+			_this.candidates = [];
+			_this.listen(_this, "onIcecandidate", function (transaction, candidates, peerConnection) {
 				//console.log(" onIcecandidate : " + peerConnection.localDescription.type )
 				if (this.asyncCandidates && this.candidates.length) {
 					//console.log( message.dailog)
 					var to = this.dialog.to.replace("<sip:", "").replace(">", "");
-					this.webrtc.logger("CANDIDATE TO" + to, "DEBUG");
-					this.webrtc.logger("CANDIDATE TO" + this.to.name, "DEBUG");
+					this.logger("CANDIDATE TO" + to, "DEBUG");
+					this.logger("CANDIDATE TO" + this.to.name, "DEBUG");
 					this.dialog.invite(to, JSON.stringify(this.candidates), "ice/candidate");
 				} else {
 					if (peerConnection.localDescription.type == "offer") {
 						this.sessionDescription = parseSdp.call(this, peerConnection.localDescription);
 						if (this.dialog) {
 							var to = this.dialog.to.replace("<sip:", "").replace(">", "");
-							this.webrtc.logger("CANDIDATE TO" + to, "DEBUG");
-							this.webrtc.logger("CANDIDATE TO" + this.to.name, "DEBUG");
+							this.logger("CANDIDATE TO" + to, "DEBUG");
+							this.logger("CANDIDATE TO" + this.to.name, "DEBUG");
 							this.dialog.invite(to, this.sessionDescription);
 						} else {
 							this.dialog = this.webrtc.protocol.invite(this.to.name, this.sessionDescription);
@@ -17673,31 +17686,27 @@ module.exports = function (stage) {
 				}
 			});
 
-			this.listen(this, "onCreateAnwser", function (to, sessionDescription, webrtcTransaction, diag) {
+			_this.listen(_this, "onCreateAnwser", function (to, sessionDescription, webrtcTransaction, diag) {
 				var response = this.dialog.currentTransaction.createResponse(200, "OK", this.sessionDescription.sdp, "application/sdp");
 				response.send();
 			});
+			return _this;
 		}
 
+		/*listen (){
+  	return this.notificationsCenter.listen.apply(this.notificationsCenter, arguments);
+  }
+  	unListen (){
+  	return this.notificationsCenter.unListen.apply(this.notificationsCenter, arguments);
+  }
+  	fire (){
+  	return this.notificationsCenter.fire.apply(this.notificationsCenter, arguments);
+  }*/
+
 		_createClass(Transaction, [{
-			key: 'listen',
-			value: function listen() {
-				return this.notificationsCenter.listen.apply(this.notificationsCenter, arguments);
-			}
-		}, {
-			key: 'unListen',
-			value: function unListen() {
-				return this.notificationsCenter.unListen.apply(this.notificationsCenter, arguments);
-			}
-		}, {
-			key: 'fire',
-			value: function fire() {
-				return this.notificationsCenter.fire.apply(this.notificationsCenter, arguments);
-			}
-		}, {
 			key: 'createPeerConnection',
 			value: function createPeerConnection() {
-				var _this = this;
+				var _this2 = this;
 
 				try {
 					// CREATE PeerConnection
@@ -17706,28 +17715,28 @@ module.exports = function (stage) {
 					// MANAGE EVENT CANDIDATES
 					this.RTCPeerConnection.onicecandidate = function (event) {
 						// FIX firefox fire many time onicecandidate  iceGatheringState === complete
-						var old = _this.iceGatheringState;
+						var old = _this2.iceGatheringState;
 						if (event.target) {
-							_this.iceGatheringState = event.target.iceGatheringState || _this.RTCPeerConnection.iceGatheringState;
+							_this2.iceGatheringState = event.target.iceGatheringState || _this2.RTCPeerConnection.iceGatheringState;
 						} else {
-							_this.iceGatheringState = _this.RTCPeerConnection.iceGatheringState;
+							_this2.iceGatheringState = _this2.RTCPeerConnection.iceGatheringState;
 						}
-						var type = _this.RTCPeerConnection.localDescription.type;
+						var type = _this2.RTCPeerConnection.localDescription.type;
 						//console.log( this.iceGatheringState )
 						//console.log( type )
-						if (type === "offer" && _this.iceGatheringState === 'complete' && old !== "complete") {
+						if (type === "offer" && _this2.iceGatheringState === 'complete' && old !== "complete") {
 							//console.log("PASSS CANDIDATE")
-							_this.fire("onIcecandidate", _this, _this.candidates, _this.RTCPeerConnection);
+							_this2.fire("onIcecandidate", _this2, _this2.candidates, _this2.RTCPeerConnection);
 						} else if (event && event.candidate == null) {
 							// candidates null !!!
 						} else {
-							_this.webrtc.logger("WEBRTC : ADD CANDIDATE", "DEBUG");
+							_this2.logger("WEBRTC : ADD CANDIDATE", "DEBUG");
 							if (event.candidate) {
-								_this.candidates.push(event.candidate);
+								_this2.candidates.push(event.candidate);
 							}
 							if (type === "answer") {
-								_this.fire("onIcecandidate", _this, _this.candidates, _this.RTCPeerConnection);
-								_this.RTCPeerConnection.onicecandidate = null;
+								_this2.fire("onIcecandidate", _this2, _this2.candidates, _this2.RTCPeerConnection);
+								_this2.RTCPeerConnection.onicecandidate = null;
 							}
 						}
 					};
@@ -17735,12 +17744,12 @@ module.exports = function (stage) {
 					// MANAGE STREAM
 					this.RTCPeerConnection.onaddstream = function (event) {
 						//console.log(event)
-						_this.setRemoteStream(event);
-						_this.webrtc.logger("WEBRTC : ADD STREAM ", "DEBUG");
+						_this2.setRemoteStream(event);
+						_this2.logger("WEBRTC : ADD STREAM ", "DEBUG");
 					};
 					return this.RTCPeerConnection;
 				} catch (e) {
-					this.webrtc.logger(e, "ERROR");
+					this.logger(e, "ERROR");
 					this.webrtc.fire("onError", this, e);
 				}
 			}
@@ -17756,7 +17765,7 @@ module.exports = function (stage) {
    			var remoteAudioTrack = mediaStream.getAudioTracks()[0];
    			var dtmfSender = this.RTCPeerConnection.createDTMFSender(remoteAudioTrack);
    			dtmfSender.ontonechange = (tone) => {
-   				this.webrtc.logger("dtmfOnToneChange", "DEBUG") ;
+   				this.logger("dtmfOnToneChange", "DEBUG") ;
    				this.webrtc.fire("dtmfOnToneChange", tone , this);
    			};
    		}catch(e){
@@ -17770,7 +17779,7 @@ module.exports = function (stage) {
 		}, {
 			key: 'initDtmfSender',
 			value: function initDtmfSender(mediaStream) {
-				var _this2 = this;
+				var _this3 = this;
 
 				switch (this.webrtc.settings.dtmf) {
 					case "SIP-INFO":
@@ -17778,7 +17787,7 @@ module.exports = function (stage) {
 						func.prototype.insertDTMF = function (key, duration, gap) {
 							var description = "Signal=" + key + "\nDuration=" + duration;
 							var type = "application/dtmf-relay";
-							_this2.dialog.info(description, type);
+							_this3.dialog.info(description, type);
 						};
 						this.dtmfSender = new func();
 						break;
@@ -17790,7 +17799,7 @@ module.exports = function (stage) {
 							var localAudioTrack = mediaStream.getAudioTracks()[0];
 							this.dtmfSender = this.RTCPeerConnection.createDTMFSender(localAudioTrack);
 							this.dtmfSender.ontonechange = function (tone) {
-								_this2.webrtc.fire("dtmfOnToneChange", tone, _this2);
+								_this3.webrtc.fire("dtmfOnToneChange", tone, _this3);
 							};
 						} else {
 							throw new Error('No local stream to create DTMF Sender', 500);
@@ -17807,7 +17816,7 @@ module.exports = function (stage) {
 				if (this.dtmfSender) {
 					var duration = 500;
 					var gap = 50;
-					this.webrtc.logger('DTMF SEND ' + key + '  duration :  ' + duration + ' gap :  ' + gap, "DEBUG");
+					this.logger('DTMF SEND ' + key + '  duration :  ' + duration + ' gap :  ' + gap, "DEBUG");
 					return this.dtmfSender.insertDTMF(key, duration, gap);
 				}
 				throw new Error(" DTMF SENDER not ready");
@@ -17815,18 +17824,18 @@ module.exports = function (stage) {
 		}, {
 			key: 'createOffer',
 			value: function createOffer() {
-				var _this3 = this;
+				var _this4 = this;
 
 				return this.RTCPeerConnection.createOffer(function (sessionDescription) {
-					_this3.sessionDescription = parseSdp.call(_this3, sessionDescription);
+					_this4.sessionDescription = parseSdp.call(_this4, sessionDescription);
 					try {
-						_this3.from.setDescription(_this3.RTCPeerConnection.setLocalDescription(_this3.sessionDescription, function () {
+						_this4.from.setDescription(_this4.RTCPeerConnection.setLocalDescription(_this4.sessionDescription, function () {
 							// ASYNC CANDIDATES
-							if (_this3.asyncCandidates) {
+							if (_this4.asyncCandidates) {
 								// INVITE
-								_this3.dialog = _this3.webrtc.protocol.invite(_this3.to.name, _this3.sessionDescription);
-								_this3.callId = _this3.dialog.callId;
-								_this3.webrtc.fire("onInvite", _this3, _this3.to, _this3.sessionDescription);
+								_this4.dialog = _this4.webrtc.protocol.invite(_this4.to.name, _this4.sessionDescription);
+								_this4.callId = _this4.dialog.callId;
+								_this4.webrtc.fire("onInvite", _this4, _this4.to, _this4.sessionDescription);
 							} else {
 								// SYNC CANDIDATES
 								/*this.webrtc.listen(this, "onIcecandidate" , function(transaction, candidates, peerConnection){
@@ -17844,14 +17853,14 @@ module.exports = function (stage) {
         })*/
 							}
 						}, function (error) {
-							_this3.error = error;
-							_this3.webrtc.fire("onError", _this3, error);
+							_this4.error = error;
+							_this4.webrtc.fire("onError", _this4, error);
 						}));
 					} catch (e) {
 						throw e;
 					}
 				}, function (error) {
-					_this3.webrtc.fire("onError", _this3, error);
+					_this4.webrtc.fire("onError", _this4, error);
 				}, this.from.settings.constraintsOffer);
 			}
 		}, {
@@ -17871,7 +17880,7 @@ module.exports = function (stage) {
 		}, {
 			key: 'setRemoteDescription',
 			value: function setRemoteDescription(type, user, description, dialog) {
-				var _this4 = this;
+				var _this5 = this;
 
 				//console.log("setRemoteDescription")
 				this.currentTransaction = dialog.currentTransaction;
@@ -17884,42 +17893,42 @@ module.exports = function (stage) {
 				var ClassDesc = new RTCSessionDescription(remoteDesc);
 
 				this.remoteDescription = this.RTCPeerConnection.setRemoteDescription(ClassDesc, function () {
-					if (_this4.RTCPeerConnection.remoteDescription.type == "offer") {
+					if (_this5.RTCPeerConnection.remoteDescription.type == "offer") {
 						//console.log("WEBRTC : onRemoteDescription ");
 						//this.doAnswer(dialog);
-						_this4.webrtc.fire("onOffer", _this4.webrtc, _this4);
-						_this4.webrtc.fire("onRemoteDescription", _this4.from, _this4, _this4.to);
+						_this5.webrtc.fire("onOffer", _this5.webrtc, _this5);
+						_this5.webrtc.fire("onRemoteDescription", _this5.from, _this5, _this5.to);
 					} else {
-						_this4.webrtc.fire("onOffHook", _this4, dialog);
+						_this5.webrtc.fire("onOffHook", _this5, dialog);
 					}
 				}, function (error) {
-					_this4.error = error;
-					_this4.webrtc.fire("onError", _this4, error);
+					_this5.error = error;
+					_this5.webrtc.fire("onError", _this5, error);
 				});
 				return this.remoteDescription;
 			}
 		}, {
 			key: 'doAnswer',
 			value: function doAnswer(dialog) {
-				var _this5 = this;
+				var _this6 = this;
 
 				return this.RTCPeerConnection.createAnswer(function (sessionDescription) {
-					_this5.from.setDescription(sessionDescription);
-					_this5.RTCPeerConnection.setLocalDescription(sessionDescription, function () {
-						_this5.sessionDescription = sessionDescription;
-						if (_this5.asyncCandidates) {
-							_this5.fire("onCreateAnwser", _this5.to, _this5.sessionDescription, _this5, dialog);
+					_this6.from.setDescription(sessionDescription);
+					_this6.RTCPeerConnection.setLocalDescription(sessionDescription, function () {
+						_this6.sessionDescription = sessionDescription;
+						if (_this6.asyncCandidates) {
+							_this6.fire("onCreateAnwser", _this6.to, _this6.sessionDescription, _this6, dialog);
 						}
-						_this5.webrtc.fire("onOffHook", _this5, dialog);
+						_this6.webrtc.fire("onOffHook", _this6, dialog);
 					}, function (error) {
-						_this5.error = error;
-						_this5.webrtc.fire("onError", _this5, error);
+						_this6.error = error;
+						_this6.webrtc.fire("onError", _this6, error);
 					});
 				},
 				// error
 				function (e) {
-					_this5.error = e;
-					_this5.webrtc.fire("onError", _this5, e);
+					_this6.error = e;
+					_this6.webrtc.fire("onError", _this6, e);
 				}, this.from.settings.constraints);
 			}
 		}, {
@@ -17948,7 +17957,7 @@ module.exports = function (stage) {
 		}, {
 			key: 'close',
 			value: function close() {
-				this.webrtc.logger("WEBRTC CLOSE TRANSACTION  : " + this.callId, "DEBUG");
+				this.logger("WEBRTC CLOSE TRANSACTION  : " + this.callId, "DEBUG");
 				this.RTCPeerConnection.close();
 				this.webrtc.unListen("onKeyPress", this.sendDtmf);
 				delete this.RTCPeerConnection;
@@ -17957,7 +17966,7 @@ module.exports = function (stage) {
 		}]);
 
 		return Transaction;
-	}();
+	}(stage.Service);
 
 	/*
  	 *
@@ -17984,30 +17993,30 @@ module.exports = function (stage) {
 		asyncCandidates: false
 	};
 
-	var WebRtc = function (_stage$Service) {
-		_inherits(WebRtc, _stage$Service);
+	var WebRtc = function (_stage$Service2) {
+		_inherits(WebRtc, _stage$Service2);
 
 		function WebRtc(server, transport, settings) {
 			_classCallCheck(this, WebRtc);
 
-			var _this6 = _possibleConstructorReturn(this, (WebRtc.__proto__ || Object.getPrototypeOf(WebRtc)).call(this, "WEBRTC", null, null, settings));
+			var _this7 = _possibleConstructorReturn(this, (WebRtc.__proto__ || Object.getPrototypeOf(WebRtc)).call(this, "WEBRTC", null, null, settings));
 
-			_this6.settings = stage.extend(true, {}, defaultSettings, settings);
+			_this7.settings = stage.extend(true, {}, defaultSettings, settings);
 			//this.notificationsCenter = stage.notificationsCenter.create(this.settings, this);
 			//this.syslog = new stage.syslog(syslogSettings);
-			_this6.protocol = null;
-			_this6.socketState = "close";
-			_this6.transactions = {};
+			_this7.protocol = null;
+			_this7.socketState = "close";
+			_this7.transactions = {};
 			//this.users = {};
-			_this6.transport = _this6.connect(transport);
-			if (_this6.transport && _this6.transport.publicAddress) {
-				_this6.publicAddress = _this6.transport.publicAddress;
+			_this7.transport = _this7.connect(transport);
+			if (_this7.transport && _this7.transport.publicAddress) {
+				_this7.publicAddress = _this7.transport.publicAddress;
 				//this.publicAddress = server;
 				//this.publicAddress = this.transport.domain;
 			}
-			_this6.server = server;
-			_this6.init();
-			return _this6;
+			_this7.server = server;
+			_this7.init();
+			return _this7;
 		}
 
 		_createClass(WebRtc, [{
@@ -18020,10 +18029,6 @@ module.exports = function (stage) {
 				this.listen(this, "onInvite", function (transaction, userTo, description) {
 					this.transactions[transaction.callId] = transaction;
 				});
-
-				/*this.listen(this, "onOffer", function(message , userTo, transaction){
-    	this.transactions[transaction.callId] = transaction ;
-    });*/
 
 				this.listen(this, "onOffer", function (webrtc, transaction) {
 					this.transactions[transaction.callId] = transaction;
@@ -18056,15 +18061,15 @@ module.exports = function (stage) {
 						});
 
 						this.protocol.listen(this, "onRegister", function (sip, message) {
-							var _this7 = this;
+							var _this8 = this;
 
 							switch (message.code) {
 								case 200:
 									this.user.createMediaStream(function (stream) {
-										_this7.user.stream = stream;
-										_this7.notificationsCenter.fire("onMediaSucces", _this7.user.mediaStream, _this7.user);
+										_this8.user.stream = stream;
+										_this8.notificationsCenter.fire("onMediaSucces", _this8.user.mediaStream, _this8.user);
 									}, function (e) {
-										_this7.notificationsCenter.fire("onError", _this7, e);
+										_this8.notificationsCenter.fire("onError", _this8, e);
 									});
 									this.notificationsCenter.fire("onRegister", this.user, this);
 									break;
@@ -18109,7 +18114,7 @@ module.exports = function (stage) {
 						});
 
 						this.protocol.listen(this, "onInvite", function (message, dialog) {
-							var _this8 = this;
+							var _this9 = this;
 
 							switch (message.header["Content-Type"]) {
 								case "application/sdp":
@@ -18170,10 +18175,10 @@ module.exports = function (stage) {
 											candidate = new RTCIceCandidate(res[i]);
 
 											transaction.RTCPeerConnection.addIceCandidate(candidate, function () {
-												_this8.logger("WEBRTC remote CANDIDATES   " + res[i].candidate, "DEBUG");
+												_this9.logger("WEBRTC remote CANDIDATES   " + res[i].candidate, "DEBUG");
 											}, function (e) {
 												console.log(e);
-												_this8.logger("WEBRTC Error CANDIDATES " + res[i].candidate, "ERROR");
+												_this9.logger("WEBRTC Error CANDIDATES " + res[i].candidate, "ERROR");
 											});
 										};
 
@@ -18253,7 +18258,7 @@ module.exports = function (stage) {
 						});
 
 						this.protocol.listen(this, "onCall", function (message) {
-							var _this9 = this;
+							var _this10 = this;
 
 							var transac = this.transactions[message.callId];
 							if (message.toNameDisplay) {
@@ -18279,10 +18284,10 @@ module.exports = function (stage) {
 
 										transac.RTCPeerConnection.addIceCandidate(candidate, function () {
 											//console.log("Succes Candidate")
-											_this9.logger("WEBRTC ADD remote CANDIDATES :  " + res[i].candidate);
+											_this10.logger("WEBRTC ADD remote CANDIDATES :  " + res[i].candidate);
 										}, function (e) {
 											console.log(e);
-											_this9.logger("WEBRTC Error CANDIDATES " + res[i].candidate, "ERROR");
+											_this10.logger("WEBRTC Error CANDIDATES " + res[i].candidate, "ERROR");
 										});
 									};
 
@@ -19883,6 +19888,12 @@ process.off = noop;
 process.removeListener = noop;
 process.removeAllListeners = noop;
 process.emit = noop;
+process.prependListener = noop;
+process.prependOnceListener = noop;
+
+process.listeners = function (name) {
+    return [];
+};
 
 process.binding = function (name) {
     throw new Error('process.binding is not supported');
@@ -23206,17 +23217,17 @@ module.exports = stage;
 var _typeof = typeof Symbol === "function" && typeof Symbol.iterator === "symbol" ? function (obj) { return typeof obj; } : function (obj) { return obj && typeof Symbol === "function" && obj.constructor === Symbol && obj !== Symbol.prototype ? "symbol" : typeof obj; };
 
 /*!
- * jQuery JavaScript Library v3.1.1
+ * jQuery JavaScript Library v3.2.1
  * https://jquery.com/
  *
  * Includes Sizzle.js
  * https://sizzlejs.com/
  *
- * Copyright jQuery Foundation and other contributors
+ * Copyright JS Foundation and other contributors
  * Released under the MIT license
  * https://jquery.org/license
  *
- * Date: 2016-09-22T22:30Z
+ * Date: 2017-03-20T18:59Z
  */
 (function (global, factory) {
 
@@ -23289,7 +23300,7 @@ var _typeof = typeof Symbol === "function" && typeof Symbol.iterator === "symbol
 	// unguarded in another place, it seems safer to define global only for this module
 
 
-	var version = "3.1.1",
+	var version = "3.2.1",
 
 
 	// Define a local copy of jQuery
@@ -23445,11 +23456,11 @@ var _typeof = typeof Symbol === "function" && typeof Symbol.iterator === "symbol
 					}
 
 					// Recurse if we're merging plain objects or arrays
-					if (deep && copy && (jQuery.isPlainObject(copy) || (copyIsArray = jQuery.isArray(copy)))) {
+					if (deep && copy && (jQuery.isPlainObject(copy) || (copyIsArray = Array.isArray(copy)))) {
 
 						if (copyIsArray) {
 							copyIsArray = false;
-							clone = src && jQuery.isArray(src) ? src : [];
+							clone = src && Array.isArray(src) ? src : [];
 						} else {
 							clone = src && jQuery.isPlainObject(src) ? src : {};
 						}
@@ -23486,8 +23497,6 @@ var _typeof = typeof Symbol === "function" && typeof Symbol.iterator === "symbol
 		isFunction: function isFunction(obj) {
 			return jQuery.type(obj) === "function";
 		},
-
-		isArray: Array.isArray,
 
 		isWindow: function isWindow(obj) {
 			return obj != null && obj === obj.window;
@@ -23559,10 +23568,6 @@ var _typeof = typeof Symbol === "function" && typeof Symbol.iterator === "symbol
 		// Microsoft forgot to hump their vendor prefix (#9572)
 		camelCase: function camelCase(string) {
 			return string.replace(rmsPrefix, "ms-").replace(rdashAlpha, fcamelCase);
-		},
-
-		nodeName: function nodeName(elem, name) {
-			return elem.nodeName && elem.nodeName.toLowerCase() === name.toLowerCase();
 		},
 
 		each: function each(obj, callback) {
@@ -25937,6 +25942,10 @@ var _typeof = typeof Symbol === "function" && typeof Symbol.iterator === "symbol
 
 	var rneedsContext = jQuery.expr.match.needsContext;
 
+	function nodeName(elem, name) {
+
+		return elem.nodeName && elem.nodeName.toLowerCase() === name.toLowerCase();
+	};
 	var rsingleTag = /^<([a-z][^\/\0>:\x20\t\r\n\f]*)[\x20\t\r\n\f]*\/?>(?:<\/\1>|)$/i;
 
 	var risSimple = /^.[^:#\[\.,]*$/;
@@ -26264,7 +26273,18 @@ var _typeof = typeof Symbol === "function" && typeof Symbol.iterator === "symbol
 			return _siblings(elem.firstChild);
 		},
 		contents: function contents(elem) {
-			return elem.contentDocument || jQuery.merge([], elem.childNodes);
+			if (nodeName(elem, "iframe")) {
+				return elem.contentDocument;
+			}
+
+			// Support: IE 9 - 11 only, iOS 7 only, Android Browser <=4.3 only
+			// Treat the template element as a regular one in browsers that
+			// don't support it.
+			if (nodeName(elem, "template")) {
+				elem = elem.content || elem;
+			}
+
+			return jQuery.merge([], elem.childNodes);
 		}
 	}, function (name, fn) {
 		jQuery.fn[name] = function (until, selector) {
@@ -26365,7 +26385,7 @@ var _typeof = typeof Symbol === "function" && typeof Symbol.iterator === "symbol
 		fire = function fire() {
 
 			// Enforce single-firing
-			_locked = options.once;
+			_locked = _locked || options.once;
 
 			// Execute callbacks for all pending executions,
 			// respecting firingIndex overrides and runtime changes
@@ -26531,7 +26551,7 @@ var _typeof = typeof Symbol === "function" && typeof Symbol.iterator === "symbol
 		throw ex;
 	}
 
-	function adoptValue(value, resolve, reject) {
+	function adoptValue(value, resolve, reject, noValue) {
 		var method;
 
 		try {
@@ -26547,9 +26567,10 @@ var _typeof = typeof Symbol === "function" && typeof Symbol.iterator === "symbol
 				// Other non-thenables
 			} else {
 
-				// Support: Android 4.0 only
-				// Strict mode functions invoked without .call/.apply get global-object context
-				resolve.call(undefined, value);
+				// Control `resolve` arguments by letting Array#slice cast boolean `noValue` to integer:
+				// * false: [ value ].slice( 0 ) => resolve( value )
+				// * true: [ value ].slice( 1 ) => resolve()
+				resolve.apply(undefined, [value].slice(noValue));
 			}
 
 			// For Promises/A+, convert exceptions into rejections
@@ -26559,7 +26580,7 @@ var _typeof = typeof Symbol === "function" && typeof Symbol.iterator === "symbol
 
 			// Support: Android 4.0 only
 			// Strict mode functions invoked without .call/.apply get global-object context
-			reject.call(undefined, value);
+			reject.apply(undefined, [value]);
 		}
 	}
 
@@ -26835,7 +26856,7 @@ var _typeof = typeof Symbol === "function" && typeof Symbol.iterator === "symbol
 
 			// Single- and empty arguments are adopted like Promise.resolve
 			if (remaining <= 1) {
-				adoptValue(singleValue, master.done(updateFunc(i)).resolve, master.reject);
+				adoptValue(singleValue, master.done(updateFunc(i)).resolve, master.reject, !remaining);
 
 				// Use .then() to unwrap secondary thenables (cf. gh-3000)
 				if (master.state() === "pending" || jQuery.isFunction(resolveValues[i] && resolveValues[i].then)) {
@@ -26897,15 +26918,6 @@ var _typeof = typeof Symbol === "function" && typeof Symbol.iterator === "symbol
 		// A counter to track how many items to wait for before
 		// the ready event fires. See #6781
 		readyWait: 1,
-
-		// Hold (or release) the ready event
-		holdReady: function holdReady(hold) {
-			if (hold) {
-				jQuery.readyWait++;
-			} else {
-				jQuery.ready(true);
-			}
-		},
 
 		// Handle when the DOM is ready
 		ready: function ready(wait) {
@@ -27128,7 +27140,7 @@ var _typeof = typeof Symbol === "function" && typeof Symbol.iterator === "symbol
 			if (key !== undefined) {
 
 				// Support array or space separated string of keys
-				if (jQuery.isArray(key)) {
+				if (Array.isArray(key)) {
 
 					// If key is an array of keys...
 					// We always set camelCase keys, so remove that.
@@ -27351,7 +27363,7 @@ var _typeof = typeof Symbol === "function" && typeof Symbol.iterator === "symbol
 
 				// Speed up dequeue by getting out quickly if this is just a lookup
 				if (data) {
-					if (!queue || jQuery.isArray(data)) {
+					if (!queue || Array.isArray(data)) {
 						queue = dataPriv.access(elem, type, jQuery.makeArray(data));
 					} else {
 						queue.push(data);
@@ -27709,7 +27721,7 @@ var _typeof = typeof Symbol === "function" && typeof Symbol.iterator === "symbol
 			ret = [];
 		}
 
-		if (tag === undefined || tag && jQuery.nodeName(context, tag)) {
+		if (tag === undefined || tag && nodeName(context, tag)) {
 			return jQuery.merge([context], ret);
 		}
 
@@ -28319,7 +28331,7 @@ var _typeof = typeof Symbol === "function" && typeof Symbol.iterator === "symbol
 
 				// For checkbox, fire native event so checked state will be right
 				trigger: function trigger() {
-					if (this.type === "checkbox" && this.click && jQuery.nodeName(this, "input")) {
+					if (this.type === "checkbox" && this.click && nodeName(this, "input")) {
 						this.click();
 						return false;
 					}
@@ -28327,7 +28339,7 @@ var _typeof = typeof Symbol === "function" && typeof Symbol.iterator === "symbol
 
 				// For cross-browser consistency, don't fire native .click() on links
 				_default: function _default(event) {
-					return jQuery.nodeName(event.target, "a");
+					return nodeName(event.target, "a");
 				}
 			},
 
@@ -28594,10 +28606,11 @@ var _typeof = typeof Symbol === "function" && typeof Symbol.iterator === "symbol
 	    rscriptTypeMasked = /^true\/(.*)/,
 	    rcleanScript = /^\s*<!(?:\[CDATA\[|--)|(?:\]\]|--)>\s*$/g;
 
+	// Prefer a tbody over its parent table for containing new rows
 	function manipulationTarget(elem, content) {
-		if (jQuery.nodeName(elem, "table") && jQuery.nodeName(content.nodeType !== 11 ? content : content.firstChild, "tr")) {
+		if (nodeName(elem, "table") && nodeName(content.nodeType !== 11 ? content : content.firstChild, "tr")) {
 
-			return elem.getElementsByTagName("tbody")[0] || elem;
+			return jQuery(">tbody", elem)[0] || elem;
 		}
 
 		return elem;
@@ -29127,12 +29140,19 @@ var _typeof = typeof Symbol === "function" && typeof Symbol.iterator === "symbol
 		    minWidth,
 		    maxWidth,
 		    ret,
-		    style = elem.style;
+
+
+		// Support: Firefox 51+
+		// Retrieving style before computed somehow
+		// fixes an issue with getting wrong values
+		// on detached elements
+		style = elem.style;
 
 		computed = computed || getStyles(elem);
 
-		// Support: IE <=9 only
-		// getPropertyValue is only needed for .css('filter') (#12537)
+		// getPropertyValue is needed for:
+		//   .css('filter') (IE 9 only, #12537)
+		//   .css('--customProperty) (#3144)
 		if (computed) {
 			ret = computed.getPropertyValue(name) || computed[name];
 
@@ -29195,6 +29215,7 @@ var _typeof = typeof Symbol === "function" && typeof Symbol.iterator === "symbol
 	// except "table", "table-cell", or "table-caption"
 	// See here for display values: https://developer.mozilla.org/en-US/docs/CSS/display
 	rdisplayswap = /^(none|table(?!-c[ea]).+)/,
+	    rcustomProp = /^--/,
 	    cssShow = { position: "absolute", visibility: "hidden", display: "block" },
 	    cssNormalTransform = {
 		letterSpacing: "0",
@@ -29221,6 +29242,16 @@ var _typeof = typeof Symbol === "function" && typeof Symbol.iterator === "symbol
 				return name;
 			}
 		}
+	}
+
+	// Return a property mapped along what jQuery.cssProps suggests or to
+	// a vendor prefixed property.
+	function finalPropName(name) {
+		var ret = jQuery.cssProps[name];
+		if (!ret) {
+			ret = jQuery.cssProps[name] = vendorPropName(name) || name;
+		}
+		return ret;
 	}
 
 	function setPositiveNumber(elem, value, subtract) {
@@ -29282,42 +29313,29 @@ var _typeof = typeof Symbol === "function" && typeof Symbol.iterator === "symbol
 
 	function getWidthOrHeight(elem, name, extra) {
 
-		// Start with offset property, which is equivalent to the border-box value
-		var val,
-		    valueIsBorderBox = true,
+		// Start with computed style
+		var valueIsBorderBox,
 		    styles = getStyles(elem),
+		    val = curCSS(elem, name, styles),
 		    isBorderBox = jQuery.css(elem, "boxSizing", false, styles) === "border-box";
 
-		// Support: IE <=11 only
-		// Running getBoundingClientRect on a disconnected node
-		// in IE throws an error.
-		if (elem.getClientRects().length) {
-			val = elem.getBoundingClientRect()[name];
+		// Computed unit is not pixels. Stop here and return.
+		if (rnumnonpx.test(val)) {
+			return val;
 		}
 
-		// Some non-html elements return undefined for offsetWidth, so check for null/undefined
-		// svg - https://bugzilla.mozilla.org/show_bug.cgi?id=649285
-		// MathML - https://bugzilla.mozilla.org/show_bug.cgi?id=491668
-		if (val <= 0 || val == null) {
+		// Check for style in case a browser which returns unreliable values
+		// for getComputedStyle silently falls back to the reliable elem.style
+		valueIsBorderBox = isBorderBox && (support.boxSizingReliable() || val === elem.style[name]);
 
-			// Fall back to computed then uncomputed css if necessary
-			val = curCSS(elem, name, styles);
-			if (val < 0 || val == null) {
-				val = elem.style[name];
-			}
-
-			// Computed unit is not pixels. Stop here and return.
-			if (rnumnonpx.test(val)) {
-				return val;
-			}
-
-			// Check for style in case a browser which returns unreliable values
-			// for getComputedStyle silently falls back to the reliable elem.style
-			valueIsBorderBox = isBorderBox && (support.boxSizingReliable() || val === elem.style[name]);
-
-			// Normalize "", auto, and prepare for extra
-			val = parseFloat(val) || 0;
+		// Fall back to offsetWidth/Height when value is "auto"
+		// This happens for inline elements with no explicit setting (gh-3571)
+		if (val === "auto") {
+			val = elem["offset" + name[0].toUpperCase() + name.slice(1)];
 		}
+
+		// Normalize "", auto, and prepare for extra
+		val = parseFloat(val) || 0;
 
 		// Use the active box-sizing model to add/subtract irrelevant styles
 		return val + augmentWidthOrHeight(elem, name, extra || (isBorderBox ? "border" : "content"), valueIsBorderBox, styles) + "px";
@@ -29376,9 +29394,15 @@ var _typeof = typeof Symbol === "function" && typeof Symbol.iterator === "symbol
 			    type,
 			    hooks,
 			    origName = jQuery.camelCase(name),
+			    isCustomProp = rcustomProp.test(name),
 			    style = elem.style;
 
-			name = jQuery.cssProps[origName] || (jQuery.cssProps[origName] = vendorPropName(origName) || origName);
+			// Make sure that we're working with the right name. We don't
+			// want to query the value if it is a CSS custom property
+			// since they are user-defined.
+			if (!isCustomProp) {
+				name = finalPropName(origName);
+			}
 
 			// Gets hook for the prefixed version, then unprefixed version
 			hooks = jQuery.cssHooks[name] || jQuery.cssHooks[origName];
@@ -29413,7 +29437,11 @@ var _typeof = typeof Symbol === "function" && typeof Symbol.iterator === "symbol
 				// If a hook was provided, use that value, otherwise just set the specified value
 				if (!hooks || !("set" in hooks) || (value = hooks.set(elem, value, extra)) !== undefined) {
 
-					style[name] = value;
+					if (isCustomProp) {
+						style.setProperty(name, value);
+					} else {
+						style[name] = value;
+					}
 				}
 			} else {
 
@@ -29432,10 +29460,15 @@ var _typeof = typeof Symbol === "function" && typeof Symbol.iterator === "symbol
 			var val,
 			    num,
 			    hooks,
-			    origName = jQuery.camelCase(name);
+			    origName = jQuery.camelCase(name),
+			    isCustomProp = rcustomProp.test(name);
 
-			// Make sure that we're working with the right name
-			name = jQuery.cssProps[origName] || (jQuery.cssProps[origName] = vendorPropName(origName) || origName);
+			// Make sure that we're working with the right name. We don't
+			// want to modify the value if it is a CSS custom property
+			// since they are user-defined.
+			if (!isCustomProp) {
+				name = finalPropName(origName);
+			}
 
 			// Try prefixed name followed by the unprefixed name
 			hooks = jQuery.cssHooks[name] || jQuery.cssHooks[origName];
@@ -29460,6 +29493,7 @@ var _typeof = typeof Symbol === "function" && typeof Symbol.iterator === "symbol
 				num = parseFloat(val);
 				return extra === true || isFinite(num) ? num || 0 : val;
 			}
+
 			return val;
 		}
 	});
@@ -29546,7 +29580,7 @@ var _typeof = typeof Symbol === "function" && typeof Symbol.iterator === "symbol
 				    map = {},
 				    i = 0;
 
-				if (jQuery.isArray(name)) {
+				if (Array.isArray(name)) {
 					styles = getStyles(elem);
 					len = name.length;
 
@@ -29671,13 +29705,18 @@ var _typeof = typeof Symbol === "function" && typeof Symbol.iterator === "symbol
 	jQuery.fx.step = {};
 
 	var fxNow,
-	    timerId,
+	    inProgress,
 	    rfxtypes = /^(?:toggle|show|hide)$/,
 	    rrun = /queueHooks$/;
 
-	function raf() {
-		if (timerId) {
-			window.requestAnimationFrame(raf);
+	function schedule() {
+		if (inProgress) {
+			if (document.hidden === false && window.requestAnimationFrame) {
+				window.requestAnimationFrame(schedule);
+			} else {
+				window.setTimeout(schedule, jQuery.fx.interval);
+			}
+
 			jQuery.fx.tick();
 		}
 	}
@@ -29911,7 +29950,7 @@ var _typeof = typeof Symbol === "function" && typeof Symbol.iterator === "symbol
 			name = jQuery.camelCase(index);
 			easing = specialEasing[name];
 			value = props[index];
-			if (jQuery.isArray(value)) {
+			if (Array.isArray(value)) {
 				easing = value[1];
 				value = props[index] = value[0];
 			}
@@ -29971,12 +30010,19 @@ var _typeof = typeof Symbol === "function" && typeof Symbol.iterator === "symbol
 
 			deferred.notifyWith(elem, [animation, percent, remaining]);
 
+			// If there's more to do, yield
 			if (percent < 1 && length) {
 				return remaining;
-			} else {
-				deferred.resolveWith(elem, [animation]);
-				return false;
 			}
+
+			// If this was an empty animation, synthesize a final progress notification
+			if (!length) {
+				deferred.notifyWith(elem, [animation, 1, 0]);
+			}
+
+			// Resolve the animation and report its conclusion
+			deferred.resolveWith(elem, [animation]);
+			return false;
 		},
 		    animation = deferred.promise({
 			elem: elem,
@@ -30040,14 +30086,16 @@ var _typeof = typeof Symbol === "function" && typeof Symbol.iterator === "symbol
 			animation.opts.start.call(elem, animation);
 		}
 
+		// Attach callbacks from options
+		animation.progress(animation.opts.progress).done(animation.opts.done, animation.opts.complete).fail(animation.opts.fail).always(animation.opts.always);
+
 		jQuery.fx.timer(jQuery.extend(tick, {
 			elem: elem,
 			anim: animation,
 			queue: animation.opts.queue
 		}));
 
-		// attach callbacks from options
-		return animation.progress(animation.opts.progress).done(animation.opts.done, animation.opts.complete).fail(animation.opts.fail).always(animation.opts.always);
+		return animation;
 	}
 
 	jQuery.Animation = jQuery.extend(Animation, {
@@ -30097,8 +30145,8 @@ var _typeof = typeof Symbol === "function" && typeof Symbol.iterator === "symbol
 			easing: fn && easing || easing && !jQuery.isFunction(easing) && easing
 		};
 
-		// Go to the end state if fx are off or if document is hidden
-		if (jQuery.fx.off || document.hidden) {
+		// Go to the end state if fx are off
+		if (jQuery.fx.off) {
 			opt.duration = 0;
 		} else {
 			if (typeof opt.duration !== "number") {
@@ -30283,7 +30331,7 @@ var _typeof = typeof Symbol === "function" && typeof Symbol.iterator === "symbol
 		for (; i < timers.length; i++) {
 			timer = timers[i];
 
-			// Checks the timer has not already been removed
+			// Run the timer and safely remove it when done (allowing for external removal)
 			if (!timer() && timers[i] === timer) {
 				timers.splice(i--, 1);
 			}
@@ -30297,28 +30345,21 @@ var _typeof = typeof Symbol === "function" && typeof Symbol.iterator === "symbol
 
 	jQuery.fx.timer = function (timer) {
 		jQuery.timers.push(timer);
-		if (timer()) {
-			jQuery.fx.start();
-		} else {
-			jQuery.timers.pop();
-		}
+		jQuery.fx.start();
 	};
 
 	jQuery.fx.interval = 13;
 	jQuery.fx.start = function () {
-		if (!timerId) {
-			timerId = window.requestAnimationFrame ? window.requestAnimationFrame(raf) : window.setInterval(jQuery.fx.tick, jQuery.fx.interval);
+		if (inProgress) {
+			return;
 		}
+
+		inProgress = true;
+		schedule();
 	};
 
 	jQuery.fx.stop = function () {
-		if (window.cancelAnimationFrame) {
-			window.cancelAnimationFrame(timerId);
-		} else {
-			window.clearInterval(timerId);
-		}
-
-		timerId = null;
+		inProgress = null;
 	};
 
 	jQuery.fx.speeds = {
@@ -30430,7 +30471,7 @@ var _typeof = typeof Symbol === "function" && typeof Symbol.iterator === "symbol
 		attrHooks: {
 			type: {
 				set: function set(elem, value) {
-					if (!support.radioValue && value === "radio" && jQuery.nodeName(elem, "input")) {
+					if (!support.radioValue && value === "radio" && nodeName(elem, "input")) {
 						var val = elem.value;
 						elem.setAttribute("type", value);
 						if (val) {
@@ -30837,7 +30878,7 @@ var _typeof = typeof Symbol === "function" && typeof Symbol.iterator === "symbol
 					val = "";
 				} else if (typeof val === "number") {
 					val += "";
-				} else if (jQuery.isArray(val)) {
+				} else if (Array.isArray(val)) {
 					val = jQuery.map(val, function (value) {
 						return value == null ? "" : value + "";
 					});
@@ -30894,7 +30935,7 @@ var _typeof = typeof Symbol === "function" && typeof Symbol.iterator === "symbol
 						if ((option.selected || i === index) &&
 
 						// Don't return options that are disabled or in a disabled optgroup
-						!option.disabled && (!option.parentNode.disabled || !jQuery.nodeName(option.parentNode, "optgroup"))) {
+						!option.disabled && (!option.parentNode.disabled || !nodeName(option.parentNode, "optgroup"))) {
 
 							// Get the specific value for the option
 							value = jQuery(option).val();
@@ -30945,7 +30986,7 @@ var _typeof = typeof Symbol === "function" && typeof Symbol.iterator === "symbol
 	jQuery.each(["radio", "checkbox"], function () {
 		jQuery.valHooks[this] = {
 			set: function set(elem, value) {
-				if (jQuery.isArray(value)) {
+				if (Array.isArray(value)) {
 					return elem.checked = jQuery.inArray(jQuery(elem).val(), value) > -1;
 				}
 			}
@@ -31213,7 +31254,7 @@ var _typeof = typeof Symbol === "function" && typeof Symbol.iterator === "symbol
 	function buildParams(prefix, obj, traditional, add) {
 		var name;
 
-		if (jQuery.isArray(obj)) {
+		if (Array.isArray(obj)) {
 
 			// Serialize array item.
 			jQuery.each(obj, function (i, v) {
@@ -31254,7 +31295,7 @@ var _typeof = typeof Symbol === "function" && typeof Symbol.iterator === "symbol
 		};
 
 		// If an array was passed in, assume that it is an array of form elements.
-		if (jQuery.isArray(a) || a.jquery && !jQuery.isPlainObject(a)) {
+		if (Array.isArray(a) || a.jquery && !jQuery.isPlainObject(a)) {
 
 			// Serialize the form elements
 			jQuery.each(a, function () {
@@ -31295,7 +31336,7 @@ var _typeof = typeof Symbol === "function" && typeof Symbol.iterator === "symbol
 					return null;
 				}
 
-				if (jQuery.isArray(val)) {
+				if (Array.isArray(val)) {
 					return jQuery.map(val, function (val) {
 						return { name: elem.name, value: val.replace(rCRLF, "\r\n") };
 					});
@@ -32677,13 +32718,6 @@ var _typeof = typeof Symbol === "function" && typeof Symbol.iterator === "symbol
 		}).length;
 	};
 
-	/**
-  * Gets a window from an element
-  */
-	function getWindow(elem) {
-		return jQuery.isWindow(elem) ? elem : elem.nodeType === 9 && elem.defaultView;
-	}
-
 	jQuery.offset = {
 		setOffset: function setOffset(elem, options, i) {
 			var curPosition,
@@ -32749,16 +32783,17 @@ var _typeof = typeof Symbol === "function" && typeof Symbol.iterator === "symbol
 				});
 			}
 
-			var docElem,
-			    win,
+			var doc,
+			    docElem,
 			    rect,
-			    doc,
+			    win,
 			    elem = this[0];
 
 			if (!elem) {
 				return;
 			}
 
+			// Return zeros for disconnected and hidden (display: none) elements (gh-2310)
 			// Support: IE <=11 only
 			// Running getBoundingClientRect on a
 			// disconnected node in IE throws an error
@@ -32768,20 +32803,14 @@ var _typeof = typeof Symbol === "function" && typeof Symbol.iterator === "symbol
 
 			rect = elem.getBoundingClientRect();
 
-			// Make sure element is not hidden (display: none)
-			if (rect.width || rect.height) {
-				doc = elem.ownerDocument;
-				win = getWindow(doc);
-				docElem = doc.documentElement;
+			doc = elem.ownerDocument;
+			docElem = doc.documentElement;
+			win = doc.defaultView;
 
-				return {
-					top: rect.top + win.pageYOffset - docElem.clientTop,
-					left: rect.left + win.pageXOffset - docElem.clientLeft
-				};
-			}
-
-			// Return zeros for disconnected and hidden elements (gh-2310)
-			return rect;
+			return {
+				top: rect.top + win.pageYOffset - docElem.clientTop,
+				left: rect.left + win.pageXOffset - docElem.clientLeft
+			};
 		},
 
 		position: function position() {
@@ -32807,7 +32836,7 @@ var _typeof = typeof Symbol === "function" && typeof Symbol.iterator === "symbol
 
 				// Get correct offsets
 				offset = this.offset();
-				if (!jQuery.nodeName(offsetParent[0], "html")) {
+				if (!nodeName(offsetParent[0], "html")) {
 					parentOffset = offsetParent.offset();
 				}
 
@@ -32854,7 +32883,14 @@ var _typeof = typeof Symbol === "function" && typeof Symbol.iterator === "symbol
 
 		jQuery.fn[method] = function (val) {
 			return access(this, function (elem, method, val) {
-				var win = getWindow(elem);
+
+				// Coalesce documents and windows
+				var win;
+				if (jQuery.isWindow(elem)) {
+					win = elem;
+				} else if (elem.nodeType === 9) {
+					win = elem.defaultView;
+				}
 
 				if (val === undefined) {
 					return win ? win[prop] : elem[method];
@@ -32944,7 +32980,16 @@ var _typeof = typeof Symbol === "function" && typeof Symbol.iterator === "symbol
 		}
 	});
 
+	jQuery.holdReady = function (hold) {
+		if (hold) {
+			jQuery.readyWait++;
+		} else {
+			jQuery.ready(true);
+		}
+	};
+	jQuery.isArray = Array.isArray;
 	jQuery.parseJSON = JSON.parse;
+	jQuery.nodeName = nodeName;
 
 	// Register as a named AMD module, since jQuery can be concatenated with other
 	// files that may use define, but not via a proper concatenation script that

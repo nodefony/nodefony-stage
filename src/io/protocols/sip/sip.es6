@@ -160,31 +160,35 @@ module.exports =  function(stage){
 	};
 
 	var parsefromTo = function(type, value){
-		var sp = value.split(";");
-		this.message[type+"Tag"] = null;
-		var res = sp.shift();
-		var res2 = regHeaders.fromTo.exec(res);
-		//console.log(regHeaders.fromToG.exec(res))
-		//console.log(res2)
-		this.message[type+"Name"] = (res2.length > 2)  ? res2[1].replace(/ |\n|\r/g,"").replace(/"/g,"") : "" ;
- 	        this.message[type] =  res2[1].replace(" ","") +"@"+ res2[2].replace(/ |\n|\r/g,"") ;
-		var ret = regHeaders.fromToG.exec(res) ;	
-		if ( ret && ret[1] ){
-			var displayName =  ret[1].replace(/"/g,"")  ;
-			//this.message[type+"Name"] = displayName ;
-			this.message[type+"NameDisplay"] = displayName ;
-			//console.log(displayName)
-		}
-
-		for (var i = 0 ; i < sp.length ;i++){
-			var res3 = sp[i].split("=");
-			if(res3[0].replace(/ |\n|\r/g,"") === "tag"){
-				this.message[type+"Tag"] = res3[1] ;
-			}else{
-				this.message[res3[0]] = res3[1] ;
+		try {
+			var sp = value.split(";");
+			this.message[type+"Tag"] = null;
+			var res = sp.shift();
+			var res2 = regHeaders.fromTo.exec(res);
+			//console.log(regHeaders.fromToG.exec(res))
+			//console.log(res2)
+			this.message[type+"Name"] = (res2.length > 2)  ? res2[1].replace(/ |\n|\r/g,"").replace(/"/g,"") : "" ;
+ 	        	this.message[type] =  res2[1].replace(" ","") +"@"+ res2[2].replace(/ |\n|\r/g,"") ;
+			var ret = regHeaders.fromToG.exec(res) ;	
+			if ( ret && ret[1] ){
+				var displayName =  ret[1].replace(/"/g,"")  ;
+				//this.message[type+"Name"] = displayName ;
+				this.message[type+"NameDisplay"] = displayName ;
+				//console.log(displayName)
 			}
+
+			for (var i = 0 ; i < sp.length ;i++){
+				var res3 = sp[i].split("=");
+				if(res3[0].replace(/ |\n|\r/g,"") === "tag"){
+					this.message[type+"Tag"] = res3[1] ;
+				}else{
+					this.message[res3[0]] = res3[1] ;
+				}
+			}
+			return value;
+		}catch(e){
+			throw e ;
 		}
-		return value;
 	};
 
 
@@ -203,8 +207,8 @@ module.exports =  function(stage){
 				try {
 					this.parse(header);
 				}catch(e){
-					console.log(e);
-					throw new Error("PARSE ERROR MESSAGE SIP", 500);
+					//throw new Error("PARSE ERROR MESSAGE SIP", 500);
+					throw e ;
 				}
 			}
 		}
@@ -1195,7 +1199,11 @@ module.exports =  function(stage){
 
 		parseHeader ( ){
 			if ( this.split[0] ){
-				this.header = new headerSip(this, this.split[0]);
+				try {
+					this.header = new headerSip(this, this.split[0]);
+				}catch(e){
+					throw e ;
+				}
 			}else{
 				throw ("BAD FORMAT MESSAGE SIP no header ", 500);
 			}	
@@ -1271,10 +1279,7 @@ module.exports =  function(stage){
 	// entry point response transport
 	var onMessage = function(response){
 		
-		this.logger("RECIEVE SIP MESSAGE ", "DEBUG");	
 		this.logger(response, "INFO", "RECIEVE")
-
-
 		var message = null ;
 		var res = null ;
 		try {
@@ -1288,8 +1293,7 @@ module.exports =  function(stage){
 			message = new Message(this.lastResponse, this);
 			this.fragment = false ;
 		}catch(e){
-			console.log(e);
-			this.logger(e, "ERROR");
+			//console.log(e);
 			// bad split 
 			for ( var i = 0 ; i < e.length ; i++){
 				if ( e[i] ){
@@ -1303,10 +1307,12 @@ module.exports =  function(stage){
 					}
 				}
 			}	
+			this.logger(e, "ERROR");
+			this.logger("SIP DROP : "+ response ,"ERROR");
+			this.notificationsCenter.fire("onDrop", response);
 			return ;
 		}
 		this.fire("onMessage", message.rawMessage);	
-		//console.log( message.type + " : " + response);
 		
 		switch (message.method){
 			case "REGISTER" :
@@ -1714,13 +1720,14 @@ module.exports =  function(stage){
 			//TODO
 			//clean all setinterval	
 			for (var dia in this.dialogs){
+				//this.dialogs[dia].unregister();
 				this.dialogs[dia].clear();	
 			}
 		}
 
 		quit (message){
 			this.fire("onQuit",this, message);
-			this.unregister();
+			//this.unregister();
 			this.clear();
 		}
 
@@ -1752,9 +1759,11 @@ module.exports =  function(stage){
 		}
 
 		unregister (){
-			var diagRegister = this.createDialog("REGISTER");
-			diagRegister.unregister();
-			return diagRegister;
+			if ( this.registered){
+				var diagRegister = this.createDialog("REGISTER");
+				diagRegister.unregister();
+				return diagRegister;
+			}
 		}
 
 		invite (userTo, description){
@@ -1772,7 +1781,6 @@ module.exports =  function(stage){
 		}
 
 		send (data){
-			this.logger("SIP SEND : " , "DEBUG");
 			this.logger(data, "INFO", "SEND")
 			this.fire("onSend", data) ;
 			this.transport.send( data );
