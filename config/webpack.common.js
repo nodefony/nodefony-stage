@@ -23,7 +23,7 @@ module.exports = function (options) {
     		},
 		
 		externals: {
-		       
+		//      "jquery": "jQuery" 
 		},
     		/*
      		* Options affecting the resolving of modules.

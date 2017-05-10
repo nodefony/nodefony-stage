@@ -6,7 +6,11 @@ VERSION := $(subst v,,$(subst .,,$(NODE_VERSION)))
 #$(error $(VERSION))  
 VERSION := $(shell expr $(VERSION) )
 
-all: install  build build-dev demo 
+all: 
+	make install
+	make build-dev
+	make build && echo "success build-prod !" || echo "failure build-prod!" 
+	make demo
 
 install:
 	npm install

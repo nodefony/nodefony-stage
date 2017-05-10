@@ -173,19 +173,6 @@ module.exports =  function(stage){
 			});
 		}
 
-
-		/*listen (){
-			return this.notificationsCenter.listen.apply(this.notificationsCenter, arguments);
-		}
-
-		unListen (){
-			return this.notificationsCenter.unListen.apply(this.notificationsCenter, arguments);
-		}
-
-		fire (){
-			return this.notificationsCenter.fire.apply(this.notificationsCenter, arguments);
-		}*/
-
 		createPeerConnection (){
 			try {
 				// CREATE PeerConnection
@@ -471,8 +458,6 @@ module.exports =  function(stage){
 
 			super("WEBRTC", null, null, settings);
 			this.settings = stage.extend(true, {}, defaultSettings, settings);
-			//this.notificationsCenter = stage.notificationsCenter.create(this.settings, this);
-			//this.syslog = new stage.syslog(syslogSettings);
 			this.protocol = null;
 			this.socketState = "close" ;
 			this.transactions = {};
@@ -797,19 +782,7 @@ module.exports =  function(stage){
 				return 	transport ;
 			}
 		}
-
-		/*listen (){
-			return this.notificationsCenter.listen.apply(this.notificationsCenter, arguments);
-		}
-
-		unListen (){
-			return this.notificationsCenter.unListen.apply(this.notificationsCenter, arguments);
-		}
-
-		fire (){
-			return this.notificationsCenter.fire.apply(this.notificationsCenter, arguments);
-		}*/
-
+		
 		createTransaction (userTo, dialog, settings){
 			try {
 				var transaction = new Transaction(this, this.user, userTo, dialog, settings);

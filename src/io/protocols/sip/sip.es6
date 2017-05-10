@@ -1735,14 +1735,6 @@ module.exports =  function(stage){
 			this.fire("onConnect",this, message);
 		}
 
-		/*listen (){
-			return this.notificationsCenter.listen.apply(this.notificationsCenter, arguments);
-		}
-
-		fire (){
-			return this.notificationsCenter.fire.apply(this.notificationsCenter, arguments);
-		}*/
-
 		createDialog (method){
 			var dialog = new Dialog( method , this);
 			this.logger("SIP NEW DIALOG :" + dialog.callId, "DEBUG");

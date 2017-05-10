@@ -8587,7 +8587,7 @@ module.exports =  function(stage){
 
 	'use strict';
 
-	var version = "0.0.1";
+	var version = "0.1.1";
 
 	// Traf indexOf IE8 
 	var arrayProto = Array.prototype;
@@ -12577,14 +12577,6 @@ module.exports =  function(stage){
 		connect (message){
 			this.fire("onConnect",this, message);
 		}
-
-		/*listen (){
-			return this.notificationsCenter.listen.apply(this.notificationsCenter, arguments);
-		}
-
-		fire (){
-			return this.notificationsCenter.fire.apply(this.notificationsCenter, arguments);
-		}*/
 
 		createDialog (method){
 			var dialog = new Dialog( method , this);
@@ -17171,19 +17163,6 @@ module.exports =  function(stage){
 			});
 		}
 
-
-		/*listen (){
-			return this.notificationsCenter.listen.apply(this.notificationsCenter, arguments);
-		}
-
-		unListen (){
-			return this.notificationsCenter.unListen.apply(this.notificationsCenter, arguments);
-		}
-
-		fire (){
-			return this.notificationsCenter.fire.apply(this.notificationsCenter, arguments);
-		}*/
-
 		createPeerConnection (){
 			try {
 				// CREATE PeerConnection
@@ -17469,8 +17448,6 @@ module.exports =  function(stage){
 
 			super("WEBRTC", null, null, settings);
 			this.settings = stage.extend(true, {}, defaultSettings, settings);
-			//this.notificationsCenter = stage.notificationsCenter.create(this.settings, this);
-			//this.syslog = new stage.syslog(syslogSettings);
 			this.protocol = null;
 			this.socketState = "close" ;
 			this.transactions = {};
@@ -17795,19 +17772,7 @@ module.exports =  function(stage){
 				return 	transport ;
 			}
 		}
-
-		/*listen (){
-			return this.notificationsCenter.listen.apply(this.notificationsCenter, arguments);
-		}
-
-		unListen (){
-			return this.notificationsCenter.unListen.apply(this.notificationsCenter, arguments);
-		}
-
-		fire (){
-			return this.notificationsCenter.fire.apply(this.notificationsCenter, arguments);
-		}*/
-
+		
 		createTransaction (userTo, dialog, settings){
 			try {
 				var transaction = new Transaction(this, this.user, userTo, dialog, settings);
@@ -29615,7 +29580,7 @@ SDPUtils.parseCandidate = function(line) {
 
   var candidate = {
     foundation: parts[0],
-    component: parts[1],
+    component: parseInt(parts[1], 10),
     protocol: parts[2].toLowerCase(),
     priority: parseInt(parts[3], 10),
     ip: parts[4],
@@ -29635,7 +29600,8 @@ SDPUtils.parseCandidate = function(line) {
       case 'tcptype':
         candidate.tcpType = parts[i + 1];
         break;
-      default: // Unknown extensions are silently ignored.
+      default: // extension handling, in particular ufrag
+        candidate[parts[i]] = parts[i + 1];
         break;
     }
   }
@@ -29669,6 +29635,12 @@ SDPUtils.writeCandidate = function(candidate) {
   return 'candidate:' + sdp.join(' ');
 };
 
+// Parses an ice-options line, returns an array of option tags.
+// a=ice-options:foo bar
+SDPUtils.parseIceOptions = function(line) {
+  return line.substr(14).split(' ');
+}
+
 // Parses an rtpmap line, returns RTCRtpCoddecParameters. Sample input:
 // a=rtpmap:111 opus/48000/2
 SDPUtils.parseRtpMap = function(line) {
@@ -29699,10 +29671,12 @@ SDPUtils.writeRtpMap = function(codec) {
 
 // Parses an a=extmap line (headerextension from RFC 5285). Sample input:
 // a=extmap:2 urn:ietf:params:rtp-hdrext:toffset
+// a=extmap:2/sendonly urn:ietf:params:rtp-hdrext:toffset
 SDPUtils.parseExtmap = function(line) {
   var parts = line.substr(9).split(' ');
   return {
     id: parseInt(parts[0], 10),
+    direction: parts[0].indexOf('/') > 0 ? parts[0].split('/')[1] : 'sendrecv',
     uri: parts[1]
   };
 };
@@ -29711,7 +29685,10 @@ SDPUtils.parseExtmap = function(line) {
 // RTCRtpHeaderExtension.
 SDPUtils.writeExtmap = function(headerExtension) {
   return 'a=extmap:' + (headerExtension.id || headerExtension.preferredId) +
-       ' ' + headerExtension.uri + '\r\n';
+      (headerExtension.direction && headerExtension.direction !== 'sendrecv'
+          ? '/' + headerExtension.direction
+          : '') +
+      ' ' + headerExtension.uri + '\r\n';
 };
 
 // Parses an ftmp line, returns dictionary. Sample input:
@@ -29798,26 +29775,26 @@ SDPUtils.getMid = function(mediaSection) {
   }
 }
 
+SDPUtils.parseFingerprint = function(line) {
+  var parts = line.substr(14).split(' ');
+  return {
+    algorithm: parts[0].toLowerCase(), // algorithm is case-sensitive in Edge.
+    value: parts[1]
+  };
+};
+
 // Extracts DTLS parameters from SDP media section or sessionpart.
 // FIXME: for consistency with other functions this should only
 //   get the fingerprint line as input. See also getIceParameters.
 SDPUtils.getDtlsParameters = function(mediaSection, sessionpart) {
-  var lines = SDPUtils.splitLines(mediaSection);
-  // Search in session part, too.
-  lines = lines.concat(SDPUtils.splitLines(sessionpart));
-  var fpLine = lines.filter(function(line) {
-    return line.indexOf('a=fingerprint:') === 0;
-  })[0].substr(14);
+  var lines = SDPUtils.matchPrefix(mediaSection + sessionpart,
+      'a=fingerprint:');
   // Note: a=setup line is ignored since we use the 'auto' role.
   // Note2: 'algorithm' is not case sensitive except in Edge.
-  var dtlsParameters = {
+  return {
     role: 'auto',
-    fingerprints: [{
-      algorithm: fpLine.split(' ')[0].toLowerCase(),
-      value: fpLine.split(' ')[1]
-    }]
+    fingerprints: lines.map(SDPUtils.parseFingerprint)
   };
-  return dtlsParameters;
 };
 
 // Serializes DTLS parameters to SDP.
@@ -30086,7 +30063,9 @@ SDPUtils.writeMediaSection = function(transceiver, caps, type, stream) {
 
   sdp += 'a=mid:' + transceiver.mid + '\r\n';
 
-  if (transceiver.rtpSender && transceiver.rtpReceiver) {
+  if (transceiver.direction) {
+    sdp += 'a=' + transceiver.direction + '\r\n';
+  } else if (transceiver.rtpSender && transceiver.rtpReceiver) {
     sdp += 'a=sendrecv\r\n';
   } else if (transceiver.rtpSender) {
     sdp += 'a=sendonly\r\n';

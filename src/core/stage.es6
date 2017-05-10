@@ -2,7 +2,7 @@ module.exports = function (){
 
 	'use strict';
 
-	var version = "0.0.1";
+	var version = "0.1.1";
 
 	// Traf indexOf IE8 
 	var arrayProto = Array.prototype;
