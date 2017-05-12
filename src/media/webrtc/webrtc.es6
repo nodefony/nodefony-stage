@@ -419,7 +419,11 @@ module.exports =  function(stage){
 
 		close (){
 			this.logger("WEBRTC CLOSE TRANSACTION  : "+ this.callId, "DEBUG" );
-			this.RTCPeerConnection.close();
+			if ( this.RTCPeerConnection ){
+				this.RTCPeerConnection.close();
+			}else{
+				this.logger("WEBRTC  TRANSACTION ALREADY CLOSED : "+ this.callId, "WARNING" );
+			}
 			this.webrtc.unListen( "onKeyPress", this.sendDtmf ) ;
 			delete this.RTCPeerConnection ;
 			return this ;
@@ -656,6 +660,10 @@ module.exports =  function(stage){
 
 					this.protocol.listen(this, "onTimeout",function(sip, message){
 						this.notificationsCenter.fire("onTimeout", message.method, 408, message);
+						var transac =  this.transactions[message.callId];
+						if ( transac ){
+							this.closeTransaction(transac, transac.to.name);
+						}
 					});
 
 					this.protocol.listen(this, "onDecline",function(message){

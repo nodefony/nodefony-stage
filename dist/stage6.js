@@ -10845,6 +10845,17 @@ module.exports =  function(stage){
 
 	'use strict';
 
+
+	var byteToHex = function (byte) {
+		return ('0' + byte.toString(16)).slice(-2);
+	}
+
+	var generateId= function(len) {
+		var arr = new Uint8Array((len || 40) / 2);
+		window.crypto.getRandomValues(arr);
+		return [].map.call(arr, byteToHex).join("");
+	}
+
 	/*
  	 *
  	 *	DIGEST authenticate
@@ -10931,13 +10942,14 @@ module.exports =  function(stage){
 		}
 
 		register (message, type){
-			/*if (transaction.sended){
-				console.log("WWW-Authenticate error")
-				return ;
-			}*/	
 			//console.log("AUTH REGISTER")
 			//console.log(message);
-			var head = message.authenticate ;	
+			var head = message.authenticate ;
+			if ( ! head ){	
+				head = this.dialog.authenticate  ;
+			}else{
+				this.dialog.authenticate = head ;	
+			}
 			this.realm = head.realm	;
 			this.nonce = head.nonce;
 			this.cnonce = head.cnonce;
@@ -10999,7 +11011,8 @@ module.exports =  function(stage){
 		CallId:/^(.*)@.*$/,
 		algorithm:/= */,
 		fromTo:/<sip:(.*)@(.*)>/,
-		fromToG:/(.*)?<sip:(.*)@(.*)>/
+		fromToG:/(.*)?<sip:(.*)@(.*)>/,
+		contact: /.*<(sips?:.*)>(.*)?$/
 	};
 
 	var parsefromTo = function(type, value){
@@ -11073,7 +11086,12 @@ module.exports =  function(stage){
 				}else{
 					this[headName] = headValue;
 					if (this[func]){
-						this[headName] = this[func](headValue);	
+						try {
+							this[headName] = this[func](headValue);	
+						}catch(e){
+							this.message.sip.logger("Parse : " + headName , "ERROR");
+							throw e ;
+						}
 					}	
 				}
 			});
@@ -11156,42 +11174,27 @@ module.exports =  function(stage){
 			return value;
 		}
 
-		/*setContact (value){
-	  		var parseValue = value.replace(regContact,"$1");
-	  		console.log(parseValue)
-	  		var sp = parseValue.split(";");
-	  		var contact = sp.shift();
- 	  		var tab = contact.split(":");	
-	  		this.message.contact  = tab[0];
-	  		this.message.rport = tab[1];
-	  		for (var i = 0 ; i < sp.length ;i++){
-	  		var res3 = sp[i].split("=");
-			//console.log(res3[0] +" : "+  res3[1] );
-			this["contact"+res3[0]] = res3[1]; 
-			}
-			return value; 
-		}*/
-
-
 		setContact (value){
-			var regContact = /.*<(sips?:.*)>.*/g;
-			//console.log(value)
-			var parseValue = regContact.exec(value) ;
-			//console.log(parseValue)
-			if ( parseValue  ){
+			var parseValue = regHeaders.contact.exec(value) ;
+			if ( parseValue ){
 				this.message.contact = parseValue[1] ;
+				if ( parseValue[2] ){
+					var clean = parseValue[2].replace(/^;(.*)/,"$1")
+					var sp = clean.split(";");
+					for (var i = 0 ; i < sp.length ;i++){
+						var res = sp[i].split("=");
+						if ( ! res ){
+							continue ;
+						}
+						var name = res[0].toLowerCase();		
+						if ( name === "expires" ){
+							this["contact-"+name] = res[1];
+						}
+					}
+				}
+			}else{
+				throw new Error ("Contact parse error : " + value );
 			}
-			/*if ( parseValue[2] ){
-		  	console.log(parseValue[2])
-		  	var clean = parseValue[2].replace("^;(.*)","$1")
-		  	var sp = clean.split(";");
-
-		  	for (var i = 0 ; i < sp.length ;i++){
-		  	var res3 = sp[i].split("=");
-		  	console.log(res3[0] +" : "+  res3[1] );
-			//this["contact"+res3[0]] = res3[1]; 
-			}
-			}*/
 			return value; 
 		}
 
@@ -11359,9 +11362,9 @@ module.exports =  function(stage){
 			var rport = this.transaction.dialog.sip.rport ;
 			var ip = this.transaction.dialog.sip.publicAddress;
 
+			this.header.via  = "Via: "+this.transaction.dialog.sip.via+";"+"branch="+this.transaction.branch;
 			//if ( rport ){
 				//this.header.via  = "Via: "+this.transaction.dialog.sip.version+"/"+this.transaction.dialog.sip.settings.transport+" " +ip+":"+rport+";"+"branch="+this.transaction.branch;
-				this.header.via  = "Via: "+this.transaction.dialog.sip.via+";"+"branch="+this.transaction.branch;
 			//}else{
 				//this.header.via  = "Via: "+this.transaction.dialog.sip.version+"/"+this.transaction.dialog.sip.settings.transport+" " +ip+":"+this["request-port"]+";"+"branch="+this.transaction.branch;	
 			//}	
@@ -11452,7 +11455,6 @@ module.exports =  function(stage){
 			this.buildBody(bodyMessage || "", typeBody) ;
 		}
 
-	
 		buildHeader (message){
 			for ( var head in  message.rawHeader){
 				var i = 0 ;
@@ -11803,7 +11805,7 @@ module.exports =  function(stage){
 		}
 
 		generateCallId (){
-			return parseInt(Math.random()*1000000000,10);
+			return generateId() + "@nodefony";
 		}
 
 		generateTag (){
@@ -12033,10 +12035,15 @@ module.exports =  function(stage){
 		}
 
 		parseBody ( ){
-			if ( this.split[1] ){
-				this.body = new bodySip(this, this.split[1]);
-			}else{
-				this.body = new bodySip(this, ""); 
+			try {
+				if ( this.split[1] ){
+					this.body = new bodySip(this, this.split[1]);
+				}else{
+					this.body = new bodySip(this, ""); 
+				}
+			}catch(e){
+				this.sip.logger("SIP parseBody Message :" + this.split[1], "ERROR");
+				throw e ;
 			}
 		}
 
@@ -12045,6 +12052,7 @@ module.exports =  function(stage){
 				try {
 					this.header = new headerSip(this, this.split[0]);
 				}catch(e){
+					this.sip.logger("SIP parseHeader Message :" + this.split[0], "ERROR");
 					throw e ;
 				}
 			}else{
@@ -12163,7 +12171,6 @@ module.exports =  function(stage){
 				if (this.rport ){
 					this["request-uri"] =  "sip:"+this.userName+"@"+this.publicAddress+":"+ this.rport +";transport="+this.transportType;	
 				}
-				var transaction = null ;
 				switch ( message.code ){
 					case 401 :
 					case 407 :
@@ -12185,24 +12192,22 @@ module.exports =  function(stage){
 							}
 							this.registered = message.code ;
 						}
-
-						delete this.authenticate ;
-						this.authenticate = null;	
-						this.authenticate = new authenticate(message.dialog, this.userName , this.settings.password) ;
-						transaction = this.authenticate.register(message, message.code === 407 ? "proxy" : null);
-						
+						delete this.authenticateRegister ;
+						this.authenticateRegister = null;	
+						this.authenticateRegister = new authenticate(message.dialog, this.userName , this.settings.password) ;
+						this.authenticateRegister.register(message, message.code === 407 ? "proxy" : null);
 					break;	
 					case 403 :
 						this.registered = message.code ;
 						//console.log("Forbidden (bad auth)")
-						delete this.authenticate ;
-						this.authenticate = null;
+						delete this.authenticateRegister ;
+						this.authenticateRegister = null;
 						this.notificationsCenter.fire("onError", this, message);
 					break;	
 					case 404 :
 						this.registered = message.code ;
-						delete this.authenticate ;
-						this.authenticate = null;
+						delete this.authenticateRegister ;
+						this.authenticateRegister = null;
 						this.notificationsCenter.fire("onError", this, message);
 					break;
 					case 200 :
@@ -12218,14 +12223,19 @@ module.exports =  function(stage){
 							this.notificationsCenter.fire("onRegister", this, message);
 						}
 						this.registered = message.code ;
+
+						var expires = message.header["contact-expires"] || this.settings.expires  ;
+						expires = parseInt(expires, 10) * 900 ; // 10% (ms)
 						this.registerInterval = setInterval(() => {
-							this.register(this.userName, this.settings.password);
-						} ,  this.settings.expires * 900  );
+							this.authenticateRegister.register(message);
+							this.notificationsCenter.fire("onRenew", this, this.authenticateRegister, message);
+							//this.register(this.userName, this.settings.password);
+						} ,  expires  );
 					break;
 					default:
 						this.registered = message.code ;
-						delete this.authenticate ;
-						this.authenticate = null;
+						delete this.authenticateRegister ;
+						this.authenticateRegister = null;
 						//console.log(message);
 						this.notificationsCenter.fire("on"+message.code, this, message);
 					break;
@@ -12262,7 +12272,7 @@ module.exports =  function(stage){
 								delete this.authenticate ;
 								this.authenticate = null;
 								this.authenticate = new authenticate(message.dialog, this.userName , this.settings.password) ;
-								transaction = this.authenticate.register(message, message.code === 407 ? "proxy" : null);
+								var transaction = this.authenticate.register(message, message.code === 407 ? "proxy" : null);
 								this.fire("onInitCall", message.dialog.toName, message.dialog, transaction);
 							break;
 							case 180 : 
@@ -12286,8 +12296,6 @@ module.exports =  function(stage){
 								this.notificationsCenter.fire("onError", this, message);
 							break;
 							case 487 :
-								// ACK !!
-							break;
 							case 404 :
 							case 477 :
 							case 480 :
@@ -12410,6 +12418,7 @@ module.exports =  function(stage){
 			this.serverPort = this.settings.portServer;
 
 			this.authenticate = false;
+			this.authenticateRegister= null ;
 
 			// REGISTER
 			this.registerInterval = null;
@@ -17409,7 +17418,11 @@ module.exports =  function(stage){
 
 		close (){
 			this.logger("WEBRTC CLOSE TRANSACTION  : "+ this.callId, "DEBUG" );
-			this.RTCPeerConnection.close();
+			if ( this.RTCPeerConnection ){
+				this.RTCPeerConnection.close();
+			}else{
+				this.logger("WEBRTC  TRANSACTION ALREADY CLOSED : "+ this.callId, "WARNING" );
+			}
 			this.webrtc.unListen( "onKeyPress", this.sendDtmf ) ;
 			delete this.RTCPeerConnection ;
 			return this ;
@@ -17646,6 +17659,10 @@ module.exports =  function(stage){
 
 					this.protocol.listen(this, "onTimeout",function(sip, message){
 						this.notificationsCenter.fire("onTimeout", message.method, 408, message);
+						var transac =  this.transactions[message.callId];
+						if ( transac ){
+							this.closeTransaction(transac, transac.to.name);
+						}
 					});
 
 					this.protocol.listen(this, "onDecline",function(message){
