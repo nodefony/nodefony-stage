@@ -1580,6 +1580,7 @@ module.exports =  function(stage){
 			// REGISTER
 			this.registerInterval = null;
 			this.registered = null ;
+			this.diagRegister = null ;
 
 			// TRANSPORT
 			this.transport = transport ;
@@ -1760,10 +1761,8 @@ module.exports =  function(stage){
 		}
 
 		unregister (){
-			if ( this.registered){
-				var diagRegister = this.createDialog("REGISTER");
-				diagRegister.unregister();
-				return diagRegister;
+			if ( this.diagRegister && this.registered ){
+				return this.diagRegister.unregister();
 			}
 		}
 
