@@ -11016,12 +11016,12 @@ module.exports = function (stage) {
 				this.message.callId = value;
 				return value;
 				/*this.callIdRaw = value ;
-     	var res = regHeaders.CallId.exec(value);	
+     	var res = regHeaders.CallId.exec(value);
      	if (res){
-     	this.message.callId =res[1]; 
+     	this.message.callId =res[1];
      	return res[1];
       	}else{
-     	this.message.callId =value;	
+     	this.message.callId =value;
      	return value;
      	}*/
 			}
@@ -11166,7 +11166,7 @@ module.exports = function (stage) {
 				if (!body) {
 					this.dtmf = null;
 				} else {
-					// Parser dtmf 
+					// Parser dtmf
 					var obj = {};
 					var line = body.split("\n");
 					for (var i = 0; i < line.length; i++) {
@@ -11234,7 +11234,7 @@ module.exports = function (stage) {
 		}, {
 			key: 'buildHeader',
 			value: function buildHeader() {
-				//FIXE ME RPORT IN VIA PARSER 
+				//FIXE ME RPORT IN VIA PARSER
 				//console.log(this.transaction.dialog.sip.rport)
 
 				var rport = this.transaction.dialog.sip.rport;
@@ -11244,8 +11244,8 @@ module.exports = function (stage) {
 				//if ( rport ){
 				//this.header.via  = "Via: "+this.transaction.dialog.sip.version+"/"+this.transaction.dialog.sip.settings.transport+" " +ip+":"+rport+";"+"branch="+this.transaction.branch;
 				//}else{
-				//this.header.via  = "Via: "+this.transaction.dialog.sip.version+"/"+this.transaction.dialog.sip.settings.transport+" " +ip+":"+this["request-port"]+";"+"branch="+this.transaction.branch;	
-				//}	
+				//this.header.via  = "Via: "+this.transaction.dialog.sip.version+"/"+this.transaction.dialog.sip.settings.transport+" " +ip+":"+this["request-port"]+";"+"branch="+this.transaction.branch;
+				//}
 				this.header.cseq = "CSeq: " + this.transaction.dialog.cseq + " " + this.transaction.method;
 
 				this.header.from = "From: " + this.transaction.dialog.from + ";tag=" + this.transaction.dialog.tagFrom;
@@ -11585,7 +11585,7 @@ module.exports = function (stage) {
 		}, {
 			key: 'clear',
 			value: function clear() {
-				// CLEAR INTERVAL	
+				// CLEAR INTERVAL
 				if (this.interval) {
 					clearInterval(this.interval);
 				}
@@ -11604,7 +11604,7 @@ module.exports = function (stage) {
 		INITIAL: 0,
 		EARLY: 1, // on 1xx
 		ESTABLISHED: 2, // on 200 ok
-		TERMINATED: 3, // on by	
+		TERMINATED: 3, // on by
 		CANCEL: 4 // cancel
 	};
 
@@ -11669,7 +11669,7 @@ module.exports = function (stage) {
 						this.routes = message.header.recordRoutes.reverse();
 					}
 
-					// FIXME if (  ! this["request-uri"] &&  message.contact ) 
+					// FIXME if (  ! this["request-uri"] &&  message.contact )
 					if (message.contact) {
 						//this["request-uri"] =  message.contact + ":" + message.rport
 						this["request-uri"] = message.contact;
@@ -11698,7 +11698,7 @@ module.exports = function (stage) {
 					if (message.fromTag) {
 						this.tagFrom = message.fromTag;
 					}
-					// FIXME if (  ! this["request-uri"] &&  message.contact ) 
+					// FIXME if (  ! this["request-uri"] &&  message.contact )
 					if (message.contact) {
 						//this["request-uri"] =  message.contact + ":" + message.rport
 						this["request-uri"] = message.contact;
@@ -11763,6 +11763,7 @@ module.exports = function (stage) {
 				this.contact = "*";
 				var trans = this.createTransaction(this.from);
 				this.to = this.from;
+				this.tagTo = null;
 				var request = trans.createRequest();
 				request.send();
 				return trans;
@@ -11876,7 +11877,7 @@ module.exports = function (stage) {
 
 	/*
  	 *
- 	 *	MESSAGE SIP 
+ 	 *	MESSAGE SIP
  	 *
  	 *
  	 */
@@ -12054,7 +12055,7 @@ module.exports = function (stage) {
 	/*
  	 *
  	 *
- 	 *	CLASS SIP 
+ 	 *	CLASS SIP
  	 *
  	 *
  	 */
@@ -12077,7 +12078,7 @@ module.exports = function (stage) {
 			this.fragment = false;
 		} catch (e) {
 			//console.log(e);
-			// bad split 
+			// bad split
 			for (var i = 0; i < e.length; i++) {
 				if (e[i]) {
 					try {
@@ -12130,6 +12131,9 @@ module.exports = function (stage) {
 						this.authenticateRegister.register(message, message.code === 407 ? "proxy" : null);
 						break;
 					case 403:
+						if (this.registerInterval) {
+							clearInterval(this.registerInterval);
+						}
 						this.registered = message.code;
 						//console.log("Forbidden (bad auth)")
 						delete this.authenticateRegister;
@@ -12137,6 +12141,9 @@ module.exports = function (stage) {
 						this.notificationsCenter.fire("onError", this, message);
 						break;
 					case 404:
+						if (this.registerInterval) {
+							clearInterval(this.registerInterval);
+						}
 						this.registered = message.code;
 						delete this.authenticateRegister;
 						this.authenticateRegister = null;
@@ -12148,6 +12155,7 @@ module.exports = function (stage) {
 						}
 						if (!message.contact) {
 							this.registered = "404";
+							this.clear();
 							this.notificationsCenter.fire("onUnRegister", this, message);
 							return;
 						}
@@ -12252,7 +12260,7 @@ module.exports = function (stage) {
 				break;
 			case "ACK":
 				//console.log("ACK");
-				//TODO manage interval messages timer retransmission 
+				//TODO manage interval messages timer retransmission
 				break;
 			case "BYE":
 				switch (message.code) {
@@ -12308,7 +12316,7 @@ module.exports = function (stage) {
 			default:
 				this.logger("SIP DROP :" + message.method + " " + " code:" + message.code, "WARNING");
 				this.notificationsCenter.fire("onDrop", message);
-			// TODO RESPONSE WITH METHOD NOT ALLOWED 
+			// TODO RESPONSE WITH METHOD NOT ALLOWED
 		}
 	};
 
@@ -12357,6 +12365,7 @@ module.exports = function (stage) {
 			// REGISTER
 			_this3.registerInterval = null;
 			_this3.registered = null;
+			_this3.diagRegister = null;
 
 			// TRANSPORT
 			_this3.transport = transport;
@@ -12370,9 +12379,9 @@ module.exports = function (stage) {
 			// IDENTIFIANT
 			//  USER
 			//this.userName = this.settings.userName ;
-			//this.from = "<sip:"+this.userName+"@"+this.publicAddress+">" ; 
+			//this.from = "<sip:"+this.userName+"@"+this.publicAddress+">" ;
 			//this.contact = this.generateContact();
-			//this["request-uri"] =  "sip:"+this.userName+"@"+this.publicAddress+";transport="+this.transportType ;	
+			//this["request-uri"] =  "sip:"+this.userName+"@"+this.publicAddress+";transport="+this.transportType ;
 			return _this3;
 		}
 
@@ -12512,7 +12521,7 @@ module.exports = function (stage) {
 					clearInterval(this.registerInterval);
 				}
 				//TODO
-				//clean all setinterval	
+				//clean all setinterval
 				for (var dia in this.dialogs) {
 					//this.dialogs[dia].unregister();
 					this.dialogs[dia].clear();
@@ -12550,10 +12559,8 @@ module.exports = function (stage) {
 		}, {
 			key: 'unregister',
 			value: function unregister() {
-				if (this.registered) {
-					var diagRegister = this.createDialog("REGISTER");
-					diagRegister.unregister();
-					return diagRegister;
+				if (this.diagRegister && this.registered) {
+					return this.diagRegister.unregister();
 				}
 			}
 		}, {
@@ -18374,6 +18381,18 @@ module.exports = function (stage) {
 				var transac = this.createTransaction(to);
 				transac.createOffer();
 				return transac;
+			}
+		}, {
+			key: 'acceptOffer',
+			value: function acceptOffer(transaction) {
+				this.fire("onAccept", this, transaction);
+				return transaction;
+			}
+		}, {
+			key: 'declineOffer',
+			value: function declineOffer(transaction) {
+				this.fire("onDeclineOffer", this, transaction);
+				return transaction;
 			}
 		}, {
 			key: 'closeTransaction',
