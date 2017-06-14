@@ -429,7 +429,7 @@ module.exports =  function(stage){
 			return this ;
 		}
 	};
-	
+
 	/*
  	 *
  	 *	CLASS WEBRTC
@@ -445,7 +445,7 @@ module.exports =  function(stage){
 		/*
  		 * STUN  => { iceServers: [{ url: ! stage.browser.Gecko ? 'stun:stun.l.google.com:19302' : 'stun:23.21.150.121'}] }
  		 * TURN  => { iceServers: [{ url: "turn:webrtc%40live.com@numb.viagenie.ca", credential: ""}] }
-		 */ 		
+		 */
 		iceServers	: null,	 
 		//constraints	: { mandatory: { 'OfferToReceiveAudio': true, 'OfferToReceiveVideo': true } },
 		//constraintsOffer: stage.browser.Gecko ? {'mandatory': {'MozDontOfferDataChannel':true}} : null,
@@ -790,7 +790,7 @@ module.exports =  function(stage){
 				return 	transport ;
 			}
 		}
-		
+
 		createTransaction (userTo, dialog, settings){
 			try {
 				var transaction = new Transaction(this, this.user, userTo, dialog, settings);
@@ -823,6 +823,16 @@ module.exports =  function(stage){
 			return transac ;
 		}
 
+		acceptOffer (transaction){
+			this.fire("onAccept", this, transaction);
+			return transaction ;
+		}
+
+		declineOffer (transaction){
+			this.fire("onDeclineOffer", this, transaction);
+			return transaction ;
+		}
+
 		closeTransaction (transation, name) {
 			if ( transation ){
 				transation.close();
@@ -851,6 +861,6 @@ module.exports =  function(stage){
 
 	stage.media.webrtc = WebRtc ;
 	stage.media.webrtcTransaction = Transaction ;
-	stage.media.userMedia = User ; 
+	stage.media.userMedia = User ;
 	return WebRtc ;
 };
