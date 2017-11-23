@@ -11,6 +11,7 @@
     "emitErrors":	false,
     "failOnHint":	false,
     "globals": {
+      "module":		true,
       "$":		true,
       "window":		true,
       "document":	true,
@@ -28,6 +29,9 @@
       "dns":		true,
       "Promise":	true,
       "it":		true,
-      "describe":	true
-    }	
+      "describe":	true,
+      "RTCPeerConnection":	true,
+      "RTCSessionDescription":true,
+      "RTCIceCandidate":true
+    }
 }

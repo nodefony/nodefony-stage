@@ -31552,15 +31552,14 @@ if (true) {
 
 /***/ }),
 /* 54 */
-/***/ (function(module, exports) {
+/***/ (function(module, exports, __webpack_require__) {
+
+"use strict";
 
 module.exports = function (stage) {
 
-  'use strict';
-
-
   // FIXME CALLBACK SDP PARSER
-  var parseSdp = function (description) {
+  const parseSdp = function (description) {
     var sdpLines = description.sdp.split('\r\n');
     var newline = "";
     // Search for m line.
@@ -31569,22 +31568,22 @@ module.exports = function (stage) {
       switch (description.type) {
       case "offer":
         /*if (line.search('a=crypto') !== -1) {
-        	console.log("PARSE SDP DELETE CRYPTO ");
-        	continue ;
+          console.log("PARSE SDP DELETE CRYPTO ");
+          continue ;
         }*/
         /*if (line.search('a=setup:actpass') !== -1) {
-        	console.log("PARSE SDP REPLACE setup :  actpass by active  ");
-        	line = line.replace("a=setup:actpass", "a=setup:active")
+          console.log("PARSE SDP REPLACE setup :  actpass by active  ");
+          line = line.replace("a=setup:actpass", "a=setup:active")
         }*/
         break;
       case "answer":
         /*if (line.search('a=crypto') !== -1) {
-        	console.log("PARSE SDP DELETE CRYPTO ");
-        	continue ;
+          console.log("PARSE SDP DELETE CRYPTO ");
+          continue ;
         }*/
         /*if (line.search('a=setup:actpass') !== -1) {
-        	console.log("PARSE SDP REPLACE setup :  actpass by active  ");
-        	line = line.replace("a=setup:actpass", "a=setup:active")
+          console.log("PARSE SDP REPLACE setup :  actpass by active  ");
+          line = line.replace("a=setup:actpass", "a=setup:active")
         }*/
         break;
       }
@@ -31601,10 +31600,10 @@ module.exports = function (stage) {
 
   /*
    *
-   *	CLASS USER
+   *  CLASS USER
    *
    */
-  var userSettings = {
+  const userSettings = {
     constraintsOffer: {
       mandatory: {
         'OfferToReceiveAudio': true,
@@ -31648,12 +31647,12 @@ module.exports = function (stage) {
 
   /*
    *
-   *	CLASS TRANSACTION WEBRTC
+   *  CLASS TRANSACTION WEBRTC
    *
    */
   var Transaction = class Transaction extends stage.Service {
     constructor(webrtc, from, to, dialog, settings) {
-      super("WEBRTC TRANSACTION", webrtc.container, stage.notificationsCenter.create(settings || {}))
+      super("WEBRTC TRANSACTION", webrtc.container, stage.notificationsCenter.create(settings || {}));
       this.webrtc = webrtc;
       //this.notificationsCenter = stage.notificationsCenter.create(settings || {}, this);
       this.dialog = dialog ||  null;
@@ -31676,7 +31675,7 @@ module.exports = function (stage) {
 
       this.logger("CREATE TRANSATION WEBRTC", "DEBUG");
       this.RTCPeerConnection = this.createPeerConnection();
-      this.RTCPeerConnection.addStream(this.from.stream)
+      this.RTCPeerConnection.addStream(this.from.stream);
 
       // MANAGE DTMF
       this.dtmfSender = null;
@@ -31686,8 +31685,8 @@ module.exports = function (stage) {
           this.webrtc.listen(this, "onKeyPress", this.sendDtmf);
           // FIXME TRY TO RECEIVE DTMF RTP-EVENT
           /*this.webrtc.listen(this, "onRemoteStream",function(event, mediaStream, transaction){
-          	this.logger( "DTMF setRemoteStream", "DEBUG")
-          	this.initDtmfReceiver( this.from.stream );
+            this.logger( "DTMF setRemoteStream", "DEBUG")
+            this.initDtmfReceiver( this.from.stream );
           });*/
         } catch (e) {
           this.webrtc.logger(e, "ERROR");
@@ -31699,17 +31698,18 @@ module.exports = function (stage) {
       this.candidates = [];
       this.listen(this, "onIcecandidate", function (transaction, candidates, peerConnection) {
         //console.log(" onIcecandidate : " + peerConnection.localDescription.type )
+        let to = null;
         if (this.asyncCandidates && this.candidates.length) {
           //console.log( message.dailog)
-          var to = this.dialog.to.replace("<sip:", "").replace(">", "");
+          to = this.dialog.to.replace("<sip:", "").replace(">", "");
           this.logger("CANDIDATE TO" + to, "DEBUG");
           this.logger("CANDIDATE TO" + this.to.name, "DEBUG");
-          this.dialog.invite(to, JSON.stringify(this.candidates), "ice/candidate")
+          this.dialog.invite(to, JSON.stringify(this.candidates), "ice/candidate");
         } else {
-          if (peerConnection.localDescription.type == "offer") {
+          if (peerConnection.localDescription.type === "offer") {
             this.sessionDescription = parseSdp.call(this, peerConnection.localDescription);
             if (this.dialog) {
-              var to = this.dialog.to.replace("<sip:", "").replace(">", "");
+              to = this.dialog.to.replace("<sip:", "").replace(">", "");
               this.logger("CANDIDATE TO" + to, "DEBUG");
               this.logger("CANDIDATE TO" + this.to.name, "DEBUG");
               this.dialog.invite(to, this.sessionDescription);
@@ -31719,14 +31719,15 @@ module.exports = function (stage) {
               this.webrtc.fire("onInvite", this, this.to, this.sessionDescription);
             }
           }
-          if (peerConnection.localDescription.type == "answer") {
+          if (peerConnection.localDescription.type === "answer") {
             this.sessionDescription = peerConnection.localDescription;
-            if (this.sessionDescription && !(this.error))
+            if (this.sessionDescription && !(this.error)) {
               this.fire("onCreateAnwser", this.to, this.sessionDescription, this, this.dialog);
+            }
           }
 
         }
-      })
+      });
 
       this.listen(this, "onCreateAnwser", function (to, sessionDescription, webrtcTransaction, diag) {
         var response = this.dialog.currentTransaction.createResponse(200, "OK", this.sessionDescription.sdp, "application/sdp");
@@ -31754,7 +31755,7 @@ module.exports = function (stage) {
           if (type === "offer" && this.iceGatheringState === 'complete' && old !== "complete") {
             //console.log("PASSS CANDIDATE")
             this.fire("onIcecandidate", this, this.candidates, this.RTCPeerConnection);
-          } else if (event && event.candidate == null) {
+          } else if (event && event.candidate === null) {
             // candidates null !!!
           } else {
             this.logger("WEBRTC : ADD CANDIDATE", "DEBUG");
@@ -31771,7 +31772,7 @@ module.exports = function (stage) {
         // MANAGE STREAM
         this.RTCPeerConnection.onaddstream = (event) => {
           //console.log(event)
-          this.setRemoteStream(event)
+          this.setRemoteStream(event);
           this.logger("WEBRTC : ADD STREAM ", "DEBUG");
         };
         return this.RTCPeerConnection;
@@ -31783,26 +31784,26 @@ module.exports = function (stage) {
 
     // FIXME TRY TO RECEIVE DTMF RTP-EVENT
     /*initDtmfReceiver (mediaStream){
-			console.log(this.RTCPeerConnection)
-			if ( ! this.RTCPeerConnection.createDTMFSender ) {
-				throw new Error(" RTCPeerConnection method createDTMFSender() !!!! which is not support by this browser");
-			}
-  			if (mediaStream !== null) {
-				try {
-					var remoteAudioTrack = mediaStream.getAudioTracks()[0];
-					var dtmfSender = this.RTCPeerConnection.createDTMFSender(remoteAudioTrack);
-					dtmfSender.ontonechange = (tone) => {
-						this.logger("dtmfOnToneChange", "DEBUG") ;
-						this.webrtc.fire("dtmfOnToneChange", tone , this);
-					};
-				}catch(e){
-					throw e ;
-				}
+      console.log(this.RTCPeerConnection)
+      if ( ! this.RTCPeerConnection.createDTMFSender ) {
+        throw new Error(" RTCPeerConnection method createDTMFSender() !!!! which is not support by this browser");
+      }
+        if (mediaStream !== null) {
+        try {
+          var remoteAudioTrack = mediaStream.getAudioTracks()[0];
+          var dtmfSender = this.RTCPeerConnection.createDTMFSender(remoteAudioTrack);
+          dtmfSender.ontonechange = (tone) => {
+            this.logger("dtmfOnToneChange", "DEBUG") ;
+            this.webrtc.fire("dtmfOnToneChange", tone , this);
+          };
+        }catch(e){
+          throw e ;
+        }
 
-  			} else {
-				throw new Error( 'No local stream to create DTMF Sender', 500)
-  			}
-		}*/
+        } else {
+        throw new Error( 'No local stream to create DTMF Sender', 500)
+        }
+    }*/
 
     initDtmfSender(mediaStream) {
 
@@ -31812,7 +31813,7 @@ module.exports = function (stage) {
         func.prototype.insertDTMF = (key, duration, gap) => {
           var description = "Signal=" + key + "\nDuration=" + duration;
           var type = "application/dtmf-relay";
-          this.dialog.info(description, type)
+          this.dialog.info(description, type);
         };
         this.dtmfSender = new func();
         break;
@@ -31828,7 +31829,7 @@ module.exports = function (stage) {
           };
 
         } else {
-          throw new Error('No local stream to create DTMF Sender', 500)
+          throw new Error('No local stream to create DTMF Sender', 500);
         }
         break;
       }
@@ -31861,17 +31862,17 @@ module.exports = function (stage) {
                 } else {
                   // SYNC CANDIDATES
                   /*this.webrtc.listen(this, "onIcecandidate" , function(transaction, candidates, peerConnection){
-                  	if ( peerConnection.localDescription.type == "offer" ){
-                  		this.sessionDescription = parseSdp.call(this, peerConnection.localDescription ) ;
-                  		if ( this.dialog ){
-                  			var to = this.dialog.to.replace("<sip:", "").replace(">","") ;
-                  			this.dialog.invite(to, this.sessionDescription);
-                  		}else{
-                  			this.dialog = this.webrtc.protocol.invite(this.to.name, this.sessionDescription);
-                  			this.webrtc.fire("onInvite", this, this.to.name, this.sessionDescription );
-                  			this.callId = this.dialog.callId ;
-                  		}
-                  	}
+                    if ( peerConnection.localDescription.type == "offer" ){
+                      this.sessionDescription = parseSdp.call(this, peerConnection.localDescription ) ;
+                      if ( this.dialog ){
+                        var to = this.dialog.to.replace("<sip:", "").replace(">","") ;
+                        this.dialog.invite(to, this.sessionDescription);
+                      }else{
+                        this.dialog = this.webrtc.protocol.invite(this.to.name, this.sessionDescription);
+                        this.webrtc.fire("onInvite", this, this.to.name, this.sessionDescription );
+                        this.callId = this.dialog.callId ;
+                      }
+                    }
                   })*/
                 }
               },
@@ -31905,10 +31906,10 @@ module.exports = function (stage) {
     setRemoteDescription(type, user, description, dialog) {
       //console.log("setRemoteDescription")
       this.currentTransaction = dialog.currentTransaction;
-      var desc = {
+      let desc = {
         type: type,
         sdp: description
-      }
+      };
       //console.log( desc );
       var remoteDesc = parseSdp.call(this, desc);
       var ClassDesc = new RTCSessionDescription(remoteDesc);
@@ -31916,7 +31917,7 @@ module.exports = function (stage) {
       this.remoteDescription = this.RTCPeerConnection.setRemoteDescription(
         ClassDesc,
         () => {
-          if (this.RTCPeerConnection.remoteDescription.type == "offer") {
+          if (this.RTCPeerConnection.remoteDescription.type === "offer") {
             //console.log("WEBRTC : onRemoteDescription ");
             //this.doAnswer(dialog);
             this.webrtc.fire("onOffer", this.webrtc, this);
@@ -31927,7 +31928,7 @@ module.exports = function (stage) {
         },
         (error) => {
           this.error = error;
-          this.webrtc.fire("onError", this, error)
+          this.webrtc.fire("onError", this, error);
         }
       );
       return this.remoteDescription;
@@ -31968,7 +31969,7 @@ module.exports = function (stage) {
       if (this.currentTransaction) {
         this.currentTransaction.cancel();
       }
-      this.webrtc.closeTransaction(this, this.to.name)
+      this.webrtc.closeTransaction(this, this.to.name);
     }
 
     decline() {
@@ -31993,7 +31994,7 @@ module.exports = function (stage) {
 
   /*
    *
-   *	CLASS WEBRTC
+   *  CLASS WEBRTC
    *
    */
   var defaultSettings = {
@@ -32009,10 +32010,10 @@ module.exports = function (stage) {
      */
     iceServers: null,
      
-    //constraints	: { mandatory: { 'OfferToReceiveAudio': true, 'OfferToReceiveVideo': true } },
+    //constraints  : { mandatory: { 'OfferToReceiveAudio': true, 'OfferToReceiveVideo': true } },
     //constraintsOffer: stage.browser.Gecko ? {'mandatory': {'MozDontOfferDataChannel':true}} : null,
-    //optional	: { optional: [{ "RtpDataChannels": true},{'DtlsSrtpKeyAgreement': 'true'}]}
-    //optional	: stage.browser.Gecko ? { optional: [{ "RtpDataChannels": true}]} :  { optional: [{ "RtpDataChannels": true},{'DtlsSrtpKeyAgreement': 'true'}]},
+    //optional  : { optional: [{ "RtpDataChannels": true},{'DtlsSrtpKeyAgreement': 'true'}]}
+    //optional  : stage.browser.Gecko ? { optional: [{ "RtpDataChannels": true}]} :  { optional: [{ "RtpDataChannels": true},{'DtlsSrtpKeyAgreement': 'true'}]},
     optional: stage.browser.Gecko ? {
       optional: []
     } : {
@@ -32071,8 +32072,8 @@ module.exports = function (stage) {
         ret.send();
 
         /*var ret = message.transaction.createResponse(
-        	603,
-        	"Declined"
+          603,
+          "Declined"
         );
         ret.send();*/
         this.closeTransaction(transac);
@@ -32105,7 +32106,7 @@ module.exports = function (stage) {
 
         this.protocol.listen(this, "onUnRegister", function (sip, message) {
           this.fire("onUnRegister", sip, message);
-        })
+        });
 
         this.protocol.listen(this, "onRinging", function (sip, message) {
           var transaction = this.transactions[message.callId];
@@ -32138,6 +32139,8 @@ module.exports = function (stage) {
         });
 
         this.protocol.listen(this, "onInvite", function (message, dialog) {
+          let res = null;
+          let transac = null;
           switch (message.header["Content-Type"]) {
           case "application/sdp":
             if (message.rawBody) {
@@ -32145,23 +32148,22 @@ module.exports = function (stage) {
               if (dialog.status === dialog.statusCode.INITIAL) {
 
                 // TODO MANAGE MULTI CALL
-
-                var res = message.transaction.createResponse(100, "trying");
+                res = message.transaction.createResponse(100, "trying");
                 res.send();
 
                 // transaction WEBRTC
                 try {
-                  var transac = this.createTransaction(message.fromName, dialog, {
+                  transac = this.createTransaction(message.fromName, dialog, {
                     displayName: message.fromNameDisplay || ""
                   });
                   transac.to.setDescription(message.rawBody);
                 } catch (e) {
-                  var res = message.transaction.createResponse(500, e.message || e);
+                  res = message.transaction.createResponse(500, e.message || e);
                   res.send();
                   return;
                 }
 
-                var res = message.transaction.createResponse(180, "Ringing");
+                res = message.transaction.createResponse(180, "Ringing");
                 res.send();
 
                 try {
@@ -32169,7 +32171,7 @@ module.exports = function (stage) {
                   //this.notificationsCenter.fire("onOffer", message, transac.to, transac);
                   //this.fire("onOffer", this, transac);
                 } catch (e) {
-                  var res = message.transaction.createResponse(500, e.message || e);
+                  res = message.transaction.createResponse(500, e.message || e);
                   res.send();
                 }
 
@@ -32184,13 +32186,14 @@ module.exports = function (stage) {
           case "ice/candidate":
             if (message.rawBody) {
               var transaction = this.transactions[message.callId];
+              let ret = null;
               if (!transaction) {
-                var ret = message.transaction.createResponse(500, "no transaction ");
+                ret = message.transaction.createResponse(500, "no transaction ");
                 ret.send();
                 return;
               }
-              var res = JSON.parse(message.rawBody);
-              var ret = message.transaction.createResponse(100, "trying");
+              res = JSON.parse(message.rawBody);
+              ret = message.transaction.createResponse(100, "trying");
               ret.send();
               for (let i = 0; i < res.length; i++) {
                 var candidate = new RTCIceCandidate(res[i]);
@@ -32205,17 +32208,17 @@ module.exports = function (stage) {
                 );
               }
               if (transaction.candidates.length) {
-                var ret = message.transaction.createResponse(200, "OK", JSON.stringify(transaction.candidates), "ice/candidate");
+                ret = message.transaction.createResponse(200, "OK", JSON.stringify(transaction.candidates), "ice/candidate");
                 ret.send();
                 transaction.candidates = [];
               } else {
-                var ret = message.transaction.createResponse(200, "OK");
+                ret = message.transaction.createResponse(200, "OK");
                 ret.send();
                 //transaction.candidates= [];
                 /*this.listen(this, "onIcecandidate" , function(transaction, candidates, peerConnection){
-                	var ret = message.transaction.createResponse(200, "OK", JSON.stringify(transaction.candidates), "ice/candidate");
-                	ret.send();
-                	transaction.candidates= [];
+                  var ret = message.transaction.createResponse(200, "OK", JSON.stringify(transaction.candidates), "ice/candidate");
+                  ret.send();
+                  transaction.candidates= [];
                 });*/
               }
             }
@@ -32263,9 +32266,11 @@ module.exports = function (stage) {
         });
 
         this.protocol.listen(this, "onBye", function (message) {
+          let transac = null;
+          let name = null;
           if (message.callId in this.transactions) {
-            var transac = this.transactions[message.callId];
-            var name = message.fromName
+            transac = this.transactions[message.callId];
+            name = message.fromName;
           }
           if (transac) {
             this.notificationsCenter.fire("onOnHook", transac, message);
@@ -32273,7 +32278,7 @@ module.exports = function (stage) {
           } else {
             // WHEN USER LOCAL STOP REGISTRATION
             if (message.fromName === this.user.name) {
-              this.close()
+              this.close();
             }
           }
         });
@@ -32284,19 +32289,19 @@ module.exports = function (stage) {
             transac.to.displayName = message.toNameDisplay;
           }
           //var from = this.users[message.toName];
-          if (message.dialog.status === message.dialog.statusCode.EARLY && message.header["Content-Type"] == "application/sdp") {
+          if (message.dialog.status === message.dialog.statusCode.EARLY && message.header["Content-Type"] === "application/sdp") {
             this.notificationsCenter.fire("onAnwer", message);
             transac.to.setDescription(message.rawBody);
             transac.setRemoteDescription("answer", transac.to, message.rawBody, message.dialog);
             /*if ( this.settings.asyncCandidates && transac.candidates.length){
-            	//console.log( message.dailog)
-            	message.dialog.invite(message.to, JSON.stringify(transac.candidates), "ice/candidate")
+              //console.log( message.dailog)
+              message.dialog.invite(message.to, JSON.stringify(transac.candidates), "ice/candidate")
             }*/
             //this.notificationsCenter.fire( "onOffHook", transac , message );
           } else {
 
           }
-          if (message.header["Content-Type"] == "ice/candidate") {
+          if (message.header["Content-Type"] === "ice/candidate") {
             if (transac.candidates.length) {
               var res = JSON.parse(message.rawBody);
               for (let i = 0; i < res.length; i++) {
@@ -32354,7 +32359,7 @@ module.exports = function (stage) {
         });
         transport.listen(this, "onClose", function () {
           this.socketState = "close";
-        })
+        });
         return transport;
       }
     }
@@ -32379,7 +32384,7 @@ module.exports = function (stage) {
 
     register(userName, password, settings) {
       this.user = new User(userName, settings);
-      this.protocol.register(userName, password, settings)
+      this.protocol.register(userName, password, settings);
     }
 
 

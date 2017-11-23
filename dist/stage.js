@@ -31150,10 +31150,7 @@ function _classCallCheck(instance, Constructor) { if (!(instance instanceof Cons
 
 module.exports = function (stage) {
 
-  'use strict';
-
   // FIXME CALLBACK SDP PARSER
-
   var parseSdp = function parseSdp(description) {
     var sdpLines = description.sdp.split('\r\n');
     var newline = "";
@@ -31163,22 +31160,22 @@ module.exports = function (stage) {
       switch (description.type) {
         case "offer":
           /*if (line.search('a=crypto') !== -1) {
-          	console.log("PARSE SDP DELETE CRYPTO ");
-          	continue ;
+            console.log("PARSE SDP DELETE CRYPTO ");
+            continue ;
           }*/
           /*if (line.search('a=setup:actpass') !== -1) {
-          	console.log("PARSE SDP REPLACE setup :  actpass by active  ");
-          	line = line.replace("a=setup:actpass", "a=setup:active")
+            console.log("PARSE SDP REPLACE setup :  actpass by active  ");
+            line = line.replace("a=setup:actpass", "a=setup:active")
           }*/
           break;
         case "answer":
           /*if (line.search('a=crypto') !== -1) {
-          	console.log("PARSE SDP DELETE CRYPTO ");
-          	continue ;
+            console.log("PARSE SDP DELETE CRYPTO ");
+            continue ;
           }*/
           /*if (line.search('a=setup:actpass') !== -1) {
-          	console.log("PARSE SDP REPLACE setup :  actpass by active  ");
-          	line = line.replace("a=setup:actpass", "a=setup:active")
+            console.log("PARSE SDP REPLACE setup :  actpass by active  ");
+            line = line.replace("a=setup:actpass", "a=setup:active")
           }*/
           break;
       }
@@ -31194,7 +31191,7 @@ module.exports = function (stage) {
 
   /*
    *
-   *	CLASS USER
+   *  CLASS USER
    *
    */
   var userSettings = {
@@ -31247,7 +31244,7 @@ module.exports = function (stage) {
 
   /*
    *
-   *	CLASS TRANSACTION WEBRTC
+   *  CLASS TRANSACTION WEBRTC
    *
    */
   var Transaction = function (_stage$Service) {
@@ -31290,8 +31287,8 @@ module.exports = function (stage) {
           _this.webrtc.listen(_this, "onKeyPress", _this.sendDtmf);
           // FIXME TRY TO RECEIVE DTMF RTP-EVENT
           /*this.webrtc.listen(this, "onRemoteStream",function(event, mediaStream, transaction){
-          	this.logger( "DTMF setRemoteStream", "DEBUG")
-          	this.initDtmfReceiver( this.from.stream );
+            this.logger( "DTMF setRemoteStream", "DEBUG")
+            this.initDtmfReceiver( this.from.stream );
           });*/
         } catch (e) {
           _this.webrtc.logger(e, "ERROR");
@@ -31303,17 +31300,18 @@ module.exports = function (stage) {
       _this.candidates = [];
       _this.listen(_this, "onIcecandidate", function (transaction, candidates, peerConnection) {
         //console.log(" onIcecandidate : " + peerConnection.localDescription.type )
+        var to = null;
         if (this.asyncCandidates && this.candidates.length) {
           //console.log( message.dailog)
-          var to = this.dialog.to.replace("<sip:", "").replace(">", "");
+          to = this.dialog.to.replace("<sip:", "").replace(">", "");
           this.logger("CANDIDATE TO" + to, "DEBUG");
           this.logger("CANDIDATE TO" + this.to.name, "DEBUG");
           this.dialog.invite(to, JSON.stringify(this.candidates), "ice/candidate");
         } else {
-          if (peerConnection.localDescription.type == "offer") {
+          if (peerConnection.localDescription.type === "offer") {
             this.sessionDescription = parseSdp.call(this, peerConnection.localDescription);
             if (this.dialog) {
-              var to = this.dialog.to.replace("<sip:", "").replace(">", "");
+              to = this.dialog.to.replace("<sip:", "").replace(">", "");
               this.logger("CANDIDATE TO" + to, "DEBUG");
               this.logger("CANDIDATE TO" + this.to.name, "DEBUG");
               this.dialog.invite(to, this.sessionDescription);
@@ -31323,9 +31321,11 @@ module.exports = function (stage) {
               this.webrtc.fire("onInvite", this, this.to, this.sessionDescription);
             }
           }
-          if (peerConnection.localDescription.type == "answer") {
+          if (peerConnection.localDescription.type === "answer") {
             this.sessionDescription = peerConnection.localDescription;
-            if (this.sessionDescription && !this.error) this.fire("onCreateAnwser", this.to, this.sessionDescription, this, this.dialog);
+            if (this.sessionDescription && !this.error) {
+              this.fire("onCreateAnwser", this.to, this.sessionDescription, this, this.dialog);
+            }
           }
         }
       });
@@ -31361,7 +31361,7 @@ module.exports = function (stage) {
             if (type === "offer" && _this2.iceGatheringState === 'complete' && old !== "complete") {
               //console.log("PASSS CANDIDATE")
               _this2.fire("onIcecandidate", _this2, _this2.candidates, _this2.RTCPeerConnection);
-            } else if (event && event.candidate == null) {
+            } else if (event && event.candidate === null) {
               // candidates null !!!
             } else {
               _this2.logger("WEBRTC : ADD CANDIDATE", "DEBUG");
@@ -31390,24 +31390,24 @@ module.exports = function (stage) {
 
       // FIXME TRY TO RECEIVE DTMF RTP-EVENT
       /*initDtmfReceiver (mediaStream){
-      console.log(this.RTCPeerConnection)
-      if ( ! this.RTCPeerConnection.createDTMFSender ) {
-      throw new Error(" RTCPeerConnection method createDTMFSender() !!!! which is not support by this browser");
-      }
-      	if (mediaStream !== null) {
-      try {
-      	var remoteAudioTrack = mediaStream.getAudioTracks()[0];
-      	var dtmfSender = this.RTCPeerConnection.createDTMFSender(remoteAudioTrack);
-      	dtmfSender.ontonechange = (tone) => {
-      		this.logger("dtmfOnToneChange", "DEBUG") ;
-      		this.webrtc.fire("dtmfOnToneChange", tone , this);
-      	};
-      }catch(e){
-      	throw e ;
-      }
-      		} else {
-      throw new Error( 'No local stream to create DTMF Sender', 500)
-      	}
+        console.log(this.RTCPeerConnection)
+        if ( ! this.RTCPeerConnection.createDTMFSender ) {
+          throw new Error(" RTCPeerConnection method createDTMFSender() !!!! which is not support by this browser");
+        }
+          if (mediaStream !== null) {
+          try {
+            var remoteAudioTrack = mediaStream.getAudioTracks()[0];
+            var dtmfSender = this.RTCPeerConnection.createDTMFSender(remoteAudioTrack);
+            dtmfSender.ontonechange = (tone) => {
+              this.logger("dtmfOnToneChange", "DEBUG") ;
+              this.webrtc.fire("dtmfOnToneChange", tone , this);
+            };
+          }catch(e){
+            throw e ;
+          }
+           } else {
+          throw new Error( 'No local stream to create DTMF Sender', 500)
+          }
       }*/
 
     }, {
@@ -31473,17 +31473,17 @@ module.exports = function (stage) {
               } else {
                 // SYNC CANDIDATES
                 /*this.webrtc.listen(this, "onIcecandidate" , function(transaction, candidates, peerConnection){
-                	if ( peerConnection.localDescription.type == "offer" ){
-                		this.sessionDescription = parseSdp.call(this, peerConnection.localDescription ) ;
-                		if ( this.dialog ){
-                			var to = this.dialog.to.replace("<sip:", "").replace(">","") ;
-                			this.dialog.invite(to, this.sessionDescription);
-                		}else{
-                			this.dialog = this.webrtc.protocol.invite(this.to.name, this.sessionDescription);
-                			this.webrtc.fire("onInvite", this, this.to.name, this.sessionDescription );
-                			this.callId = this.dialog.callId ;
-                		}
-                	}
+                  if ( peerConnection.localDescription.type == "offer" ){
+                    this.sessionDescription = parseSdp.call(this, peerConnection.localDescription ) ;
+                    if ( this.dialog ){
+                      var to = this.dialog.to.replace("<sip:", "").replace(">","") ;
+                      this.dialog.invite(to, this.sessionDescription);
+                    }else{
+                      this.dialog = this.webrtc.protocol.invite(this.to.name, this.sessionDescription);
+                      this.webrtc.fire("onInvite", this, this.to.name, this.sessionDescription );
+                      this.callId = this.dialog.callId ;
+                    }
+                  }
                 })*/
               }
             }, function (error) {
@@ -31521,12 +31521,13 @@ module.exports = function (stage) {
         var desc = {
           type: type,
           sdp: description
-          //console.log( desc );
-        };var remoteDesc = parseSdp.call(this, desc);
+        };
+        //console.log( desc );
+        var remoteDesc = parseSdp.call(this, desc);
         var ClassDesc = new RTCSessionDescription(remoteDesc);
 
         this.remoteDescription = this.RTCPeerConnection.setRemoteDescription(ClassDesc, function () {
-          if (_this5.RTCPeerConnection.remoteDescription.type == "offer") {
+          if (_this5.RTCPeerConnection.remoteDescription.type === "offer") {
             //console.log("WEBRTC : onRemoteDescription ");
             //this.doAnswer(dialog);
             _this5.webrtc.fire("onOffer", _this5.webrtc, _this5);
@@ -31607,7 +31608,7 @@ module.exports = function (stage) {
 
   /*
    *
-   *	CLASS WEBRTC
+   *  CLASS WEBRTC
    *
    */
   var defaultSettings = {
@@ -31623,10 +31624,10 @@ module.exports = function (stage) {
      */
     iceServers: null,
 
-    //constraints	: { mandatory: { 'OfferToReceiveAudio': true, 'OfferToReceiveVideo': true } },
+    //constraints  : { mandatory: { 'OfferToReceiveAudio': true, 'OfferToReceiveVideo': true } },
     //constraintsOffer: stage.browser.Gecko ? {'mandatory': {'MozDontOfferDataChannel':true}} : null,
-    //optional	: { optional: [{ "RtpDataChannels": true},{'DtlsSrtpKeyAgreement': 'true'}]}
-    //optional	: stage.browser.Gecko ? { optional: [{ "RtpDataChannels": true}]} :  { optional: [{ "RtpDataChannels": true},{'DtlsSrtpKeyAgreement': 'true'}]},
+    //optional  : { optional: [{ "RtpDataChannels": true},{'DtlsSrtpKeyAgreement': 'true'}]}
+    //optional  : stage.browser.Gecko ? { optional: [{ "RtpDataChannels": true}]} :  { optional: [{ "RtpDataChannels": true},{'DtlsSrtpKeyAgreement': 'true'}]},
     optional: stage.browser.Gecko ? {
       optional: []
     } : {
@@ -31687,8 +31688,8 @@ module.exports = function (stage) {
           ret.send();
 
           /*var ret = message.transaction.createResponse(
-          	603,
-          	"Declined"
+            603,
+            "Declined"
           );
           ret.send();*/
           this.closeTransaction(transac);
@@ -31758,6 +31759,8 @@ module.exports = function (stage) {
             this.protocol.listen(this, "onInvite", function (message, dialog) {
               var _this9 = this;
 
+              var res = null;
+              var transac = null;
               switch (message.header["Content-Type"]) {
                 case "application/sdp":
                   if (message.rawBody) {
@@ -31765,23 +31768,22 @@ module.exports = function (stage) {
                     if (dialog.status === dialog.statusCode.INITIAL) {
 
                       // TODO MANAGE MULTI CALL
-
-                      var res = message.transaction.createResponse(100, "trying");
+                      res = message.transaction.createResponse(100, "trying");
                       res.send();
 
                       // transaction WEBRTC
                       try {
-                        var transac = this.createTransaction(message.fromName, dialog, {
+                        transac = this.createTransaction(message.fromName, dialog, {
                           displayName: message.fromNameDisplay || ""
                         });
                         transac.to.setDescription(message.rawBody);
                       } catch (e) {
-                        var res = message.transaction.createResponse(500, e.message || e);
+                        res = message.transaction.createResponse(500, e.message || e);
                         res.send();
                         return;
                       }
 
-                      var res = message.transaction.createResponse(180, "Ringing");
+                      res = message.transaction.createResponse(180, "Ringing");
                       res.send();
 
                       try {
@@ -31789,7 +31791,7 @@ module.exports = function (stage) {
                         //this.notificationsCenter.fire("onOffer", message, transac.to, transac);
                         //this.fire("onOffer", this, transac);
                       } catch (e) {
-                        var res = message.transaction.createResponse(500, e.message || e);
+                        res = message.transaction.createResponse(500, e.message || e);
                         res.send();
                       }
 
@@ -31804,13 +31806,14 @@ module.exports = function (stage) {
                 case "ice/candidate":
                   if (message.rawBody) {
                     var transaction = this.transactions[message.callId];
+                    var ret = null;
                     if (!transaction) {
-                      var ret = message.transaction.createResponse(500, "no transaction ");
+                      ret = message.transaction.createResponse(500, "no transaction ");
                       ret.send();
                       return;
                     }
-                    var res = JSON.parse(message.rawBody);
-                    var ret = message.transaction.createResponse(100, "trying");
+                    res = JSON.parse(message.rawBody);
+                    ret = message.transaction.createResponse(100, "trying");
                     ret.send();
 
                     var _loop = function _loop(i) {
@@ -31830,17 +31833,17 @@ module.exports = function (stage) {
                       _loop(i);
                     }
                     if (transaction.candidates.length) {
-                      var ret = message.transaction.createResponse(200, "OK", JSON.stringify(transaction.candidates), "ice/candidate");
+                      ret = message.transaction.createResponse(200, "OK", JSON.stringify(transaction.candidates), "ice/candidate");
                       ret.send();
                       transaction.candidates = [];
                     } else {
-                      var ret = message.transaction.createResponse(200, "OK");
+                      ret = message.transaction.createResponse(200, "OK");
                       ret.send();
                       //transaction.candidates= [];
                       /*this.listen(this, "onIcecandidate" , function(transaction, candidates, peerConnection){
-                      	var ret = message.transaction.createResponse(200, "OK", JSON.stringify(transaction.candidates), "ice/candidate");
-                      	ret.send();
-                      	transaction.candidates= [];
+                        var ret = message.transaction.createResponse(200, "OK", JSON.stringify(transaction.candidates), "ice/candidate");
+                        ret.send();
+                        transaction.candidates= [];
                       });*/
                     }
                   }
@@ -31888,9 +31891,11 @@ module.exports = function (stage) {
             });
 
             this.protocol.listen(this, "onBye", function (message) {
+              var transac = null;
+              var name = null;
               if (message.callId in this.transactions) {
-                var transac = this.transactions[message.callId];
-                var name = message.fromName;
+                transac = this.transactions[message.callId];
+                name = message.fromName;
               }
               if (transac) {
                 this.notificationsCenter.fire("onOnHook", transac, message);
@@ -31911,17 +31916,17 @@ module.exports = function (stage) {
                 transac.to.displayName = message.toNameDisplay;
               }
               //var from = this.users[message.toName];
-              if (message.dialog.status === message.dialog.statusCode.EARLY && message.header["Content-Type"] == "application/sdp") {
+              if (message.dialog.status === message.dialog.statusCode.EARLY && message.header["Content-Type"] === "application/sdp") {
                 this.notificationsCenter.fire("onAnwer", message);
                 transac.to.setDescription(message.rawBody);
                 transac.setRemoteDescription("answer", transac.to, message.rawBody, message.dialog);
                 /*if ( this.settings.asyncCandidates && transac.candidates.length){
-                	//console.log( message.dailog)
-                	message.dialog.invite(message.to, JSON.stringify(transac.candidates), "ice/candidate")
+                  //console.log( message.dailog)
+                  message.dialog.invite(message.to, JSON.stringify(transac.candidates), "ice/candidate")
                 }*/
                 //this.notificationsCenter.fire( "onOffHook", transac , message );
               } else {}
-              if (message.header["Content-Type"] == "ice/candidate") {
+              if (message.header["Content-Type"] === "ice/candidate") {
                 if (transac.candidates.length) {
                   var res = JSON.parse(message.rawBody);
 
