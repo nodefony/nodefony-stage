@@ -7,46 +7,52 @@ const webpackMerge = require('webpack-merge'); // used to merge webpack configs
 
 const commonConfig = require('./webpack.common.js'); // the settings that are common to prod and dev
 
+const UglifyJSPlugin = require('uglifyjs-webpack-plugin');
 
-
-var transcode =  {
-      	// the "loader"
-      	loader: "babel-loader", // or "babel" because webpack adds the '-loader' automatically
-	options: {
-		presets: ['es2015'],
-		//plugins: ['transform-runtime']
-      	}
+const transcode = {
+  loader: "babel-loader", // or "babel" because webpack adds the '-loader' automatically
+  options: {
+    presets: ['env'],
+  }
 };
 
-
-var plugins = [ 
-	new webpack.optimize.UglifyJsPlugin({minimize: true})
+const plugins = [
+  new UglifyJSPlugin({
+    uglifyOptions: {
+      warnings: true,
+      compress: true
+    },
+    parallel: true
+  })
 ];
 
+module.exports = function () {
 
-module.exports = function (options) {
+  return [webpackMerge(commonConfig({
+    env: ENV
+  }), {
+    output: {
+      filename: 'stage.min.js',
+    },
+    module: {
+      rules: [{
+        use: [transcode]
+      }]
+    },
+    plugins: plugins
 
-  	return [webpackMerge(commonConfig({env: ENV}), {
-		output: {
-			filename: 'stage.min.js',
-		},
-		module: {
-		       rules: [{
-			       use:[  transcode ]
- 		       }]	
-		},
-		plugins: plugins
+  }), webpackMerge(commonConfig({
+    env: ENV
+  }), {
 
-	}),webpackMerge(commonConfig({env: ENV}), {
-
-		output: {
-			filename: 'stage6.min.js',
-		},
-		module: {
-			rules: [{
-				use:[  ]
- 			}]
-		},
-		plugins: plugins
-	})];
+    output: {
+      filename: 'stage6.min.js',
+    },
+    module: {
+      rules: [{
+        use: []
+      }]
+    },
+    plugins: plugins
+  })];
 };
