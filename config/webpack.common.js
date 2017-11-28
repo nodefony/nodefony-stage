@@ -1,8 +1,8 @@
 const webpack = require('webpack');
 const path = require('path');
 
-module.exports = function (options) {
-  var isProd = options.env === 'production';
+module.exports = function () {
+  //var isProd = options.env === 'production';
   return {
 
     /*
@@ -36,7 +36,7 @@ module.exports = function (options) {
        *
        * See: http://webpack.github.io/docs/configuration.html#resolve-extensions
        */
-      extensions: ['.js', '.json', '.es6'],
+      extensions: ['.js', '.es6'],
 
       // An array of directory names to be resolved to the current directory
       modules: [path.resolve(__dirname, "src"), "node_modules"]
@@ -69,7 +69,6 @@ module.exports = function (options) {
           test: /\.json$/,
           use: 'json-loader'
         },
-
         /*
          * to string and css loader support for *.css files
          * Returns file content as string
@@ -80,7 +79,6 @@ module.exports = function (options) {
           use: ['to-string-loader', 'css-loader'],
           exclude: []
         },
-
         /*
          * to string and sass loader support for *.scss files
          * Returns compiled css content as string
@@ -91,7 +89,6 @@ module.exports = function (options) {
           use: ['to-string-loader', 'css-loader', 'sass-loader'],
           exclude: []
         },
-
         /* Raw loader support for *.html
          * Returns file content as string
          *
@@ -102,7 +99,6 @@ module.exports = function (options) {
           use: 'raw-loader',
           exclude: []
         },
-
         /*
          * File loader for supporting images, for example, in CSS files.
          */
@@ -110,14 +106,13 @@ module.exports = function (options) {
           test: /\.(jpg|png|gif)$/,
           use: 'file-loader'
         },
-
         /* File loader for supporting fonts, for example, in CSS files.
          */
         {
           test: /\.(eot|woff2?|svg|ttf)([\?]?.*)$/,
           use: 'file-loader'
         }
-      ],
+      ]
     },
     /*
      * Add additional plugins to the compiler.
@@ -135,5 +130,5 @@ module.exports = function (options) {
         "window.jQuery": "jquery"
       })
     ]
-  }
+  };
 };

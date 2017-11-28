@@ -1,19 +1,19 @@
 DISTRIB := $(shell uname)
-VERBOSE = 0 
+VERBOSE = 0
 NODE_VERSION := $(shell node -v)
 
 VERSION := $(subst v,,$(subst .,,$(NODE_VERSION)))
-#$(error $(VERSION))  
+#$(error $(VERSION))
 VERSION := $(shell expr $(VERSION) )
 
-all: 
+all:
 	make install
 	make build-dev
-	make build && echo "success build-prod !" || echo "failure build-prod!" 
+	make build && echo "success build-prod !" || echo "failure build-prod!"
 	make demo
 
 install:
-	npm install
+	yarn install
 
 build:
 	npm run build-prod

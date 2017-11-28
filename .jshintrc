@@ -13,6 +13,8 @@
     "globals": {
       "module":		true,
       "$":		true,
+      "jQuery":true,
+      "stage":		true,
       "window":		true,
       "document":	true,
       "navigator":	true,
@@ -32,6 +34,12 @@
       "describe":	true,
       "RTCPeerConnection":	true,
       "RTCSessionDescription":true,
-      "RTCIceCandidate":true
+      "RTCIceCandidate":true,
+      "webkitMediaStream":true,
+      "MediaStream":true,
+      "XMLHttpRequest":true,
+      "URL":true,
+      "Blob":true,
+      "AudioNode":true
     }
 }

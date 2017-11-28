@@ -36,7 +36,7 @@
     "jquery": "3.2.1",
     "shortid": "2.2.8",
     "twig": "1.10.5",
-    "uglifyjs-webpack-plugin": "1.1.0",
+    "uglifyjs-webpack-plugin": "^1.1.1",
     "webrtc-adapter": "6.0.2"
   },
   "devDependencies": {
@@ -64,10 +64,10 @@
     "sinon-chai": "2.14.0",
     "to-string-loader": "1.1.5",
     "tokenizer": "1.1.2",
-    "uglify-es": "3.1.10",
+    "uglify-es": "^3.2.0",
     "url-loader": "0.6.2",
     "webpack": "3.8.1",
-    "webpack-dev-server": "2.9.4",
+    "webpack-dev-server": "^2.9.5",
     "webpack-merge": "4.1.1"
   },
   "author": "cci <christophe.camensuli@gmail.com>",

@@ -1,5 +1,5 @@
-const webpack = require('webpack');
-const path = require('path');
+//const webpack = require('webpack');
+//const path = require('path');
 
 const ENV = process.env.ENV = process.env.NODE_ENV = 'production';
 
@@ -36,7 +36,15 @@ module.exports = function () {
     },
     module: {
       rules: [{
-        use: [transcode]
+        // BABEL TRANSCODE
+        test: new RegExp("\.es6$|\.js$"),
+        exclude: new RegExp("node_modules"),
+        use: [{
+          loader: 'babel-loader',
+          options: {
+            presets: ['env']
+          }
+        }]
       }]
     },
     plugins: plugins
@@ -44,14 +52,8 @@ module.exports = function () {
   }), webpackMerge(commonConfig({
     env: ENV
   }), {
-
     output: {
       filename: 'stage6.min.js',
-    },
-    module: {
-      rules: [{
-        use: []
-      }]
     },
     plugins: plugins
   })];
