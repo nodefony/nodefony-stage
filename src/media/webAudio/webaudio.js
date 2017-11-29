@@ -262,7 +262,8 @@ module.exports = function (stage) {
     }
 
     setGain(value) {
-      this.audioNodes.gain.gain.value = value;
+      //this.audioNodes.gain.gain.value = value;
+      this.audioNodes.gain.gain.setValueAtTime(value, this.audioContext.currentTime + 1);
       this.fire("onSetGain", value);
       return this;
     }
@@ -272,14 +273,17 @@ module.exports = function (stage) {
     }
 
     mute() {
-      this.audioNodes.mute.gain.value = 0;
+      //this.audioNodes.mute.gain.value = 0;
+      this.audioNodes.mute.gain.setValueAtTime(0, this.audioContext.currentTime + 1);
+
       this.muted = true;
       this.fire("onMute", this);
       return this;
     }
 
     unmute() {
-      this.audioNodes.mute.gain.value = 1;
+      //this.audioNodes.mute.gain.value = 1;
+      this.audioNodes.mute.gain.setValueAtTime(1, this.audioContext.currentTime + 1);
       this.muted = false;
       this.fire("onUnMute", this);
       return this;
@@ -524,7 +528,8 @@ module.exports = function (stage) {
     }
 
     setGain(value) {
-      this.audioNodes.gain.gain.value = value;
+      //this.audioNodes.gain.gain.value = value;
+      this.audioNodes.gain.gain.setValueAtTime(value, this.context.currentTime + 1);
       this.fire("onSetGain", value);
       return this;
     }
@@ -534,14 +539,16 @@ module.exports = function (stage) {
     }
 
     mute() {
-      this.audioNodes.mute.gain.value = 0;
+      //this.audioNodes.mute.gain.value = 0;
+      this.audioNodes.mute.gain.setValueAtTime(0, this.context.currentTime + 1);
       this.muted = true;
       this.fire("onMute", this);
       return this;
     }
 
     unmute() {
-      this.audioNodes.mute.gain.value = 1;
+      //this.audioNodes.mute.gain.value = 1;
+      this.audioNodes.mute.gain.setValueAtTime(1, this.context.currentTime + 1);
       this.muted = false;
       this.fire("onUnMute", this);
       return this;

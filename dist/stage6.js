@@ -31136,7 +31136,8 @@ module.exports = function (stage) {
     }
 
     setGain(value) {
-      this.audioNodes.gain.gain.value = value;
+      //this.audioNodes.gain.gain.value = value;
+      this.audioNodes.gain.gain.setValueAtTime(value, this.audioContext.currentTime + 1);
       this.fire("onSetGain", value);
       return this;
     }
@@ -31146,14 +31147,17 @@ module.exports = function (stage) {
     }
 
     mute() {
-      this.audioNodes.mute.gain.value = 0;
+      //this.audioNodes.mute.gain.value = 0;
+      this.audioNodes.mute.gain.setValueAtTime(0, this.audioContext.currentTime + 1);
+
       this.muted = true;
       this.fire("onMute", this);
       return this;
     }
 
     unmute() {
-      this.audioNodes.mute.gain.value = 1;
+      //this.audioNodes.mute.gain.value = 1;
+      this.audioNodes.mute.gain.setValueAtTime(1, this.audioContext.currentTime + 1);
       this.muted = false;
       this.fire("onUnMute", this);
       return this;
@@ -31398,7 +31402,8 @@ module.exports = function (stage) {
     }
 
     setGain(value) {
-      this.audioNodes.gain.gain.value = value;
+      //this.audioNodes.gain.gain.value = value;
+      this.audioNodes.gain.gain.setValueAtTime(value, this.context.currentTime + 1);
       this.fire("onSetGain", value);
       return this;
     }
@@ -31408,14 +31413,16 @@ module.exports = function (stage) {
     }
 
     mute() {
-      this.audioNodes.mute.gain.value = 0;
+      //this.audioNodes.mute.gain.value = 0;
+      this.audioNodes.mute.gain.setValueAtTime(0, this.context.currentTime + 1);
       this.muted = true;
       this.fire("onMute", this);
       return this;
     }
 
     unmute() {
-      this.audioNodes.mute.gain.value = 1;
+      //this.audioNodes.mute.gain.value = 1;
+      this.audioNodes.mute.gain.setValueAtTime(1, this.context.currentTime + 1);
       this.muted = false;
       this.fire("onUnMute", this);
       return this;
@@ -31608,18 +31615,13 @@ module.exports = function (stage) {
      * STUN  => { iceServers: [{ url: ! stage.browser.Gecko ? 'stun:stun.l.google.com:19302' : 'stun:23.21.150.121'}] }
      * TURN  => { iceServers: [{ url: "turn:webrtc%40live.com@numb.viagenie.ca", credential: ""}] }
      */
-    iceServers: null,
+    iceServers: [],
      
-    //constraints  : { mandatory: { 'OfferToReceiveAudio': true, 'OfferToReceiveVideo': true } },
-    //constraintsOffer: stage.browser.Gecko ? {'mandatory': {'MozDontOfferDataChannel':true}} : null,
-    //optional  : { optional: [{ "RtpDataChannels": true},{'DtlsSrtpKeyAgreement': 'true'}]}
-    //optional  : stage.browser.Gecko ? { optional: [{ "RtpDataChannels": true}]} :  { optional: [{ "RtpDataChannels": true},{'DtlsSrtpKeyAgreement': 'true'}]},
     optional: stage.browser.Gecko ? {
-      optional: []
+      'DtlsSrtpKeyAgreement': 'true'
     } : {
-      optional: [{
-        'DtlsSrtpKeyAgreement': 'true'
-      }]
+      'DtlsSrtpKeyAgreement': 'true',
+      'rtcpMuxPolicy': 'negotiate'
     },
     asyncCandidates: false
   };
@@ -31631,6 +31633,7 @@ module.exports = function (stage) {
 
       super("WEBRTC", null, null, settings);
       this.settings = stage.extend(true, {}, defaultSettings, settings);
+      this.settings.optional.iceServers = this.settings.iceServers;
       this.protocol = null;
       this.socketState = "close";
       this.transactions = {};
@@ -31768,8 +31771,6 @@ module.exports = function (stage) {
 
                 try {
                   transac.setRemoteDescription("offer", transac.to, transac.to.description, transac.dialog);
-                  //this.notificationsCenter.fire("onOffer", message, transac.to, transac);
-                  //this.fire("onOffer", this, transac);
                 } catch (e) {
                   res = message.transaction.createResponse(500, e.message || e);
                   res.send();
@@ -32197,7 +32198,6 @@ module.exports = function (stage) {
       // MANAGE CANDIDATES
       this.candidates = [];
       this.listen(this, "onIcecandidate", function (transaction, candidates, peerConnection) {
-        console.log("PASS onIcecandidate event app")
         //console.log(" onIcecandidate : " + peerConnection.localDescription.type )
         let to = null;
         if (this.asyncCandidates && this.candidates.length) {
@@ -32238,7 +32238,9 @@ module.exports = function (stage) {
     createPeerConnection() {
       try {
         // CREATE PeerConnection
-        this.RTCPeerConnection = new RTCPeerConnection(this.webrtc.iceServers, this.webrtc.settings.optional);
+        //this.logger(this.webrtc.settings.optional, "DEBUG");
+        console.log(this.webrtc.settings.optional)
+        this.RTCPeerConnection = new RTCPeerConnection(this.webrtc.settings.optional);
 
         // MANAGE EVENT CANDIDATES
         this.RTCPeerConnection.onicecandidate = (event) => {
@@ -32250,8 +32252,8 @@ module.exports = function (stage) {
             this.iceGatheringState = this.RTCPeerConnection.iceGatheringState;
           }
           let type = this.RTCPeerConnection.localDescription.type;
-          console.log(this.iceGatheringState)
-          console.log(type)
+          //console.log(this.iceGatheringState)
+          //console.log(type)
           if (type === "offer" && this.iceGatheringState === 'complete' && old !== "complete") {
             //console.log("PASSS CANDIDATE")
             this.fire("onIcecandidate", this, this.candidates, this.RTCPeerConnection);
@@ -32411,8 +32413,8 @@ module.exports = function (stage) {
         sdp: description
       };
       //console.log( desc );
-      var remoteDesc = parseSdp.call(this, desc);
-      var ClassDesc = new RTCSessionDescription(remoteDesc);
+      let remoteDesc = parseSdp.call(this, desc);
+      let ClassDesc = new RTCSessionDescription(remoteDesc);
 
       this.remoteDescription = this.RTCPeerConnection.setRemoteDescription(
         ClassDesc,

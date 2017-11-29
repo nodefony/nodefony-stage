@@ -133,7 +133,9 @@ module.exports = function (stage) {
     createPeerConnection() {
       try {
         // CREATE PeerConnection
-        this.RTCPeerConnection = new RTCPeerConnection(this.webrtc.iceServers, this.webrtc.settings.optional);
+        //this.logger(this.webrtc.settings.optional, "DEBUG");
+        console.log(this.webrtc.settings.optional)
+        this.RTCPeerConnection = new RTCPeerConnection(this.webrtc.settings.optional);
 
         // MANAGE EVENT CANDIDATES
         this.RTCPeerConnection.onicecandidate = (event) => {

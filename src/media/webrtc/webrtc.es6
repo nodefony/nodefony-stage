@@ -17,18 +17,13 @@ module.exports = function (stage) {
      * STUN  => { iceServers: [{ url: ! stage.browser.Gecko ? 'stun:stun.l.google.com:19302' : 'stun:23.21.150.121'}] }
      * TURN  => { iceServers: [{ url: "turn:webrtc%40live.com@numb.viagenie.ca", credential: ""}] }
      */
-    iceServers: null,
+    iceServers: [],
      
-    //constraints  : { mandatory: { 'OfferToReceiveAudio': true, 'OfferToReceiveVideo': true } },
-    //constraintsOffer: stage.browser.Gecko ? {'mandatory': {'MozDontOfferDataChannel':true}} : null,
-    //optional  : { optional: [{ "RtpDataChannels": true},{'DtlsSrtpKeyAgreement': 'true'}]}
-    //optional  : stage.browser.Gecko ? { optional: [{ "RtpDataChannels": true}]} :  { optional: [{ "RtpDataChannels": true},{'DtlsSrtpKeyAgreement': 'true'}]},
     optional: stage.browser.Gecko ? {
-      optional: []
+      'DtlsSrtpKeyAgreement': 'true'
     } : {
-      optional: [{
-        'DtlsSrtpKeyAgreement': 'true'
-      }]
+      'DtlsSrtpKeyAgreement': 'true',
+      'rtcpMuxPolicy': 'negotiate'
     },
     asyncCandidates: false
   };
@@ -40,6 +35,7 @@ module.exports = function (stage) {
 
       super("WEBRTC", null, null, settings);
       this.settings = stage.extend(true, {}, defaultSettings, settings);
+      this.settings.optional.iceServers = this.settings.iceServers;
       this.protocol = null;
       this.socketState = "close";
       this.transactions = {};
