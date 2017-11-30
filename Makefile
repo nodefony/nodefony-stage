@@ -3,17 +3,30 @@ VERBOSE = 0
 NODE_VERSION := $(shell node -v)
 
 VERSION := $(subst v,,$(subst .,,$(NODE_VERSION)))
-#$(error $(VERSION))
 VERSION := $(shell expr $(VERSION) )
 
+ifeq ($(findstring cmd.exe,$(SHELL)),cmd.exe)
+	DEVNUL := NUL
+	WHICH := where
+	INSTALLER := npm
+else
+	DEVNUL := /dev/null
+	WHICH := which
+	INSTALLER := npm
+endif
+EXECUTABLES = yarn node npm
+K := $(foreach bin, $(EXECUTABLES),\
+	$(if $(shell ${WHICH} $(bin) 2>${DEVNUL} ),\
+		$(info $(bin) version : $(shell $(bin) -v  2>${DEVNUL} ) ),\
+		$(info No $(bin) in PATH))) 2>${DEVNUL}
+
 all:
-	make install
 	make build-dev
 	make build && echo "success build-prod !" || echo "failure build-prod!"
-	make demo
 
 install:
 	yarn install
+	$(MAKE) build -C ./demo/nodefony
 
 build:
 	npm run build-prod
@@ -22,7 +35,8 @@ build-dev:
 	npm run build-dev
 
 demo:
-	$(MAKE) -C ./demo/express
+	#$(MAKE) -C ./demo/express
+	npm start --prefix ./demo/nodefony
 
 clean:
 	rm -rf ./dist/* ; \

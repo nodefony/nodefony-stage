@@ -1,4 +1,3 @@
-const Adapter = require("webrtc-adapter");
 module.exports = function (stage) {
 
   'use strict';
@@ -11,11 +10,9 @@ module.exports = function (stage) {
     // MediaStream	API
     try {
       if (stage.browser.Webkit) {
-
         getMediaStream = function (stream) {
           return URL.createObjectURL(stream);
         };
-
         mediaStream = webkitMediaStream;
         // The representation of tracks in a stream is changed in M26.
         // Unify them for earlier Chrome versions in the coexisting period.
@@ -34,9 +31,7 @@ module.exports = function (stage) {
         getMediaStream = function (stream) {
           return window.URL.createObjectURL(stream);
         };
-
         mediaStream = MediaStream;
-        // Fake get{Video,Audio}Tracks
         if (!MediaStream.prototype.getVideoTracks) {
           MediaStream.prototype.getVideoTracks = function () {
             return [];
@@ -50,11 +45,9 @@ module.exports = function (stage) {
         return true;
       }
       if (stage.browser.Opera) {
-        //getUserMedia = navigator.getUserMedia ;
         getMediaStream = function (stream) {
           return stream;
         };
-        // Fake get{Video,Audio}Tracks
         if (!MediaStream.prototype.getVideoTracks) {
           MediaStream.prototype.getVideoTracks = function () {
             return [];
@@ -76,56 +69,11 @@ module.exports = function (stage) {
   /*
    *	MEDIA STREAM
    *
-   *
-   *
-   *
    */
   const defaultSettingsStream = {
     audio: true,
     video: true
   };
-
-  /*var attachMediaStream = function(){
-		if (stage.browser.Webkit || stage.browser.Opera){
-			return function(element){
-				// Attach a media stream to an element.
-				this.mediaElement = element;
-				this.mediaElement.srcObject = this.stream ;
-				//element.src = this.getMediaStream(this.stream);
-				this.mediaElement.play();
-			}
-		}
-		if (stage.browser.Gecko){
-			return function(element){
-				// Attach a media stream to an element.
-				this.mediaElement = element;
-				this.mediaElement.srcObject = this.stream ;
-				//element.mozSrcObject = this.stream;
-				this.mediaElement.play();
-			}
-		}
-  	}();*/
-
-  //FIXME
-  /*var reattachMediaStream = function (){
-		if (stage.browser.Webkit){
-			return function(to){
-				// reattach a media stream to an element.
-				this.mediaElement.src = this.getMediaStream(this.stream);
-				//to.src = this.mediaElement.src;
-				this.mediaElement.play()
-				//this.mediaElement = to;
-			}
-		}
-		if (stage.browser.Gecko){
-			return function(to){
-				// reattach a media stream to an element.
-				to.mozSrcObject = this.mediaElement.mozSrcObject;
-				to.play();
-				this.mediaElement = to;
-			}
-		}
-  	}();*/
 
   const MediaStream = class mediaStream {
 

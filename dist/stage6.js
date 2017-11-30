@@ -70,14 +70,14 @@ return /******/ (function(modules) { // webpackBootstrap
 /******/ 	__webpack_require__.p = "";
 /******/
 /******/ 	// Load entry module and return exports
-/******/ 	return __webpack_require__(__webpack_require__.s = 10);
+/******/ 	return __webpack_require__(__webpack_require__.s = 9);
 /******/ })
 /************************************************************************/
 /******/ ([
 /* 0 */
 /***/ (function(module, exports, __webpack_require__) {
 
-/* WEBPACK VAR INJECTION */(function(global) {module.exports = global["$"] = __webpack_require__(12);
+/* WEBPACK VAR INJECTION */(function(global) {module.exports = global["$"] = __webpack_require__(11);
 /* WEBPACK VAR INJECTION */}.call(exports, __webpack_require__(3)))
 
 /***/ }),
@@ -240,7 +240,7 @@ module.exports = {
 "use strict";
 
 
-var randomFromSeed = __webpack_require__(20);
+var randomFromSeed = __webpack_require__(19);
 
 var ORIGINAL = '0123456789abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ_-';
 var alphabet;
@@ -371,7 +371,7 @@ module.exports = g;
 
 /* WEBPACK VAR INJECTION */(function(__dirname) {(function webpackUniversalModuleDefinition(root, factory) {
 	if(true)
-		module.exports = factory((function webpackLoadOptionalExternalModule() { try { return __webpack_require__(8); } catch(e) {} }()), __webpack_require__(9));
+		module.exports = factory((function webpackLoadOptionalExternalModule() { try { return __webpack_require__(7); } catch(e) {} }()), __webpack_require__(8));
 	else if(typeof define === 'function' && define.amd)
 		define(["fs", "path"], factory);
 	else if(typeof exports === 'object')
@@ -6132,13 +6132,13 @@ return /******/ (function(modules) { // webpackBootstrap
 /* 19 */
 /***/ function(module, exports) {
 
-	module.exports = __webpack_require__(8);
+	module.exports = __webpack_require__(7);
 
 /***/ },
 /* 20 */
 /***/ function(module, exports) {
 
-	module.exports = __webpack_require__(9);
+	module.exports = __webpack_require__(8);
 
 /***/ },
 /* 21 */
@@ -8136,7 +8136,7 @@ return /******/ (function(modules) { // webpackBootstrap
 
 "use strict";
 
-module.exports = __webpack_require__(19);
+module.exports = __webpack_require__(18);
 
 
 /***/ }),
@@ -8146,7 +8146,7 @@ module.exports = __webpack_require__(19);
 "use strict";
 
 
-var randomByte = __webpack_require__(21);
+var randomByte = __webpack_require__(20);
 
 function encode(lookup, number) {
     var loopCounter = 0;
@@ -8167,33 +8167,12 @@ module.exports = encode;
 
 /***/ }),
 /* 7 */
-/***/ (function(module, exports, __webpack_require__) {
-
-"use strict";
-/* WEBPACK VAR INJECTION */(function(global) {/*
- *  Copyright (c) 2016 The WebRTC project authors. All Rights Reserved.
- *
- *  Use of this source code is governed by a BSD-style license
- *  that can be found in the LICENSE file in the root of the source
- *  tree.
- */
- /* eslint-env node */
-
-
-
-var adapterFactory = __webpack_require__(43);
-module.exports = adapterFactory({window: global.window});
-
-/* WEBPACK VAR INJECTION */}.call(exports, __webpack_require__(3)))
-
-/***/ }),
-/* 8 */
 /***/ (function(module, exports) {
 
 /* (ignored) */
 
 /***/ }),
-/* 9 */
+/* 8 */
 /***/ (function(module, exports, __webpack_require__) {
 
 /* WEBPACK VAR INJECTION */(function(process) {// Copyright Joyent, Inc. and other Node contributors.
@@ -8424,7 +8403,7 @@ var substr = 'ab'.substr(-1) === 'b'
 /* WEBPACK VAR INJECTION */}.call(exports, __webpack_require__(60)))
 
 /***/ }),
-/* 10 */
+/* 9 */
 /***/ (function(module, exports, __webpack_require__) {
 
 /*
@@ -8466,43 +8445,44 @@ var substr = 'ab'.substr(-1) === 'b'
  */
 
 // CORE
-const stage = __webpack_require__(11)();
+const stage = __webpack_require__(10)();
+__webpack_require__(14)(stage);
 __webpack_require__(15)(stage);
 __webpack_require__(16)(stage);
 __webpack_require__(17)(stage);
-__webpack_require__(18)(stage);
 
 
 // TOOLS
+__webpack_require__(25)(stage);
 __webpack_require__(26)(stage);
 __webpack_require__(27)(stage);
-__webpack_require__(28)(stage);
 
 // CRYPTO
+__webpack_require__(28)(stage);
 __webpack_require__(29)(stage);
-__webpack_require__(30)(stage);
 
 // IO
+__webpack_require__(30)(stage);
 __webpack_require__(31)(stage);
 __webpack_require__(32)(stage);
-__webpack_require__(33)(stage);
 
 // IO TRANSPORT
+__webpack_require__(33)(stage);
 __webpack_require__(34)(stage);
 __webpack_require__(35)(stage);
 __webpack_require__(36)(stage);
-__webpack_require__(37)(stage);
 
 // IO PROTOCOLS
+__webpack_require__(37)(stage);
 __webpack_require__(38)(stage);
 __webpack_require__(39)(stage);
-__webpack_require__(40)(stage);
 
 // IO REALTIME
-__webpack_require__(41)(stage);
+__webpack_require__(40)(stage);
 
 // MEDIAS
-__webpack_require__(42)(stage);
+__webpack_require__(41);
+__webpack_require__(54)(stage);
 __webpack_require__(55)(stage);
 __webpack_require__(56)(stage);
 __webpack_require__(57)(stage);
@@ -8523,10 +8503,10 @@ __webpack_require__(67)(stage);
 module.exports = stage;
 
 /***/ }),
-/* 11 */
+/* 10 */
 /***/ (function(module, exports, __webpack_require__) {
 
-/* WEBPACK VAR INJECTION */(function(jQuery) {const config = __webpack_require__(14);
+/* WEBPACK VAR INJECTION */(function(jQuery) {const config = __webpack_require__(13);
 module.exports = function () {
 
   'use strict';
@@ -8724,14 +8704,14 @@ module.exports = function () {
 /* WEBPACK VAR INJECTION */}.call(exports, __webpack_require__(0)))
 
 /***/ }),
-/* 12 */
+/* 11 */
 /***/ (function(module, exports, __webpack_require__) {
 
-/* WEBPACK VAR INJECTION */(function(global) {module.exports = global["jQuery"] = __webpack_require__(13);
+/* WEBPACK VAR INJECTION */(function(global) {module.exports = global["jQuery"] = __webpack_require__(12);
 /* WEBPACK VAR INJECTION */}.call(exports, __webpack_require__(3)))
 
 /***/ }),
-/* 13 */
+/* 12 */
 /***/ (function(module, exports, __webpack_require__) {
 
 var __WEBPACK_AMD_DEFINE_ARRAY__, __WEBPACK_AMD_DEFINE_RESULT__;/*!
@@ -18991,892 +18971,901 @@ return jQuery;
 
 
 /***/ }),
+/* 13 */
+/***/ (function(module, exports) {
+
+module.exports = {"name":"nodefony-stage","version":"0.1.3","description":"Client Side Nodefony web developpement","browser":"dist/stage6.js","main":"src/core.js","scripts":{"build-dev":"WEBPACK_ENV=dev webpack --verbose","build-prod":"WEBPACK_ENV=prod webpack --verbose","start":"webpack-dev-server"},"keywords":["javascript","webpack","nodefony"],"repository":{"type":"git","url":"git@github.com:nodefony/nodefony-stage.git"},"bugs":{"url":"https://github.com/nodefony/nodefony-stage/issues"},"license":"CECILL-B","licenses":[{"type":"CECILL-B","url":"http://www.cecill.info/licences/Licence_CeCILL-B_V1-en.html"}],"dependencies":{"ascii-table":"0.0.9","asciify":"1.3.5","babel-core":"6.26.0","babel-preset-env":"1.6.1","jquery":"3.2.1","opn":"^5.1.0","shortid":"2.2.8","twig":"1.10.5","uglifyjs-webpack-plugin":"^1.1.1","webrtc-adapter":"6.0.2"},"devDependencies":{"assets-webpack-plugin":"3.5.1","babel-loader":"7.1.2","babel-plugin-transform-runtime":"6.23.0","babel-polyfill":"6.26.0","babel-preset-es2015":"6.24.1","babel-register":"6.26.0","chai":"4.1.2","css-loader":"0.28.7","exports-loader":"0.6.4","expose-loader":"0.7.4","file-loader":"1.1.5","imports-loader":"0.7.1","jshint":"2.9.5","jshint-loader":"0.8.4","json-loader":"0.5.7","mocha":"4.0.1","node-sass":"4.7.2","raw-loader":"0.5.1","sass-loader":"6.0.6","should":"13.1.3","sinon":"4.1.2","sinon-chai":"2.14.0","to-string-loader":"1.1.5","tokenizer":"1.1.2","uglify-es":"^3.2.0","url-loader":"0.6.2","webpack":"3.8.1","webpack-dev-server":"^2.9.5","webpack-merge":"4.1.1"},"author":"cci <christophe.camensuli@gmail.com>","readmeFilename":"README.md","contributors":[{}]}
+
+/***/ }),
 /* 14 */
 /***/ (function(module, exports) {
 
-module.exports = {"name":"nodefony-stage","version":"0.1.2","description":"Client Side Nodefony web developpement","browser":"dist/stage6.js","main":"src/core.js","scripts":{"build-dev":"WEBPACK_ENV=dev webpack --verbose","build-prod":"WEBPACK_ENV=prod webpack --verbose","start":"webpack-dev-server"},"keywords":["javascript","webpack","nodefony"],"repository":{"type":"git","url":"git@github.com:nodefony/nodefony-stage.git"},"bugs":{"url":"https://github.com/nodefony/nodefony-stage/issues"},"license":"CECILL-B","licenses":[{"type":"CECILL-B","url":"http://www.cecill.info/licences/Licence_CeCILL-B_V1-en.html"}],"dependencies":{"ascii-table":"0.0.9","asciify":"1.3.5","babel-core":"6.26.0","babel-preset-env":"1.6.1","jquery":"3.2.1","shortid":"2.2.8","twig":"1.10.5","uglifyjs-webpack-plugin":"^1.1.1","webrtc-adapter":"6.0.2"},"devDependencies":{"assets-webpack-plugin":"3.5.1","babel-loader":"7.1.2","babel-plugin-transform-runtime":"6.23.0","babel-polyfill":"6.26.0","babel-preset-es2015":"6.24.1","babel-register":"6.26.0","chai":"4.1.2","css-loader":"0.28.7","exports-loader":"0.6.4","expose-loader":"0.7.4","file-loader":"1.1.5","imports-loader":"0.7.1","jshint":"2.9.5","jshint-loader":"0.8.4","json-loader":"0.5.7","mocha":"4.0.1","node-sass":"4.7.2","raw-loader":"0.5.1","sass-loader":"6.0.6","should":"13.1.3","sinon":"4.1.2","sinon-chai":"2.14.0","to-string-loader":"1.1.5","tokenizer":"1.1.2","uglify-es":"^3.2.0","url-loader":"0.6.2","webpack":"3.8.1","webpack-dev-server":"^2.9.5","webpack-merge":"4.1.1"},"author":"cci <christophe.camensuli@gmail.com>","readmeFilename":"README.md","contributors":[{}]}
+module.exports = function (stage) {
+
+  'use strict';
+
+  var regListenOn = /^on(.*)$/;
+
+  /**
+   *      Events
+   *
+   *      @class Notification
+   *      @module library
+   *      @param {Object} settings Object to pass to `settingToListen` method
+   *      @param {Object} context  to apply `settingToListen`
+   *
+   *      @example
+   *
+   *
+   */
+  const Notification = class Notification {
+
+    constructor(settings, context) {
+      this.events = {};
+      this.garbageEvent = {};
+      if (settings) {
+        this.settingsToListen(settings, context);
+      }
+    }
+
+    /**
+     *
+     *      @method listen
+     *
+     */
+    listen(context, eventName, callback) {
+      var event = arguments[1];
+      var ContextClosure = this;
+      if (!this.events[eventName]) {
+        this.events[eventName] = [];
+        this.garbageEvent[eventName] = [];
+      }
+      if (typeof callback === 'function') {
+        this.garbageEvent[eventName].push(callback);
+        this.events[eventName].push(function (args) {
+          callback.apply(context, args);
+        });
+      }
+      return function () {
+        Array.prototype.unshift.call(arguments, event);
+        return ContextClosure.fire.apply(ContextClosure, arguments);
+      };
+    }
+
+    on(eventName, callback) {
+      var event = arguments[1];
+      var ContextClosure = this;
+      if (!this.events[eventName]) {
+        this.events[eventName] = [];
+        this.garbageEvent[eventName] = [];
+      }
+      if (typeof callback === 'function') {
+        this.garbageEvent[eventName].push(callback);
+        this.events[eventName].push(function (args) {
+          callback(args);
+        });
+      }
+      return function () {
+        Array.prototype.unshift.call(arguments, event);
+        return ContextClosure.fire.apply(ContextClosure, arguments);
+      };
+    }
+
+    /**
+     *
+     *      @method clearNotifications
+     *
+     */
+    clearNotifications(eventName) {
+      if (eventName) {
+        if (this.events[eventName]) {
+          while (this.events[eventName].length > 0) {
+            this.events[eventName].pop();
+            this.garbageEvent[eventName].pop();
+          }
+          delete this.events[eventName];
+          delete this.garbageEvent[eventName];
+        }
+      } else {
+        delete this.events;
+        delete this.garbageEvent;
+        this.events = {};
+        this.garbageEvent = {};
+      }
+    }
+
+    /**
+     *
+     *      @method fire
+     *
+     */
+    fire(eventName) {
+      var ret = true;
+      if (this.events[eventName]) {
+        var args = Array.prototype.slice.call(arguments, 1);
+        for (var i = 0; i < this.events[eventName].length; i++) {
+          try {
+            ret = this.events[eventName][i](args);
+            if (ret) {
+              break;
+            }
+          } catch (e) {
+            console.log(e)
+            throw new Error(e);
+          }
+        }
+      }
+      return ret;
+    }
+
+    /**
+     *
+     *      @method settingsToListen
+     *
+     */
+    settingsToListen(localSettings, context) {
+      for (var i in localSettings) {
+        var res = regListenOn.exec(i);
+        if (!res) {
+          continue;
+        }
+        this.listen(context || this, res[0], localSettings[i]);
+      }
+    }
+
+    unListen(eventName, callback) {
+      if (this.events[eventName]) {
+        if (callback) {
+          for (var i = 0; i < this.garbageEvent[eventName].length; i++) {
+            if (this.garbageEvent[eventName][i] === callback) {
+              this.events[eventName].splice(i, 1);
+              this.garbageEvent[eventName].splice(i, 1);
+            }
+          }
+        } else {
+          return this.clearNotifications(eventName);
+        }
+      } else {
+        return this.clearNotifications();
+      }
+    }
+  }
+
+  stage.notificationsCenter = {
+    notification: Notification,
+    create: function (settings, context) {
+      return new Notification(settings, context);
+    }
+  };
+
+  return Notification;
+};
 
 /***/ }),
 /* 15 */
 /***/ (function(module, exports) {
-
-module.exports =  function(stage){
- 
-	'use strict';
-  
-        var regListenOn = /^on(.*)$/;
-   
-       /**
-         *      Events  
-         *
-         *      @class Notification
-         *      @module library
-         *      @param {Object} settings Object to pass to `settingToListen` method
-         *      @param {Object} context  to apply `settingToListen` 
-         *
-         *      @example
-         *
-         *      
-         */
-	 const Notification = class Notification  {
-		
-		constructor(settings, context){
-			this.events = {};
-                	this.garbageEvent = {};
-                	if (settings) {
-                        	this.settingsToListen(settings, context);
-                	}
-		}
-
-		/**
-         	 *
-         	 *      @method listen 
-         	 *
-         	 */
-		listen (context, eventName, callback){
-			var event = arguments[1];
-                	var ContextClosure = this;
-                	if (! this.events[eventName]) {
-                        	this.events[eventName] = [];
-                        	this.garbageEvent[eventName] = [];
-                	}
-                	if (typeof callback === 'function') {
-                        	this.garbageEvent[eventName].push(callback);
-                        	this.events[eventName].push(function(args) {
-                                	callback.apply(context, args);
-                        	});
-                	}
-                	return function() {
-                        	Array.prototype.unshift.call(arguments, event);
-                        	return ContextClosure.fire.apply(ContextClosure, arguments);
-                	};
-		}
-
-		on (eventName, callback){
-			var event = arguments[1];
-                	var ContextClosure = this;
-                	if (! this.events[eventName] ) {
-                        	this.events[eventName] = [];
-                        	this.garbageEvent[eventName] = [];
-                	}
-                	if (typeof callback === 'function') {
-                        	this.garbageEvent[eventName].push(callback);
-                        	this.events[eventName].push(function(args) {
-                                	callback( args );
-                        	});
-                	}
-                	return function() {
-                        	Array.prototype.unshift.call(arguments, event);
-                        	return ContextClosure.fire.apply(ContextClosure, arguments);
-                	};	
-		}
-
-		/**
-         	 *
-         	 *      @method clearNotifications 
-         	 *
-         	 */
-        	clearNotifications (eventName) {
-                	if (eventName){
-                        	if (this.events[eventName]) {
-                                	while (this.events[eventName].length > 0) {
-                                        	this.events[eventName].pop();
-                                        	this.garbageEvent[eventName].pop();
-                                	}
-                                	delete this.events[eventName];
-                                	delete this.garbageEvent[eventName];
-                        	}
-                	}else{
-                        	delete this.events ;
-                        	delete this.garbageEvent ;
-                        	this.events = {};
-                        	this.garbageEvent = {};
-                	}
-        	}
-
-		/**
-         	 *
-         	 *      @method fire 
-         	 *
-         	 */
-        	fire (eventName) {
-                	var ret = true;
-                	if (this.events[eventName]) {
-                        	var args = Array.prototype.slice.call(arguments, 1);
-                        	for (var i = 0; i < this.events[eventName].length; i++) {
-                                	try {
-                                        	ret = this.events[eventName][i](args);
-                                        	if (ret) {
-                                                	break;
-                                        	}
-                                	} catch (e) {
-						console.log(e)
-                                        	throw new Error(e);
-                                	}
-                        	}
-                	}
-                	return ret;
-        	}
-
-        	/**
-         	 *
-         	 *      @method settingsToListen 
-         	 *
-         	 */
-        	settingsToListen (localSettings, context) {
-                	for (var i in localSettings) {
-                        	var res = regListenOn.exec(i);
-                        	if (!res){
-                                	continue;
-				}
-                        	this.listen(context || this, res[0], localSettings[i]);
-                	}
-        	}
-
-        	unListen (eventName, callback){
-			if ( this.events[eventName] ){
-				if (callback){
-                        		for (var i=0 ; i < this.garbageEvent[eventName].length ; i++){
-                                		if ( this.garbageEvent[eventName][i] === callback ){
-							this.events[eventName].splice(i, 1);
-							this.garbageEvent[eventName].splice(i, 1);
-                                		}
-                        		}
-				}else{
-					return this.clearNotifications(eventName);	
-				}
-                	}else{
-				return this.clearNotifications();	
-			}
-        	}
-	}
-
-        stage.notificationsCenter = {
-                notification:Notification,
-                create: function(settings, context) {
-                        return new Notification(settings, context);
-                }
-        };
-
-	return Notification ;
-};
-
-
-/***/ }),
-/* 16 */
-/***/ (function(module, exports) {
-
-
 
 /*
  *
  *
  *
  */
-module.exports =  function(stage){
+module.exports = function (stage) {
 
-	'use strict';
-   	/*
-    	 * default settings
-    	 * <pre>
-    	 *   moduleName:      "stage"
-    	 *   maxStack:        100
-    	 *   rateLimit:       false
-    	 *   burstLimit:      3
-    	 *   defaultSeverity: "DEBUG"
-   	 *   checkConditions: "&&"
-   	 *   async:         false
-    	 *
-    	 * </pre>
-    	 */
-   	var defaultSettings = {
-           	moduleName:"SYSLOG",
-		maxStack: 100,
-		rateLimit:false,
-		burstLimit:3,
-		defaultSeverity:"DEBUG",
-		checkConditions:"&&",
-		async:false
-   	};
+  'use strict';
+  /*
+   * default settings
+   * <pre>
+   *   moduleName:      "stage"
+   *   maxStack:        100
+   *   rateLimit:       false
+   *   burstLimit:      3
+   *   defaultSeverity: "DEBUG"
+   *   checkConditions: "&&"
+   *   async:         false
+   *
+   * </pre>
+   */
+  var defaultSettings = {
+    moduleName: "SYSLOG",
+    maxStack: 100,
+    rateLimit: false,
+    burstLimit: 3,
+    defaultSeverity: "DEBUG",
+    checkConditions: "&&",
+    async: false
+  };
 
-   	/*
-    	 * Severity syslog
-    	 * <pre>
-    	 *    EMERGENCY   = 0
-    	 *    ALERT       = 1
-    	 *    CRITIC      = 2
-    	 *    ERROR       = 3
-    	 *    WARNING     = 4
-    	 *    NOTICE      = 5
-    	 *    INFO        = 6
-    	 *    DEBUG       = 7
-    	 * </pre>
-    	 */
-   	var sysLogSeverity = [
-           	"EMERGENCY",
-           	"ALERT",
-           	"CRITIC",
-           	"ERROR",
-           	"WARNING",
-           	"NOTICE",
-           	"INFO",
-           	"DEBUG"
-   	];
-   	sysLogSeverity["EMERGENCY"]=0;
-   	sysLogSeverity["ALERT"]=1;
-   	sysLogSeverity["CRITIC"]=2;
-   	sysLogSeverity["ERROR"]=3;
-   	sysLogSeverity["WARNING"]=4;
-   	sysLogSeverity["NOTICE"]=5;
-   	sysLogSeverity["INFO"]=6;
-   	sysLogSeverity["DEBUG"]=7;
+  /*
+   * Severity syslog
+   * <pre>
+   *    EMERGENCY   = 0
+   *    ALERT       = 1
+   *    CRITIC      = 2
+   *    ERROR       = 3
+   *    WARNING     = 4
+   *    NOTICE      = 5
+   *    INFO        = 6
+   *    DEBUG       = 7
+   * </pre>
+   */
+  var sysLogSeverity = [
+    "EMERGENCY",
+    "ALERT",
+    "CRITIC",
+    "ERROR",
+    "WARNING",
+    "NOTICE",
+    "INFO",
+    "DEBUG"
+  ];
+  sysLogSeverity["EMERGENCY"] = 0;
+  sysLogSeverity["ALERT"] = 1;
+  sysLogSeverity["CRITIC"] = 2;
+  sysLogSeverity["ERROR"] = 3;
+  sysLogSeverity["WARNING"] = 4;
+  sysLogSeverity["NOTICE"] = 5;
+  sysLogSeverity["INFO"] = 6;
+  sysLogSeverity["DEBUG"] = 7;
 
-	/**
-    	 *  Protocol Data Unit
-     	 * @class  PDU
-    	 * @constructor
-    	 * @module library
-    	 * @return {PDU}
-    	 */
-	var guid = 0;
-	var PDU = class PDU {
-		constructor(pci, severity, moduleName, msgid, msg, date ) {
-			/* timeStamp @type Date*/
-               		this.timeStamp = new Date(date).getTime() || new Date().getTime();
-           		/* uid */
-               		this.uid =  ++guid;
-           		/* severity */
-               		this.severity = translateSeverity(severity);
-           		/* severityName */
-               		this.severityName = sysLogSeverity[this.severity];
-            		/* typePayload */
-               		this.typePayload = stage.typeOf(pci);
-           		/*
-             		* protocole controle information
-             		* @type Void
-             		*/
-               		this.payload = pci;
-           		/* moduleName */
-               		this.moduleName = moduleName;
-           		/* msgid */
-               		this.msgid = msgid || "";
-           		/* msg */
-               		this.msg = msg || "";
-		}
+  /**
+   *  Protocol Data Unit
+   * @class  PDU
+   * @constructor
+   * @module library
+   * @return {PDU}
+   */
+  var guid = 0;
+  var PDU = class PDU {
+    constructor(pci, severity, moduleName, msgid, msg, date) {
+      /* timeStamp @type Date*/
+      this.timeStamp = new Date(date).getTime() || new Date().getTime();
+      /* uid */
+      this.uid = ++guid;
+      /* severity */
+      this.severity = translateSeverity(severity);
+      /* severityName */
+      this.severityName = sysLogSeverity[this.severity];
+      /* typePayload */
+      this.typePayload = stage.typeOf(pci);
+      /*
+       * protocole controle information
+       * @type Void
+       */
+      this.payload = pci;
+      /* moduleName */
+      this.moduleName = moduleName;
+      /* msgid */
+      this.msgid = msgid || "";
+      /* msg */
+      this.msg = msg || "";
+    }
 
-		/**
-    	 	* Get Date in string format
-    	 	* @method getDate
-    	 	* @return {String} a date in string format .
-    	 	*/
-   		getDate(){
-       			return new Date(this.timeStamp).toTimeString();
-   		}
+    /**
+     * Get Date in string format
+     * @method getDate
+     * @return {String} a date in string format .
+     */
+    getDate() {
+      return new Date(this.timeStamp).toTimeString();
+    }
 
-   		/**
-    	 	* get a string representating the PDU protocole
-    	 	* @method toString
-    	 	* @return {String}  .
-    	 	*/
-   		toString (){
-       			return  "TimeStamp:"+this.getDate() +
-           			"  Log:" +this.payload +
-           			"  ModuleName:" +this.moduleName +
-           			"  SeverityName:"+this.severityName+
-           			"  MessageID:"+this.msgid +
-           			"  UID:"+this.uid +
-                   		"  Message:"+this.msg;
-   		}
+    /**
+     * get a string representating the PDU protocole
+     * @method toString
+     * @return {String}  .
+     */
+    toString() {
+      return "TimeStamp:" + this.getDate() +
+        "  Log:" + this.payload +
+        "  ModuleName:" + this.moduleName +
+        "  SeverityName:" + this.severityName +
+        "  MessageID:" + this.msgid +
+        "  UID:" + this.uid +
+        "  Message:" + this.msg;
+    }
 
-		parseJson (str){
-			var json = null ;
-			try {
-				json = JSON.parse(str);
-				for (var ele in json){
-					if (ele in this){
-						this[ele] = json[ele];
-					}
-				}
-			}catch(e){
-				throw e ;
-			}
-			return json ;
-		}
-	};
+    parseJson(str) {
+      var json = null;
+      try {
+        json = JSON.parse(str);
+        for (var ele in json) {
+          if (ele in this) {
+            this[ele] = json[ele];
+          }
+        }
+      } catch (e) {
+        throw e;
+      }
+      return json;
+    }
+  };
 
-   	var operators = {
-       		"<":function(ele1, ele2){ return ele1 < ele2},
-       		">":function(ele1, ele2){ return ele1 > ele2},
-       		"<=":function(ele1, ele2){ return ele1 <= ele2},
-       		">=":function(ele1, ele2){ return ele1 >= ele2},
-       		"==":function(ele1, ele2){ return ele1 === ele2},
-       		"!=":function(ele1, ele2){ return ele1 !== ele2},
-		"RegExp":function(ele1, ele2){return  ( ele2.test(ele1) )}
-   	}
+  var operators = {
+    "<": function (ele1, ele2) {
+      return ele1 < ele2
+    },
+    ">": function (ele1, ele2) {
+      return ele1 > ele2
+    },
+    "<=": function (ele1, ele2) {
+      return ele1 <= ele2
+    },
+    ">=": function (ele1, ele2) {
+      return ele1 >= ele2
+    },
+    "==": function (ele1, ele2) {
+      return ele1 === ele2
+    },
+    "!=": function (ele1, ele2) {
+      return ele1 !== ele2
+    },
+    "RegExp": function (ele1, ele2) {
+      return (ele2.test(ele1))
+    }
+  }
 
-   	var conditionsObj = {
-       		severity:function(pdu, condition){
-           		if (condition.operator !== "=="){
-               			//console.log(pdu.severity);
-               			//console.log(condition.data)
-               			return  operators[condition.operator](pdu.severity, condition.data)
-           		}else{
-               			for (var sev in condition.data){
-                   			if ( sev === pdu.severityName)
-                       				return true
-               			}
-           		}
-           		return false
-       		},
-       		msgid:function(pdu, condition){
-			if (condition.operator !== "=="){
-				return operators[condition.operator](pdu.msgid, condition.data)
-			}else{
-           			for (var sev in condition.data){
-               				if ( sev === pdu.msgid)
-                   				return true
-           			}
-			}
-           		return false
-       		},
-       		date:function(pdu, condition){
-           		return  operators[condition.operator](pdu.timeStamp, condition.data)
-       		}
-   	}
+  var conditionsObj = {
+    severity: function (pdu, condition) {
+      if (condition.operator !== "==") {
+        //console.log(pdu.severity);
+        //console.log(condition.data)
+        return operators[condition.operator](pdu.severity, condition.data)
+      } else {
+        for (var sev in condition.data) {
+          if (sev === pdu.severityName)
+            return true
+        }
+      }
+      return false
+    },
+    msgid: function (pdu, condition) {
+      if (condition.operator !== "==") {
+        return operators[condition.operator](pdu.msgid, condition.data)
+      } else {
+        for (var sev in condition.data) {
+          if (sev === pdu.msgid)
+            return true
+        }
+      }
+      return false
+    },
+    date: function (pdu, condition) {
+      return operators[condition.operator](pdu.timeStamp, condition.data)
+    }
+  }
 
-   	var logicCondition ={
-       		"&&" : function(myConditions, pdu){
-           		var res= null
-           			for (var ele in myConditions){
-               				var res = conditionsObj[ele](pdu, myConditions[ele] )
-               					//console.log("condition :" +ele +"  "+res)
-               					if ( ! res ){
-                   					break;
-               					}
-           			}
-           		return res
-       		},
-       		"||" : function(myConditions, pdu){
-           		var res= null
-           			for (var ele in myConditions){
-               				var res = conditionsObj[ele](pdu, myConditions[ele] )
-               					if ( res ){
-                   					break;
-               					}
-           			}
-           		return res
-       		}
-   	}
+  var logicCondition = {
+    "&&": function (myConditions, pdu) {
+      var res = null
+      for (var ele in myConditions) {
+        var res = conditionsObj[ele](pdu, myConditions[ele])
+        //console.log("condition :" +ele +"  "+res)
+        if (!res) {
+          break;
+        }
+      }
+      return res
+    },
+    "||": function (myConditions, pdu) {
+      var res = null
+      for (var ele in myConditions) {
+        var res = conditionsObj[ele](pdu, myConditions[ele])
+        if (res) {
+          break;
+        }
+      }
+      return res
+    }
+  }
 
-   	var checkFormatSeverity = function(ele){
-       		var res = false;
-       		switch ( stage.typeOf(ele) ){
-           		case "string":
-               			res = ele.split(/,| /);
-           			break;
-           		case "number" :
-               			res = ele;
-           			break;
-			default:
-				throw new Error("checkFormatSeverity bad format "+stage.typeOf(ele)+" : " + ele);
-       		}
-       		return res;
-   	}
+  var checkFormatSeverity = function (ele) {
+    var res = false;
+    switch (stage.typeOf(ele)) {
+    case "string":
+      res = ele.split(/,| /);
+      break;
+    case "number":
+      res = ele;
+      break;
+    default:
+      throw new Error("checkFormatSeverity bad format " + stage.typeOf(ele) + " : " + ele);
+    }
+    return res;
+  }
 
-   	var checkFormatDate = function(ele){
-       		var res = false;
-       		switch ( stage.typeOf(ele) ){
-           		case "date":
-               			res = ele.getTime();
-           			break;
-           		case "string":
-               			res = new Date(ele);
-           			break;
-			default:
-				throw new Error("checkFormatDate bad format "+stage.typeOf(ele)+" : " + ele);
-       		}
-       		return res;
-   	}
+  var checkFormatDate = function (ele) {
+    var res = false;
+    switch (stage.typeOf(ele)) {
+    case "date":
+      res = ele.getTime();
+      break;
+    case "string":
+      res = new Date(ele);
+      break;
+    default:
+      throw new Error("checkFormatDate bad format " + stage.typeOf(ele) + " : " + ele);
+    }
+    return res;
+  }
 
-	var checkFormatMsgId = function(ele){
-		var res = false;
-       		switch ( stage.typeOf(ele) ){
-           		case "string":
-               			res = ele.split(/,| /);
-           			break;
-           		case "number" :
-               			res = ele;
-           			break;
-			case "object" :
-				if (ele instanceof RegExp ){
-					res = ele;
-				}
-			break;
-			default:
-				throw new Error("checkFormatMsgId bad format "+stage.typeOf(ele)+" : " + ele);
-       		}
-       		return res;
+  var checkFormatMsgId = function (ele) {
+    var res = false;
+    switch (stage.typeOf(ele)) {
+    case "string":
+      res = ele.split(/,| /);
+      break;
+    case "number":
+      res = ele;
+      break;
+    case "object":
+      if (ele instanceof RegExp) {
+        res = ele;
+      }
+      break;
+    default:
+      throw new Error("checkFormatMsgId bad format " + stage.typeOf(ele) + " : " + ele);
+    }
+    return res;
 
-	}
+  }
 
-   	var severityToString = function(severity){
-       		var myint = parseInt(severity,10) ;
-       		if (! isNaN(myint)){
-           		var ele = sysLogSeverity[myint];
-       		}else{
-           		var ele = severity;
-       		}
-       		if (ele in sysLogSeverity)
-           		return ele;
-        	return false;
-   	};
-
-
-   	var sanitizeConditions = function(settingsCondition){
-       		var res = true;
-       		if (stage.typeOf(settingsCondition) !== "object" )
-           		return false;
-       		for (var ele in settingsCondition){
-           		if (! ele in conditionsObj){
-               			return false;
-           		}
-           		var condi = settingsCondition[ele];
-
-           		if (condi.operator && ! (condi.operator in operators) ){
-				throw new Error("Contitions bad operator : " + condi.operator );
-           		}
-           		if ( condi.data ){
-               			switch (ele){
-                   			case "severity":
-                       				if (condi.operator){
-                           				res = checkFormatSeverity(condi.data);
-                           				if (res !== false){
-                               					condi.data = sysLogSeverity[severityToString(res[0])];
-                           				}else{
-                               					return false
-                           				}
-                       				}else{
-                           				condi.operator = "==";
-                           				res = checkFormatSeverity(condi.data);
-                           				if (res !== false){
-                               					condi.data = {};
-                               					if (stage.typeOf(res) === "array"){
-                                   					for (var i = 0 ; i < res.length; i++){
-                                       						var mySeverity = severityToString(res[i]) ;
-                                       						if (mySeverity){
-                                           						condi.data[mySeverity] = sysLogSeverity[mySeverity];
-                                       						}else{
-                                           						return false;
-                                       						}
-                                   					}
-                               					}else{
-                                   					return false;
-                               					}
-                           				}else{
-                               					return false
-                           				}
-                       				}
-                   				break;
-                   			case "msgid":
-						if ( ! condi.operator){
-							condi.operator = "==";	
-						}
-						res = checkFormatMsgId(condi.data);
-                       				if (res !== false){
-                           				if (stage.typeOf(res) === "array"){
-								condi.data = {};
-                               					for (var i = 0 ; i < res.length; i++){
-                                   					condi.data[res[i]] = "||";
-                               					}
-                           				}else{
-								condi.data = res;	
-							}
-                       				}else{
-                           				return false
-                       				}
-                   				break;
-                   			case "date":
-                       				res =checkFormatDate(condi.data);
-                       				if (res)
-                           				condi.data = res;
-                       				else
-                           				return false;
-                   				break;
-                   			default:
-                       				return false;
-               			}
-           		}else{
-               			return false;
-           		}
-       		}
-       		return settingsCondition ;
-       		//console.log(settingsCondition);
-   	};
+  var severityToString = function (severity) {
+    var myint = parseInt(severity, 10);
+    if (!isNaN(myint)) {
+      var ele = sysLogSeverity[myint];
+    } else {
+      var ele = severity;
+    }
+    if (ele in sysLogSeverity)
+      return ele;
+    return false;
+  };
 
 
-   	var translateSeverity = function(severity){
-       		if (severity in sysLogSeverity){
-           		if (typeof severity === 'number')
-               			var myseverity = sysLogSeverity[sysLogSeverity[severity]]
-           		else
-               			var myseverity = sysLogSeverity[severity];
-       		}else{
-			if (! severity)
-				return null;
-			else
-				throw new Error ("not stage syslog severity :"+severity);
-       		}
-       		return myseverity;
-   	};
+  var sanitizeConditions = function (settingsCondition) {
+    var res = true;
+    if (stage.typeOf(settingsCondition) !== "object")
+      return false;
+    for (var ele in settingsCondition) {
+      if (!ele in conditionsObj) {
+        return false;
+      }
+      var condi = settingsCondition[ele];
 
-   	var createPDU = function(payload, severity, moduleName, msgid, msg){
-       		if ( ! severity ){
-               		var myseverity = sysLogSeverity[this.settings.defaultSeverity];
-           	}else{
-           		var myseverity = severity;
-           	}
-       		return new PDU(payload, myseverity,
-                           	moduleName,
-                           	msgid,
-                           	msg);
-   	};
-
-   	/**
-    	 * A class for product log in stage.
-    	 * @example
-    	 *
-    	 *    var ERROR_DEFINE = {
-    	 *       '-101': 'I18N string'
-    	 *    };
-    	 *
-    	 *    var settings = {
-    	 *        rateLimit:100,
-    	 *        burstLimit:10,
-    	 *        moduleName:"LIVE",
-    	 *        defaultSeverity:"ERROR"
-    	 *    };
-   	 *
-    	 *    var logIntance = new stage.syslog(settings);
-    	 *
-    	 *
-    	 *    controller.logIntance.listen(context,function(pdu){
-    	 *        logView(pdu)
-    	 *    } )
-    	 *
-    	 *    controller.logIntance.listenWithConditions(context,{
-    	 *        checkConditions: "&&",
-   	 *        severity:{
-   	 *            data:"CRITIC,ERROR"
-   	 *            //data:"1,7"
-   	 *        },
-   	 *        date:{
-   	 *            operator:">=",
-   	 *            data:new Date()
-   	 *        },
-   	 *        msgid:{
-   	 *            data:"myFunction"
-   	 *        }
-   	 *
-    	 *
-    	 *    },function(pdu){
-    	 *        logView(pdu)
-    	 *    } )
-    	 *
-    	 *
-    	 *    var myFunction = function(error){
-    	 *        controller.logIntance.logger(error, "ERROR", "myFunction", ERROR_DEFINE[error] );
-    	 *    }
-    	 *
-    	 *
-    	 *
-    	 *    @class syslog
-   	 *    @module library
-    	 *    @constructor
-    	 *    @param {Object} settings The settings to extend.
-    	 *    @return syslog
-    	 */
-	var syslog = class syslog extends stage.notificationsCenter.notification {
-
-		constructor(settings){
-
-       			super( settings );
-       			/**
-             	 	 * extended settings
-        	 	 * @property settings
-             	 	 * @type Object
-             	 	 * @see defaultSettings
-             	 	 */
-           		this.settings = stage.extend({},defaultSettings, settings);
-       			/**
-             	 	 * ring buffer structure container instances of PDU
-        	 	 * @property ringStack
-             	 	 * @type Array
-             	 	 */
-           		this.ringStack = new Array();
-       			/**
-             	 	 * Ratelimit  Management log printed
-        	 	 * @property burstPrinted
-             	 	 * @type Number
-             	 	 */
-           		this.burstPrinted = 0;
-       			/**
-             	 	 * Ratelimit  Management log dropped
-        	 	 * @property missed
-             	 	 * @type Number
-             	 	 */
-           		this.missed =0;
-       			/**
-             	 	 * Management log invalid
-        	 	 * @property invalid
-             	 	 * @type Number
-             	 	 */
-       			this.invalid = 0;
-
-       			/**
-             	 	 * Counter log valid
-        	 	 * @property valid
-             	 	 * @type Number
-             	 	 */
-       			this.valid = 0;
-       			/**
-             	 	 * Ratelimit  Management begin of burst
-        	 	 * @property start
-             	 	 * @private
-             	 	 * @type Number
-             	 	 */
-           		this.start = 0;
-
-       			this.fire = this.settings.async ? super.fireAsync : super.fire ;
-   		}
-
-   		pushStack (pdu){
-       			if (this.ringStack.length === this.settings.maxStack){
-               			this.ringStack.shift();
-           		}
-       			var index = this.ringStack.push(pdu);
-       			//console.log(this);
-       			this.valid++;
-       			return index;
-   		}
-
-   		/**
-     	 	 * logger message
-    	 	 * @method logger
-     	 	 * @param {void} payload payload for log. protocole controle information
-     	 	 * @param {Number || String} severity severity syslog like.
-     	 	 * @param {String} msgid informations for message. example(Name of function for debug)
-     	 	 * @param {String} msg  message to add in log. example (I18N)
-     	 	 */
-   		logger (payload, severity, msgid, msg){
-           		if (this.settings.rateLimit){
-               			var now = new Date().getTime();
-               			this.start = this.start || now;
-               			if (now > this.start + this.settings.rateLimit){
-               				this.burstPrinted = 0;
-               				this.missed =0;
-               				this.start = 0;
-               			}
-               			if(this.settings.burstLimit && this.settings.burstLimit > this.burstPrinted ){
-               				try {
-                   				if (payload instanceof  PDU ){
-                       					var pdu = payload
-                   				}else{
-                       					var pdu = createPDU.call(this, payload, severity, this.settings.moduleName, msgid, msg);
-                   				}
-               				}catch(e){
-						console.error(e);
-                   				this.invalid++;
-                   				return "INVALID"
-               				}
-               				this.pushStack( pdu);
-               				this.fire("onLog", pdu);
-               				this.burstPrinted++;
-               				return "ACCEPTED";
-               			}
-               			this.missed++;
-               			return "DROPPED";
-           		}else{
-           			try {
-               				if (payload instanceof  PDU ){
-                   				var pdu = payload;
-               				}else{
-                   				var pdu = createPDU.call(this, payload, severity, this.settings.moduleName, msgid, msg);
-               				}
-           			}catch(e){
-					console.error(e);
-               				this.invalid++;
-               				return "INVALID";
-           			}
-               			this.pushStack( pdu);
-               			this.fire("onLog", pdu);
-           			return "ACCEPTED";
-           		}
-   		}
-
-   		/**
-     	 	 * Clear stack of logs
-     	 	 *
-     	 	 * @method clearLogStack
-      	 	 *
-      	 	 *
-     	 	 *
-     	 	 */
-   		clearLogStack (){
-       			this.ringStack.length = 0;
-   		}
-
-   		/**
-     	 	 * get hitory of stack
-    	 	 * @method getLogStack
-      	 	 * @param {Number} start .
-     	 	 * @param {Number} end .
-     	 	 * @return {array} new array between start end
-     	 	 * @return {PDU} pdu
-     	 	 */
-   		getLogStack (start, end, contition){
-			if (contition){
-				var stack = this.getLogs(contition) ; 
-			}else{
-				var stack = this.ringStack ;
-			}
-           		if ( arguments.length  === 0)
-               			return stack[stack.length-1];
-           		if ( ! end)
-               			return stack.slice(start);
-           		if (start === end)
-               			return stack[stack.length - start-1];
-			return stack.slice(start, end );
-   		}
+      if (condi.operator && !(condi.operator in operators)) {
+        throw new Error("Contitions bad operator : " + condi.operator);
+      }
+      if (condi.data) {
+        switch (ele) {
+        case "severity":
+          if (condi.operator) {
+            res = checkFormatSeverity(condi.data);
+            if (res !== false) {
+              condi.data = sysLogSeverity[severityToString(res[0])];
+            } else {
+              return false
+            }
+          } else {
+            condi.operator = "==";
+            res = checkFormatSeverity(condi.data);
+            if (res !== false) {
+              condi.data = {};
+              if (stage.typeOf(res) === "array") {
+                for (var i = 0; i < res.length; i++) {
+                  var mySeverity = severityToString(res[i]);
+                  if (mySeverity) {
+                    condi.data[mySeverity] = sysLogSeverity[mySeverity];
+                  } else {
+                    return false;
+                  }
+                }
+              } else {
+                return false;
+              }
+            } else {
+              return false
+            }
+          }
+          break;
+        case "msgid":
+          if (!condi.operator) {
+            condi.operator = "==";
+          }
+          res = checkFormatMsgId(condi.data);
+          if (res !== false) {
+            if (stage.typeOf(res) === "array") {
+              condi.data = {};
+              for (var i = 0; i < res.length; i++) {
+                condi.data[res[i]] = "||";
+              }
+            } else {
+              condi.data = res;
+            }
+          } else {
+            return false
+          }
+          break;
+        case "date":
+          res = checkFormatDate(condi.data);
+          if (res)
+            condi.data = res;
+          else
+            return false;
+          break;
+        default:
+          return false;
+        }
+      } else {
+        return false;
+      }
+    }
+    return settingsCondition;
+    //console.log(settingsCondition);
+  };
 
 
-   		/**
-     	 	 * get logs with conditions
-    	 	 * @method getLogs
-      	 	 * @param {Object} conditions .
-     	 	 * @return {array} new array with matches conditions
-     	 	 */
-   		getLogs (conditions, stack){
-			var myStack = stack || this.ringStack ;
-       			if ( conditions.checkConditions && conditions.checkConditions in logicCondition ){
-           			var myFuncCondition = logicCondition[conditions.checkConditions];
-           			delete conditions.checkConditions;
-       			}else{
-           			var myFuncCondition = logicCondition[this.settings.checkConditions];
-       			}
-       			var tab = [];
-			try {
-				var Conditions = sanitizeConditions(conditions);
-			}catch(e){
-				throw new Error("registreNotification conditions format error: "+ e);
-			}
-       			if (Conditions){
-           			for (var i = 0 ; i<myStack.length; i++){
-               				var res = myFuncCondition(Conditions,myStack[i])
-               					if (res)
-                   					tab.push(myStack[i]);
-           			}
-       			}
-       			return tab;
-   		}
+  var translateSeverity = function (severity) {
+    if (severity in sysLogSeverity) {
+      if (typeof severity === 'number')
+        var myseverity = sysLogSeverity[sysLogSeverity[severity]]
+      else
+        var myseverity = sysLogSeverity[severity];
+    } else {
+      if (!severity)
+        return null;
+      else
+        throw new Error("not stage syslog severity :" + severity);
+    }
+    return myseverity;
+  };
+
+  var createPDU = function (payload, severity, moduleName, msgid, msg) {
+    if (!severity) {
+      var myseverity = sysLogSeverity[this.settings.defaultSeverity];
+    } else {
+      var myseverity = severity;
+    }
+    return new PDU(payload, myseverity,
+      moduleName,
+      msgid,
+      msg);
+  };
+
+  /**
+   * A class for product log in stage.
+   * @example
+   *
+   *    var ERROR_DEFINE = {
+   *       '-101': 'I18N string'
+   *    };
+   *
+   *    var settings = {
+   *        rateLimit:100,
+   *        burstLimit:10,
+   *        moduleName:"LIVE",
+   *        defaultSeverity:"ERROR"
+   *    };
+   *
+   *    var logIntance = new stage.syslog(settings);
+   *
+   *
+   *    controller.logIntance.listen(context,function(pdu){
+   *        logView(pdu)
+   *    } )
+   *
+   *    controller.logIntance.listenWithConditions(context,{
+   *        checkConditions: "&&",
+   *        severity:{
+   *            data:"CRITIC,ERROR"
+   *            //data:"1,7"
+   *        },
+   *        date:{
+   *            operator:">=",
+   *            data:new Date()
+   *        },
+   *        msgid:{
+   *            data:"myFunction"
+   *        }
+   *
+   *
+   *    },function(pdu){
+   *        logView(pdu)
+   *    } )
+   *
+   *
+   *    var myFunction = function(error){
+   *        controller.logIntance.logger(error, "ERROR", "myFunction", ERROR_DEFINE[error] );
+   *    }
+   *
+   *
+   *
+   *    @class syslog
+   *    @module library
+   *    @constructor
+   *    @param {Object} settings The settings to extend.
+   *    @return syslog
+   */
+  var syslog = class syslog extends stage.notificationsCenter.notification {
+
+    constructor(settings) {
+
+      super(settings);
+      /**
+       * extended settings
+       * @property settings
+       * @type Object
+       * @see defaultSettings
+       */
+      this.settings = stage.extend({}, defaultSettings, settings);
+      /**
+       * ring buffer structure container instances of PDU
+       * @property ringStack
+       * @type Array
+       */
+      this.ringStack = new Array();
+      /**
+       * Ratelimit  Management log printed
+       * @property burstPrinted
+       * @type Number
+       */
+      this.burstPrinted = 0;
+      /**
+       * Ratelimit  Management log dropped
+       * @property missed
+       * @type Number
+       */
+      this.missed = 0;
+      /**
+       * Management log invalid
+       * @property invalid
+       * @type Number
+       */
+      this.invalid = 0;
+
+      /**
+       * Counter log valid
+       * @property valid
+       * @type Number
+       */
+      this.valid = 0;
+      /**
+       * Ratelimit  Management begin of burst
+       * @property start
+       * @private
+       * @type Number
+       */
+      this.start = 0;
+
+      this.fire = this.settings.async ? super.fireAsync : super.fire;
+    }
+
+    pushStack(pdu) {
+      if (this.ringStack.length === this.settings.maxStack) {
+        this.ringStack.shift();
+      }
+      var index = this.ringStack.push(pdu);
+      //console.log(this);
+      this.valid++;
+      return index;
+    }
+
+    /**
+     * logger message
+     * @method logger
+     * @param {void} payload payload for log. protocole controle information
+     * @param {Number || String} severity severity syslog like.
+     * @param {String} msgid informations for message. example(Name of function for debug)
+     * @param {String} msg  message to add in log. example (I18N)
+     */
+    logger(payload, severity, msgid, msg) {
+      if (this.settings.rateLimit) {
+        var now = new Date().getTime();
+        this.start = this.start || now;
+        if (now > this.start + this.settings.rateLimit) {
+          this.burstPrinted = 0;
+          this.missed = 0;
+          this.start = 0;
+        }
+        if (this.settings.burstLimit && this.settings.burstLimit > this.burstPrinted) {
+          try {
+            if (payload instanceof PDU) {
+              var pdu = payload
+            } else {
+              var pdu = createPDU.call(this, payload, severity, this.settings.moduleName, msgid, msg);
+            }
+          } catch (e) {
+            console.error(e);
+            this.invalid++;
+            return "INVALID"
+          }
+          this.pushStack(pdu);
+          this.fire("onLog", pdu);
+          this.burstPrinted++;
+          return "ACCEPTED";
+        }
+        this.missed++;
+        return "DROPPED";
+      } else {
+        try {
+          if (payload instanceof PDU) {
+            var pdu = payload;
+          } else {
+            var pdu = createPDU.call(this, payload, severity, this.settings.moduleName, msgid, msg);
+          }
+        } catch (e) {
+          console.error(e);
+          this.invalid++;
+          return "INVALID";
+        }
+        this.pushStack(pdu);
+        this.fire("onLog", pdu);
+        return "ACCEPTED";
+      }
+    }
+
+    /**
+     * Clear stack of logs
+     *
+     * @method clearLogStack
+     *
+     *
+     *
+     */
+    clearLogStack() {
+      this.ringStack.length = 0;
+    }
+
+    /**
+     * get hitory of stack
+     * @method getLogStack
+     * @param {Number} start .
+     * @param {Number} end .
+     * @return {array} new array between start end
+     * @return {PDU} pdu
+     */
+    getLogStack(start, end, contition) {
+      if (contition) {
+        var stack = this.getLogs(contition);
+      } else {
+        var stack = this.ringStack;
+      }
+      if (arguments.length === 0)
+        return stack[stack.length - 1];
+      if (!end)
+        return stack.slice(start);
+      if (start === end)
+        return stack[stack.length - start - 1];
+      return stack.slice(start, end);
+    }
 
 
-   		/**
-     	 	 * take the stack and build a JSON string
-    	 	 * @method logToJson
-     	 	 * @return {String} string in JSON format
-     	 	 */
-   		logToJson (conditions){
-       			if (conditions)
-           			var stack = this.getLogs(conditions)
-       			else
-           			var stack = this.ringStack
-           				return JSON.stringify(stack);
-   		}
-
-   		/**
-    	 	 * load the stack as JSON string
-   	 	 * @method loadStack
-   	 	 * @param {Object} json or string stack serialize
-	 	 * @param {boolean} fire conditions events  .
-	 	 * @param {function} callback before fire conditions events
-    	 	 * @return {String}
-    	 	 */
-   		loadStack (stack, doEvent, beforeConditions){
-       			if (! stack )
-           			throw new Error("syslog loadStack : not stack in arguments ")
-               				switch(stage.typeOf(stack)){
-                   				case "string" :
-                       					try {
-								//console.log(stack);
-                           					var st = JSON.parse(stack);
-                           					return arguments.callee.call(this, st, doEvent);
-                       					}catch(e){
-                           					throw e;
-                       					}
-                       					break;
-                   				case "array" :
-                   				case "object" :
-                       					try {
-                           					for(var i= 0 ; i<stack.length ; i++){
-                               						var pdu = new PDU(stack[i].payload, stack[i].severity, stack[i].moduleName || this.settings.moduleName , stack[i].msgid, stack[i].msg, stack[i].timeStamp)
-                                   						this.pushStack( pdu);
-
-                                   					if (doEvent) {
-										if (beforeConditions && typeof beforeConditions  === "function")
-											beforeConditions.call(this, pdu, stack[i]);
-                                       						this.fire("onLog", pdu);
-                                   					}
-                           					}
-                       					}catch(e){
-                           					throw e;
-                       					}
-                       					break;
-                   				default :
-                       					throw new Error("syslog loadStack : bad stack in arguments type")
-               				};
-               		return st || stack;
-   		}
+    /**
+     * get logs with conditions
+     * @method getLogs
+     * @param {Object} conditions .
+     * @return {array} new array with matches conditions
+     */
+    getLogs(conditions, stack) {
+      var myStack = stack || this.ringStack;
+      if (conditions.checkConditions && conditions.checkConditions in logicCondition) {
+        var myFuncCondition = logicCondition[conditions.checkConditions];
+        delete conditions.checkConditions;
+      } else {
+        var myFuncCondition = logicCondition[this.settings.checkConditions];
+      }
+      var tab = [];
+      try {
+        var Conditions = sanitizeConditions(conditions);
+      } catch (e) {
+        throw new Error("registreNotification conditions format error: " + e);
+      }
+      if (Conditions) {
+        for (var i = 0; i < myStack.length; i++) {
+          var res = myFuncCondition(Conditions, myStack[i])
+          if (res)
+            tab.push(myStack[i]);
+        }
+      }
+      return tab;
+    }
 
 
-   		/**
-     	 	 *
-     	 	 *    @method  listenWithConditions
-     	 	 *
-     	 	 */
-   		listenWithConditions (context, conditions, callback  ){
-       			if ( conditions.checkConditions && conditions.checkConditions in logicCondition ){
-           			var myFuncCondition = logicCondition[conditions.checkConditions];
-           			delete conditions.checkConditions;
-       			}else{
-           			var myFuncCondition = logicCondition[this.settings.checkConditions];
-       			}
-			try {
-				var Conditions = sanitizeConditions(conditions);
-			}catch(e){
-				throw new Error("registreNotification conditions format error: "+ e);	
-			}
-       			if (Conditions){
-				var func = function(pdu){
-               				var res = myFuncCondition(Conditions, pdu);
-               				if (res){
-                   				callback.apply(context || this, arguments)
-               				}
-           			};
-           			super.listen(this, "onLog", func);
-				return func ;
-       			}
-   		}
+    /**
+     * take the stack and build a JSON string
+     * @method logToJson
+     * @return {String} string in JSON format
+     */
+    logToJson(conditions) {
+      if (conditions)
+        var stack = this.getLogs(conditions)
+      else
+        var stack = this.ringStack
+      return JSON.stringify(stack);
+    }
 
-	}
-	stage.syslog = syslog;
-	stage.PDU = PDU;
-	return syslog ; 
+    /**
+     * load the stack as JSON string
+     * @method loadStack
+     * @param {Object} json or string stack serialize
+     * @param {boolean} fire conditions events  .
+     * @param {function} callback before fire conditions events
+     * @return {String}
+     */
+    loadStack(stack, doEvent, beforeConditions) {
+      if (!stack)
+        throw new Error("syslog loadStack : not stack in arguments ")
+      switch (stage.typeOf(stack)) {
+      case "string":
+        try {
+          //console.log(stack);
+          var st = JSON.parse(stack);
+          return arguments.callee.call(this, st, doEvent);
+        } catch (e) {
+          throw e;
+        }
+        break;
+      case "array":
+      case "object":
+        try {
+          for (var i = 0; i < stack.length; i++) {
+            var pdu = new PDU(stack[i].payload, stack[i].severity, stack[i].moduleName || this.settings.moduleName, stack[i].msgid, stack[i].msg, stack[i].timeStamp)
+            this.pushStack(pdu);
+
+            if (doEvent) {
+              if (beforeConditions && typeof beforeConditions === "function")
+                beforeConditions.call(this, pdu, stack[i]);
+              this.fire("onLog", pdu);
+            }
+          }
+        } catch (e) {
+          throw e;
+        }
+        break;
+      default:
+        throw new Error("syslog loadStack : bad stack in arguments type")
+      };
+      return st || stack;
+    }
+
+
+    /**
+     *
+     *    @method  listenWithConditions
+     *
+     */
+    listenWithConditions(context, conditions, callback) {
+      if (conditions.checkConditions && conditions.checkConditions in logicCondition) {
+        var myFuncCondition = logicCondition[conditions.checkConditions];
+        delete conditions.checkConditions;
+      } else {
+        var myFuncCondition = logicCondition[this.settings.checkConditions];
+      }
+      try {
+        var Conditions = sanitizeConditions(conditions);
+      } catch (e) {
+        throw new Error("registreNotification conditions format error: " + e);
+      }
+      if (Conditions) {
+        var func = function (pdu) {
+          var res = myFuncCondition(Conditions, pdu);
+          if (res) {
+            callback.apply(context || this, arguments)
+          }
+        };
+        super.listen(this, "onLog", func);
+        return func;
+      }
+    }
+
+  }
+  stage.syslog = syslog;
+  stage.PDU = PDU;
+  return syslog;
 };
 
-
-
 /***/ }),
-/* 17 */
+/* 16 */
 /***/ (function(module, exports) {
 
 module.exports =  function(stage){
@@ -20053,7 +20042,7 @@ module.exports =  function(stage){
 
 
 /***/ }),
-/* 18 */
+/* 17 */
 /***/ (function(module, exports, __webpack_require__) {
 
 const shortId = __webpack_require__(5);
@@ -20316,7 +20305,7 @@ module.exports =  function(stage){
 
 
 /***/ }),
-/* 19 */
+/* 18 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
@@ -20324,15 +20313,15 @@ module.exports =  function(stage){
 
 var alphabet = __webpack_require__(2);
 var encode = __webpack_require__(6);
-var decode = __webpack_require__(22);
-var build = __webpack_require__(23);
-var isValid = __webpack_require__(24);
+var decode = __webpack_require__(21);
+var build = __webpack_require__(22);
+var isValid = __webpack_require__(23);
 
 // if you are using cluster or multiple servers use this to make each instance
 // has a unique value for worker
 // Note: I don't know if this is automatically set when using third
 // party cluster solutions such as pm2.
-var clusterWorkerId = __webpack_require__(25) || 0;
+var clusterWorkerId = __webpack_require__(24) || 0;
 
 /**
  * Set the seed.
@@ -20388,7 +20377,7 @@ module.exports.isValid = isValid;
 
 
 /***/ }),
-/* 20 */
+/* 19 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
@@ -20420,7 +20409,7 @@ module.exports = {
 
 
 /***/ }),
-/* 21 */
+/* 20 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
@@ -20441,7 +20430,7 @@ module.exports = randomByte;
 
 
 /***/ }),
-/* 22 */
+/* 21 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
@@ -20465,7 +20454,7 @@ module.exports = decode;
 
 
 /***/ }),
-/* 23 */
+/* 22 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
@@ -20520,7 +20509,7 @@ module.exports = build;
 
 
 /***/ }),
-/* 24 */
+/* 23 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
@@ -20546,7 +20535,7 @@ module.exports = isShortId;
 
 
 /***/ }),
-/* 25 */
+/* 24 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
@@ -20556,7 +20545,7 @@ module.exports = 0;
 
 
 /***/ }),
-/* 26 */
+/* 25 */
 /***/ (function(module, exports) {
 
 /*
@@ -20749,7 +20738,7 @@ module.exports = function(stage){
 
 
 /***/ }),
-/* 27 */
+/* 26 */
 /***/ (function(module, exports) {
 
 module.exports =  function(stage){
@@ -20896,7 +20885,7 @@ module.exports =  function(stage){
 
 
 /***/ }),
-/* 28 */
+/* 27 */
 /***/ (function(module, exports) {
 
 module.exports =  function(stage){
@@ -21073,7 +21062,7 @@ module.exports =  function(stage){
 
 
 /***/ }),
-/* 29 */
+/* 28 */
 /***/ (function(module, exports) {
 
 /*
@@ -21087,213 +21076,206 @@ module.exports =  function(stage){
  */
 
 
-module.exports =  function(stage){
+module.exports = function (stage) {
 
-	// private property
-	var _keyStr = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/=";
+  // private property
+  var _keyStr = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/=";
 
-	// public method for encoding
-	var encode64 = function (input) {
-		var output = "";
-		var chr1, chr2, chr3, enc1, enc2, enc3, enc4;
-		var i = 0;
+  // public method for encoding
+  var encode64 = function (input) {
+    var output = "";
+    var chr1, chr2, chr3, enc1, enc2, enc3, enc4;
+    var i = 0;
 
-		input = _utf8_encode(input);
+    input = _utf8_encode(input);
 
-		while (i < input.length) {
+    while (i < input.length) {
 
-			chr1 = input.charCodeAt(i++);
-			chr2 = input.charCodeAt(i++);
-			chr3 = input.charCodeAt(i++);
+      chr1 = input.charCodeAt(i++);
+      chr2 = input.charCodeAt(i++);
+      chr3 = input.charCodeAt(i++);
 
-			enc1 = chr1 >> 2;
-			enc2 = ((chr1 & 3) << 4) | (chr2 >> 4);
-			enc3 = ((chr2 & 15) << 2) | (chr3 >> 6);
-			enc4 = chr3 & 63;
+      enc1 = chr1 >> 2;
+      enc2 = ((chr1 & 3) << 4) | (chr2 >> 4);
+      enc3 = ((chr2 & 15) << 2) | (chr3 >> 6);
+      enc4 = chr3 & 63;
 
-			if (isNaN(chr2)) {
-        			enc3 = enc4 = 64;
-			} else if (isNaN(chr3)) {
-        			enc4 = 64;
-			}
+      if (isNaN(chr2)) {
+        enc3 = enc4 = 64;
+      } else if (isNaN(chr3)) {
+        enc4 = 64;
+      }
 
-			output = output +
-			_keyStr.charAt(enc1) + _keyStr.charAt(enc2) +
-			_keyStr.charAt(enc3) + _keyStr.charAt(enc4);
+      output = output +
+        _keyStr.charAt(enc1) + _keyStr.charAt(enc2) +
+        _keyStr.charAt(enc3) + _keyStr.charAt(enc4);
 
-		}
-		return output;
-	};
+    }
+    return output;
+  };
 
-    	// public method for decoding
-	var decode64 = function (input) {
-        	 var output = "";
-        	 var chr1, chr2, chr3;
-        	 var enc1, enc2, enc3, enc4;
-        	 var i = 0;
+  // public method for decoding
+  var decode64 = function (input) {
+    var output = "";
+    var chr1, chr2, chr3;
+    var enc1, enc2, enc3, enc4;
+    var i = 0;
 
-        	 input = input.replace(/[^A-Za-z0-9\+\/\=]/g, "");
+    input = input.replace(/[^A-Za-z0-9\+\/\=]/g, "");
 
-        	 while (i < input.length) {
+    while (i < input.length) {
 
-            		 enc1 = _keyStr.indexOf(input.charAt(i++));
-            		 enc2 = _keyStr.indexOf(input.charAt(i++));
-            		 enc3 = _keyStr.indexOf(input.charAt(i++));
-            		 enc4 = _keyStr.indexOf(input.charAt(i++));
+      enc1 = _keyStr.indexOf(input.charAt(i++));
+      enc2 = _keyStr.indexOf(input.charAt(i++));
+      enc3 = _keyStr.indexOf(input.charAt(i++));
+      enc4 = _keyStr.indexOf(input.charAt(i++));
 
-            		 chr1 = (enc1 << 2) | (enc2 >> 4);
-            		 chr2 = ((enc2 & 15) << 4) | (enc3 >> 2);
-            		 chr3 = ((enc3 & 3) << 6) | enc4;
+      chr1 = (enc1 << 2) | (enc2 >> 4);
+      chr2 = ((enc2 & 15) << 4) | (enc3 >> 2);
+      chr3 = ((enc3 & 3) << 6) | enc4;
 
-            		 output = output + String.fromCharCode(chr1);
+      output = output + String.fromCharCode(chr1);
 
-            		 if (enc3 != 64) {
-                		 output = output + String.fromCharCode(chr2);
-            		 }
-            		 if (enc4 != 64) {
-                		 output = output + String.fromCharCode(chr3);
-            		 }
+      if (enc3 != 64) {
+        output = output + String.fromCharCode(chr2);
+      }
+      if (enc4 != 64) {
+        output = output + String.fromCharCode(chr3);
+      }
 
-        	 }
+    }
 
-        	 if (i != input.length) {
-			 throw new Error ("BASE64_BROKEN : There were invalid base64 characters in the input text.\n" +
-	              			"Valid base64 characters are A-Z, a-z, 0-9, '+', '/',and '='\n" +
-	              			"Expect errors in decoding.");
-        	 }
+    if (i != input.length) {
+      throw new Error("BASE64_BROKEN : There were invalid base64 characters in the input text.\n" +
+        "Valid base64 characters are A-Z, a-z, 0-9, '+', '/',and '='\n" +
+        "Expect errors in decoding.");
+    }
 
-        	 output = _utf8_decode(output);
+    output = _utf8_decode(output);
 
-        	 return output;
+    return output;
 
-    	 };
-
-	
-	var decode =  function(input, arrayBuffer) {
-		//get last chars to see if are valid
-		var lkey1 = _keyStr.indexOf(input.charAt(input.length-1));		 
-		var lkey2 = _keyStr.indexOf(input.charAt(input.length-2));		 
-
-		var bytes = (input.length/4) * 3;
-		if (lkey1 == 64) bytes--; //padding chars, so skip
-		if (lkey2 == 64) bytes--; //padding chars, so skip
-
-		var uarray;
-		var chr1, chr2, chr3;
-		var enc1, enc2, enc3, enc4;
-		var i = 0;
-		var j = 0;
-
-		if (arrayBuffer)
-			uarray = new Uint8Array(arrayBuffer);
-		else
-			uarray = new Uint8Array(bytes);
-
-		input = input.replace(/[^A-Za-z0-9\+\/\=]/g, "");
-
-		for (i=0; i<bytes; i+=3) {	
-			//get the 3 octects in 4 ascii chars
-			enc1 = _keyStr.indexOf(input.charAt(j++));
-			enc2 = _keyStr.indexOf(input.charAt(j++));
-			enc3 = _keyStr.indexOf(input.charAt(j++));
-			enc4 = _keyStr.indexOf(input.charAt(j++));
-
-			chr1 = (enc1 << 2) | (enc2 >> 4);
-			chr2 = ((enc2 & 15) << 4) | (enc3 >> 2);
-			chr3 = ((enc3 & 3) << 6) | enc4;
-
-			uarray[i] = chr1;			
-			if (enc3 != 64) uarray[i+1] = chr2;
-			if (enc4 != 64) uarray[i+2] = chr3;
-		}
-		return uarray;	
-	}
+  };
 
 
+  var decode = function (input, arrayBuffer) {
+    //get last chars to see if are valid
+    var lkey1 = _keyStr.indexOf(input.charAt(input.length - 1));
+    var lkey2 = _keyStr.indexOf(input.charAt(input.length - 2));
+
+    var bytes = (input.length / 4) * 3;
+    if (lkey1 == 64) bytes--; //padding chars, so skip
+    if (lkey2 == 64) bytes--; //padding chars, so skip
+
+    var uarray;
+    var chr1, chr2, chr3;
+    var enc1, enc2, enc3, enc4;
+    var i = 0;
+    var j = 0;
+
+    if (arrayBuffer)
+      uarray = new Uint8Array(arrayBuffer);
+    else
+      uarray = new Uint8Array(bytes);
+
+    input = input.replace(/[^A-Za-z0-9\+\/\=]/g, "");
+
+    for (i = 0; i < bytes; i += 3) {
+      //get the 3 octects in 4 ascii chars
+      enc1 = _keyStr.indexOf(input.charAt(j++));
+      enc2 = _keyStr.indexOf(input.charAt(j++));
+      enc3 = _keyStr.indexOf(input.charAt(j++));
+      enc4 = _keyStr.indexOf(input.charAt(j++));
+
+      chr1 = (enc1 << 2) | (enc2 >> 4);
+      chr2 = ((enc2 & 15) << 4) | (enc3 >> 2);
+      chr3 = ((enc3 & 3) << 6) | enc4;
+
+      uarray[i] = chr1;
+      if (enc3 != 64) uarray[i + 1] = chr2;
+      if (enc4 != 64) uarray[i + 2] = chr3;
+    }
+    return uarray;
+  }
 
 
-    	 // private method for UTF-8 encoding
-	var _utf8_encode = function (string) {
-        	string = string.replace(/\r\n/g,"\n");
-        	var utftext = "";
-
-        	for (var n = 0; n < string.length; n++) {
-
-            		var c = string.charCodeAt(n);
-
-            		if (c < 128) {
-                		utftext += String.fromCharCode(c);
-            		}
-            		else if((c > 127) && (c < 2048)) {
-                		utftext += String.fromCharCode((c >> 6) | 192);
-                		utftext += String.fromCharCode((c & 63) | 128);
-            		}
-            		else {
-                		utftext += String.fromCharCode((c >> 12) | 224);
-                		utftext += String.fromCharCode(((c >> 6) & 63) | 128);
-                		utftext += String.fromCharCode((c & 63) | 128);
-            		};
-
-        	};
-        	return utftext;
-    	};
-
-    	// private method for UTF-8 decoding
-	var _utf8_decode = function(utftext){
-        	var string = "";
-        	var i = 0;
-        	var c = 0;
-		//var c1 = 0;
-		var c2 = 0;
-
-        	while ( i < utftext.length ) {
-
-            		c = utftext.charCodeAt(i);
-
-            		if (c < 128) {
-                		string += String.fromCharCode(c);
-                		i++;
-            		}
-            		else if((c > 191) && (c < 224)) {
-                		c2 = utftext.charCodeAt(i+1);
-                		string += String.fromCharCode(((c & 31) << 6) | (c2 & 63));
-                		i += 2;
-            		}
-            		else {
-                		c2 = utftext.charCodeAt(i+1);
-                		var c3 = utftext.charCodeAt(i+2);
-                		string += String.fromCharCode(((c & 15) << 12) | ((c2 & 63) << 6) | (c3 & 63));
-                		i += 3;
-            		}
-
-        	}
-        	return string;
-    	};
 
 
-	/* will return a  Uint8Array type */
-	var decodeArrayBuffer =  function(input) {
-		var bytes = (input.length/4) * 3;
-		var ab = new ArrayBuffer(bytes);
-		decode(input, ab);
-		return ab;
-	};
+  // private method for UTF-8 encoding
+  var _utf8_encode = function (string) {
+    string = string.replace(/\r\n/g, "\n");
+    var utftext = "";
+
+    for (var n = 0; n < string.length; n++) {
+
+      var c = string.charCodeAt(n);
+
+      if (c < 128) {
+        utftext += String.fromCharCode(c);
+      } else if ((c > 127) && (c < 2048)) {
+        utftext += String.fromCharCode((c >> 6) | 192);
+        utftext += String.fromCharCode((c & 63) | 128);
+      } else {
+        utftext += String.fromCharCode((c >> 12) | 224);
+        utftext += String.fromCharCode(((c >> 6) & 63) | 128);
+        utftext += String.fromCharCode((c & 63) | 128);
+      };
+
+    };
+    return utftext;
+  };
+
+  // private method for UTF-8 decoding
+  var _utf8_decode = function (utftext) {
+    var string = "";
+    var i = 0;
+    var c = 0;
+    //var c1 = 0;
+    var c2 = 0;
+
+    while (i < utftext.length) {
+
+      c = utftext.charCodeAt(i);
+
+      if (c < 128) {
+        string += String.fromCharCode(c);
+        i++;
+      } else if ((c > 191) && (c < 224)) {
+        c2 = utftext.charCodeAt(i + 1);
+        string += String.fromCharCode(((c & 31) << 6) | (c2 & 63));
+        i += 2;
+      } else {
+        c2 = utftext.charCodeAt(i + 1);
+        var c3 = utftext.charCodeAt(i + 2);
+        string += String.fromCharCode(((c & 15) << 12) | ((c2 & 63) << 6) | (c3 & 63));
+        i += 3;
+      }
+
+    }
+    return string;
+  };
 
 
-	stage.crypto.base64 =  {
-		decodeArrayBuffer:decodeArrayBuffer,
-		encode:encode64,
-		decode:decode64
-	};
+  /* will return a  Uint8Array type */
+  var decodeArrayBuffer = function (input) {
+    var bytes = (input.length / 4) * 3;
+    var ab = new ArrayBuffer(bytes);
+    decode(input, ab);
+    return ab;
+  };
 
-	return stage.crypto.base64 ;
+
+  stage.crypto.base64 = {
+    decodeArrayBuffer: decodeArrayBuffer,
+    encode: encode64,
+    decode: decode64
+  };
+
+  return stage.crypto.base64;
 };
 
-
-
-
 /***/ }),
-/* 30 */
+/* 29 */
 /***/ (function(module, exports) {
 
 /*
@@ -21305,411 +21287,381 @@ module.exports =  function(stage){
  * See http://pajhome.org.uk/crypt/md5 for more info.
  */
 
-module.exports =  function(stage){
+module.exports = function (stage) {
 
-	/*
- 	 * Configurable variables. You may need to tweak these to be compatible with
- 	 * the server-side, but the defaults work in most cases.
- 	 */
-	var hexcase = 0;   /* hex output format. 0 - lowercase; 1 - uppercase        */
-	var b64pad  = "";  /* base-64 pad character. "=" for strict RFC compliance   */
+  /*
+   * Configurable variables. You may need to tweak these to be compatible with
+   * the server-side, but the defaults work in most cases.
+   */
+  var hexcase = 0; /* hex output format. 0 - lowercase; 1 - uppercase        */
+  var b64pad = ""; /* base-64 pad character. "=" for strict RFC compliance   */
 
-	/*
- 	 * Perform a simple self-test to see if the VM is working
- 	 */
-	var md5_vm_test = function()
-	{
-  		return rstr2hex("abc").toLowerCase() === "900150983cd24fb0d6963f7d28e17f72";
-	};
+  /*
+   * Perform a simple self-test to see if the VM is working
+   */
+  var md5_vm_test = function () {
+    return rstr2hex("abc").toLowerCase() === "900150983cd24fb0d6963f7d28e17f72";
+  };
 
-	/*
- 	* Calculate the MD5 of a raw string
- 	*/
-	var rstr_md5 = function(s)
-	{
-  		return binl2rstr(binl_md5(rstr2binl(s), s.length * 8));
-	};
+  /*
+   * Calculate the MD5 of a raw string
+   */
+  var rstr_md5 = function (s) {
+    return binl2rstr(binl_md5(rstr2binl(s), s.length * 8));
+  };
 
-	/*
- 	* Calculate the HMAC-MD5, of a key and some data (raw strings)
- 	*/
-	var rstr_hmac_md5 = function (key, data)
-	{
-  		var bkey = rstr2binl(key);
-  		if(bkey.length > 16) {
-			bkey = binl_md5(bkey, key.length * 8);
-		}
-  		var ipad = Array(16), opad = Array(16);
-  		for(var i = 0; i < 16; i++)
-  		{
-    			ipad[i] = bkey[i] ^ 0x36363636;
-    			opad[i] = bkey[i] ^ 0x5C5C5C5C;
-  		}
+  /*
+   * Calculate the HMAC-MD5, of a key and some data (raw strings)
+   */
+  var rstr_hmac_md5 = function (key, data) {
+    var bkey = rstr2binl(key);
+    if (bkey.length > 16) {
+      bkey = binl_md5(bkey, key.length * 8);
+    }
+    var ipad = Array(16),
+      opad = Array(16);
+    for (var i = 0; i < 16; i++) {
+      ipad[i] = bkey[i] ^ 0x36363636;
+      opad[i] = bkey[i] ^ 0x5C5C5C5C;
+    }
 
-  		var hash = binl_md5(ipad.concat(rstr2binl(data)), 512 + data.length * 8);
-  		return binl2rstr(binl_md5(opad.concat(hash), 512 + 128));
-	};
+    var hash = binl_md5(ipad.concat(rstr2binl(data)), 512 + data.length * 8);
+    return binl2rstr(binl_md5(opad.concat(hash), 512 + 128));
+  };
 
-	/*
- 	 * Convert a raw string to a hex string
- 	 */
-	var rstr2hex = function(input)
-	{
-  		//try { hexcase } catch(e) { hexcase=0; }
-  		var hex_tab = hexcase ? "0123456789ABCDEF" : "0123456789abcdef";
-  		var output = "";
-  		var x;
-  		for(var i = 0; i < input.length; i++)
-  		{
-    			x = input.charCodeAt(i);
-    			output += hex_tab.charAt((x >>> 4) & 0x0F) + hex_tab.charAt( x  & 0x0F);
-  		}
-  		return output;
-	};
+  /*
+   * Convert a raw string to a hex string
+   */
+  var rstr2hex = function (input) {
+    //try { hexcase } catch(e) { hexcase=0; }
+    var hex_tab = hexcase ? "0123456789ABCDEF" : "0123456789abcdef";
+    var output = "";
+    var x;
+    for (var i = 0; i < input.length; i++) {
+      x = input.charCodeAt(i);
+      output += hex_tab.charAt((x >>> 4) & 0x0F) + hex_tab.charAt(x & 0x0F);
+    }
+    return output;
+  };
 
-	/*
- 	 * Convert a raw string to a base-64 string
- 	 */
-	var rstr2b64 = function(input)
-	{
-  		//try { b64pad } catch(e) { b64pad=''; }
-  		var tab = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/";
-  		var output = "";
-  		var len = input.length;
-  		for(var i = 0; i < len; i += 3)
-  		{
-    			var triplet = (input.charCodeAt(i) << 16)
-                		| (i + 1 < len ? input.charCodeAt(i+1) << 8 : 0)
-                		| (i + 2 < len ? input.charCodeAt(i+2)      : 0);
-    			for(var j = 0; j < 4; j++)
-    			{
-      				if(i * 8 + j * 6 > input.length * 8){
-					output += b64pad;
-      				}else {
-					output += tab.charAt((triplet >>> 6*(3-j)) & 0x3F);
-				}
-    			}
-  		}
-  		return output;
-	};
+  /*
+   * Convert a raw string to a base-64 string
+   */
+  var rstr2b64 = function (input) {
+    //try { b64pad } catch(e) { b64pad=''; }
+    var tab = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/";
+    var output = "";
+    var len = input.length;
+    for (var i = 0; i < len; i += 3) {
+      var triplet = (input.charCodeAt(i) << 16) |
+        (i + 1 < len ? input.charCodeAt(i + 1) << 8 : 0) |
+        (i + 2 < len ? input.charCodeAt(i + 2) : 0);
+      for (var j = 0; j < 4; j++) {
+        if (i * 8 + j * 6 > input.length * 8) {
+          output += b64pad;
+        } else {
+          output += tab.charAt((triplet >>> 6 * (3 - j)) & 0x3F);
+        }
+      }
+    }
+    return output;
+  };
 
-	/*
- 	 * Convert a raw string to an arbitrary string encoding
- 	 */
-	var rstr2any = function (input, encoding)
-	{
-  		var divisor = encoding.length;
-  		var i, j, q, x, quotient;
+  /*
+   * Convert a raw string to an arbitrary string encoding
+   */
+  var rstr2any = function (input, encoding) {
+    var divisor = encoding.length;
+    var i, j, q, x, quotient;
 
-  		/* Convert to an array of 16-bit big-endian values, forming the dividend */
-  		var dividend = Array(Math.ceil(input.length / 2));
-  		for(i = 0; i < dividend.length; i++)
-  		{
-    			dividend[i] = (input.charCodeAt(i * 2) << 8) | input.charCodeAt(i * 2 + 1);
-  		}
+    /* Convert to an array of 16-bit big-endian values, forming the dividend */
+    var dividend = Array(Math.ceil(input.length / 2));
+    for (i = 0; i < dividend.length; i++) {
+      dividend[i] = (input.charCodeAt(i * 2) << 8) | input.charCodeAt(i * 2 + 1);
+    }
 
-  		/*
-   		 * Repeatedly perform a long division. The binary array forms the dividend,
-   		 * the length of the encoding is the divisor. Once computed, the quotient
-   		 * forms the dividend for the next step. All remainders are stored for later
-   		 * use.
-   		 */
-  		var full_length = Math.ceil(input.length * 8 /
-                                (Math.log(encoding.length) / Math.log(2)));
-  		var remainders = Array(full_length);
-  		for(j = 0; j < full_length; j++)
-  		{
-    			quotient = Array();
-    			x = 0;
-    			for(i = 0; i < dividend.length; i++)
-    			{
-      				x = (x << 16) + dividend[i];
-      				q = Math.floor(x / divisor);
-      				x -= q * divisor;
-      				if(quotient.length > 0 || q > 0){
-        				quotient[quotient.length] = q;
-				}
-    			}
-    			remainders[j] = x;
-    			dividend = quotient;
-  		}
+    /*
+     * Repeatedly perform a long division. The binary array forms the dividend,
+     * the length of the encoding is the divisor. Once computed, the quotient
+     * forms the dividend for the next step. All remainders are stored for later
+     * use.
+     */
+    var full_length = Math.ceil(input.length * 8 /
+      (Math.log(encoding.length) / Math.log(2)));
+    var remainders = Array(full_length);
+    for (j = 0; j < full_length; j++) {
+      quotient = Array();
+      x = 0;
+      for (i = 0; i < dividend.length; i++) {
+        x = (x << 16) + dividend[i];
+        q = Math.floor(x / divisor);
+        x -= q * divisor;
+        if (quotient.length > 0 || q > 0) {
+          quotient[quotient.length] = q;
+        }
+      }
+      remainders[j] = x;
+      dividend = quotient;
+    }
 
-  		/* Convert the remainders to the output string */
-  		var output = "";
-  		for(i = remainders.length - 1; i >= 0; i--){
-    			output += encoding.charAt(remainders[i]);
-		}
-  		return output;
-	};
-	
-	/*
- 	 * Encode a string as utf-8.
- 	 * For efficiency, this assumes the input is valid utf-16.
- 	 */
-	var str2rstr_utf8 = function (input)
-	{
-  		var output = "";
-  		var i = -1;
-  		var x, y;
+    /* Convert the remainders to the output string */
+    var output = "";
+    for (i = remainders.length - 1; i >= 0; i--) {
+      output += encoding.charAt(remainders[i]);
+    }
+    return output;
+  };
 
-  		while(++i < input.length)
-  		{
-    			/* Decode utf-16 surrogate pairs */
-    			x = input.charCodeAt(i);
-    			y = i + 1 < input.length ? input.charCodeAt(i + 1) : 0;
-    			if(0xD800 <= x && x <= 0xDBFF && 0xDC00 <= y && y <= 0xDFFF)
-    			{
-      				x = 0x10000 + ((x & 0x03FF) << 10) + (y & 0x03FF);
-      				i++;
-    			}
+  /*
+   * Encode a string as utf-8.
+   * For efficiency, this assumes the input is valid utf-16.
+   */
+  var str2rstr_utf8 = function (input) {
+    var output = "";
+    var i = -1;
+    var x, y;
 
-    			/* Encode output as utf-8 */
-    			if(x <= 0x7F){
-      				output += String.fromCharCode(x);
-    			}else if(x <= 0x7FF){
-      				output += String.fromCharCode(0xC0 | ((x >>> 6 ) & 0x1F),
-                                    		0x80 | ( x         & 0x3F));
-    			}else if(x <= 0xFFFF){
-      				output += String.fromCharCode(0xE0 | ((x >>> 12) & 0x0F),
-                                    		0x80 | ((x >>> 6 ) & 0x3F),
-                                    		0x80 | ( x         & 0x3F));
-    			}else if(x <= 0x1FFFFF){
-      				output += String.fromCharCode(0xF0 | ((x >>> 18) & 0x07),
-                                    		0x80 | ((x >>> 12) & 0x3F),
-                                    		0x80 | ((x >>> 6 ) & 0x3F),
-                                    		0x80 | ( x         & 0x3F));
-			}
-  		}
-  		return output;
-	};
+    while (++i < input.length) {
+      /* Decode utf-16 surrogate pairs */
+      x = input.charCodeAt(i);
+      y = i + 1 < input.length ? input.charCodeAt(i + 1) : 0;
+      if (0xD800 <= x && x <= 0xDBFF && 0xDC00 <= y && y <= 0xDFFF) {
+        x = 0x10000 + ((x & 0x03FF) << 10) + (y & 0x03FF);
+        i++;
+      }
 
-	/*
- 	 * Encode a string as utf-16
- 	 */
-	var str2rstr_utf16le = function (input)
-	{
-  		var output = "";
-  		for(var i = 0; i < input.length; i++){
-    			output += String.fromCharCode( input.charCodeAt(i)        & 0xFF,
-                                  	(input.charCodeAt(i) >>> 8) & 0xFF);
-		}
-  		return output;
-	};
+      /* Encode output as utf-8 */
+      if (x <= 0x7F) {
+        output += String.fromCharCode(x);
+      } else if (x <= 0x7FF) {
+        output += String.fromCharCode(0xC0 | ((x >>> 6) & 0x1F),
+          0x80 | (x & 0x3F));
+      } else if (x <= 0xFFFF) {
+        output += String.fromCharCode(0xE0 | ((x >>> 12) & 0x0F),
+          0x80 | ((x >>> 6) & 0x3F),
+          0x80 | (x & 0x3F));
+      } else if (x <= 0x1FFFFF) {
+        output += String.fromCharCode(0xF0 | ((x >>> 18) & 0x07),
+          0x80 | ((x >>> 12) & 0x3F),
+          0x80 | ((x >>> 6) & 0x3F),
+          0x80 | (x & 0x3F));
+      }
+    }
+    return output;
+  };
 
-	var str2rstr_utf16be = function (input)
-	{
-  		var output = "";
-  		for(var i = 0; i < input.length; i++){
-    			output += String.fromCharCode((input.charCodeAt(i) >>> 8) & 0xFF,
-                                   	input.charCodeAt(i)        & 0xFF);
-		}
-  		return output;
-	};
+  /*
+   * Encode a string as utf-16
+   */
+  var str2rstr_utf16le = function (input) {
+    var output = "";
+    for (var i = 0; i < input.length; i++) {
+      output += String.fromCharCode(input.charCodeAt(i) & 0xFF,
+        (input.charCodeAt(i) >>> 8) & 0xFF);
+    }
+    return output;
+  };
 
-	/*
- 	 * Convert a raw string to an array of little-endian words
- 	 * Characters >255 have their high-byte silently ignored.
- 	 */
-	var rstr2binl = function (input)
-	{
-  		var output = Array(input.length >> 2);
-  		for(var i = 0; i < output.length; i++){
-    			output[i] = 0;
-		}
-  		for(var i = 0; i < input.length * 8; i += 8){
-    			output[i>>5] |= (input.charCodeAt(i / 8) & 0xFF) << (i%32);
-		}
-  		return output;
-	};
+  var str2rstr_utf16be = function (input) {
+    var output = "";
+    for (var i = 0; i < input.length; i++) {
+      output += String.fromCharCode((input.charCodeAt(i) >>> 8) & 0xFF,
+        input.charCodeAt(i) & 0xFF);
+    }
+    return output;
+  };
 
-	/*
- 	 * Convert an array of little-endian words to a string
- 	 */
-	var binl2rstr = function (input)
-	{
-  		var output = "";
-  		for(var i = 0; i < input.length * 32; i += 8){
-    			output += String.fromCharCode((input[i>>5] >>> (i % 32)) & 0xFF);
-		}
-  		return output;
-	};
+  /*
+   * Convert a raw string to an array of little-endian words
+   * Characters >255 have their high-byte silently ignored.
+   */
+  var rstr2binl = function (input) {
+    var output = Array(input.length >> 2);
+    for (var i = 0; i < output.length; i++) {
+      output[i] = 0;
+    }
+    for (var i = 0; i < input.length * 8; i += 8) {
+      output[i >> 5] |= (input.charCodeAt(i / 8) & 0xFF) << (i % 32);
+    }
+    return output;
+  };
 
-	/*
- 	 * Calculate the MD5 of an array of little-endian words, and a bit length.
- 	 */
-	var binl_md5 = function (x, len)
-	{
-  		/* append padding */
-  		x[len >> 5] |= 0x80 << ((len) % 32);
-  		x[(((len + 64) >>> 9) << 4) + 14] = len;
+  /*
+   * Convert an array of little-endian words to a string
+   */
+  var binl2rstr = function (input) {
+    var output = "";
+    for (var i = 0; i < input.length * 32; i += 8) {
+      output += String.fromCharCode((input[i >> 5] >>> (i % 32)) & 0xFF);
+    }
+    return output;
+  };
 
-  		var a =  1732584193;
-  		var b = -271733879;
-  		var c = -1732584194;
-  		var d =  271733878;
+  /*
+   * Calculate the MD5 of an array of little-endian words, and a bit length.
+   */
+  var binl_md5 = function (x, len) {
+    /* append padding */
+    x[len >> 5] |= 0x80 << ((len) % 32);
+    x[(((len + 64) >>> 9) << 4) + 14] = len;
 
-  		for(var i = 0; i < x.length; i += 16)
-  		{
-    			var olda = a;
-    			var oldb = b;
-    			var oldc = c;
-    			var oldd = d;
+    var a = 1732584193;
+    var b = -271733879;
+    var c = -1732584194;
+    var d = 271733878;
 
-    			a = md5_ff(a, b, c, d, x[i+ 0], 7 , -680876936);
-    			d = md5_ff(d, a, b, c, x[i+ 1], 12, -389564586);
-    			c = md5_ff(c, d, a, b, x[i+ 2], 17,  606105819);
-    			b = md5_ff(b, c, d, a, x[i+ 3], 22, -1044525330);
-    			a = md5_ff(a, b, c, d, x[i+ 4], 7 , -176418897);
-    			d = md5_ff(d, a, b, c, x[i+ 5], 12,  1200080426);
-    			c = md5_ff(c, d, a, b, x[i+ 6], 17, -1473231341);
-    			b = md5_ff(b, c, d, a, x[i+ 7], 22, -45705983);
-    			a = md5_ff(a, b, c, d, x[i+ 8], 7 ,  1770035416);
-    			d = md5_ff(d, a, b, c, x[i+ 9], 12, -1958414417);
-    			c = md5_ff(c, d, a, b, x[i+10], 17, -42063);
-    			b = md5_ff(b, c, d, a, x[i+11], 22, -1990404162);
-    			a = md5_ff(a, b, c, d, x[i+12], 7 ,  1804603682);
-    			d = md5_ff(d, a, b, c, x[i+13], 12, -40341101);
-    			c = md5_ff(c, d, a, b, x[i+14], 17, -1502002290);
-    			b = md5_ff(b, c, d, a, x[i+15], 22,  1236535329);
+    for (var i = 0; i < x.length; i += 16) {
+      var olda = a;
+      var oldb = b;
+      var oldc = c;
+      var oldd = d;
 
-    			a = md5_gg(a, b, c, d, x[i+ 1], 5 , -165796510);
-    			d = md5_gg(d, a, b, c, x[i+ 6], 9 , -1069501632);
-    			c = md5_gg(c, d, a, b, x[i+11], 14,  643717713);
-    			b = md5_gg(b, c, d, a, x[i+ 0], 20, -373897302);
-    			a = md5_gg(a, b, c, d, x[i+ 5], 5 , -701558691);
-    			d = md5_gg(d, a, b, c, x[i+10], 9 ,  38016083);
-    			c = md5_gg(c, d, a, b, x[i+15], 14, -660478335);
-    			b = md5_gg(b, c, d, a, x[i+ 4], 20, -405537848);
-    			a = md5_gg(a, b, c, d, x[i+ 9], 5 ,  568446438);
-    			d = md5_gg(d, a, b, c, x[i+14], 9 , -1019803690);
-    			c = md5_gg(c, d, a, b, x[i+ 3], 14, -187363961);
-    			b = md5_gg(b, c, d, a, x[i+ 8], 20,  1163531501);
-    			a = md5_gg(a, b, c, d, x[i+13], 5 , -1444681467);
-    			d = md5_gg(d, a, b, c, x[i+ 2], 9 , -51403784);
-    			c = md5_gg(c, d, a, b, x[i+ 7], 14,  1735328473);
-    			b = md5_gg(b, c, d, a, x[i+12], 20, -1926607734);
+      a = md5_ff(a, b, c, d, x[i + 0], 7, -680876936);
+      d = md5_ff(d, a, b, c, x[i + 1], 12, -389564586);
+      c = md5_ff(c, d, a, b, x[i + 2], 17, 606105819);
+      b = md5_ff(b, c, d, a, x[i + 3], 22, -1044525330);
+      a = md5_ff(a, b, c, d, x[i + 4], 7, -176418897);
+      d = md5_ff(d, a, b, c, x[i + 5], 12, 1200080426);
+      c = md5_ff(c, d, a, b, x[i + 6], 17, -1473231341);
+      b = md5_ff(b, c, d, a, x[i + 7], 22, -45705983);
+      a = md5_ff(a, b, c, d, x[i + 8], 7, 1770035416);
+      d = md5_ff(d, a, b, c, x[i + 9], 12, -1958414417);
+      c = md5_ff(c, d, a, b, x[i + 10], 17, -42063);
+      b = md5_ff(b, c, d, a, x[i + 11], 22, -1990404162);
+      a = md5_ff(a, b, c, d, x[i + 12], 7, 1804603682);
+      d = md5_ff(d, a, b, c, x[i + 13], 12, -40341101);
+      c = md5_ff(c, d, a, b, x[i + 14], 17, -1502002290);
+      b = md5_ff(b, c, d, a, x[i + 15], 22, 1236535329);
 
-    			a = md5_hh(a, b, c, d, x[i+ 5], 4 , -378558);
-    			d = md5_hh(d, a, b, c, x[i+ 8], 11, -2022574463);
-    			c = md5_hh(c, d, a, b, x[i+11], 16,  1839030562);
-    			b = md5_hh(b, c, d, a, x[i+14], 23, -35309556);
-    			a = md5_hh(a, b, c, d, x[i+ 1], 4 , -1530992060);
-    			d = md5_hh(d, a, b, c, x[i+ 4], 11,  1272893353);
-    			c = md5_hh(c, d, a, b, x[i+ 7], 16, -155497632);
-    			b = md5_hh(b, c, d, a, x[i+10], 23, -1094730640);
-    			a = md5_hh(a, b, c, d, x[i+13], 4 ,  681279174);
-    			d = md5_hh(d, a, b, c, x[i+ 0], 11, -358537222);
-    			c = md5_hh(c, d, a, b, x[i+ 3], 16, -722521979);
-    			b = md5_hh(b, c, d, a, x[i+ 6], 23,  76029189);
-    			a = md5_hh(a, b, c, d, x[i+ 9], 4 , -640364487);
-    			d = md5_hh(d, a, b, c, x[i+12], 11, -421815835);
-    			c = md5_hh(c, d, a, b, x[i+15], 16,  530742520);
-    			b = md5_hh(b, c, d, a, x[i+ 2], 23, -995338651);
+      a = md5_gg(a, b, c, d, x[i + 1], 5, -165796510);
+      d = md5_gg(d, a, b, c, x[i + 6], 9, -1069501632);
+      c = md5_gg(c, d, a, b, x[i + 11], 14, 643717713);
+      b = md5_gg(b, c, d, a, x[i + 0], 20, -373897302);
+      a = md5_gg(a, b, c, d, x[i + 5], 5, -701558691);
+      d = md5_gg(d, a, b, c, x[i + 10], 9, 38016083);
+      c = md5_gg(c, d, a, b, x[i + 15], 14, -660478335);
+      b = md5_gg(b, c, d, a, x[i + 4], 20, -405537848);
+      a = md5_gg(a, b, c, d, x[i + 9], 5, 568446438);
+      d = md5_gg(d, a, b, c, x[i + 14], 9, -1019803690);
+      c = md5_gg(c, d, a, b, x[i + 3], 14, -187363961);
+      b = md5_gg(b, c, d, a, x[i + 8], 20, 1163531501);
+      a = md5_gg(a, b, c, d, x[i + 13], 5, -1444681467);
+      d = md5_gg(d, a, b, c, x[i + 2], 9, -51403784);
+      c = md5_gg(c, d, a, b, x[i + 7], 14, 1735328473);
+      b = md5_gg(b, c, d, a, x[i + 12], 20, -1926607734);
 
-    			a = md5_ii(a, b, c, d, x[i+ 0], 6 , -198630844);
-    			d = md5_ii(d, a, b, c, x[i+ 7], 10,  1126891415);
-    			c = md5_ii(c, d, a, b, x[i+14], 15, -1416354905);
-    			b = md5_ii(b, c, d, a, x[i+ 5], 21, -57434055);
-    			a = md5_ii(a, b, c, d, x[i+12], 6 ,  1700485571);
-    			d = md5_ii(d, a, b, c, x[i+ 3], 10, -1894986606);
-    			c = md5_ii(c, d, a, b, x[i+10], 15, -1051523);
-    			b = md5_ii(b, c, d, a, x[i+ 1], 21, -2054922799);
-    			a = md5_ii(a, b, c, d, x[i+ 8], 6 ,  1873313359);
-    			d = md5_ii(d, a, b, c, x[i+15], 10, -30611744);
-    			c = md5_ii(c, d, a, b, x[i+ 6], 15, -1560198380);
-    			b = md5_ii(b, c, d, a, x[i+13], 21,  1309151649);
-    			a = md5_ii(a, b, c, d, x[i+ 4], 6 , -145523070);
-    			d = md5_ii(d, a, b, c, x[i+11], 10, -1120210379);
-    			c = md5_ii(c, d, a, b, x[i+ 2], 15,  718787259);
-    			b = md5_ii(b, c, d, a, x[i+ 9], 21, -343485551);
+      a = md5_hh(a, b, c, d, x[i + 5], 4, -378558);
+      d = md5_hh(d, a, b, c, x[i + 8], 11, -2022574463);
+      c = md5_hh(c, d, a, b, x[i + 11], 16, 1839030562);
+      b = md5_hh(b, c, d, a, x[i + 14], 23, -35309556);
+      a = md5_hh(a, b, c, d, x[i + 1], 4, -1530992060);
+      d = md5_hh(d, a, b, c, x[i + 4], 11, 1272893353);
+      c = md5_hh(c, d, a, b, x[i + 7], 16, -155497632);
+      b = md5_hh(b, c, d, a, x[i + 10], 23, -1094730640);
+      a = md5_hh(a, b, c, d, x[i + 13], 4, 681279174);
+      d = md5_hh(d, a, b, c, x[i + 0], 11, -358537222);
+      c = md5_hh(c, d, a, b, x[i + 3], 16, -722521979);
+      b = md5_hh(b, c, d, a, x[i + 6], 23, 76029189);
+      a = md5_hh(a, b, c, d, x[i + 9], 4, -640364487);
+      d = md5_hh(d, a, b, c, x[i + 12], 11, -421815835);
+      c = md5_hh(c, d, a, b, x[i + 15], 16, 530742520);
+      b = md5_hh(b, c, d, a, x[i + 2], 23, -995338651);
 
-    			a = safe_add(a, olda);
-    			b = safe_add(b, oldb);
-    			c = safe_add(c, oldc);
-    			d = safe_add(d, oldd);
-  		}
-  		return Array(a, b, c, d);
-	};
+      a = md5_ii(a, b, c, d, x[i + 0], 6, -198630844);
+      d = md5_ii(d, a, b, c, x[i + 7], 10, 1126891415);
+      c = md5_ii(c, d, a, b, x[i + 14], 15, -1416354905);
+      b = md5_ii(b, c, d, a, x[i + 5], 21, -57434055);
+      a = md5_ii(a, b, c, d, x[i + 12], 6, 1700485571);
+      d = md5_ii(d, a, b, c, x[i + 3], 10, -1894986606);
+      c = md5_ii(c, d, a, b, x[i + 10], 15, -1051523);
+      b = md5_ii(b, c, d, a, x[i + 1], 21, -2054922799);
+      a = md5_ii(a, b, c, d, x[i + 8], 6, 1873313359);
+      d = md5_ii(d, a, b, c, x[i + 15], 10, -30611744);
+      c = md5_ii(c, d, a, b, x[i + 6], 15, -1560198380);
+      b = md5_ii(b, c, d, a, x[i + 13], 21, 1309151649);
+      a = md5_ii(a, b, c, d, x[i + 4], 6, -145523070);
+      d = md5_ii(d, a, b, c, x[i + 11], 10, -1120210379);
+      c = md5_ii(c, d, a, b, x[i + 2], 15, 718787259);
+      b = md5_ii(b, c, d, a, x[i + 9], 21, -343485551);
 
-	/*
- 	 * These functions implement the four basic operations the algorithm uses.
- 	 */
-	var md5_cmn = function (q, a, b, x, s, t)
-	{
-  		return safe_add(bit_rol(safe_add(safe_add(a, q), safe_add(x, t)), s),b);
-	};
-	var md5_ff = function (a, b, c, d, x, s, t)
-	{
-  		return md5_cmn((b & c) | ((~b) & d), a, b, x, s, t);
-	};
-	var md5_gg = function (a, b, c, d, x, s, t)
-	{
-  		return md5_cmn((b & d) | (c & (~d)), a, b, x, s, t);
-	};
-	var md5_hh = function (a, b, c, d, x, s, t)
-	{
-  		return md5_cmn(b ^ c ^ d, a, b, x, s, t);
-	};
-	var md5_ii = function (a, b, c, d, x, s, t)
-	{
-  		return md5_cmn(c ^ (b | (~d)), a, b, x, s, t);
-	};
+      a = safe_add(a, olda);
+      b = safe_add(b, oldb);
+      c = safe_add(c, oldc);
+      d = safe_add(d, oldd);
+    }
+    return Array(a, b, c, d);
+  };
 
-	/*
- 	 * Add integers, wrapping at 2^32. This uses 16-bit operations internally
- 	 * to work around bugs in some JS interpreters.
- 	 */
-	var safe_add = function (x, y)
-	{
-  		var lsw = (x & 0xFFFF) + (y & 0xFFFF);
-  		var msw = (x >> 16) + (y >> 16) + (lsw >> 16);
-  		return (msw << 16) | (lsw & 0xFFFF);
-	};
+  /*
+   * These functions implement the four basic operations the algorithm uses.
+   */
+  var md5_cmn = function (q, a, b, x, s, t) {
+    return safe_add(bit_rol(safe_add(safe_add(a, q), safe_add(x, t)), s), b);
+  };
+  var md5_ff = function (a, b, c, d, x, s, t) {
+    return md5_cmn((b & c) | ((~b) & d), a, b, x, s, t);
+  };
+  var md5_gg = function (a, b, c, d, x, s, t) {
+    return md5_cmn((b & d) | (c & (~d)), a, b, x, s, t);
+  };
+  var md5_hh = function (a, b, c, d, x, s, t) {
+    return md5_cmn(b ^ c ^ d, a, b, x, s, t);
+  };
+  var md5_ii = function (a, b, c, d, x, s, t) {
+    return md5_cmn(c ^ (b | (~d)), a, b, x, s, t);
+  };
 
-	/*
- 	 * Bitwise rotate a 32-bit number to the left.
- 	 */
-	var bit_rol = function (num, cnt)
-	{
-  		return (num << cnt) | (num >>> (32 - cnt));
-	};
+  /*
+   * Add integers, wrapping at 2^32. This uses 16-bit operations internally
+   * to work around bugs in some JS interpreters.
+   */
+  var safe_add = function (x, y) {
+    var lsw = (x & 0xFFFF) + (y & 0xFFFF);
+    var msw = (x >> 16) + (y >> 16) + (lsw >> 16);
+    return (msw << 16) | (lsw & 0xFFFF);
+  };
 
-	stage.crypto.md5 = {
- 		hex_md5:function(s){ 
-			return rstr2hex(rstr_md5(str2rstr_utf8(s)));
-		},
-		hex_md5_noUTF8:function(s){ 
-			return rstr2hex(rstr_md5(s)); 
-		},
-		str_md5:function(s){ 
-			return rstr_md5(str2rstr_utf8(s)); 
-		},
- 		b64_md5:function(s){ 
-			return rstr2b64(rstr_md5(str2rstr_utf8(s)));
-		},
- 		any_md5:function(s, e){
-			return rstr2any(rstr_md5(str2rstr_utf8(s)), e); 
-		},
- 		hex_hmac_md5:function(k, d){
-			return rstr2hex(rstr_hmac_md5(str2rstr_utf8(k), str2rstr_utf8(d))); 
-		},
-		str_hmac_md5:function(k, d){
-			return rstr_hmac_md5(str2rstr_utf8(k), str2rstr_utf8(d)); 
-		},
- 		b64_hmac_md5:function(k, d){
-			return rstr2b64(rstr_hmac_md5(str2rstr_utf8(k), str2rstr_utf8(d)));
-		},
- 		any_hmac_md5:function(k, d, e){ 
-			return rstr2any(rstr_hmac_md5(str2rstr_utf8(k), str2rstr_utf8(d)), e);
-		}
-	};
-	return stage.crypto.md5 ; 
+  /*
+   * Bitwise rotate a 32-bit number to the left.
+   */
+  var bit_rol = function (num, cnt) {
+    return (num << cnt) | (num >>> (32 - cnt));
+  };
+
+  stage.crypto.md5 = {
+    hex_md5: function (s) {
+      return rstr2hex(rstr_md5(str2rstr_utf8(s)));
+    },
+    hex_md5_noUTF8: function (s) {
+      return rstr2hex(rstr_md5(s));
+    },
+    str_md5: function (s) {
+      return rstr_md5(str2rstr_utf8(s));
+    },
+    b64_md5: function (s) {
+      return rstr2b64(rstr_md5(str2rstr_utf8(s)));
+    },
+    any_md5: function (s, e) {
+      return rstr2any(rstr_md5(str2rstr_utf8(s)), e);
+    },
+    hex_hmac_md5: function (k, d) {
+      return rstr2hex(rstr_hmac_md5(str2rstr_utf8(k), str2rstr_utf8(d)));
+    },
+    str_hmac_md5: function (k, d) {
+      return rstr_hmac_md5(str2rstr_utf8(k), str2rstr_utf8(d));
+    },
+    b64_hmac_md5: function (k, d) {
+      return rstr2b64(rstr_hmac_md5(str2rstr_utf8(k), str2rstr_utf8(d)));
+    },
+    any_hmac_md5: function (k, d, e) {
+      return rstr2any(rstr_hmac_md5(str2rstr_utf8(k), str2rstr_utf8(d)), e);
+    }
+  };
+  return stage.crypto.md5;
 };
 
-
-
 /***/ }),
-/* 31 */
+/* 30 */
 /***/ (function(module, exports, __webpack_require__) {
 
 /* WEBPACK VAR INJECTION */(function($) {module.exports =  function(stage){
@@ -21980,7 +21932,7 @@ module.exports =  function(stage){
 /* WEBPACK VAR INJECTION */}.call(exports, __webpack_require__(0)))
 
 /***/ }),
-/* 32 */
+/* 31 */
 /***/ (function(module, exports) {
 
 module.exports =  function(stage){
@@ -22169,7 +22121,7 @@ module.exports =  function(stage){
 
 
 /***/ }),
-/* 33 */
+/* 32 */
 /***/ (function(module, exports) {
 
 module.exports =  function(stage){
@@ -22248,7 +22200,7 @@ module.exports =  function(stage){
 
 
 /***/ }),
-/* 34 */
+/* 33 */
 /***/ (function(module, exports) {
 
 module.exports =  function(stage){
@@ -22316,7 +22268,7 @@ module.exports =  function(stage){
 
 
 /***/ }),
-/* 35 */
+/* 34 */
 /***/ (function(module, exports) {
 
 module.exports =  function(stage){
@@ -22367,7 +22319,7 @@ module.exports =  function(stage){
 
 
 /***/ }),
-/* 36 */
+/* 35 */
 /***/ (function(module, exports, __webpack_require__) {
 
 /* WEBPACK VAR INJECTION */(function(jQuery) {module.exports =  function(stage){
@@ -22537,7 +22489,7 @@ module.exports =  function(stage){
 /* WEBPACK VAR INJECTION */}.call(exports, __webpack_require__(0)))
 
 /***/ }),
-/* 37 */
+/* 36 */
 /***/ (function(module, exports, __webpack_require__) {
 
 /* WEBPACK VAR INJECTION */(function(jQuery) {module.exports =  function(stage){
@@ -22610,7 +22562,7 @@ module.exports =  function(stage){
 /* WEBPACK VAR INJECTION */}.call(exports, __webpack_require__(0)))
 
 /***/ }),
-/* 38 */
+/* 37 */
 /***/ (function(module, exports, __webpack_require__) {
 
 /* WEBPACK VAR INJECTION */(function($) {module.exports =  function(stage){
@@ -22886,7 +22838,7 @@ module.exports =  function(stage){
 /* WEBPACK VAR INJECTION */}.call(exports, __webpack_require__(0)))
 
 /***/ }),
-/* 39 */
+/* 38 */
 /***/ (function(module, exports) {
 
 module.exports =  function(stage){
@@ -23495,7 +23447,7 @@ module.exports =  function(stage){
 
 
 /***/ }),
-/* 40 */
+/* 39 */
 /***/ (function(module, exports, __webpack_require__) {
 
 /* WEBPACK VAR INJECTION */(function($) {module.exports = function (stage) {
@@ -25313,7 +25265,7 @@ module.exports =  function(stage){
 /* WEBPACK VAR INJECTION */}.call(exports, __webpack_require__(0)))
 
 /***/ }),
-/* 41 */
+/* 40 */
 /***/ (function(module, exports, __webpack_require__) {
 
 /* WEBPACK VAR INJECTION */(function($) {module.exports =  function(stage){
@@ -25579,232 +25531,28 @@ module.exports =  function(stage){
 /* WEBPACK VAR INJECTION */}.call(exports, __webpack_require__(0)))
 
 /***/ }),
-/* 42 */
+/* 41 */
 /***/ (function(module, exports, __webpack_require__) {
 
-const Adapter = __webpack_require__(7);
-module.exports = function (stage) {
+"use strict";
+/* WEBPACK VAR INJECTION */(function(global) {/*
+ *  Copyright (c) 2016 The WebRTC project authors. All Rights Reserved.
+ *
+ *  Use of this source code is governed by a BSD-style license
+ *  that can be found in the LICENSE file in the root of the source
+ *  tree.
+ */
+ /* eslint-env node */
 
-  'use strict';
 
-  // UDPATER
-  let mediaStream = null;
-  let getMediaStream = null;
 
-  const updaterMedia = function () {
-    // MediaStream	API
-    try {
-      if (stage.browser.Webkit) {
+var adapterFactory = __webpack_require__(42);
+module.exports = adapterFactory({window: global.window});
 
-        getMediaStream = function (stream) {
-          return URL.createObjectURL(stream);
-        };
-
-        mediaStream = webkitMediaStream;
-        // The representation of tracks in a stream is changed in M26.
-        // Unify them for earlier Chrome versions in the coexisting period.
-        if (!webkitMediaStream.prototype.getVideoTracks) {
-          webkitMediaStream.prototype.getVideoTracks = function () {
-            return this.videoTracks;
-          };
-          webkitMediaStream.prototype.getAudioTracks = function () {
-            return this.audioTracks;
-          };
-        }
-        return true;
-      }
-      if (stage.browser.Gecko) {
-
-        getMediaStream = function (stream) {
-          return window.URL.createObjectURL(stream);
-        };
-
-        mediaStream = MediaStream;
-        // Fake get{Video,Audio}Tracks
-        if (!MediaStream.prototype.getVideoTracks) {
-          MediaStream.prototype.getVideoTracks = function () {
-            return [];
-          };
-        }
-        if (!MediaStream.prototype.getAudioTracks) {
-          MediaStream.prototype.getAudioTracks = function () {
-            return [];
-          };
-        }
-        return true;
-      }
-      if (stage.browser.Opera) {
-        //getUserMedia = navigator.getUserMedia ;
-        getMediaStream = function (stream) {
-          return stream;
-        };
-        // Fake get{Video,Audio}Tracks
-        if (!MediaStream.prototype.getVideoTracks) {
-          MediaStream.prototype.getVideoTracks = function () {
-            return [];
-          };
-        }
-        if (!MediaStream.prototype.getAudioTracks) {
-          MediaStream.prototype.getAudioTracks = function () {
-            return [];
-          };
-        }
-        return true;
-      }
-      console.error("Browser does not appear to be mediaStream-capable");
-    } catch (e) {
-      console.error(e);
-    }
-  }();
-
-  /*
-   *	MEDIA STREAM
-   *
-   *
-   *
-   *
-   */
-  const defaultSettingsStream = {
-    audio: true,
-    video: true
-  };
-
-  /*var attachMediaStream = function(){
-		if (stage.browser.Webkit || stage.browser.Opera){
-			return function(element){
-				// Attach a media stream to an element.
-				this.mediaElement = element;
-				this.mediaElement.srcObject = this.stream ;
-				//element.src = this.getMediaStream(this.stream);
-				this.mediaElement.play();
-			}
-		}
-		if (stage.browser.Gecko){
-			return function(element){
-				// Attach a media stream to an element.
-				this.mediaElement = element;
-				this.mediaElement.srcObject = this.stream ;
-				//element.mozSrcObject = this.stream;
-				this.mediaElement.play();
-			}
-		}
-  	}();*/
-
-  //FIXME
-  /*var reattachMediaStream = function (){
-		if (stage.browser.Webkit){
-			return function(to){
-				// reattach a media stream to an element.
-				this.mediaElement.src = this.getMediaStream(this.stream);
-				//to.src = this.mediaElement.src;
-				this.mediaElement.play()
-				//this.mediaElement = to;
-			}
-		}
-		if (stage.browser.Gecko){
-			return function(to){
-				// reattach a media stream to an element.
-				to.mozSrcObject = this.mediaElement.mozSrcObject;
-				to.play();
-				this.mediaElement = to;
-			}
-		}
-  	}();*/
-
-  const MediaStream = class mediaStream {
-
-    constructor(mediaElement, settings) {
-      this.settings = stage.extend({}, defaultSettingsStream, settings);
-      this.notificationsCenter = stage.notificationsCenter.create(this.settings, this);
-      this.urlStream = null;
-      this.stream = this.settings.stream ? this.setStream(this.settings.stream) : null;
-      this.mediaElement = mediaElement ? mediaElement : null;
-      this.getMediaStream = getMediaStream;
-    }
-
-    getUserMedia(settings, success, error) {
-
-      if (settings) {
-        this.settings = stage.extend({}, defaultSettingsStream, settings);
-        this.notificationsCenter.settingsToListen(settings);
-      }
-      return navigator.getUserMedia({
-          video: this.settings.video,
-          audio: this.settings.audio
-        },
-        (stream) => {
-          this.setStream(stream);
-          if (success) {
-            success(this);
-          }
-          this.notificationsCenter.fire("onSucces", stream, this);
-        },
-        (e) => {
-          if (error) {
-            error(e);
-          }
-          this.notificationsCenter.listen(this, "onError");
-        }
-      );
-    }
-
-    setStream(stream) {
-      this.stream = stream;
-      this.urlStream = this.getMediaStream(stream);
-      this.videotracks = this.getVideoTracks();
-      this.audiotracks = this.getAudioTracks();
-      return stream;
-    }
-
-    stop() {
-      if (this.stream) {
-        this.stream.stop();
-      }
-    }
-
-    attachMediaStream(element) {
-      this.mediaElement = element;
-      this.mediaElement.srcObject = this.stream;
-      //element.mozSrcObject = this.stream;
-      this.mediaElement.play();
-    }
-
-    reattachMediaStream(stream) {
-      this.stream = stream;
-      this.attachMediaStream(this.mediaElement);
-    }
-
-    getVideoTracks() {
-      return this.stream.getVideoTracks();
-    }
-
-    getAudioTracks() {
-      return this.stream.getAudioTracks();
-    }
-
-    /*startRecording (stream){
-    	var mediaStreamSource = this.audioContext.createMediaStreamSource(stream);
-    	console.log(mediaStreamSource);
-    	mediaStreamSource.connect(this.audioContext.destination);
-    	this.recorder = new Recorder(mediaStreamSource);
-    }
-    stopRecording (){
-    	this.recorder.stop();
-    	this.recorder.exportWAV((stream) => {
-    		this.recordSource = window.URL.createObjectURL(stream);
-    	});
-    }*/
-  };
-
-  stage.extend(stage.media, {
-    mediaStream: MediaStream,
-  });
-
-  return stage.media;
-};
+/* WEBPACK VAR INJECTION */}.call(exports, __webpack_require__(3)))
 
 /***/ }),
-/* 43 */
+/* 42 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
@@ -25856,11 +25604,11 @@ module.exports = function(dependencies, opts) {
   // require('./utils').disableLog(false);
 
   // Browser shims.
-  var chromeShim = __webpack_require__(44) || null;
-  var edgeShim = __webpack_require__(46) || null;
-  var firefoxShim = __webpack_require__(50) || null;
-  var safariShim = __webpack_require__(52) || null;
-  var commonShim = __webpack_require__(53) || null;
+  var chromeShim = __webpack_require__(43) || null;
+  var edgeShim = __webpack_require__(45) || null;
+  var firefoxShim = __webpack_require__(49) || null;
+  var safariShim = __webpack_require__(51) || null;
+  var commonShim = __webpack_require__(52) || null;
 
   // Shim browser if found.
   switch (browserDetails.browser) {
@@ -25950,7 +25698,7 @@ module.exports = function(dependencies, opts) {
 
 
 /***/ }),
-/* 44 */
+/* 43 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
@@ -26625,12 +26373,12 @@ module.exports = {
   shimGetSendersWithDtmf: chromeShim.shimGetSendersWithDtmf,
   shimSourceObject: chromeShim.shimSourceObject,
   shimPeerConnection: chromeShim.shimPeerConnection,
-  shimGetUserMedia: __webpack_require__(45)
+  shimGetUserMedia: __webpack_require__(44)
 };
 
 
 /***/ }),
-/* 45 */
+/* 44 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
@@ -26877,7 +26625,7 @@ module.exports = function(window) {
 
 
 /***/ }),
-/* 46 */
+/* 45 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
@@ -26892,10 +26640,10 @@ module.exports = function(window) {
 
 
 var utils = __webpack_require__(1);
-var shimRTCPeerConnection = __webpack_require__(47);
+var shimRTCPeerConnection = __webpack_require__(46);
 
 module.exports = {
-  shimGetUserMedia: __webpack_require__(49),
+  shimGetUserMedia: __webpack_require__(48),
   shimPeerConnection: function(window) {
     var browserDetails = utils.detectBrowser(window);
 
@@ -26964,7 +26712,7 @@ module.exports = {
 
 
 /***/ }),
-/* 47 */
+/* 46 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
@@ -26978,7 +26726,7 @@ module.exports = {
  /* eslint-env node */
 
 
-var SDPUtils = __webpack_require__(48);
+var SDPUtils = __webpack_require__(47);
 
 function writeMediaSection(transceiver, caps, type, stream, dtlsRole) {
   var sdp = SDPUtils.writeRtpDescription(transceiver.kind, caps);
@@ -28596,7 +28344,7 @@ module.exports = function(window, edgeVersion) {
 
 
 /***/ }),
-/* 48 */
+/* 47 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
@@ -29236,7 +28984,7 @@ module.exports = SDPUtils;
 
 
 /***/ }),
-/* 49 */
+/* 48 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
@@ -29277,7 +29025,7 @@ module.exports = function(window) {
 
 
 /***/ }),
-/* 50 */
+/* 49 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
@@ -29503,12 +29251,12 @@ module.exports = {
   shimSourceObject: firefoxShim.shimSourceObject,
   shimPeerConnection: firefoxShim.shimPeerConnection,
   shimRemoveStream: firefoxShim.shimRemoveStream,
-  shimGetUserMedia: __webpack_require__(51)
+  shimGetUserMedia: __webpack_require__(50)
 };
 
 
 /***/ }),
-/* 51 */
+/* 50 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
@@ -29724,7 +29472,7 @@ module.exports = function(window) {
 
 
 /***/ }),
-/* 52 */
+/* 51 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
@@ -30039,7 +29787,7 @@ module.exports = {
 
 
 /***/ }),
-/* 53 */
+/* 52 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
@@ -30053,7 +29801,7 @@ module.exports = {
  /* eslint-env node */
 
 
-var SDPUtils = __webpack_require__(54);
+var SDPUtils = __webpack_require__(53);
 var utils = __webpack_require__(1);
 
 // Wraps the peerconnection event eventNameToWrap in a function
@@ -30212,7 +29960,7 @@ module.exports = {
 
 
 /***/ }),
-/* 54 */
+/* 53 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
@@ -30869,10 +30617,182 @@ if (true) {
 
 
 /***/ }),
-/* 55 */
-/***/ (function(module, exports, __webpack_require__) {
+/* 54 */
+/***/ (function(module, exports) {
 
-const Adapter = __webpack_require__(7);
+module.exports = function (stage) {
+
+  'use strict';
+
+  // UDPATER
+  let mediaStream = null;
+  let getMediaStream = null;
+
+  const updaterMedia = function () {
+    // MediaStream	API
+    try {
+      if (stage.browser.Webkit) {
+        getMediaStream = function (stream) {
+          return URL.createObjectURL(stream);
+        };
+        mediaStream = webkitMediaStream;
+        // The representation of tracks in a stream is changed in M26.
+        // Unify them for earlier Chrome versions in the coexisting period.
+        if (!webkitMediaStream.prototype.getVideoTracks) {
+          webkitMediaStream.prototype.getVideoTracks = function () {
+            return this.videoTracks;
+          };
+          webkitMediaStream.prototype.getAudioTracks = function () {
+            return this.audioTracks;
+          };
+        }
+        return true;
+      }
+      if (stage.browser.Gecko) {
+
+        getMediaStream = function (stream) {
+          return window.URL.createObjectURL(stream);
+        };
+        mediaStream = MediaStream;
+        if (!MediaStream.prototype.getVideoTracks) {
+          MediaStream.prototype.getVideoTracks = function () {
+            return [];
+          };
+        }
+        if (!MediaStream.prototype.getAudioTracks) {
+          MediaStream.prototype.getAudioTracks = function () {
+            return [];
+          };
+        }
+        return true;
+      }
+      if (stage.browser.Opera) {
+        getMediaStream = function (stream) {
+          return stream;
+        };
+        if (!MediaStream.prototype.getVideoTracks) {
+          MediaStream.prototype.getVideoTracks = function () {
+            return [];
+          };
+        }
+        if (!MediaStream.prototype.getAudioTracks) {
+          MediaStream.prototype.getAudioTracks = function () {
+            return [];
+          };
+        }
+        return true;
+      }
+      console.error("Browser does not appear to be mediaStream-capable");
+    } catch (e) {
+      console.error(e);
+    }
+  }();
+
+  /*
+   *	MEDIA STREAM
+   *
+   */
+  const defaultSettingsStream = {
+    audio: true,
+    video: true
+  };
+
+  const MediaStream = class mediaStream {
+
+    constructor(mediaElement, settings) {
+      this.settings = stage.extend({}, defaultSettingsStream, settings);
+      this.notificationsCenter = stage.notificationsCenter.create(this.settings, this);
+      this.urlStream = null;
+      this.stream = this.settings.stream ? this.setStream(this.settings.stream) : null;
+      this.mediaElement = mediaElement ? mediaElement : null;
+      this.getMediaStream = getMediaStream;
+    }
+
+    getUserMedia(settings, success, error) {
+
+      if (settings) {
+        this.settings = stage.extend({}, defaultSettingsStream, settings);
+        this.notificationsCenter.settingsToListen(settings);
+      }
+      return navigator.getUserMedia({
+          video: this.settings.video,
+          audio: this.settings.audio
+        },
+        (stream) => {
+          this.setStream(stream);
+          if (success) {
+            success(this);
+          }
+          this.notificationsCenter.fire("onSucces", stream, this);
+        },
+        (e) => {
+          if (error) {
+            error(e);
+          }
+          this.notificationsCenter.listen(this, "onError");
+        }
+      );
+    }
+
+    setStream(stream) {
+      this.stream = stream;
+      this.urlStream = this.getMediaStream(stream);
+      this.videotracks = this.getVideoTracks();
+      this.audiotracks = this.getAudioTracks();
+      return stream;
+    }
+
+    stop() {
+      if (this.stream) {
+        this.stream.stop();
+      }
+    }
+
+    attachMediaStream(element) {
+      this.mediaElement = element;
+      this.mediaElement.srcObject = this.stream;
+      //element.mozSrcObject = this.stream;
+      this.mediaElement.play();
+    }
+
+    reattachMediaStream(stream) {
+      this.stream = stream;
+      this.attachMediaStream(this.mediaElement);
+    }
+
+    getVideoTracks() {
+      return this.stream.getVideoTracks();
+    }
+
+    getAudioTracks() {
+      return this.stream.getAudioTracks();
+    }
+
+    /*startRecording (stream){
+    	var mediaStreamSource = this.audioContext.createMediaStreamSource(stream);
+    	console.log(mediaStreamSource);
+    	mediaStreamSource.connect(this.audioContext.destination);
+    	this.recorder = new Recorder(mediaStreamSource);
+    }
+    stopRecording (){
+    	this.recorder.stop();
+    	this.recorder.exportWAV((stream) => {
+    		this.recordSource = window.URL.createObjectURL(stream);
+    	});
+    }*/
+  };
+
+  stage.extend(stage.media, {
+    mediaStream: MediaStream,
+  });
+
+  return stage.media;
+};
+
+/***/ }),
+/* 55 */
+/***/ (function(module, exports) {
+
 module.exports = function (stage) {
 
   'use strict';

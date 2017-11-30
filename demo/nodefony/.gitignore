@@ -1,11 +1,19 @@
 #Ignore directory 
-tmp/**
-dist/**
+/docs/**
+/tmp/**
+/web/**
+**/assets/**
+config/generatedConfig.yml
+src/nodefony
 
+app/Resources/databases/*
 *.db
 
 node_modules/**
 npm-debug.log
+*.[oa]
+
+config/certificates/**/*
 
 #Ignore vin backup
 *.swp

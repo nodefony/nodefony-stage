@@ -73,8 +73,9 @@ require('./io/protocols/sip/sip.es6')(stage);
 require('./io/realtime/realtime.es6')(stage);
 
 // MEDIAS
+require("webrtc-adapter");
 require('./media/media.es6')(stage);
-require('./media/webAudio/webaudio.js')(stage);
+require('./media/webAudio/webaudio.es6')(stage);
 require('./media/webrtc/webrtc.es6')(stage);
 require('./media/webrtc/user.es6')(stage);
 require('./media/webrtc/transaction.es6')(stage);

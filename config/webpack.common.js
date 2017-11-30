@@ -125,8 +125,8 @@ module.exports = function () {
        *
        */
       new webpack.ProvidePlugin({
-        "$": "jquery",
-        "jQuery": "jquery",
+        $: "jquery",
+        jQuery: "jquery",
         "window.jQuery": "jquery"
       })
     ]
