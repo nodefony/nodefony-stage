@@ -1,62 +1,62 @@
-module.exports =  function(stage){
+module.exports = function (stage) {
 
-	var defaultSettings = {
-		type:"websocket" //   websocket | poll | longPoll 
-	};
+  var defaultSettings = {
+    type: "websocket" //   websocket | poll | longPoll
+  };
 
-	var bestTransport = function(){
-	
-	}; 
+  var bestTransport = function () {
 
-	var socket = class socket extends stage.notificationsCenter.notification  {
+  };
 
-		constructor(url, localSettings){
+  var socket = class socket extends stage.notificationsCenter.notification {
 
-			var settings = stage.extend({}, defaultSettings, localSettings);
+    constructor(url, localSettings) {
 
-			super(settings);	
+      var settings = stage.extend({}, defaultSettings, localSettings);
 
-			this.settings = settings ;
+      super(settings);
 
-			switch (this.settings.type){
-				case "websocket":
-					this.socket = stage.io.transports.websocket ; 
-					break;
-				case "poll":
-					this.socket = stage.io.transports.ajax ;
-					break;
-				case "longPoll":
-					this.socket = stage.io.transports.ajax ;
-					break;
-			}
+      this.settings = settings;
 
-			this.listen(this, "onConnect");
-			this.listen(this, "onClose");
-			this.listen(this, "onError");
-			this.listen(this, "onMessage");
-			this.listen(this, "onTimeout");
-		}
+      switch (this.settings.type) {
+      case "websocket":
+        this.socket = stage.io.transports.websocket;
+        break;
+      case "poll":
+        this.socket = stage.io.transports.ajax;
+        break;
+      case "longPoll":
+        this.socket = stage.io.transports.ajax;
+        break;
+      }
 
-		write(settings){
-			this.transport.send();
-		}
+      this.listen(this, "onConnect");
+      this.listen(this, "onClose");
+      this.listen(this, "onError");
+      this.listen(this, "onMessage");
+      this.listen(this, "onTimeout");
+    }
 
-		close (settings){
-			this.transport.close();
-		}
+    write(settings) {
+      this.transport.send();
+    }
 
-		connect (url, settings){
-			this.transport = new this.socket(url, settings);
-			this.transport.onmessage = this.listen(this, "onMessage");
-		}
+    close(settings) {
+      this.transport.close();
+    }
 
-		destroy (settings){
-			this.transport = null ;
-			this.clearNotifications();
-		}
-	};
+    connect(url, settings) {
+      this.transport = new this.socket(url, settings);
+      this.transport.onmessage = this.listen(this, "onMessage");
+    }
 
-	stage.io.socket = socket ;
-	return socket ;
+    destroy(settings) {
+      this.transport = null;
+      this.clearNotifications();
+    }
+  };
+
+  stage.io.socket = socket;
+  return socket;
 
 };

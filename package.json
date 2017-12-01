@@ -12,7 +12,12 @@
   "keywords": [
     "javascript",
     "webpack",
-    "nodefony"
+    "nodefony",
+    "webrtc",
+    "sip",
+    "opensip",
+    "kamailio",
+    "webaudio"
   ],
   "repository": {
     "type": "git",
@@ -37,7 +42,7 @@
     "opn": "^5.1.0",
     "shortid": "2.2.8",
     "twig": "1.10.5",
-    "uglifyjs-webpack-plugin": "^1.1.1",
+    "uglifyjs-webpack-plugin": "^1.1.2",
     "webrtc-adapter": "6.0.2"
   },
   "devDependencies": {
@@ -67,7 +72,7 @@
     "tokenizer": "1.1.2",
     "uglify-es": "^3.2.0",
     "url-loader": "0.6.2",
-    "webpack": "3.8.1",
+    "webpack": "^3.9.1",
     "webpack-dev-server": "^2.9.5",
     "webpack-merge": "4.1.1"
   },

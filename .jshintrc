@@ -17,6 +17,7 @@
       "stage":		true,
       "window":		true,
       "document":	true,
+      "WebSocket":	true,
       "navigator":	true,
       "stage":		true,
       "indexOf":	true,

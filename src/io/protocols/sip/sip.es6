@@ -160,7 +160,7 @@ module.exports = function (stage) {
    *
    */
   //var regContact = /.*<(sip:.*)>(.*)|.*<(sips:.*)>(.*)/g;
-  var regHeaders = {
+  const regHeaders = {
     line: /\r\n|\r|\n/,
     headName: /: */,
     Allow: /, */,
@@ -172,7 +172,7 @@ module.exports = function (stage) {
     contact: /.*<(sips?:.*)>(.*)?$/
   };
 
-  var parsefromTo = function (type, value) {
+  const parsefromTo = function (type, value) {
     try {
       var sp = value.split(";");
       this.message[type + "Tag"] = null;
@@ -205,7 +205,7 @@ module.exports = function (stage) {
   };
 
 
-  var headerSip = class headerSip {
+  const headerSip = class headerSip {
 
     constructor(message, header) {
       this.rawHeader = {};
@@ -403,7 +403,7 @@ module.exports = function (stage) {
    *
    *
    */
-  var bodySip = class bodySip {
+  const bodySip = class bodySip {
 
     constructor(message, body) {
       this.message = message;
@@ -471,10 +471,10 @@ module.exports = function (stage) {
    *
    *
    */
-  var endline = "\r\n";
-  var endHeader = "\r\n\r\n";
+  const endline = "\r\n";
+  const endHeader = "\r\n\r\n";
 
-  var sipRequest = class sipRequest {
+  const sipRequest = class sipRequest {
 
     constructor(transaction, bodyMessage, typeBody) {
       this.transaction = transaction;
@@ -513,10 +513,9 @@ module.exports = function (stage) {
 
     buildHeader() {
       //FIXE ME RPORT IN VIA PARSER
-      //console.log(this.transaction.dialog.sip.rport)
 
-      var rport = this.transaction.dialog.sip.rport;
-      var ip = this.transaction.dialog.sip.publicAddress;
+      let rport = this.transaction.dialog.sip.rport;
+      let ip = this.transaction.dialog.sip.publicAddress;
 
       this.header.via = "Via: " + this.transaction.dialog.sip.via + ";" + "branch=" + this.transaction.branch;
       //if ( rport ){
@@ -528,7 +527,7 @@ module.exports = function (stage) {
 
       this.header.from = "From: " + this.transaction.dialog.from + ";tag=" + this.transaction.dialog.tagFrom;
 
-      var tagTo = this.transaction.dialog.tagTo ? ";tag=" + this.transaction.dialog.tagTo : "";
+      let tagTo = this.transaction.dialog.tagTo ? ";tag=" + this.transaction.dialog.tagTo : "";
       this.header.to = "To: " + this.transaction.to + tagTo;
 
       this.header.callId = "Call-ID: " + this.transaction.dialog.callId;
@@ -540,7 +539,7 @@ module.exports = function (stage) {
 
       if (this.transaction.dialog.routes && this.transaction.dialog.routes.length) {
         this.header.routes = [];
-        for (var i = this.transaction.dialog.routes.length - 1; i >= 0; i--) {
+        for (let i = this.transaction.dialog.routes.length - 1; i >= 0; i--) {
           this.header.routes.push("Route: " + this.transaction.dialog.routes[i]);
         }
       }
@@ -594,11 +593,11 @@ module.exports = function (stage) {
    *
    *
    */
-  var codeMessage = {
+  const codeMessage = {
     200: "OK"
   };
 
-  var sipResponse = class sipResponse {
+  const sipResponse = class sipResponse {
 
     constructor(message, code, messageCode, bodyMessage, typeBody) {
       this.message = message;
@@ -612,8 +611,8 @@ module.exports = function (stage) {
     }
 
     buildHeader(message) {
-      for (var head in message.rawHeader) {
-        var i = 0;
+      for (let head in message.rawHeader) {
+        let i = 0;
         switch (head) {
         case "Allow":
         case "Supported":
@@ -691,8 +690,8 @@ module.exports = function (stage) {
     }
 
     getHeader() {
-      var head = "";
-      for (var line in this.header) {
+      let head = "";
+      for (let line in this.header) {
         head += this.header[line] + endline;
       }
       return head;
@@ -741,7 +740,7 @@ module.exports = function (stage) {
    *
    *
    */
-  var generateHex = function () {
+  const generateHex = function () {
     return Math.floor(Math.random() * 167772150000000).toString(16);
   };
 
@@ -779,7 +778,7 @@ module.exports = function (stage) {
     }
 
     generateBranchId() {
-      var hex = generateHex();
+      let hex = generateHex();
       if (hex.length === 12) {
         return "z9hG4bK" + hex;
       } else {
@@ -788,7 +787,7 @@ module.exports = function (stage) {
     }
 
     createRequest(body, typeBody) {
-      if (this.method != "ACK" && this.method != "CANCEL") {
+      if (this.method !== "ACK" && this.method !== "CANCEL") {
         this.dialog.incCseq();
       }
       this.request = new sipRequest(this, body || "", typeBody);
@@ -821,14 +820,14 @@ module.exports = function (stage) {
       this.method = "CANCEL";
       this.dialog.routes = null;
       this.dialog.tagTo = "";
-      var request = this.createRequest();
+      let request = this.createRequest();
       request.send();
       this.dialog.status = this.dialog.statusCode.CANCEL;
       return request;
     }
 
     decline() {
-      var ret = this.createResponse(
+      let ret = this.createResponse(
         603,
         "Declined"
       );
@@ -849,7 +848,7 @@ module.exports = function (stage) {
    * CLASS DIALOG
    *
    */
-  var statusCode = {
+  const statusCode = {
     INITIAL: 0,
     EARLY: 1, // on 1xx
     ESTABLISHED: 2, // on 200 ok
@@ -992,9 +991,9 @@ module.exports = function (stage) {
     }
 
     register() {
-      var trans = this.createTransaction(this.from);
+      let trans = this.createTransaction(this.from);
       this.to = this.from;
-      var request = trans.createRequest();
+      let request = trans.createRequest();
       request.send();
       return trans;
 
@@ -1003,10 +1002,10 @@ module.exports = function (stage) {
     unregister() {
       this.expires = 0;
       this.contact = "*";
-      var trans = this.createTransaction(this.from);
+      let trans = this.createTransaction(this.from);
       this.to = this.from;
       this.tagTo = null;
-      var request = trans.createRequest();
+      let request = trans.createRequest();
       request.send();
       return trans;
     }
@@ -1016,9 +1015,9 @@ module.exports = function (stage) {
         this["request-uri"] = this.sip["request-uri"];
       }
       //this.method = "ACK" ;
-      var trans = this.createTransaction();
+      let trans = this.createTransaction();
       trans.method = "ACK";
-      var request = trans.createRequest();
+      let request = trans.createRequest();
       request.send();
       return request;
     }
@@ -1044,8 +1043,8 @@ module.exports = function (stage) {
         this.bodyType = type;
         this.body = description;
       }
-      var trans = this.createTransaction(this.to);
-      var request = trans.createRequest(this.body, this.bodyType);
+      let trans = this.createTransaction(this.to);
+      let request = trans.createRequest(this.body, this.bodyType);
       request.send();
       return trans;
 
@@ -1065,8 +1064,8 @@ module.exports = function (stage) {
       if (notify) {
         this.body = notify;
       }
-      var trans = this.createTransaction(this.to);
-      var request = trans.createRequest(this.body, this.bodyType);
+      let trans = this.createTransaction(this.to);
+      let request = trans.createRequest(this.body, this.bodyType);
       request.send();
       return this;
 
@@ -1081,8 +1080,8 @@ module.exports = function (stage) {
       if (info) {
         this.body = info;
       }
-      var trans = this.createTransaction(this.to);
-      var request = trans.createRequest(this.body, this.bodyType);
+      let trans = this.createTransaction(this.to);
+      let request = trans.createRequest(this.body, this.bodyType);
       request.send();
       return this;
 
@@ -1090,8 +1089,8 @@ module.exports = function (stage) {
 
     bye() {
       this.method = "BYE";
-      var trans = this.createTransaction();
-      var request = trans.createRequest();
+      let trans = this.createTransaction();
+      let request = trans.createRequest();
       request.send();
       return this;
 
@@ -1105,7 +1104,7 @@ module.exports = function (stage) {
           throw new Error("TRANSACTION not found :" + id);
         }
       } else {
-        for (var transac in this.transactions) {
+        for (let transac in this.transactions) {
           this.transactions[transac].clear();
         }
       }
@@ -1120,14 +1119,14 @@ module.exports = function (stage) {
    *
    *
    */
-  var firstline = function (firstLine) {
-    var method = firstLine[0];
-    var code = firstLine[1];
+  const firstline = function (firstLine) {
+    let method = firstLine[0];
+    let code = firstLine[1];
     if (method === "BYE" && !code) {
       code = 200;
     }
-    var message = "";
-    for (var i = 2; i < firstLine.length; i++) {
+    let message = "";
+    for (let i = 2; i < firstLine.length; i++) {
       message += firstLine[i] + " ";
     }
     return {
@@ -1137,8 +1136,8 @@ module.exports = function (stage) {
     };
   };
 
-  var regSIP = /\r\n\r\n/;
-  var Message = class Message {
+  const regSIP = /\r\n\r\n/;
+  const Message = class Message {
 
     constructor(message, sip) {
       this.sip = sip;
@@ -1285,11 +1284,11 @@ module.exports = function (stage) {
    *
    */
   // entry point response transport
-  var onMessage = function (response) {
+  const onMessage = function (response) {
 
-    this.logger(response, "INFO", "RECIEVE")
-    var message = null;
-    var res = null;
+    this.logger(response, "INFO", "RECIEVE");
+    let message = null;
+    let res = null;
     try {
       //console.log(this.fragment)
       if (this.fragment) {
@@ -1303,7 +1302,7 @@ module.exports = function (stage) {
     } catch (e) {
       //console.log(e);
       // bad split
-      for (var i = 0; i < e.length; i++) {
+      for (let i = 0; i < e.length; i++) {
         if (e[i]) {
           try {
             onMessage.call(this, e[i]);
@@ -1388,7 +1387,7 @@ module.exports = function (stage) {
         }
         this.registered = message.code;
 
-        var expires = message.header["contact-expires"] ||  this.settings.expires;
+        let expires = message.header["contact-expires"] ||  this.settings.expires;
         expires = parseInt(expires, 10) * 900; // 10% (ms)
         this.registerInterval = setInterval(() => {
           this.authenticateRegister.register(message);
@@ -1421,7 +1420,7 @@ module.exports = function (stage) {
           if (message.dialog.status === message.dialog.statusCode.ESTABLISHED) {
             this.notificationsCenter.fire("onInvite", message, message.dialog);
           } else {
-            var ret = message.transaction.createResponse(200, "OK");
+            let ret = message.transaction.createResponse(200, "OK");
             ret.send();
           }
         }
@@ -1788,13 +1787,13 @@ module.exports = function (stage) {
     }
 
     send(data) {
-      this.logger(data, "INFO", "SEND")
+      this.logger(data, "INFO", "SEND");
       this.fire("onSend", data);
       this.transport.send(data);
     }
 
     bye(callId) {
-      for (var dialog in this.dialogs) {
+      for (let dialog in this.dialogs) {
         if (callId) {
           if (this.dialogs[dialog].callId === callId && this.dialogs[dialog].method !== "REGISTER" && this.dialogs[dialog].status === this.dialogs[dialog].statusCode.ESTABLISHED) {
             this.dialogs[dialog].bye();

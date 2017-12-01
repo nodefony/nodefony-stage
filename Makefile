@@ -14,11 +14,16 @@ else
 	WHICH := which
 	INSTALLER := npm
 endif
-EXECUTABLES = yarn node npm
-K := $(foreach bin, $(EXECUTABLES),\
+EXECUTABLES := yarn node npm
+version := $(foreach bin, $(EXECUTABLES),\
 	$(if $(shell ${WHICH} $(bin) 2>${DEVNUL} ),\
+		$(bin)_EXEC := true\
 		$(info $(bin) version : $(shell $(bin) -v  2>${DEVNUL} ) ),\
 		$(info No $(bin) in PATH))) 2>${DEVNUL}
+
+$(info ######## RESULT : $(yarn_EXEC) )
+#$(info ######## RESULT : $(node_EXEC) )
+#$(info ######## RESULT : $(npm_EXEC) )
 
 all:
 	make build-dev

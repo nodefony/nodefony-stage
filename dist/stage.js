@@ -7,7 +7,7 @@
 		exports["stage"] = factory();
 	else
 		root["stage"] = factory();
-})(this, function() {
+})(typeof self !== 'undefined' ? self : this, function() {
 return /******/ (function(modules) { // webpackBootstrap
 /******/ 	// The module cache
 /******/ 	var installedModules = {};
@@ -70,14 +70,14 @@ return /******/ (function(modules) { // webpackBootstrap
 /******/ 	__webpack_require__.p = "";
 /******/
 /******/ 	// Load entry module and return exports
-/******/ 	return __webpack_require__(__webpack_require__.s = 9);
+/******/ 	return __webpack_require__(__webpack_require__.s = 10);
 /******/ })
 /************************************************************************/
 /******/ ([
 /* 0 */
 /***/ (function(module, exports, __webpack_require__) {
 
-/* WEBPACK VAR INJECTION */(function(global) {module.exports = global["$"] = __webpack_require__(11);
+/* WEBPACK VAR INJECTION */(function(global) {module.exports = global["$"] = __webpack_require__(12);
 /* WEBPACK VAR INJECTION */}.call(exports, __webpack_require__(3)))
 
 /***/ }),
@@ -240,7 +240,7 @@ module.exports = {
 "use strict";
 
 
-var randomFromSeed = __webpack_require__(19);
+var randomFromSeed = __webpack_require__(20);
 
 var ORIGINAL = '0123456789abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ_-';
 var alphabet;
@@ -371,7 +371,7 @@ module.exports = g;
 
 /* WEBPACK VAR INJECTION */(function(__dirname) {(function webpackUniversalModuleDefinition(root, factory) {
 	if(true)
-		module.exports = factory((function webpackLoadOptionalExternalModule() { try { return __webpack_require__(7); } catch(e) {} }()), __webpack_require__(8));
+		module.exports = factory((function webpackLoadOptionalExternalModule() { try { return __webpack_require__(8); } catch(e) {} }()), __webpack_require__(9));
 	else if(typeof define === 'function' && define.amd)
 		define(["fs", "path"], factory);
 	else if(typeof exports === 'object')
@@ -6132,13 +6132,13 @@ return /******/ (function(modules) { // webpackBootstrap
 /* 19 */
 /***/ function(module, exports) {
 
-	module.exports = __webpack_require__(7);
+	module.exports = __webpack_require__(8);
 
 /***/ },
 /* 20 */
 /***/ function(module, exports) {
 
-	module.exports = __webpack_require__(8);
+	module.exports = __webpack_require__(9);
 
 /***/ },
 /* 21 */
@@ -8136,7 +8136,7 @@ return /******/ (function(modules) { // webpackBootstrap
 
 "use strict";
 
-module.exports = __webpack_require__(18);
+module.exports = __webpack_require__(19);
 
 
 /***/ }),
@@ -8146,7 +8146,7 @@ module.exports = __webpack_require__(18);
 "use strict";
 
 
-var randomByte = __webpack_require__(20);
+var randomByte = __webpack_require__(21);
 
 function encode(lookup, number) {
     var loopCounter = 0;
@@ -8167,12 +8167,669 @@ module.exports = encode;
 
 /***/ }),
 /* 7 */
+/***/ (function(module, exports, __webpack_require__) {
+
+"use strict";
+ /* eslint-env node */
+
+
+// SDP helpers.
+var SDPUtils = {};
+
+// Generate an alphanumeric identifier for cname or mids.
+// TODO: use UUIDs instead? https://gist.github.com/jed/982883
+SDPUtils.generateIdentifier = function() {
+  return Math.random().toString(36).substr(2, 10);
+};
+
+// The RTCP CNAME used by all peerconnections from the same JS.
+SDPUtils.localCName = SDPUtils.generateIdentifier();
+
+// Splits SDP into lines, dealing with both CRLF and LF.
+SDPUtils.splitLines = function(blob) {
+  return blob.trim().split('\n').map(function(line) {
+    return line.trim();
+  });
+};
+// Splits SDP into sessionpart and mediasections. Ensures CRLF.
+SDPUtils.splitSections = function(blob) {
+  var parts = blob.split('\nm=');
+  return parts.map(function(part, index) {
+    return (index > 0 ? 'm=' + part : part).trim() + '\r\n';
+  });
+};
+
+// Returns lines that start with a certain prefix.
+SDPUtils.matchPrefix = function(blob, prefix) {
+  return SDPUtils.splitLines(blob).filter(function(line) {
+    return line.indexOf(prefix) === 0;
+  });
+};
+
+// Parses an ICE candidate line. Sample input:
+// candidate:702786350 2 udp 41819902 8.8.8.8 60769 typ relay raddr 8.8.8.8
+// rport 55996"
+SDPUtils.parseCandidate = function(line) {
+  var parts;
+  // Parse both variants.
+  if (line.indexOf('a=candidate:') === 0) {
+    parts = line.substring(12).split(' ');
+  } else {
+    parts = line.substring(10).split(' ');
+  }
+
+  var candidate = {
+    foundation: parts[0],
+    component: parseInt(parts[1], 10),
+    protocol: parts[2].toLowerCase(),
+    priority: parseInt(parts[3], 10),
+    ip: parts[4],
+    port: parseInt(parts[5], 10),
+    // skip parts[6] == 'typ'
+    type: parts[7]
+  };
+
+  for (var i = 8; i < parts.length; i += 2) {
+    switch (parts[i]) {
+      case 'raddr':
+        candidate.relatedAddress = parts[i + 1];
+        break;
+      case 'rport':
+        candidate.relatedPort = parseInt(parts[i + 1], 10);
+        break;
+      case 'tcptype':
+        candidate.tcpType = parts[i + 1];
+        break;
+      case 'ufrag':
+        candidate.ufrag = parts[i + 1]; // for backward compability.
+        candidate.usernameFragment = parts[i + 1];
+        break;
+      default: // extension handling, in particular ufrag
+        candidate[parts[i]] = parts[i + 1];
+        break;
+    }
+  }
+  return candidate;
+};
+
+// Translates a candidate object into SDP candidate attribute.
+SDPUtils.writeCandidate = function(candidate) {
+  var sdp = [];
+  sdp.push(candidate.foundation);
+  sdp.push(candidate.component);
+  sdp.push(candidate.protocol.toUpperCase());
+  sdp.push(candidate.priority);
+  sdp.push(candidate.ip);
+  sdp.push(candidate.port);
+
+  var type = candidate.type;
+  sdp.push('typ');
+  sdp.push(type);
+  if (type !== 'host' && candidate.relatedAddress &&
+      candidate.relatedPort) {
+    sdp.push('raddr');
+    sdp.push(candidate.relatedAddress); // was: relAddr
+    sdp.push('rport');
+    sdp.push(candidate.relatedPort); // was: relPort
+  }
+  if (candidate.tcpType && candidate.protocol.toLowerCase() === 'tcp') {
+    sdp.push('tcptype');
+    sdp.push(candidate.tcpType);
+  }
+  if (candidate.ufrag) {
+    sdp.push('ufrag');
+    sdp.push(candidate.ufrag);
+  }
+  return 'candidate:' + sdp.join(' ');
+};
+
+// Parses an ice-options line, returns an array of option tags.
+// a=ice-options:foo bar
+SDPUtils.parseIceOptions = function(line) {
+  return line.substr(14).split(' ');
+}
+
+// Parses an rtpmap line, returns RTCRtpCoddecParameters. Sample input:
+// a=rtpmap:111 opus/48000/2
+SDPUtils.parseRtpMap = function(line) {
+  var parts = line.substr(9).split(' ');
+  var parsed = {
+    payloadType: parseInt(parts.shift(), 10) // was: id
+  };
+
+  parts = parts[0].split('/');
+
+  parsed.name = parts[0];
+  parsed.clockRate = parseInt(parts[1], 10); // was: clockrate
+  // was: channels
+  parsed.numChannels = parts.length === 3 ? parseInt(parts[2], 10) : 1;
+  return parsed;
+};
+
+// Generate an a=rtpmap line from RTCRtpCodecCapability or
+// RTCRtpCodecParameters.
+SDPUtils.writeRtpMap = function(codec) {
+  var pt = codec.payloadType;
+  if (codec.preferredPayloadType !== undefined) {
+    pt = codec.preferredPayloadType;
+  }
+  return 'a=rtpmap:' + pt + ' ' + codec.name + '/' + codec.clockRate +
+      (codec.numChannels !== 1 ? '/' + codec.numChannels : '') + '\r\n';
+};
+
+// Parses an a=extmap line (headerextension from RFC 5285). Sample input:
+// a=extmap:2 urn:ietf:params:rtp-hdrext:toffset
+// a=extmap:2/sendonly urn:ietf:params:rtp-hdrext:toffset
+SDPUtils.parseExtmap = function(line) {
+  var parts = line.substr(9).split(' ');
+  return {
+    id: parseInt(parts[0], 10),
+    direction: parts[0].indexOf('/') > 0 ? parts[0].split('/')[1] : 'sendrecv',
+    uri: parts[1]
+  };
+};
+
+// Generates a=extmap line from RTCRtpHeaderExtensionParameters or
+// RTCRtpHeaderExtension.
+SDPUtils.writeExtmap = function(headerExtension) {
+  return 'a=extmap:' + (headerExtension.id || headerExtension.preferredId) +
+      (headerExtension.direction && headerExtension.direction !== 'sendrecv'
+          ? '/' + headerExtension.direction
+          : '') +
+      ' ' + headerExtension.uri + '\r\n';
+};
+
+// Parses an ftmp line, returns dictionary. Sample input:
+// a=fmtp:96 vbr=on;cng=on
+// Also deals with vbr=on; cng=on
+SDPUtils.parseFmtp = function(line) {
+  var parsed = {};
+  var kv;
+  var parts = line.substr(line.indexOf(' ') + 1).split(';');
+  for (var j = 0; j < parts.length; j++) {
+    kv = parts[j].trim().split('=');
+    parsed[kv[0].trim()] = kv[1];
+  }
+  return parsed;
+};
+
+// Generates an a=ftmp line from RTCRtpCodecCapability or RTCRtpCodecParameters.
+SDPUtils.writeFmtp = function(codec) {
+  var line = '';
+  var pt = codec.payloadType;
+  if (codec.preferredPayloadType !== undefined) {
+    pt = codec.preferredPayloadType;
+  }
+  if (codec.parameters && Object.keys(codec.parameters).length) {
+    var params = [];
+    Object.keys(codec.parameters).forEach(function(param) {
+      params.push(param + '=' + codec.parameters[param]);
+    });
+    line += 'a=fmtp:' + pt + ' ' + params.join(';') + '\r\n';
+  }
+  return line;
+};
+
+// Parses an rtcp-fb line, returns RTCPRtcpFeedback object. Sample input:
+// a=rtcp-fb:98 nack rpsi
+SDPUtils.parseRtcpFb = function(line) {
+  var parts = line.substr(line.indexOf(' ') + 1).split(' ');
+  return {
+    type: parts.shift(),
+    parameter: parts.join(' ')
+  };
+};
+// Generate a=rtcp-fb lines from RTCRtpCodecCapability or RTCRtpCodecParameters.
+SDPUtils.writeRtcpFb = function(codec) {
+  var lines = '';
+  var pt = codec.payloadType;
+  if (codec.preferredPayloadType !== undefined) {
+    pt = codec.preferredPayloadType;
+  }
+  if (codec.rtcpFeedback && codec.rtcpFeedback.length) {
+    // FIXME: special handling for trr-int?
+    codec.rtcpFeedback.forEach(function(fb) {
+      lines += 'a=rtcp-fb:' + pt + ' ' + fb.type +
+      (fb.parameter && fb.parameter.length ? ' ' + fb.parameter : '') +
+          '\r\n';
+    });
+  }
+  return lines;
+};
+
+// Parses an RFC 5576 ssrc media attribute. Sample input:
+// a=ssrc:3735928559 cname:something
+SDPUtils.parseSsrcMedia = function(line) {
+  var sp = line.indexOf(' ');
+  var parts = {
+    ssrc: parseInt(line.substr(7, sp - 7), 10)
+  };
+  var colon = line.indexOf(':', sp);
+  if (colon > -1) {
+    parts.attribute = line.substr(sp + 1, colon - sp - 1);
+    parts.value = line.substr(colon + 1);
+  } else {
+    parts.attribute = line.substr(sp + 1);
+  }
+  return parts;
+};
+
+// Extracts the MID (RFC 5888) from a media section.
+// returns the MID or undefined if no mid line was found.
+SDPUtils.getMid = function(mediaSection) {
+  var mid = SDPUtils.matchPrefix(mediaSection, 'a=mid:')[0];
+  if (mid) {
+    return mid.substr(6);
+  }
+}
+
+SDPUtils.parseFingerprint = function(line) {
+  var parts = line.substr(14).split(' ');
+  return {
+    algorithm: parts[0].toLowerCase(), // algorithm is case-sensitive in Edge.
+    value: parts[1]
+  };
+};
+
+// Extracts DTLS parameters from SDP media section or sessionpart.
+// FIXME: for consistency with other functions this should only
+//   get the fingerprint line as input. See also getIceParameters.
+SDPUtils.getDtlsParameters = function(mediaSection, sessionpart) {
+  var lines = SDPUtils.matchPrefix(mediaSection + sessionpart,
+      'a=fingerprint:');
+  // Note: a=setup line is ignored since we use the 'auto' role.
+  // Note2: 'algorithm' is not case sensitive except in Edge.
+  return {
+    role: 'auto',
+    fingerprints: lines.map(SDPUtils.parseFingerprint)
+  };
+};
+
+// Serializes DTLS parameters to SDP.
+SDPUtils.writeDtlsParameters = function(params, setupType) {
+  var sdp = 'a=setup:' + setupType + '\r\n';
+  params.fingerprints.forEach(function(fp) {
+    sdp += 'a=fingerprint:' + fp.algorithm + ' ' + fp.value + '\r\n';
+  });
+  return sdp;
+};
+// Parses ICE information from SDP media section or sessionpart.
+// FIXME: for consistency with other functions this should only
+//   get the ice-ufrag and ice-pwd lines as input.
+SDPUtils.getIceParameters = function(mediaSection, sessionpart) {
+  var lines = SDPUtils.splitLines(mediaSection);
+  // Search in session part, too.
+  lines = lines.concat(SDPUtils.splitLines(sessionpart));
+  var iceParameters = {
+    usernameFragment: lines.filter(function(line) {
+      return line.indexOf('a=ice-ufrag:') === 0;
+    })[0].substr(12),
+    password: lines.filter(function(line) {
+      return line.indexOf('a=ice-pwd:') === 0;
+    })[0].substr(10)
+  };
+  return iceParameters;
+};
+
+// Serializes ICE parameters to SDP.
+SDPUtils.writeIceParameters = function(params) {
+  return 'a=ice-ufrag:' + params.usernameFragment + '\r\n' +
+      'a=ice-pwd:' + params.password + '\r\n';
+};
+
+// Parses the SDP media section and returns RTCRtpParameters.
+SDPUtils.parseRtpParameters = function(mediaSection) {
+  var description = {
+    codecs: [],
+    headerExtensions: [],
+    fecMechanisms: [],
+    rtcp: []
+  };
+  var lines = SDPUtils.splitLines(mediaSection);
+  var mline = lines[0].split(' ');
+  for (var i = 3; i < mline.length; i++) { // find all codecs from mline[3..]
+    var pt = mline[i];
+    var rtpmapline = SDPUtils.matchPrefix(
+        mediaSection, 'a=rtpmap:' + pt + ' ')[0];
+    if (rtpmapline) {
+      var codec = SDPUtils.parseRtpMap(rtpmapline);
+      var fmtps = SDPUtils.matchPrefix(
+          mediaSection, 'a=fmtp:' + pt + ' ');
+      // Only the first a=fmtp:<pt> is considered.
+      codec.parameters = fmtps.length ? SDPUtils.parseFmtp(fmtps[0]) : {};
+      codec.rtcpFeedback = SDPUtils.matchPrefix(
+          mediaSection, 'a=rtcp-fb:' + pt + ' ')
+        .map(SDPUtils.parseRtcpFb);
+      description.codecs.push(codec);
+      // parse FEC mechanisms from rtpmap lines.
+      switch (codec.name.toUpperCase()) {
+        case 'RED':
+        case 'ULPFEC':
+          description.fecMechanisms.push(codec.name.toUpperCase());
+          break;
+        default: // only RED and ULPFEC are recognized as FEC mechanisms.
+          break;
+      }
+    }
+  }
+  SDPUtils.matchPrefix(mediaSection, 'a=extmap:').forEach(function(line) {
+    description.headerExtensions.push(SDPUtils.parseExtmap(line));
+  });
+  // FIXME: parse rtcp.
+  return description;
+};
+
+// Generates parts of the SDP media section describing the capabilities /
+// parameters.
+SDPUtils.writeRtpDescription = function(kind, caps) {
+  var sdp = '';
+
+  // Build the mline.
+  sdp += 'm=' + kind + ' ';
+  sdp += caps.codecs.length > 0 ? '9' : '0'; // reject if no codecs.
+  sdp += ' UDP/TLS/RTP/SAVPF ';
+  sdp += caps.codecs.map(function(codec) {
+    if (codec.preferredPayloadType !== undefined) {
+      return codec.preferredPayloadType;
+    }
+    return codec.payloadType;
+  }).join(' ') + '\r\n';
+
+  sdp += 'c=IN IP4 0.0.0.0\r\n';
+  sdp += 'a=rtcp:9 IN IP4 0.0.0.0\r\n';
+
+  // Add a=rtpmap lines for each codec. Also fmtp and rtcp-fb.
+  caps.codecs.forEach(function(codec) {
+    sdp += SDPUtils.writeRtpMap(codec);
+    sdp += SDPUtils.writeFmtp(codec);
+    sdp += SDPUtils.writeRtcpFb(codec);
+  });
+  var maxptime = 0;
+  caps.codecs.forEach(function(codec) {
+    if (codec.maxptime > maxptime) {
+      maxptime = codec.maxptime;
+    }
+  });
+  if (maxptime > 0) {
+    sdp += 'a=maxptime:' + maxptime + '\r\n';
+  }
+  sdp += 'a=rtcp-mux\r\n';
+
+  caps.headerExtensions.forEach(function(extension) {
+    sdp += SDPUtils.writeExtmap(extension);
+  });
+  // FIXME: write fecMechanisms.
+  return sdp;
+};
+
+// Parses the SDP media section and returns an array of
+// RTCRtpEncodingParameters.
+SDPUtils.parseRtpEncodingParameters = function(mediaSection) {
+  var encodingParameters = [];
+  var description = SDPUtils.parseRtpParameters(mediaSection);
+  var hasRed = description.fecMechanisms.indexOf('RED') !== -1;
+  var hasUlpfec = description.fecMechanisms.indexOf('ULPFEC') !== -1;
+
+  // filter a=ssrc:... cname:, ignore PlanB-msid
+  var ssrcs = SDPUtils.matchPrefix(mediaSection, 'a=ssrc:')
+  .map(function(line) {
+    return SDPUtils.parseSsrcMedia(line);
+  })
+  .filter(function(parts) {
+    return parts.attribute === 'cname';
+  });
+  var primarySsrc = ssrcs.length > 0 && ssrcs[0].ssrc;
+  var secondarySsrc;
+
+  var flows = SDPUtils.matchPrefix(mediaSection, 'a=ssrc-group:FID')
+  .map(function(line) {
+    var parts = line.split(' ');
+    parts.shift();
+    return parts.map(function(part) {
+      return parseInt(part, 10);
+    });
+  });
+  if (flows.length > 0 && flows[0].length > 1 && flows[0][0] === primarySsrc) {
+    secondarySsrc = flows[0][1];
+  }
+
+  description.codecs.forEach(function(codec) {
+    if (codec.name.toUpperCase() === 'RTX' && codec.parameters.apt) {
+      var encParam = {
+        ssrc: primarySsrc,
+        codecPayloadType: parseInt(codec.parameters.apt, 10),
+        rtx: {
+          ssrc: secondarySsrc
+        }
+      };
+      encodingParameters.push(encParam);
+      if (hasRed) {
+        encParam = JSON.parse(JSON.stringify(encParam));
+        encParam.fec = {
+          ssrc: secondarySsrc,
+          mechanism: hasUlpfec ? 'red+ulpfec' : 'red'
+        };
+        encodingParameters.push(encParam);
+      }
+    }
+  });
+  if (encodingParameters.length === 0 && primarySsrc) {
+    encodingParameters.push({
+      ssrc: primarySsrc
+    });
+  }
+
+  // we support both b=AS and b=TIAS but interpret AS as TIAS.
+  var bandwidth = SDPUtils.matchPrefix(mediaSection, 'b=');
+  if (bandwidth.length) {
+    if (bandwidth[0].indexOf('b=TIAS:') === 0) {
+      bandwidth = parseInt(bandwidth[0].substr(7), 10);
+    } else if (bandwidth[0].indexOf('b=AS:') === 0) {
+      // use formula from JSEP to convert b=AS to TIAS value.
+      bandwidth = parseInt(bandwidth[0].substr(5), 10) * 1000 * 0.95
+          - (50 * 40 * 8);
+    } else {
+      bandwidth = undefined;
+    }
+    encodingParameters.forEach(function(params) {
+      params.maxBitrate = bandwidth;
+    });
+  }
+  return encodingParameters;
+};
+
+// parses http://draft.ortc.org/#rtcrtcpparameters*
+SDPUtils.parseRtcpParameters = function(mediaSection) {
+  var rtcpParameters = {};
+
+  var cname;
+  // Gets the first SSRC. Note that with RTX there might be multiple
+  // SSRCs.
+  var remoteSsrc = SDPUtils.matchPrefix(mediaSection, 'a=ssrc:')
+      .map(function(line) {
+        return SDPUtils.parseSsrcMedia(line);
+      })
+      .filter(function(obj) {
+        return obj.attribute === 'cname';
+      })[0];
+  if (remoteSsrc) {
+    rtcpParameters.cname = remoteSsrc.value;
+    rtcpParameters.ssrc = remoteSsrc.ssrc;
+  }
+
+  // Edge uses the compound attribute instead of reducedSize
+  // compound is !reducedSize
+  var rsize = SDPUtils.matchPrefix(mediaSection, 'a=rtcp-rsize');
+  rtcpParameters.reducedSize = rsize.length > 0;
+  rtcpParameters.compound = rsize.length === 0;
+
+  // parses the rtcp-mux attrіbute.
+  // Note that Edge does not support unmuxed RTCP.
+  var mux = SDPUtils.matchPrefix(mediaSection, 'a=rtcp-mux');
+  rtcpParameters.mux = mux.length > 0;
+
+  return rtcpParameters;
+};
+
+// parses either a=msid: or a=ssrc:... msid lines and returns
+// the id of the MediaStream and MediaStreamTrack.
+SDPUtils.parseMsid = function(mediaSection) {
+  var parts;
+  var spec = SDPUtils.matchPrefix(mediaSection, 'a=msid:');
+  if (spec.length === 1) {
+    parts = spec[0].substr(7).split(' ');
+    return {stream: parts[0], track: parts[1]};
+  }
+  var planB = SDPUtils.matchPrefix(mediaSection, 'a=ssrc:')
+  .map(function(line) {
+    return SDPUtils.parseSsrcMedia(line);
+  })
+  .filter(function(parts) {
+    return parts.attribute === 'msid';
+  });
+  if (planB.length > 0) {
+    parts = planB[0].value.split(' ');
+    return {stream: parts[0], track: parts[1]};
+  }
+};
+
+// Generate a session ID for SDP.
+// https://tools.ietf.org/html/draft-ietf-rtcweb-jsep-20#section-5.2.1
+// recommends using a cryptographically random +ve 64-bit value
+// but right now this should be acceptable and within the right range
+SDPUtils.generateSessionId = function() {
+  return Math.random().toString().substr(2, 21);
+};
+
+// Write boilder plate for start of SDP
+// sessId argument is optional - if not supplied it will
+// be generated randomly
+// sessVersion is optional and defaults to 2
+SDPUtils.writeSessionBoilerplate = function(sessId, sessVer) {
+  var sessionId;
+  var version = sessVer !== undefined ? sessVer : 2;
+  if (sessId) {
+    sessionId = sessId;
+  } else {
+    sessionId = SDPUtils.generateSessionId();
+  }
+  // FIXME: sess-id should be an NTP timestamp.
+  return 'v=0\r\n' +
+      'o=thisisadapterortc ' + sessionId + ' ' + version + ' IN IP4 127.0.0.1\r\n' +
+      's=-\r\n' +
+      't=0 0\r\n';
+};
+
+SDPUtils.writeMediaSection = function(transceiver, caps, type, stream) {
+  var sdp = SDPUtils.writeRtpDescription(transceiver.kind, caps);
+
+  // Map ICE parameters (ufrag, pwd) to SDP.
+  sdp += SDPUtils.writeIceParameters(
+      transceiver.iceGatherer.getLocalParameters());
+
+  // Map DTLS parameters to SDP.
+  sdp += SDPUtils.writeDtlsParameters(
+      transceiver.dtlsTransport.getLocalParameters(),
+      type === 'offer' ? 'actpass' : 'active');
+
+  sdp += 'a=mid:' + transceiver.mid + '\r\n';
+
+  if (transceiver.direction) {
+    sdp += 'a=' + transceiver.direction + '\r\n';
+  } else if (transceiver.rtpSender && transceiver.rtpReceiver) {
+    sdp += 'a=sendrecv\r\n';
+  } else if (transceiver.rtpSender) {
+    sdp += 'a=sendonly\r\n';
+  } else if (transceiver.rtpReceiver) {
+    sdp += 'a=recvonly\r\n';
+  } else {
+    sdp += 'a=inactive\r\n';
+  }
+
+  if (transceiver.rtpSender) {
+    // spec.
+    var msid = 'msid:' + stream.id + ' ' +
+        transceiver.rtpSender.track.id + '\r\n';
+    sdp += 'a=' + msid;
+
+    // for Chrome.
+    sdp += 'a=ssrc:' + transceiver.sendEncodingParameters[0].ssrc +
+        ' ' + msid;
+    if (transceiver.sendEncodingParameters[0].rtx) {
+      sdp += 'a=ssrc:' + transceiver.sendEncodingParameters[0].rtx.ssrc +
+          ' ' + msid;
+      sdp += 'a=ssrc-group:FID ' +
+          transceiver.sendEncodingParameters[0].ssrc + ' ' +
+          transceiver.sendEncodingParameters[0].rtx.ssrc +
+          '\r\n';
+    }
+  }
+  // FIXME: this should be written by writeRtpDescription.
+  sdp += 'a=ssrc:' + transceiver.sendEncodingParameters[0].ssrc +
+      ' cname:' + SDPUtils.localCName + '\r\n';
+  if (transceiver.rtpSender && transceiver.sendEncodingParameters[0].rtx) {
+    sdp += 'a=ssrc:' + transceiver.sendEncodingParameters[0].rtx.ssrc +
+        ' cname:' + SDPUtils.localCName + '\r\n';
+  }
+  return sdp;
+};
+
+// Gets the direction from the mediaSection or the sessionpart.
+SDPUtils.getDirection = function(mediaSection, sessionpart) {
+  // Look for sendrecv, sendonly, recvonly, inactive, default to sendrecv.
+  var lines = SDPUtils.splitLines(mediaSection);
+  for (var i = 0; i < lines.length; i++) {
+    switch (lines[i]) {
+      case 'a=sendrecv':
+      case 'a=sendonly':
+      case 'a=recvonly':
+      case 'a=inactive':
+        return lines[i].substr(2);
+      default:
+        // FIXME: What should happen here?
+    }
+  }
+  if (sessionpart) {
+    return SDPUtils.getDirection(sessionpart);
+  }
+  return 'sendrecv';
+};
+
+SDPUtils.getKind = function(mediaSection) {
+  var lines = SDPUtils.splitLines(mediaSection);
+  var mline = lines[0].split(' ');
+  return mline[0].substr(2);
+};
+
+SDPUtils.isRejected = function(mediaSection) {
+  return mediaSection.split(' ', 2)[1] === '0';
+};
+
+SDPUtils.parseMLine = function(mediaSection) {
+  var lines = SDPUtils.splitLines(mediaSection);
+  var mline = lines[0].split(' ');
+  return {
+    kind: mline[0].substr(2),
+    port: parseInt(mline[1], 10),
+    protocol: mline[2],
+    fmt: mline.slice(3).join(' ')
+  };
+};
+
+// Expose public methods.
+if (true) {
+  module.exports = SDPUtils;
+}
+
+
+/***/ }),
+/* 8 */
 /***/ (function(module, exports) {
 
 /* (ignored) */
 
 /***/ }),
-/* 8 */
+/* 9 */
 /***/ (function(module, exports, __webpack_require__) {
 
 /* WEBPACK VAR INJECTION */(function(process) {// Copyright Joyent, Inc. and other Node contributors.
@@ -8400,10 +9057,10 @@ var substr = 'ab'.substr(-1) === 'b'
     }
 ;
 
-/* WEBPACK VAR INJECTION */}.call(exports, __webpack_require__(60)))
+/* WEBPACK VAR INJECTION */}.call(exports, __webpack_require__(59)))
 
 /***/ }),
-/* 9 */
+/* 10 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
@@ -8448,63 +9105,63 @@ var substr = 'ab'.substr(-1) === 'b'
  */
 
 // CORE
-var stage = __webpack_require__(10)();
-__webpack_require__(14)(stage);
+var stage = __webpack_require__(11)();
 __webpack_require__(15)(stage);
 __webpack_require__(16)(stage);
 __webpack_require__(17)(stage);
+__webpack_require__(18)(stage);
 
 // TOOLS
-__webpack_require__(25)(stage);
 __webpack_require__(26)(stage);
 __webpack_require__(27)(stage);
+__webpack_require__(28)(stage);
 
 // CRYPTO
-__webpack_require__(28)(stage);
 __webpack_require__(29)(stage);
+__webpack_require__(30)(stage);
 
 // IO
-__webpack_require__(30)(stage);
 __webpack_require__(31)(stage);
 __webpack_require__(32)(stage);
+__webpack_require__(33)(stage);
 
 // IO TRANSPORT
-__webpack_require__(33)(stage);
 __webpack_require__(34)(stage);
 __webpack_require__(35)(stage);
 __webpack_require__(36)(stage);
+__webpack_require__(37)(stage);
 
 // IO PROTOCOLS
-__webpack_require__(37)(stage);
 __webpack_require__(38)(stage);
 __webpack_require__(39)(stage);
-
-// IO REALTIME
 __webpack_require__(40)(stage);
 
+// IO REALTIME
+__webpack_require__(41)(stage);
+
 // MEDIAS
-__webpack_require__(41);
+__webpack_require__(42);
+__webpack_require__(53)(stage);
 __webpack_require__(54)(stage);
 __webpack_require__(55)(stage);
 __webpack_require__(56)(stage);
 __webpack_require__(57)(stage);
-__webpack_require__(58)(stage);
 
 // KERNEL STAGE ( nodefony )
-__webpack_require__(59)(stage);
+__webpack_require__(58)(stage);
+__webpack_require__(60)(stage);
 __webpack_require__(61)(stage);
 __webpack_require__(62)(stage);
 __webpack_require__(63)(stage);
 __webpack_require__(64)(stage);
 __webpack_require__(65)(stage);
 __webpack_require__(66)(stage);
-__webpack_require__(67)(stage);
 
 // EXPORT
 module.exports = stage;
 
 /***/ }),
-/* 10 */
+/* 11 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
@@ -8516,7 +9173,7 @@ var _typeof = typeof Symbol === "function" && typeof Symbol.iterator === "symbol
 
 function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError("Cannot call a class as a function"); } }
 
-var config = __webpack_require__(13);
+var config = __webpack_require__(14);
 module.exports = function () {
 
   'use strict';
@@ -8712,14 +9369,14 @@ module.exports = function () {
 /* WEBPACK VAR INJECTION */}.call(exports, __webpack_require__(0)))
 
 /***/ }),
-/* 11 */
+/* 12 */
 /***/ (function(module, exports, __webpack_require__) {
 
-/* WEBPACK VAR INJECTION */(function(global) {module.exports = global["jQuery"] = __webpack_require__(12);
+/* WEBPACK VAR INJECTION */(function(global) {module.exports = global["jQuery"] = __webpack_require__(13);
 /* WEBPACK VAR INJECTION */}.call(exports, __webpack_require__(3)))
 
 /***/ }),
-/* 12 */
+/* 13 */
 /***/ (function(module, exports, __webpack_require__) {
 
 var __WEBPACK_AMD_DEFINE_ARRAY__, __WEBPACK_AMD_DEFINE_RESULT__;/*!
@@ -18935,9 +19592,9 @@ jQuery.nodeName = nodeName;
 // https://github.com/jrburke/requirejs/wiki/Updating-existing-libraries#wiki-anon
 
 if ( true ) {
-	!(__WEBPACK_AMD_DEFINE_ARRAY__ = [], __WEBPACK_AMD_DEFINE_RESULT__ = function() {
+	!(__WEBPACK_AMD_DEFINE_ARRAY__ = [], __WEBPACK_AMD_DEFINE_RESULT__ = (function() {
 		return jQuery;
-	}.apply(exports, __WEBPACK_AMD_DEFINE_ARRAY__),
+	}).apply(exports, __WEBPACK_AMD_DEFINE_ARRAY__),
 				__WEBPACK_AMD_DEFINE_RESULT__ !== undefined && (module.exports = __WEBPACK_AMD_DEFINE_RESULT__));
 }
 
@@ -18979,13 +19636,13 @@ return jQuery;
 
 
 /***/ }),
-/* 13 */
+/* 14 */
 /***/ (function(module, exports) {
 
-module.exports = {"name":"nodefony-stage","version":"0.1.3","description":"Client Side Nodefony web developpement","browser":"dist/stage6.js","main":"src/core.js","scripts":{"build-dev":"WEBPACK_ENV=dev webpack --verbose","build-prod":"WEBPACK_ENV=prod webpack --verbose","start":"webpack-dev-server"},"keywords":["javascript","webpack","nodefony"],"repository":{"type":"git","url":"git@github.com:nodefony/nodefony-stage.git"},"bugs":{"url":"https://github.com/nodefony/nodefony-stage/issues"},"license":"CECILL-B","licenses":[{"type":"CECILL-B","url":"http://www.cecill.info/licences/Licence_CeCILL-B_V1-en.html"}],"dependencies":{"ascii-table":"0.0.9","asciify":"1.3.5","babel-core":"6.26.0","babel-preset-env":"1.6.1","jquery":"3.2.1","opn":"^5.1.0","shortid":"2.2.8","twig":"1.10.5","uglifyjs-webpack-plugin":"^1.1.1","webrtc-adapter":"6.0.2"},"devDependencies":{"assets-webpack-plugin":"3.5.1","babel-loader":"7.1.2","babel-plugin-transform-runtime":"6.23.0","babel-polyfill":"6.26.0","babel-preset-es2015":"6.24.1","babel-register":"6.26.0","chai":"4.1.2","css-loader":"0.28.7","exports-loader":"0.6.4","expose-loader":"0.7.4","file-loader":"1.1.5","imports-loader":"0.7.1","jshint":"2.9.5","jshint-loader":"0.8.4","json-loader":"0.5.7","mocha":"4.0.1","node-sass":"4.7.2","raw-loader":"0.5.1","sass-loader":"6.0.6","should":"13.1.3","sinon":"4.1.2","sinon-chai":"2.14.0","to-string-loader":"1.1.5","tokenizer":"1.1.2","uglify-es":"^3.2.0","url-loader":"0.6.2","webpack":"3.8.1","webpack-dev-server":"^2.9.5","webpack-merge":"4.1.1"},"author":"cci <christophe.camensuli@gmail.com>","readmeFilename":"README.md","contributors":[{}]}
+module.exports = {"name":"nodefony-stage","version":"0.1.2","description":"Client Side Nodefony web developpement","browser":"dist/stage6.js","main":"src/core.js","scripts":{"build-dev":"WEBPACK_ENV=dev webpack --verbose","build-prod":"WEBPACK_ENV=prod webpack --verbose","start":"webpack-dev-server"},"keywords":["javascript","webpack","nodefony","webrtc","sip","opensip","kamailio","webaudio"],"repository":{"type":"git","url":"git@github.com:nodefony/nodefony-stage.git"},"bugs":{"url":"https://github.com/nodefony/nodefony-stage/issues"},"license":"CECILL-B","licenses":[{"type":"CECILL-B","url":"http://www.cecill.info/licences/Licence_CeCILL-B_V1-en.html"}],"dependencies":{"ascii-table":"0.0.9","asciify":"1.3.5","babel-core":"6.26.0","babel-preset-env":"1.6.1","jquery":"3.2.1","opn":"^5.1.0","shortid":"2.2.8","twig":"1.10.5","uglifyjs-webpack-plugin":"^1.1.2","webrtc-adapter":"6.0.2"},"devDependencies":{"assets-webpack-plugin":"3.5.1","babel-loader":"7.1.2","babel-plugin-transform-runtime":"6.23.0","babel-polyfill":"6.26.0","babel-preset-es2015":"6.24.1","babel-register":"6.26.0","chai":"4.1.2","css-loader":"0.28.7","exports-loader":"0.6.4","expose-loader":"0.7.4","file-loader":"1.1.5","imports-loader":"0.7.1","jshint":"2.9.5","jshint-loader":"0.8.4","json-loader":"0.5.7","mocha":"4.0.1","node-sass":"4.7.2","raw-loader":"0.5.1","sass-loader":"6.0.6","should":"13.1.3","sinon":"4.1.2","sinon-chai":"2.14.0","to-string-loader":"1.1.5","tokenizer":"1.1.2","uglify-es":"^3.2.0","url-loader":"0.6.2","webpack":"^3.9.1","webpack-dev-server":"^2.9.5","webpack-merge":"4.1.1"},"author":"cci <christophe.camensuli@gmail.com>","readmeFilename":"README.md","contributors":[{}]}
 
 /***/ }),
-/* 14 */
+/* 15 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
@@ -19176,7 +19833,7 @@ module.exports = function (stage) {
 };
 
 /***/ }),
-/* 15 */
+/* 16 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
@@ -19909,7 +20566,7 @@ module.exports = function (stage) {
 };
 
 /***/ }),
-/* 16 */
+/* 17 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
@@ -20120,7 +20777,7 @@ module.exports = function (stage) {
 };
 
 /***/ }),
-/* 17 */
+/* 18 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
@@ -20437,7 +21094,7 @@ module.exports = function (stage) {
 };
 
 /***/ }),
-/* 18 */
+/* 19 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
@@ -20445,15 +21102,15 @@ module.exports = function (stage) {
 
 var alphabet = __webpack_require__(2);
 var encode = __webpack_require__(6);
-var decode = __webpack_require__(21);
-var build = __webpack_require__(22);
-var isValid = __webpack_require__(23);
+var decode = __webpack_require__(22);
+var build = __webpack_require__(23);
+var isValid = __webpack_require__(24);
 
 // if you are using cluster or multiple servers use this to make each instance
 // has a unique value for worker
 // Note: I don't know if this is automatically set when using third
 // party cluster solutions such as pm2.
-var clusterWorkerId = __webpack_require__(24) || 0;
+var clusterWorkerId = __webpack_require__(25) || 0;
 
 /**
  * Set the seed.
@@ -20509,7 +21166,7 @@ module.exports.isValid = isValid;
 
 
 /***/ }),
-/* 19 */
+/* 20 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
@@ -20541,7 +21198,7 @@ module.exports = {
 
 
 /***/ }),
-/* 20 */
+/* 21 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
@@ -20562,7 +21219,7 @@ module.exports = randomByte;
 
 
 /***/ }),
-/* 21 */
+/* 22 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
@@ -20586,7 +21243,7 @@ module.exports = decode;
 
 
 /***/ }),
-/* 22 */
+/* 23 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
@@ -20641,7 +21298,7 @@ module.exports = build;
 
 
 /***/ }),
-/* 23 */
+/* 24 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
@@ -20667,7 +21324,7 @@ module.exports = isShortId;
 
 
 /***/ }),
-/* 24 */
+/* 25 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
@@ -20677,7 +21334,7 @@ module.exports = 0;
 
 
 /***/ }),
-/* 25 */
+/* 26 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
@@ -20870,7 +21527,7 @@ module.exports = function (stage) {
 };
 
 /***/ }),
-/* 26 */
+/* 27 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
@@ -21038,7 +21695,7 @@ module.exports = function (stage) {
 };
 
 /***/ }),
-/* 27 */
+/* 28 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
@@ -21235,7 +21892,7 @@ module.exports = function (stage) {
 };
 
 /***/ }),
-/* 28 */
+/* 29 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
@@ -21432,7 +22089,7 @@ module.exports = function (stage) {
 };
 
 /***/ }),
-/* 29 */
+/* 30 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
@@ -21810,7 +22467,7 @@ module.exports = function (stage) {
 };
 
 /***/ }),
-/* 30 */
+/* 31 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
@@ -21828,276 +22485,276 @@ function _classCallCheck(instance, Constructor) { if (!(instance instanceof Cons
 
 module.exports = function (stage) {
 
-	'use strict';
+  'use strict';
 
-	var isSameOrigin = function isSameOrigin(url) {
-		var loc = window.location;
-		var a = urlToOject(url);
-		return a.hostname === loc.hostname && a.port == loc.port && a.protocol === loc.protocol;
-	};
+  var isSameOrigin = function isSameOrigin(url) {
+    var loc = window.location;
+    var a = urlToOject(url);
+    return a.hostname === loc.hostname && a.port == loc.port && a.protocol === loc.protocol;
+  };
 
-	var isSecure = function isSecure(url) {
-		var loc = window.location;
-		var a = urlToOject(url);
-		return a.protocol === "https:";
-	};
+  var isSecure = function isSecure(url) {
+    var loc = window.location;
+    var a = urlToOject(url);
+    return a.protocol === "https:";
+  };
 
-	/*
- 	 *
- 	 *   CLASS AUTHENTICATE
- 	 *
- 	 *
- 	 *	EVENTS
- 	 *
- 	 *	onError: 
- 	 *
- 	 *
- 	 *	onSuccess:
- 	 *
- 	 *
- 	 */
-	var authenticate = function () {
-		function authenticate(url, request, settings) {
-			_classCallCheck(this, authenticate);
+  /*
+   *
+   *   CLASS AUTHENTICATE
+   *
+   *
+   *	EVENTS
+   *
+   *	onError:
+   *
+   *
+   *	onSuccess:
+   *
+   *
+   */
+  var authenticate = function () {
+    function authenticate(url, request, settings) {
+      _classCallCheck(this, authenticate);
 
-			this.url = (typeof url === "undefined" ? "undefined" : _typeof(url)) === "object" ? url : stage.io.urlToOject(url);
-			this.crossDomain = !stage.io.isSameOrigin(url);
-			// notification center
-			this.notificationCenter = stage.notificationsCenter.create(settings);
-			// get header WWW-Authenticate
-			var _authenticate = request["WWW-Authenticate"].split(" ");
-			//  get type authentification
-			var authType = Array.prototype.shift.call(_authenticate);
-			var headers = request["WWW-Authenticate"].replace(authType + " ", "");
-			//console.log(authType);
-			this.method = "POST";
-			var body = request.body;
+      this.url = (typeof url === "undefined" ? "undefined" : _typeof(url)) === "object" ? url : stage.io.urlToOject(url);
+      this.crossDomain = !stage.io.isSameOrigin(url);
+      // notification center
+      this.notificationCenter = stage.notificationsCenter.create(settings);
+      // get header WWW-Authenticate
+      var _authenticate = request["WWW-Authenticate"].split(" ");
+      //  get type authentification
+      var authType = Array.prototype.shift.call(_authenticate);
+      var headers = request["WWW-Authenticate"].replace(authType + " ", "");
+      //console.log(authType);
+      this.method = "POST";
+      var body = request.body;
 
-			// intance of authentication
-			var auth = this.getAuthenticationType(authType);
-			this.authentication = new auth(this.url, this.method, headers, body);
-			this.ajax = false;
-			if (settings.ajax) {
-				this.ajax = true;
-			}
-		}
+      // intance of authentication
+      var auth = this.getAuthenticationType(authType);
+      this.authentication = new auth(this.url, this.method, headers, body);
+      this.ajax = false;
+      if (settings.ajax) {
+        this.ajax = true;
+      }
+    }
 
-		_createClass(authenticate, [{
-			key: "getAuthenticationType",
-			value: function getAuthenticationType(type) {
-				if (type in stage.io.authentication) {
-					return stage.io.authentication[type];
-				} else {
-					throw new Error("SSE client can't negociate : " + type);
-				}
-			}
-		}, {
-			key: "register",
-			value: function register(username, password) {
-				var _this = this;
+    _createClass(authenticate, [{
+      key: "getAuthenticationType",
+      value: function getAuthenticationType(type) {
+        if (type in stage.io.authentication) {
+          return stage.io.authentication[type];
+        } else {
+          throw new Error("SSE client can't negociate : " + type);
+        }
+      }
+    }, {
+      key: "register",
+      value: function register(username, password) {
+        var _this = this;
 
-				var line = this.authentication.getAuthorization(username, password);
-				this.notificationCenter.fire("onRegister", this, line);
-				if (this.ajax) {
-					$.ajax({
-						type: this.method,
-						url: this.url.href,
-						cache: false,
-						crossDomain: this.crossDomain ? false : true,
-						error: function error(obj, type, message) {
-							_this.notificationCenter.fire("onError", obj, type, message);
-						},
-						beforeSend: function beforeSend(xhr) {
-							xhr.setRequestHeader("Authorization", line);
-							//if (this.crossDomain)
-							//xhr.setRequestHeader("X-Requested-With", "XMLHttpRequest");
-						},
-						success: function success(data, state, obj) {
-							_this.notificationCenter.fire("onSuccess", data, state, obj);
-						}
-					});
-				}
-			}
-		}]);
+        var line = this.authentication.getAuthorization(username, password);
+        this.notificationCenter.fire("onRegister", this, line);
+        if (this.ajax) {
+          $.ajax({
+            type: this.method,
+            url: this.url.href,
+            cache: false,
+            crossDomain: this.crossDomain ? false : true,
+            error: function error(obj, type, message) {
+              _this.notificationCenter.fire("onError", obj, type, message);
+            },
+            beforeSend: function beforeSend(xhr) {
+              xhr.setRequestHeader("Authorization", line);
+              //if (this.crossDomain)
+              //xhr.setRequestHeader("X-Requested-With", "XMLHttpRequest");
+            },
+            success: function success(data, state, obj) {
+              _this.notificationCenter.fire("onSuccess", data, state, obj);
+            }
+          });
+        }
+      }
+    }]);
 
-		return authenticate;
-	}();
+    return authenticate;
+  }();
 
-	/**
- 	 * We need our custom method because encodeURIComponent is too aggressive and doesn't follow
- 	 * http://www.ietf.org/rfc/rfc3986.txt with regards to the character set (pchar) allowed in path
- 	 * segments:
- 	 *    segment       = *pchar
- 	 *    pchar         = unreserved / pct-encoded / sub-delims / ":" / "@"
- 	 *    pct-encoded   = "%" HEXDIG HEXDIG
- 	 *    unreserved    = ALPHA / DIGIT / "-" / "." / "_" / "~"
- 	 *    sub-delims    = "!" / "$" / "&" / "'" / "(" / ")"
- 	 *                     / "*" / "+" / "," / ";" / "="
- 	 */
-	var encodeUriSegment = function encodeUriSegment(val) {
-		return encodeUriQuery(val, true).replace(/%26/gi, '&').replace(/%3D/gi, '=').replace(/%2B/gi, '+');
-	};
+  /**
+   * We need our custom method because encodeURIComponent is too aggressive and doesn't follow
+   * http://www.ietf.org/rfc/rfc3986.txt with regards to the character set (pchar) allowed in path
+   * segments:
+   *    segment       = *pchar
+   *    pchar         = unreserved / pct-encoded / sub-delims / ":" / "@"
+   *    pct-encoded   = "%" HEXDIG HEXDIG
+   *    unreserved    = ALPHA / DIGIT / "-" / "." / "_" / "~"
+   *    sub-delims    = "!" / "$" / "&" / "'" / "(" / ")"
+   *                     / "*" / "+" / "," / ";" / "="
+   */
+  var encodeUriSegment = function encodeUriSegment(val) {
+    return encodeUriQuery(val, true).replace(/%26/gi, '&').replace(/%3D/gi, '=').replace(/%2B/gi, '+');
+  };
 
-	/**
- 	 * This method is intended for encoding *key* or *value* parts of query component. We need a custom
- 	 * method because encodeURIComponent is too aggressive and encodes stuff that doesn't have to be
- 	 * encoded per http://tools.ietf.org/html/rfc3986:
- 	 *    query       = *( pchar / "/" / "?" )
- 	 *    pchar         = unreserved / pct-encoded / sub-delims / ":" / "@"
- 	 *    unreserved    = ALPHA / DIGIT / "-" / "." / "_" / "~"
- 	 *    pct-encoded   = "%" HEXDIG HEXDIG
- 	 *    sub-delims    = "!" / "$" / "&" / "'" / "(" / ")"
- 	 *                     / "*" / "+" / "," / ";" / "="
- 	 */
-	var encodeUriQuery = function encodeUriQuery(val, pctEncodeSpaces) {
-		return encodeURIComponent(val).replace(/%40/gi, '@').replace(/%3A/gi, ':').replace(/%24/g, '$').replace(/%2C/gi, ',').replace(/%3B/gi, ';').replace(/%20/g, pctEncodeSpaces ? '%20' : '+');
-	};
+  /**
+   * This method is intended for encoding *key* or *value* parts of query component. We need a custom
+   * method because encodeURIComponent is too aggressive and encodes stuff that doesn't have to be
+   * encoded per http://tools.ietf.org/html/rfc3986:
+   *    query       = *( pchar / "/" / "?" )
+   *    pchar         = unreserved / pct-encoded / sub-delims / ":" / "@"
+   *    unreserved    = ALPHA / DIGIT / "-" / "." / "_" / "~"
+   *    pct-encoded   = "%" HEXDIG HEXDIG
+   *    sub-delims    = "!" / "$" / "&" / "'" / "(" / ")"
+   *                     / "*" / "+" / "," / ";" / "="
+   */
+  var encodeUriQuery = function encodeUriQuery(val, pctEncodeSpaces) {
+    return encodeURIComponent(val).replace(/%40/gi, '@').replace(/%3A/gi, ':').replace(/%24/g, '$').replace(/%2C/gi, ',').replace(/%3B/gi, ';').replace(/%20/g, pctEncodeSpaces ? '%20' : '+');
+  };
 
-	var regSearch = /^\?(.*)/;
-	var parseKeyValue = function parseKeyValue(search) {
-		//console.log(search)
-		var test = regSearch.exec(search);
-		//console.log(test)
-		if (test) {
-			search = test[1];
-		}
-		var obj = {},
-		    key_value,
-		    key;
-		var tab = (search || "").split('&');
-		if (tab.length) {
-			for (var i = 0; i < tab.length; i++) {
-				try {
-					var key_value = tab[i].replace(/\+/g, '%20').split('=');
-					var key = decodeURIComponent(key_value[0]);
-					//console.log(key_value)
-					//console.log(key)
-					if (key) {
-						var val = decodeURIComponent(key_value[1]);
-						if (!Object.prototype.hasOwnProperty.call(obj, key)) {
-							obj[key] = val;
-						} else {
-							switch (stage.typeOf(obj[key])) {
-								case "array":
-									obj[key].push(val);
-									break;
-								default:
-									obj[key] = [obj[key], val];
-							}
-						}
-					}
-				} catch (e) {
-					//invalid
-				}
-			}
-		}
-		return obj;
-	};
+  var regSearch = /^\?(.*)/;
+  var parseKeyValue = function parseKeyValue(search) {
+    //console.log(search)
+    var test = regSearch.exec(search);
+    //console.log(test)
+    if (test) {
+      search = test[1];
+    }
+    var obj = {},
+        key_value,
+        key;
+    var tab = (search || "").split('&');
+    if (tab.length) {
+      for (var i = 0; i < tab.length; i++) {
+        try {
+          var key_value = tab[i].replace(/\+/g, '%20').split('=');
+          var key = decodeURIComponent(key_value[0]);
+          //console.log(key_value)
+          //console.log(key)
+          if (key) {
+            var val = decodeURIComponent(key_value[1]);
+            if (!Object.prototype.hasOwnProperty.call(obj, key)) {
+              obj[key] = val;
+            } else {
+              switch (stage.typeOf(obj[key])) {
+                case "array":
+                  obj[key].push(val);
+                  break;
+                default:
+                  obj[key] = [obj[key], val];
+              }
+            }
+          }
+        } catch (e) {
+          //invalid
+        }
+      }
+    }
+    return obj;
+  };
 
-	var toKeyValue = function toKeyValue(obj) {
-		var parts = [];
-		for (var ele in obj) {
-			switch (stage.typeOf(obj[ele])) {
-				case "array":
-					for (var i = 0; i < obj[ele].length; i++) {
-						parts.push(encodeUriQuery(ele, true) + (obj[ele][i] === true ? '' : '=' + encodeUriQuery(obj[ele][i], true)));
-					}
-					break;
-				case "string":
-				case "boolean":
-					parts.push(encodeUriQuery(ele, true) + (obj[ele] === true ? '' : '=' + encodeUriQuery(obj[ele], true)));
-					break;
-				default:
-					continue;
-			}
-		}
-		return parts.length ? parts.join('&') : '';
-	};
+  var toKeyValue = function toKeyValue(obj) {
+    var parts = [];
+    for (var ele in obj) {
+      switch (stage.typeOf(obj[ele])) {
+        case "array":
+          for (var i = 0; i < obj[ele].length; i++) {
+            parts.push(encodeUriQuery(ele, true) + (obj[ele][i] === true ? '' : '=' + encodeUriQuery(obj[ele][i], true)));
+          }
+          break;
+        case "string":
+        case "boolean":
+          parts.push(encodeUriQuery(ele, true) + (obj[ele] === true ? '' : '=' + encodeUriQuery(obj[ele], true)));
+          break;
+        default:
+          continue;
+      }
+    }
+    return parts.length ? parts.join('&') : '';
+  };
 
-	var getHeaderJSON = function getHeaderJSON(xhr) {
-		var json = xhr.getResponseHeader("X-Json");
-		if (json) {
-			try {
-				return JSON.parse(json);
-			} catch (e) {
-				return json;
-			}
-		}
-		return null;
-	};
+  var getHeaderJSON = function getHeaderJSON(xhr) {
+    var json = xhr.getResponseHeader("X-Json");
+    if (json) {
+      try {
+        return JSON.parse(json);
+      } catch (e) {
+        return json;
+      }
+    }
+    return null;
+  };
 
-	var urlToOject = function urlToOject(url) {
-		var result = {};
+  var urlToOject = function urlToOject(url) {
+    var result = {};
 
-		var anchor = document.createElement('a');
-		anchor.href = url;
+    var anchor = document.createElement('a');
+    anchor.href = url;
 
-		var keys = 'protocol hostname host pathname port search hash href'.split(' ');
-		for (var keyIndex in keys) {
-			var currentKey = keys[keyIndex];
-			result[currentKey] = anchor[currentKey];
-		}
+    var keys = 'protocol hostname host pathname port search hash href'.split(' ');
+    for (var keyIndex in keys) {
+      var currentKey = keys[keyIndex];
+      result[currentKey] = anchor[currentKey];
+    }
 
-		result.toString = function () {
-			return anchor.href;
-		};
-		result.requestUri = result.pathname + result.search;
+    result.toString = function () {
+      return anchor.href;
+    };
+    result.requestUri = result.pathname + result.search;
 
-		result.basename = result.pathname.replace(/\\/g, '/').replace(/.*\//, '');
-		result.dirname = result.pathname.replace(/\\/g, '/').replace(/\/[^\/]*$/, '');
+    result.basename = result.pathname.replace(/\\/g, '/').replace(/.*\//, '');
+    result.dirname = result.pathname.replace(/\\/g, '/').replace(/\/[^\/]*$/, '');
 
-		return result;
-	};
+    return result;
+  };
 
-	var nativeWebSocket = window.WebSocket ? true : false;
+  var nativeWebSocket = window.WebSocket ? true : false;
 
-	var transportCore = function (_stage$notificationsC) {
-		_inherits(transportCore, _stage$notificationsC);
+  var transportCore = function (_stage$notificationsC) {
+    _inherits(transportCore, _stage$notificationsC);
 
-		function transportCore(url, settings, context) {
-			_classCallCheck(this, transportCore);
+    function transportCore(url, settings, context) {
+      _classCallCheck(this, transportCore);
 
-			// Manage Url
-			var _this2 = _possibleConstructorReturn(this, (transportCore.__proto__ || Object.getPrototypeOf(transportCore)).call(this, settings, context));
+      // Manage Url
+      var _this2 = _possibleConstructorReturn(this, (transportCore.__proto__ || Object.getPrototypeOf(transportCore)).call(this, settings, context));
 
-			if (url) {
-				_this2.url = urlToOject(url);
-				_this2.crossDomain = !isSameOrigin(url);
-				_this2.error = null;
-			} else {
-				_this2.fire("onError", new Error("Transport URL not defined"));
-			}
-			return _this2;
-		}
+      if (url) {
+        _this2.url = urlToOject(url);
+        _this2.crossDomain = !isSameOrigin(url);
+        _this2.error = null;
+      } else {
+        _this2.fire("onError", new Error("Transport URL not defined"));
+      }
+      return _this2;
+    }
 
-		return transportCore;
-	}(stage.notificationsCenter.notification);
+    return transportCore;
+  }(stage.notificationsCenter.notification);
 
-	stage.io = {
-		nativeWebSocket: nativeWebSocket,
-		urlToOject: urlToOject,
-		parseKeyValue: parseKeyValue,
-		toKeyValue: toKeyValue,
-		encodeUriSegment: encodeUriSegment,
-		encodeUriQuery: encodeUriQuery,
-		getHeaderJSON: getHeaderJSON,
-		isSameOrigin: isSameOrigin,
-		isSecure: isSecure,
-		protocols: {},
-		authentication: {
-			authenticate: authenticate,
-			mechanisms: {}
-		},
-		transport: transportCore,
-		transports: {}
-	};
+  stage.io = {
+    nativeWebSocket: nativeWebSocket,
+    urlToOject: urlToOject,
+    parseKeyValue: parseKeyValue,
+    toKeyValue: toKeyValue,
+    encodeUriSegment: encodeUriSegment,
+    encodeUriQuery: encodeUriQuery,
+    getHeaderJSON: getHeaderJSON,
+    isSameOrigin: isSameOrigin,
+    isSecure: isSecure,
+    protocols: {},
+    authentication: {
+      authenticate: authenticate,
+      mechanisms: {}
+    },
+    transport: transportCore,
+    transports: {}
+  };
 
-	return stage.io;
+  return stage.io;
 };
 /* WEBPACK VAR INJECTION */}.call(exports, __webpack_require__(0)))
 
 /***/ }),
-/* 31 */
+/* 32 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
@@ -22297,7 +22954,7 @@ module.exports = function (stage) {
 };
 
 /***/ }),
-/* 32 */
+/* 33 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
@@ -22387,92 +23044,6 @@ module.exports = function (stage) {
 };
 
 /***/ }),
-/* 33 */
-/***/ (function(module, exports, __webpack_require__) {
-
-"use strict";
-
-
-var _createClass = function () { function defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ("value" in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } } return function (Constructor, protoProps, staticProps) { if (protoProps) defineProperties(Constructor.prototype, protoProps); if (staticProps) defineProperties(Constructor, staticProps); return Constructor; }; }();
-
-function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError("Cannot call a class as a function"); } }
-
-function _possibleConstructorReturn(self, call) { if (!self) { throw new ReferenceError("this hasn't been initialised - super() hasn't been called"); } return call && (typeof call === "object" || typeof call === "function") ? call : self; }
-
-function _inherits(subClass, superClass) { if (typeof superClass !== "function" && superClass !== null) { throw new TypeError("Super expression must either be null or a function, not " + typeof superClass); } subClass.prototype = Object.create(superClass && superClass.prototype, { constructor: { value: subClass, enumerable: false, writable: true, configurable: true } }); if (superClass) Object.setPrototypeOf ? Object.setPrototypeOf(subClass, superClass) : subClass.__proto__ = superClass; }
-
-module.exports = function (stage) {
-
-	var defaultSettings = {
-		type: "websocket" //   websocket | poll | longPoll 
-	};
-
-	var bestTransport = function bestTransport() {};
-
-	var socket = function (_stage$notificationsC) {
-		_inherits(socket, _stage$notificationsC);
-
-		function socket(url, localSettings) {
-			_classCallCheck(this, socket);
-
-			var settings = stage.extend({}, defaultSettings, localSettings);
-
-			var _this = _possibleConstructorReturn(this, (socket.__proto__ || Object.getPrototypeOf(socket)).call(this, settings));
-
-			_this.settings = settings;
-
-			switch (_this.settings.type) {
-				case "websocket":
-					_this.socket = stage.io.transports.websocket;
-					break;
-				case "poll":
-					_this.socket = stage.io.transports.ajax;
-					break;
-				case "longPoll":
-					_this.socket = stage.io.transports.ajax;
-					break;
-			}
-
-			_this.listen(_this, "onConnect");
-			_this.listen(_this, "onClose");
-			_this.listen(_this, "onError");
-			_this.listen(_this, "onMessage");
-			_this.listen(_this, "onTimeout");
-			return _this;
-		}
-
-		_createClass(socket, [{
-			key: "write",
-			value: function write(settings) {
-				this.transport.send();
-			}
-		}, {
-			key: "close",
-			value: function close(settings) {
-				this.transport.close();
-			}
-		}, {
-			key: "connect",
-			value: function connect(url, settings) {
-				this.transport = new this.socket(url, settings);
-				this.transport.onmessage = this.listen(this, "onMessage");
-			}
-		}, {
-			key: "destroy",
-			value: function destroy(settings) {
-				this.transport = null;
-				this.clearNotifications();
-			}
-		}]);
-
-		return socket;
-	}(stage.notificationsCenter.notification);
-
-	stage.io.socket = socket;
-	return socket;
-};
-
-/***/ }),
 /* 34 */
 /***/ (function(module, exports, __webpack_require__) {
 
@@ -22489,65 +23060,151 @@ function _inherits(subClass, superClass) { if (typeof superClass !== "function" 
 
 module.exports = function (stage) {
 
-	/*
- 	 *
- 	 */
-	var websocket = function (_stage$io$transport) {
-		_inherits(websocket, _stage$io$transport);
+  var defaultSettings = {
+    type: "websocket" //   websocket | poll | longPoll
+  };
 
-		function websocket(url, settings) {
-			_classCallCheck(this, websocket);
+  var bestTransport = function bestTransport() {};
 
-			if (url) {
-				var _this = _possibleConstructorReturn(this, (websocket.__proto__ || Object.getPrototypeOf(websocket)).call(this, url, settings));
+  var socket = function (_stage$notificationsC) {
+    _inherits(socket, _stage$notificationsC);
 
-				_this.connect(url, settings);
-			} else {
-				var _this = _possibleConstructorReturn(this, (websocket.__proto__ || Object.getPrototypeOf(websocket)).call(this));
+    function socket(url, localSettings) {
+      _classCallCheck(this, socket);
 
-				_this.socket = null;
-			}
-			return _possibleConstructorReturn(_this);
-		}
+      var settings = stage.extend({}, defaultSettings, localSettings);
 
-		_createClass(websocket, [{
-			key: "connect",
-			value: function connect(url, settings) {
-				this.socket = new WebSocket(url, settings.protocol);
-				this.socket.onmessage = this.listen(this, "onMessage");
-				this.socket.onerror = this.listen(this, "onError");
-				this.socket.onopen = this.listen(this, "onConnect");
-				this.socket.onclose = this.listen(this, "onClose");
-				return this.socket;
-			}
-		}, {
-			key: "close",
-			value: function close(url, settings) {
-				this.socket.close();
-			}
-		}, {
-			key: "send",
-			value: function send(data) {
-				this.socket.send(data);
-			}
-		}, {
-			key: "destroy",
-			value: function destroy(data) {
-				delete this.socket;
-				this.socket = null;
-			}
-		}]);
+      var _this = _possibleConstructorReturn(this, (socket.__proto__ || Object.getPrototypeOf(socket)).call(this, settings));
 
-		return websocket;
-	}(stage.io.transport);
+      _this.settings = settings;
 
-	stage.io.transports.websocket = websocket;
+      switch (_this.settings.type) {
+        case "websocket":
+          _this.socket = stage.io.transports.websocket;
+          break;
+        case "poll":
+          _this.socket = stage.io.transports.ajax;
+          break;
+        case "longPoll":
+          _this.socket = stage.io.transports.ajax;
+          break;
+      }
 
-	return websocket;
+      _this.listen(_this, "onConnect");
+      _this.listen(_this, "onClose");
+      _this.listen(_this, "onError");
+      _this.listen(_this, "onMessage");
+      _this.listen(_this, "onTimeout");
+      return _this;
+    }
+
+    _createClass(socket, [{
+      key: "write",
+      value: function write(settings) {
+        this.transport.send();
+      }
+    }, {
+      key: "close",
+      value: function close(settings) {
+        this.transport.close();
+      }
+    }, {
+      key: "connect",
+      value: function connect(url, settings) {
+        this.transport = new this.socket(url, settings);
+        this.transport.onmessage = this.listen(this, "onMessage");
+      }
+    }, {
+      key: "destroy",
+      value: function destroy(settings) {
+        this.transport = null;
+        this.clearNotifications();
+      }
+    }]);
+
+    return socket;
+  }(stage.notificationsCenter.notification);
+
+  stage.io.socket = socket;
+  return socket;
 };
 
 /***/ }),
 /* 35 */
+/***/ (function(module, exports, __webpack_require__) {
+
+"use strict";
+
+
+var _createClass = function () { function defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ("value" in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } } return function (Constructor, protoProps, staticProps) { if (protoProps) defineProperties(Constructor.prototype, protoProps); if (staticProps) defineProperties(Constructor, staticProps); return Constructor; }; }();
+
+function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError("Cannot call a class as a function"); } }
+
+function _possibleConstructorReturn(self, call) { if (!self) { throw new ReferenceError("this hasn't been initialised - super() hasn't been called"); } return call && (typeof call === "object" || typeof call === "function") ? call : self; }
+
+function _inherits(subClass, superClass) { if (typeof superClass !== "function" && superClass !== null) { throw new TypeError("Super expression must either be null or a function, not " + typeof superClass); } subClass.prototype = Object.create(superClass && superClass.prototype, { constructor: { value: subClass, enumerable: false, writable: true, configurable: true } }); if (superClass) Object.setPrototypeOf ? Object.setPrototypeOf(subClass, superClass) : subClass.__proto__ = superClass; }
+
+module.exports = function (stage) {
+
+  /*
+   *
+   */
+  var websocket = function (_stage$io$transport) {
+    _inherits(websocket, _stage$io$transport);
+
+    function websocket(url, settings) {
+      _classCallCheck(this, websocket);
+
+      if (url) {
+        var _this = _possibleConstructorReturn(this, (websocket.__proto__ || Object.getPrototypeOf(websocket)).call(this, url, settings));
+
+        _this.connect(url, settings);
+      } else {
+        var _this = _possibleConstructorReturn(this, (websocket.__proto__ || Object.getPrototypeOf(websocket)).call(this));
+
+        _this.socket = null;
+      }
+      return _possibleConstructorReturn(_this);
+    }
+
+    _createClass(websocket, [{
+      key: "connect",
+      value: function connect(url, settings) {
+        this.socket = new WebSocket(url, settings.protocol);
+        this.socket.onmessage = this.listen(this, "onMessage");
+        this.socket.onerror = this.listen(this, "onError");
+        this.socket.onopen = this.listen(this, "onConnect");
+        this.socket.onclose = this.listen(this, "onClose");
+        return this.socket;
+      }
+    }, {
+      key: "close",
+      value: function close(url, settings) {
+        this.socket.close();
+      }
+    }, {
+      key: "send",
+      value: function send(data) {
+        this.socket.send(data);
+      }
+    }, {
+      key: "destroy",
+      value: function destroy(data) {
+        delete this.socket;
+        this.socket = null;
+      }
+    }]);
+
+    return websocket;
+  }(stage.io.transport);
+
+  stage.io.transports.websocket = websocket;
+
+  return websocket;
+};
+
+/***/ }),
+/* 36 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
@@ -22751,7 +23408,7 @@ module.exports = function (stage) {
 /* WEBPACK VAR INJECTION */}.call(exports, __webpack_require__(0)))
 
 /***/ }),
-/* 36 */
+/* 37 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
@@ -22846,7 +23503,7 @@ module.exports = function (stage) {
 /* WEBPACK VAR INJECTION */}.call(exports, __webpack_require__(0)))
 
 /***/ }),
-/* 37 */
+/* 38 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
@@ -22858,296 +23515,296 @@ function _classCallCheck(instance, Constructor) { if (!(instance instanceof Cons
 
 module.exports = function (stage) {
 
-	'use strict';
+  'use strict';
 
-	var clientsCapabilities = function () {
-		var tab = [];
-		var ws = stage.io.nativeWebSocket ? tab.push("websocket") : null;
-		var poll = stage.io.poll ? tab.push("poll") : null;
-		var lpoll = stage.io.longPoll ? tab.push("long-polling") : null;
-		var jsonp = stage.io.jsonp ? tab.push("callback-polling") : null;
-		return tab;
-	}();
+  var clientsCapabilities = function () {
+    var tab = [];
+    var ws = stage.io.nativeWebSocket ? tab.push("websocket") : null;
+    var poll = stage.io.poll ? tab.push("poll") : null;
+    var lpoll = stage.io.longPoll ? tab.push("long-polling") : null;
+    var jsonp = stage.io.jsonp ? tab.push("callback-polling") : null;
+    return tab;
+  }();
 
-	var onHandshakeResponse = function onHandshakeResponse(message) {
-		var _this = this;
+  var onHandshakeResponse = function onHandshakeResponse(message) {
+    var _this = this;
 
-		if (message.successful) {
-			try {
-				var socket = this.getBestConnection(message.supportedConnectionTypes);
-				this.socket = new socket.Class(socket.url);
-				this.socket.onmessage = function (message) {
-					if (message.data) {
-						_this.onMessage(message.data);
-					}
-				};
-				this.socket.onopen = function () {
-					_this.socket.send(_this.connect(message));
-					_this.notificationCenter.fire("onHandshake", message, _this.socket);
-				};
-				this.socket.onerror = this.notificationCenter.listen(this, "onError");
-				this.socket.onclose = function (err) {
-					delete _this.socket;
-					_this.notificationCenter.fire("onClose", err);
-				};
-			} catch (e) {
-				throw new Error(e);
-			}
-		} else {
-			onError.call(this, message);
-		}
-	};
+    if (message.successful) {
+      try {
+        var socket = this.getBestConnection(message.supportedConnectionTypes);
+        this.socket = new socket.Class(socket.url);
+        this.socket.onmessage = function (message) {
+          if (message.data) {
+            _this.onMessage(message.data);
+          }
+        };
+        this.socket.onopen = function () {
+          _this.socket.send(_this.connect(message));
+          _this.notificationCenter.fire("onHandshake", message, _this.socket);
+        };
+        this.socket.onerror = this.notificationCenter.listen(this, "onError");
+        this.socket.onclose = function (err) {
+          delete _this.socket;
+          _this.notificationCenter.fire("onClose", err);
+        };
+      } catch (e) {
+        throw new Error(e);
+      }
+    } else {
+      onError.call(this, message);
+    }
+  };
 
-	var reconnect = function reconnect() {
-		this.reconnect = true;
-		this.notificationCenter.fire("reConnect", this);
-	};
+  var reconnect = function reconnect() {
+    this.reconnect = true;
+    this.notificationCenter.fire("reConnect", this);
+  };
 
-	var onConnectResponse = function onConnectResponse(message) {
-		if (message.successful) {
-			this.connected = true;
-			this.idconnection = message.clientId;
-			if (message.advice) {
-				for (var ele in message.advice) {
-					switch (ele) {
-						case "reconnect":
-							if (message.advice[ele] === "retry") {
-								if (!this.reconnect) {
-									this.notificationCenter.listen(this, "onClose", reconnect);
-								}
-							}
-							break;
-					}
-				}
-			}
-			this.notificationCenter.fire("onConnect", message);
-		} else {
-			this.connected = false;
-			onError.call(this, message);
-		}
-	};
+  var onConnectResponse = function onConnectResponse(message) {
+    if (message.successful) {
+      this.connected = true;
+      this.idconnection = message.clientId;
+      if (message.advice) {
+        for (var ele in message.advice) {
+          switch (ele) {
+            case "reconnect":
+              if (message.advice[ele] === "retry") {
+                if (!this.reconnect) {
+                  this.notificationCenter.listen(this, "onClose", reconnect);
+                }
+              }
+              break;
+          }
+        }
+      }
+      this.notificationCenter.fire("onConnect", message);
+    } else {
+      this.connected = false;
+      onError.call(this, message);
+    }
+  };
 
-	var onDisconnectResponse = function onDisconnectResponse(message) {
-		if (message.successful) {
-			if (this.socket) {
-				this.socket.close();
-				this.socket = null;
-				this.notificationCenter.fire("onDisconnect", message);
-			}
-		} else {
-			onError.call(this, message);
-		}
-	};
+  var onDisconnectResponse = function onDisconnectResponse(message) {
+    if (message.successful) {
+      if (this.socket) {
+        this.socket.close();
+        this.socket = null;
+        this.notificationCenter.fire("onDisconnect", message);
+      }
+    } else {
+      onError.call(this, message);
+    }
+  };
 
-	var onSubscribeResponse = function onSubscribeResponse(message) {
-		if (message.successful) {
-			this.notificationCenter.fire("onSubscribe", message);
-		} else {
-			onError.call(this, message);
-		}
-	};
+  var onSubscribeResponse = function onSubscribeResponse(message) {
+    if (message.successful) {
+      this.notificationCenter.fire("onSubscribe", message);
+    } else {
+      onError.call(this, message);
+    }
+  };
 
-	var onUnsubscribeResponse = function onUnsubscribeResponse(message) {
-		if (message.successful) {
-			this.notificationCenter.fire("onUnsubscribe", message);
-		} else {
-			onError.call(this, message);
-		}
-	};
+  var onUnsubscribeResponse = function onUnsubscribeResponse(message) {
+    if (message.successful) {
+      this.notificationCenter.fire("onUnsubscribe", message);
+    } else {
+      onError.call(this, message);
+    }
+  };
 
-	var onError = function onError(message) {
-		if (message.error) {
-			try {
-				switch (stage.typeOf(message.error)) {
-					case "string":
-						var res = message.error.split(":");
-						var code = res[0];
-						var arg = res[1];
-						var mess = res[2];
-						break;
-					case "object":
-						if (message.error) {
-							return onError.call(this, message.error);
-						}
-						break;
-					case "Error":
-						message.error = "500::" + message.error.message;
-						return onError.call(this, message.error);
-					default:
-						throw new Error("Bad protocole error BAYEUX");
+  var onError = function onError(message) {
+    if (message.error) {
+      try {
+        switch (stage.typeOf(message.error)) {
+          case "string":
+            var res = message.error.split(":");
+            var code = res[0];
+            var arg = res[1];
+            var mess = res[2];
+            break;
+          case "object":
+            if (message.error) {
+              return onError.call(this, message.error);
+            }
+            break;
+          case "Error":
+            message.error = "500::" + message.error.message;
+            return onError.call(this, message.error);
+          default:
+            throw new Error("Bad protocole error BAYEUX");
 
-				}
-				return this.notificationCenter.fire("onError", code, arg, mess);
-			} catch (e) {
-				throw new Error("Bad protocole error BAYEUX" + e);
-			}
-		}
-	};
+        }
+        return this.notificationCenter.fire("onError", code, arg, mess);
+      } catch (e) {
+        throw new Error("Bad protocole error BAYEUX" + e);
+      }
+    }
+  };
 
-	/*
- 	 *	BAYEUX PROTOCOL
- 	 *
- 	 */
-	var bayeux = function () {
-		function bayeux(url) {
-			_classCallCheck(this, bayeux);
+  /*
+   *	BAYEUX PROTOCOL
+   *
+   */
+  var bayeux = function () {
+    function bayeux(url) {
+      _classCallCheck(this, bayeux);
 
-			this.name = "bayeux";
-			this.notificationCenter = stage.notificationsCenter.create(this.settings, this);
-			this.url = url;
-			this.socket = null;
-			this.connected = false;
-			this.request = {
-				version: "1.0"
-			};
-		}
+      this.name = "bayeux";
+      this.notificationCenter = stage.notificationsCenter.create(this.settings, this);
+      this.url = url;
+      this.socket = null;
+      this.connected = false;
+      this.request = {
+        version: "1.0"
+      };
+    }
 
-		_createClass(bayeux, [{
-			key: "getBestConnection",
-			value: function getBestConnection(supportedConnectionTypes) {
-				if (this.url.protocol === "https:" || this.url.protocol === "wss:") {
-					this.url.protocol = "wss:";
-				} else {
-					this.url.protocol = "ws:";
-				}
-				this.socketType = "WEBSOCKET";
-				return {
-					Class: window.WebSocket,
-					url: this.url.protocol + "//" + this.url.host + this.url.requestUri
-				};
-			}
-		}, {
-			key: "build",
-			value: function build(obj) {
-				var res = [];
-				res.push(obj);
-				return res;
-			}
-		}, {
-			key: "handshake",
-			value: function handshake() {
-				var req = JSON.stringify(stage.extend({}, this.request, {
-					channel: "/meta/handshake",
-					minimumVersion: "1.0",
-					supportedConnectionTypes: clientsCapabilities
-				}));
-				return this.send(req);
-			}
-		}, {
-			key: "connect",
-			value: function connect(message) {
-				return JSON.stringify({
-					channel: "/meta/connect",
-					clientId: message.clientId,
-					connectionType: this.socketType
-				});
-			}
-		}, {
-			key: "stopReConnect",
-			value: function stopReConnect(message) {
-				this.notificationCenter.unListen("onClose", reconnect);
-			}
-		}, {
-			key: "disconnect",
-			value: function disconnect() {
-				return JSON.stringify({
-					channel: "/meta/disconnect",
-					clientId: this.idconnection
-				});
-			}
-		}, {
-			key: "subscribe",
-			value: function subscribe(name, data) {
-				return JSON.stringify({
-					channel: "/meta/subscribe",
-					clientId: this.idconnection,
-					subscription: "/service/" + name,
-					data: data
-				});
-			}
-		}, {
-			key: "unSubscribe",
-			value: function unSubscribe(name, clientId, data) {
-				return JSON.stringify({
-					channel: "/meta/unsubscribe",
-					clientId: clientId,
-					subscription: "/service/" + name,
-					data: data
-				});
-			}
-		}, {
-			key: "sendMessage",
-			value: function sendMessage(service, data, clientId) {
-				return JSON.stringify({
-					channel: "/service/" + service,
-					clientId: clientId,
-					id: new Date().getTime(),
-					data: data
-				});
-			}
-		}, {
-			key: "onMessage",
-			value: function onMessage(message) {
-				try {
-					if (typeof message === "string") {
-						message = JSON.parse(message);
-					}
-				} catch (e) {
-					message.error = e;
-					onError.call(this, message);
-					return;
-				}
-				switch (message.channel) {
-					case "/meta/handshake":
-						return onHandshakeResponse.call(this, message);
-					case "/meta/connect":
-						return onConnectResponse.call(this, message);
-					case "/meta/disconnect":
-						return onDisconnectResponse.call(this, message);
-					case "/meta/subscribe":
-						return onSubscribeResponse.call(this, message);
-					case "/meta/unsubscribe":
-						return onUnsubscribeResponse.call(this, message);
-					default:
-						// /some/channel
-						this.notificationCenter.fire("onMessage", message);
-				}
-			}
-		}, {
-			key: "send",
-			value: function send(data) {
-				var _this2 = this;
+    _createClass(bayeux, [{
+      key: "getBestConnection",
+      value: function getBestConnection(supportedConnectionTypes) {
+        if (this.url.protocol === "https:" || this.url.protocol === "wss:") {
+          this.url.protocol = "wss:";
+        } else {
+          this.url.protocol = "ws:";
+        }
+        this.socketType = "WEBSOCKET";
+        return {
+          Class: window.WebSocket,
+          url: this.url.protocol + "//" + this.url.host + this.url.requestUri
+        };
+      }
+    }, {
+      key: "build",
+      value: function build(obj) {
+        var res = [];
+        res.push(obj);
+        return res;
+      }
+    }, {
+      key: "handshake",
+      value: function handshake() {
+        var req = JSON.stringify(stage.extend({}, this.request, {
+          channel: "/meta/handshake",
+          minimumVersion: "1.0",
+          supportedConnectionTypes: clientsCapabilities
+        }));
+        return this.send(req);
+      }
+    }, {
+      key: "connect",
+      value: function connect(message) {
+        return JSON.stringify({
+          channel: "/meta/connect",
+          clientId: message.clientId,
+          connectionType: this.socketType
+        });
+      }
+    }, {
+      key: "stopReConnect",
+      value: function stopReConnect(message) {
+        this.notificationCenter.unListen("onClose", reconnect);
+      }
+    }, {
+      key: "disconnect",
+      value: function disconnect() {
+        return JSON.stringify({
+          channel: "/meta/disconnect",
+          clientId: this.idconnection
+        });
+      }
+    }, {
+      key: "subscribe",
+      value: function subscribe(name, data) {
+        return JSON.stringify({
+          channel: "/meta/subscribe",
+          clientId: this.idconnection,
+          subscription: "/service/" + name,
+          data: data
+        });
+      }
+    }, {
+      key: "unSubscribe",
+      value: function unSubscribe(name, clientId, data) {
+        return JSON.stringify({
+          channel: "/meta/unsubscribe",
+          clientId: clientId,
+          subscription: "/service/" + name,
+          data: data
+        });
+      }
+    }, {
+      key: "sendMessage",
+      value: function sendMessage(service, data, clientId) {
+        return JSON.stringify({
+          channel: "/service/" + service,
+          clientId: clientId,
+          id: new Date().getTime(),
+          data: data
+        });
+      }
+    }, {
+      key: "onMessage",
+      value: function onMessage(message) {
+        try {
+          if (typeof message === "string") {
+            message = JSON.parse(message);
+          }
+        } catch (e) {
+          message.error = e;
+          onError.call(this, message);
+          return;
+        }
+        switch (message.channel) {
+          case "/meta/handshake":
+            return onHandshakeResponse.call(this, message);
+          case "/meta/connect":
+            return onConnectResponse.call(this, message);
+          case "/meta/disconnect":
+            return onDisconnectResponse.call(this, message);
+          case "/meta/subscribe":
+            return onSubscribeResponse.call(this, message);
+          case "/meta/unsubscribe":
+            return onUnsubscribeResponse.call(this, message);
+          default:
+            // /some/channel
+            this.notificationCenter.fire("onMessage", message);
+        }
+      }
+    }, {
+      key: "send",
+      value: function send(data) {
+        var _this2 = this;
 
-				if (this.socket) {
-					return this.socket.send(data);
-				}
-				return $.ajax({
-					method: 'POST',
-					cache: false,
-					url: this.url.href,
-					dataType: "json",
-					contentType: "application/json",
-					data: data,
-					success: function success(data, type, xhr) {
-						_this2.onMessage(data);
-					},
-					error: function error(obj, type, message) {
-						_this2.notificationCenter.fire('onError', obj, type, message);
-					}
-				});
-			}
-		}]);
+        if (this.socket) {
+          return this.socket.send(data);
+        }
+        return $.ajax({
+          method: 'POST',
+          cache: false,
+          url: this.url.href,
+          dataType: "json",
+          contentType: "application/json",
+          data: data,
+          success: function success(data, type, xhr) {
+            _this2.onMessage(data);
+          },
+          error: function error(obj, type, message) {
+            _this2.notificationCenter.fire('onError', obj, type, message);
+          }
+        });
+      }
+    }]);
 
-		return bayeux;
-	}();
+    return bayeux;
+  }();
 
-	stage.io.protocols.bayeux = bayeux;
-	return bayeux;
+  stage.io.protocols.bayeux = bayeux;
+  return bayeux;
 };
 /* WEBPACK VAR INJECTION */}.call(exports, __webpack_require__(0)))
 
 /***/ }),
-/* 38 */
+/* 39 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
@@ -23159,630 +23816,632 @@ function _classCallCheck(instance, Constructor) { if (!(instance instanceof Cons
 
 module.exports = function (stage) {
 
-	'use strict';
+  'use strict';
 
-	var defaultAparser = function defaultAparser(value, block) {
-		if (value) {
-			return value;
-		}
-		return null;
-	};
+  var defaultAparser = function defaultAparser(value, block) {
+    if (value) {
+      return value;
+    }
+    return null;
+  };
 
-	var rtpmapParser = function rtpmapParser(value, block) {
-		//a=rtpmap:<payload type> <encoding name>/<clock rate>[/<encoding parameters>]
-		if (value) {
-			var obj = {
-				payloadType: null,
-				encodingName: null,
-				clockRate: null,
-				encodingParameters: null,
-				raw: value
-			};
-			var res = value.split(" ");
-			for (var i = 0; i < res.length; i++) {
-				switch (i) {
-					case 0:
-						obj.payloadType = res[i];
-						break;
-					case 1:
-						var ret = res[i].split("/");
-						obj.encodingName = ret[0];
-						if (ret[1]) {
-							obj.clockRate = ret[1];
-						}
-						if (ret[2]) {
-							obj.encodingParameters = ret[2];
-						}
-						break;
-				}
-			}
+  var rtpmapParser = function rtpmapParser(value, block) {
+    //a=rtpmap:<payload type> <encoding name>/<clock rate>[/<encoding parameters>]
+    if (value) {
+      var obj = {
+        payloadType: null,
+        encodingName: null,
+        clockRate: null,
+        encodingParameters: null,
+        raw: value
+      };
+      var res = value.split(" ");
+      for (var i = 0; i < res.length; i++) {
+        switch (i) {
+          case 0:
+            obj.payloadType = res[i];
+            break;
+          case 1:
+            var ret = res[i].split("/");
+            obj.encodingName = ret[0];
+            if (ret[1]) {
+              obj.clockRate = ret[1];
+            }
+            if (ret[2]) {
+              obj.encodingParameters = ret[2];
+            }
+            break;
+        }
+      }
 
-			if (!(obj.encodingName in block.rtpmap)) {
-				var index = block.rtpmap.push(obj);
-				block.rtpmap["rtpmap_" + obj.payloadType] = block.rtpmap[index - 1];
-			}
-			return obj;
-		}
-		return null;
-	};
+      if (!(obj.encodingName in block.rtpmap)) {
+        var index = block.rtpmap.push(obj);
+        block.rtpmap["rtpmap_" + obj.payloadType] = block.rtpmap[index - 1];
+      }
+      return obj;
+    }
+    return null;
+  };
 
-	var candidateParser = function candidateParser(value, block) {
-		/* a=candidate:0 1 UDP 2122252543 169.254.105.57 65488 typ host	
-   * a=candidate:6glsxoSzDfHGkyMz 1 UDP 2130706431 93.20.94.1 35796 typ host
-   * a=candidate:2 1 UDP 1694498815 192.0.2.3 45664 typ srflx raddr 10.0.1.1 rport 8998
-   * a=candidate:86628240 1 udp 2122260223 192.168.10.234 64435 typ host generation 0 network-id 3
-   * 
-   * 
-  	 * 
-  	 *
-   *   candidate-attribute   = "candidate" ":" 
-   *	   foundation SP 
-   *	   component-id SP
-                 *         transport SP
-                 *         priority SP
-                 *         connection-address SP     ;from RFC 4566
-                 *         port         ;port from RFC 4566 SP 
-                 *         cand-type     
-                 *          [SP rel-addr]
-                 *          [SP rel-port]
-                 *          *(SP extension-att-name SP
-                 *               extension-att-value)
-                 */
-		if (value) {
+  var candidateParser = function candidateParser(value, block) {
+    /* a=candidate:0 1 UDP 2122252543 169.254.105.57 65488 typ host
+     * a=candidate:6glsxoSzDfHGkyMz 1 UDP 2130706431 93.20.94.1 35796 typ host
+     * a=candidate:2 1 UDP 1694498815 192.0.2.3 45664 typ srflx raddr 10.0.1.1 rport 8998
+     * a=candidate:86628240 1 udp 2122260223 192.168.10.234 64435 typ host generation 0 network-id 3
+     *
+     *
+     *
+     *
+     *   candidate-attribute   = "candidate" ":"
+     *	   foundation SP
+     *	   component-id SP
+     *         transport SP
+     *         priority SP
+     *         connection-address SP     ;from RFC 4566
+     *         port         ;port from RFC 4566 SP
+     *         cand-type
+     *          [SP rel-addr]
+     *          [SP rel-port]
+     *          *(SP extension-att-name SP
+     *               extension-att-value)
+     */
+    if (value) {
 
-			var obj = {
-				foundation: null,
-				componentId: null,
-				transport: null,
-				transportExt: null,
-				priority: null,
-				connectionAddress: null,
-				port: null,
-				candidateType: null,
-				remoteAddr: null,
-				remotePort: null,
-				generation: null,
-				networkId: null,
-				raw: value
-			};
-			var res = value.split(" ");
-			for (var i = 0; i < res.length; i++) {
-				switch (i) {
-					case 0:
-						obj.foundation = res[i];
-						break;
-					case 1:
-						obj.componentId = res[i];
-						break;
-					case 2:
-						obj.transport = res[i];
-						var ret = res[i].split("/");
-						obj.transport = ret[0];
-						if (ret[1]) {
-							obj.transportExt = ret[1];
-						}
-						break;
-					case 3:
-						obj.priority = res[i];
-						break;
-					case 4:
-						obj.connectionAddress = res[i];
-						break;
-					case 5:
-						obj.port = res[i];
-						break;
-					default:
-						switch (res[i]) {
-							case "typ":
-								obj.candidateType = res[i + 1];
-								break;
-							case "raddr":
-								obj.remoteAddr = res[i + 1];
-								break;
-							case "rport":
-								obj.remotePort = res[i + 1];
-								break;
-							case "generation":
-								obj.generation = res[i + 1];
-								break;
-							case "network-id":
-								obj.networkId = res[i + 1];
-								break;
-						}
-						break;
-				}
-			}
-			block.candidates.push(obj);
-			return value;
-		}
-		return null;
-	};
+      var obj = {
+        foundation: null,
+        componentId: null,
+        transport: null,
+        transportExt: null,
+        priority: null,
+        connectionAddress: null,
+        port: null,
+        candidateType: null,
+        remoteAddr: null,
+        remotePort: null,
+        generation: null,
+        networkId: null,
+        raw: value
+      };
+      var res = value.split(" ");
+      for (var i = 0; i < res.length; i++) {
+        switch (i) {
+          case 0:
+            obj.foundation = res[i];
+            break;
+          case 1:
+            obj.componentId = res[i];
+            break;
+          case 2:
+            obj.transport = res[i];
+            var ret = res[i].split("/");
+            obj.transport = ret[0];
+            if (ret[1]) {
+              obj.transportExt = ret[1];
+            }
+            break;
+          case 3:
+            obj.priority = res[i];
+            break;
+          case 4:
+            obj.connectionAddress = res[i];
+            break;
+          case 5:
+            obj.port = res[i];
+            break;
+          default:
+            switch (res[i]) {
+              case "typ":
+                obj.candidateType = res[i + 1];
+                break;
+              case "raddr":
+                obj.remoteAddr = res[i + 1];
+                break;
+              case "rport":
+                obj.remotePort = res[i + 1];
+                break;
+              case "generation":
+                obj.generation = res[i + 1];
+                break;
+              case "network-id":
+                obj.networkId = res[i + 1];
+                break;
+            }
+            break;
+        }
+      }
+      block.candidates.push(obj);
+      return value;
+    }
+    return null;
+  };
 
-	var aAttribute = {
-		"cat": defaultAparser,
-		"keywds": defaultAparser,
-		"tool": defaultAparser,
-		"ptime": defaultAparser,
-		"maxptime": defaultAparser,
-		"rtpmap": rtpmapParser,
-		"orient": defaultAparser,
-		"type": defaultAparser,
-		"charset": defaultAparser,
-		"sdplang": defaultAparser,
-		"lang": defaultAparser,
-		"framerate": defaultAparser,
-		"quality": defaultAparser,
-		"fmtp": defaultAparser,
-		"candidate": candidateParser
-	};
+  var aAttribute = {
+    "cat": defaultAparser,
+    "keywds": defaultAparser,
+    "tool": defaultAparser,
+    "ptime": defaultAparser,
+    "maxptime": defaultAparser,
+    "rtpmap": rtpmapParser,
+    "orient": defaultAparser,
+    "type": defaultAparser,
+    "charset": defaultAparser,
+    "sdplang": defaultAparser,
+    "lang": defaultAparser,
+    "framerate": defaultAparser,
+    "quality": defaultAparser,
+    "fmtp": defaultAparser,
+    "candidate": candidateParser
+  };
 
-	var aAttributeDirection = {
-		"recvonly": defaultAparser,
-		"sendrecv": defaultAparser,
-		"sendonly": defaultAparser,
-		"inactive": defaultAparser
-	};
+  var aAttributeDirection = {
+    "recvonly": defaultAparser,
+    "sendrecv": defaultAparser,
+    "sendonly": defaultAparser,
+    "inactive": defaultAparser
+  };
 
-	/*
- 	 *	SDP PROTOCOL
- 	 *
- 	 */
-	var parserSdp = function () {
-		function parserSdp(body) {
-			_classCallCheck(this, parserSdp);
+  /*
+   *	SDP PROTOCOL
+   *
+   */
+  var parserSdp = function () {
+    function parserSdp(body) {
+      _classCallCheck(this, parserSdp);
 
-			if (!body) {
-				throw new Error("SDP parser no data found !! ");
-			}
-			//this.line = body.split("\n");
-			//this.nbLines = this.line.length ;
-			//this.size = body.length ;
-			this.raw = body;
-			this.blocks = [];
-			this.sessionBlock = null;
-			this.audioBlock = null;
-			this.videoBlock = null;
-			this.detectBlocks();
-			this.parseBlocks();
-		}
+      if (!body) {
+        throw new Error("SDP parser no data found !! ");
+      }
+      //this.line = body.split("\n");
+      //this.nbLines = this.line.length ;
+      //this.size = body.length ;
+      this.raw = body;
+      this.blocks = [];
+      this.sessionBlock = null;
+      this.audioBlock = null;
+      this.videoBlock = null;
+      this.detectBlocks();
+      this.parseBlocks();
+    }
 
-		_createClass(parserSdp, [{
-			key: "detectBlocks",
-			value: function detectBlocks() {
-				var line = this.raw.split("\n");
-				var nbLines = line.length;
-				var first = 0;
-				var m = null;
-				for (var i = 0; i < nbLines; i++) {
-					var res = line[i].split("=");
-					var key = res[0].replace(/ |\n|\r/g, "");
-					var value = res[1];
-					var _data = null;
-					var _size = null;
-					var _media = null;
-					var _type = null;
-					switch (key) {
-						case "m":
-							if (first == 0) {
-								_data = line.slice(first, i);
-								_size = _data.length;
-							} else {
-								_data = line.slice(first + 1, i);
-								_size = _data.length;
-							}
-							var _parseM = this.parseMline(m);
-							if (_parseM) {
-								_media = _parseM;
-								_type = _parseM.media;
-							} else {
-								_media = null;
-								_type = "session";
-							}
-							this.blocks.push({
-								type: _type,
-								direction: null,
-								//start		: first,
-								//end		: i,
-								data: _data,
-								//size		: size,
-								media: _media,
-								information: "",
-								attributes: [],
-								bandwidths: [],
-								candidates: [],
-								connection: null,
-								encryption: null
-							});
-							first = i;
-							m = value;
-							break;
-					}
-				}
-				var data = line.slice(first + 1, nbLines);
-				var size = data.length;
-				var media = null;
-				var type = null;
-				var parseM = this.parseMline(m);
-				if (parseM) {
-					media = parseM;
-					type = parseM.media;
-				} else {
-					media = null;
-					type = "session";
-				}
-				this.blocks.push({
-					type: type,
-					direction: null,
-					//start		: first,
-					//end		: nbLines,
-					data: data,
-					//size		: size,
-					media: media,
-					information: "",
-					attributes: [],
-					bandwidths: [],
-					candidates: [],
-					connection: null,
-					encryption: null
-				});
-			}
-		}, {
-			key: "parseMline",
-			value: function parseMline(data) {
-				// RFC https://tools.ietf.org/html/rfc4566#section-5.14
-				//=<media> <port>/<number of ports> <proto> <fmt> ...
-				if (data) {
-					var obj = {
-						media: "",
-						port: "",
-						nbPort: 0,
-						proto: "",
-						fmt: [],
-						raw: data
-					};
-					var res = data.split(" ");
-					for (var i = 0; i < res.length; i++) {
-						switch (i) {
-							case 0:
-								obj.media = res[i];
-								break;
-							case 1:
-								var ret = res[i].split("/");
-								obj.port = ret[0];
-								if (ret[1]) {
-									obj.nbPort = ret[1];
-								} else {
-									obj.nbPort = 1;
-								}
-								break;
-							case 2:
-								obj.proto = res[i];
-								break;
-							default:
-								obj.fmt.push(res[i]);
-						}
-					}
-					return obj;
-				}
-				return null;
-			}
-		}, {
-			key: "parseAline",
-			value: function parseAline(data, block) {
-				//a=<attribute>:<value>
-				var obj = {};
-				if (!data) {
-					return obj;
-				}
-				var res = data.split(":");
-				var attribute = res[0].replace(/ |\n|\r/g, "");
-				var value = res[1];
-				if (aAttribute[attribute]) {
-					obj[attribute] = aAttribute[attribute](value, block);
-				} else {
-					switch (attribute) {
-						case "setup":
-							obj[attribute] = value;
-							block["setup"] = value;
-							break;
-						default:
-							if (aAttributeDirection[attribute]) {
-								var ele = aAttributeDirection[attribute](attribute, block);
-								obj[attribute] = ele;
-								block.direction = ele;
-							} else {
-								obj[attribute] = value;
-							}
-					}
-				}
-				return obj;
-			}
-		}, {
-			key: "parseCline",
-			value: function parseCline(data) {
-				//c=<nettype> <addrtype> <connection-address>
-				if (data) {
-					var obj = {
-						nettype: null,
-						addrtype: null,
-						address: null,
-						raw: data
-					};
-					var res = data.split(" ");
-					for (var i = 0; i < res.length; i++) {
-						switch (i) {
-							case 0:
-								obj.nettype = res[i];
-								break;
-							case 1:
-								obj.addrtype = res[i];
+    _createClass(parserSdp, [{
+      key: "detectBlocks",
+      value: function detectBlocks() {
+        var line = this.raw.split("\n");
+        var nbLines = line.length;
+        var first = 0;
+        var m = null;
+        for (var i = 0; i < nbLines; i++) {
+          var res = line[i].split("=");
+          var key = res[0].replace(/ |\n|\r/g, "");
+          var value = res[1];
+          var _data = null;
+          var _size = null;
+          var _media = null;
+          var _type = null;
+          switch (key) {
+            case "m":
+              if (first === 0) {
+                _data = line.slice(first, i);
+                _size = _data.length;
+              } else {
+                _data = line.slice(first + 1, i);
+                _size = _data.length;
+              }
+              var _parseM = this.parseMline(m);
+              if (_parseM) {
+                _media = _parseM;
+                _type = _parseM.media;
+              } else {
+                _media = null;
+                _type = "session";
+              }
+              this.blocks.push({
+                type: _type,
+                direction: null,
+                //start		: first,
+                //end		: i,
+                data: _data,
+                //size		: size,
+                media: _media,
+                information: "",
+                attributes: [],
+                bandwidths: [],
+                candidates: [],
+                connection: null,
+                encryption: null
+              });
+              first = i;
+              m = value;
+              break;
+          }
+        }
+        var data = line.slice(first + 1, nbLines);
+        var size = data.length;
+        var media = null;
+        var type = null;
+        var parseM = this.parseMline(m);
+        if (parseM) {
+          media = parseM;
+          type = parseM.media;
+        } else {
+          media = null;
+          type = "session";
+        }
+        this.blocks.push({
+          type: type,
+          direction: null,
+          //start		: first,
+          //end		: nbLines,
+          data: data,
+          //size		: size,
+          media: media,
+          information: "",
+          attributes: [],
+          bandwidths: [],
+          candidates: [],
+          connection: null,
+          encryption: null
+        });
+      }
+    }, {
+      key: "parseMline",
+      value: function parseMline(data) {
+        // RFC https://tools.ietf.org/html/rfc4566#section-5.14
+        //=<media> <port>/<number of ports> <proto> <fmt> ...
+        var obj = null;
+        if (data) {
+          obj = {
+            media: "",
+            port: "",
+            nbPort: 0,
+            proto: "",
+            fmt: [],
+            raw: data
+          };
+          var res = data.split(" ");
+          for (var i = 0; i < res.length; i++) {
+            switch (i) {
+              case 0:
+                obj.media = res[i];
+                break;
+              case 1:
+                var ret = res[i].split("/");
+                obj.port = ret[0];
+                if (ret[1]) {
+                  obj.nbPort = ret[1];
+                } else {
+                  obj.nbPort = 1;
+                }
+                break;
+              case 2:
+                obj.proto = res[i];
+                break;
+              default:
+                obj.fmt.push(res[i]);
+            }
+          }
+          return obj;
+        }
+        return null;
+      }
+    }, {
+      key: "parseAline",
+      value: function parseAline(data, block) {
+        //a=<attribute>:<value>
+        var obj = {};
+        if (!data) {
+          return obj;
+        }
+        var res = data.split(":");
+        var attribute = res[0].replace(/ |\n|\r/g, "");
+        var value = res[1];
+        if (aAttribute[attribute]) {
+          obj[attribute] = aAttribute[attribute](value, block);
+        } else {
+          switch (attribute) {
+            case "setup":
+              obj[attribute] = value;
+              block.setup = value;
+              break;
+            default:
+              if (aAttributeDirection[attribute]) {
+                var ele = aAttributeDirection[attribute](attribute, block);
+                obj[attribute] = ele;
+                block.direction = ele;
+              } else {
+                obj[attribute] = value;
+              }
+          }
+        }
+        return obj;
+      }
+    }, {
+      key: "parseCline",
+      value: function parseCline(data) {
+        //c=<nettype> <addrtype> <connection-address>
+        if (data) {
+          var obj = {
+            nettype: null,
+            addrtype: null,
+            address: null,
+            raw: data
+          };
+          var res = data.split(" ");
+          for (var i = 0; i < res.length; i++) {
+            switch (i) {
+              case 0:
+                obj.nettype = res[i];
+                break;
+              case 1:
+                obj.addrtype = res[i];
 
-								break;
-							case 2:
-								obj.address = res[i];
-								break;
-						}
-					}
-					return obj;
-				}
-				return null;
-			}
-		}, {
-			key: "parseOline",
-			value: function parseOline(data) {
-				//o=<username> <sess-id> <sess-version> <nettype> <addrtype> <unicast-address>
-				if (data) {
-					var obj = {
-						username: null,
-						sessId: null,
-						sessVersion: null,
-						nettype: null,
-						addrtype: null,
-						unicastAddr: null,
-						raw: data
-					};
-					var res = data.split(" ");
-					for (var i = 0; i < res.length; i++) {
-						switch (i) {
-							case 0:
-								obj.username = res[i];
-								break;
-							case 1:
-								obj.sessId = res[i];
-								break;
-							case 2:
-								obj.sessVersion = res[i];
-								break;
-							case 3:
-								obj.nettype = res[i];
-								break;
-							case 4:
-								obj.addrtype = res[i];
-								break;
-							case 5:
-								obj.unicastAddr = res[i];
-								break;
-						}
-					}
-					return obj;
-				}
-				return null;
-			}
+                break;
+              case 2:
+                obj.address = res[i];
+                break;
+            }
+          }
+          return obj;
+        }
+        return null;
+      }
+    }, {
+      key: "parseOline",
+      value: function parseOline(data) {
+        //o=<username> <sess-id> <sess-version> <nettype> <addrtype> <unicast-address>
+        var obj = null;
+        if (data) {
+          obj = {
+            username: null,
+            sessId: null,
+            sessVersion: null,
+            nettype: null,
+            addrtype: null,
+            unicastAddr: null,
+            raw: data
+          };
+          var res = data.split(" ");
+          for (var i = 0; i < res.length; i++) {
+            switch (i) {
+              case 0:
+                obj.username = res[i];
+                break;
+              case 1:
+                obj.sessId = res[i];
+                break;
+              case 2:
+                obj.sessVersion = res[i];
+                break;
+              case 3:
+                obj.nettype = res[i];
+                break;
+              case 4:
+                obj.addrtype = res[i];
+                break;
+              case 5:
+                obj.unicastAddr = res[i];
+                break;
+            }
+          }
+          return obj;
+        }
+        return null;
+      }
 
-			/*
-    	 *	TIME DESCRIPTION
-    	 */
+      /*
+       *	TIME DESCRIPTION
+       */
 
-		}, {
-			key: "parseTline",
-			value: function parseTline(data) {
-				//t=<start-time> <stop-time>
-				if (data) {
-					var obj = {
-						start: null,
-						stop: null,
-						raw: data
-					};
-					var res = data.split(" ");
-					for (var i = 0; i < res.length; i++) {
-						switch (i) {
-							case 0:
-								obj.start = res[i];
-								break;
-							case 1:
-								obj.stop = res[i];
-								break;
-						}
-					}
-					return obj;
-				}
-				return null;
-			}
-		}, {
-			key: "parseRline",
-			value: function parseRline(data) {
-				//r=<repeat interval> <active duration> <offsets from start-time>
-				if (data) {
-					var obj = {
-						interval: null,
-						duration: null,
-						offsets: null,
-						raw: data
-					};
-					var res = data.split(" ");
-					for (var i = 0; i < res.length; i++) {
-						switch (i) {
-							case 0:
-								obj.interval = res[i];
-								break;
-							case 1:
-								obj.duration = res[i];
-								break;
-							case 2:
-								obj.offsets = res[i];
-								break;
-						}
-					}
-					return obj;
-				}
-				return null;
-			}
+    }, {
+      key: "parseTline",
+      value: function parseTline(data) {
+        //t=<start-time> <stop-time>
+        if (data) {
+          var obj = {
+            start: null,
+            stop: null,
+            raw: data
+          };
+          var res = data.split(" ");
+          for (var i = 0; i < res.length; i++) {
+            switch (i) {
+              case 0:
+                obj.start = res[i];
+                break;
+              case 1:
+                obj.stop = res[i];
+                break;
+            }
+          }
+          return obj;
+        }
+        return null;
+      }
+    }, {
+      key: "parseRline",
+      value: function parseRline(data) {
+        //r=<repeat interval> <active duration> <offsets from start-time>
+        if (data) {
+          var obj = {
+            interval: null,
+            duration: null,
+            offsets: null,
+            raw: data
+          };
+          var res = data.split(" ");
+          for (var i = 0; i < res.length; i++) {
+            switch (i) {
+              case 0:
+                obj.interval = res[i];
+                break;
+              case 1:
+                obj.duration = res[i];
+                break;
+              case 2:
+                obj.offsets = res[i];
+                break;
+            }
+          }
+          return obj;
+        }
+        return null;
+      }
 
-			/** BLOCK MEDIA
-    	 *    Media description, if present
-   	 *  m=  (media name and transport address)
-   	 *  i= (media title)
-   	 *  c= (connection information -- optional if included at
-   	 *     session level)
-   	 *  b= (zero or more bandwidth information lines)
-   	 *  k= (encryption key)
-   	 *  a= (zero or more media attribute lines)
-   	 */
+      /** BLOCK MEDIA
+       *    Media description, if present
+       *  m=  (media name and transport address)
+       *  i= (media title)
+       *  c= (connection information -- optional if included at
+       *     session level)
+       *  b= (zero or more bandwidth information lines)
+       *  k= (encryption key)
+       *  a= (zero or more media attribute lines)
+       */
 
-		}, {
-			key: "blockMediaParser",
-			value: function blockMediaParser(block) {
-				block["rtpmap"] = [];
-				for (var j = 0; j < block.data.length; j++) {
-					var res = block.data[j].split("=");
-					var key = res[0].replace(/ |\n|\r/g, "");
-					var value = res[1];
-					switch (key) {
-						case "a":
-							block.attributes.push(this.parseAline(value, block));
-							break;
-						case "c":
-							block.connection = this.parseCline(value);
-							break;
-						case "i":
-							block.information = value;
-							break;
-						case "b":
-							block.bandwidths.push(value);
-							break;
-						case "k":
-							block.encryption = value;
-							break;
-					}
-				}
-				return block;
-			}
+    }, {
+      key: "blockMediaParser",
+      value: function blockMediaParser(block) {
+        block.rtpmap = [];
+        for (var j = 0; j < block.data.length; j++) {
+          var res = block.data[j].split("=");
+          var key = res[0].replace(/ |\n|\r/g, "");
+          var value = res[1];
+          switch (key) {
+            case "a":
+              block.attributes.push(this.parseAline(value, block));
+              break;
+            case "c":
+              block.connection = this.parseCline(value);
+              break;
+            case "i":
+              block.information = value;
+              break;
+            case "b":
+              block.bandwidths.push(value);
+              break;
+            case "k":
+              block.encryption = value;
+              break;
+          }
+        }
+        return block;
+      }
 
-			/*  BLOCK SESSION
-    	 *    session description
-          	 *  v=  (protocol version)
-          	 *  o=  (originator and session identifier)
-          	 *  s=  (session name)
-          	 *  i= (session information)
-          	 *  u= (URI of description)
-          	 *  e= (email address)
-          	 *  p= (phone number)
-          	 *  c= (connection information -- not required if included in
-          	 *     all media)
-          	 *  b= (zero or more bandwidth information lines)
-          	 *     One or more time descriptions ("t=" and "r=" lines; see below)
-          	 *  z= (time zone adjustments)
-          	 *  k= (encryption key)
-          	 *  a= (zero or more session attribute lines)
-          	 *     Zero or more media descriptions
-   	 */
+      /*  BLOCK SESSION
+       *    session description
+       *  v=  (protocol version)
+       *  o=  (originator and session identifier)
+       *  s=  (session name)
+       *  i= (session information)
+       *  u= (URI of description)
+       *  e= (email address)
+       *  p= (phone number)
+       *  c= (connection information -- not required if included in
+       *     all media)
+       *  b= (zero or more bandwidth information lines)
+       *     One or more time descriptions ("t=" and "r=" lines; see below)
+       *  z= (time zone adjustments)
+       *  k= (encryption key)
+       *  a= (zero or more session attribute lines)
+       *     Zero or more media descriptions
+       */
 
-		}, {
-			key: "blockSessionParser",
-			value: function blockSessionParser(block) {
-				block["protocol"] = null;
-				block["originator"] = null;
-				block["timeZone"] = null;
-				block["sessionName"] = null;
-				block["originator"] = null;
-				block["protocol"] = null;
-				block["uri"] = null;
-				block["phoneNumber"] = null;
-				block["email"] = null;
-				block["timeDescription"] = null;
-				block["timeRepeat"] = null;
+    }, {
+      key: "blockSessionParser",
+      value: function blockSessionParser(block) {
+        block.protocol = null;
+        block.originator = null;
+        block.timeZone = null;
+        block.sessionName = null;
+        block.originator = null;
+        block.protocol = null;
+        block.uri = null;
+        block.phoneNumber = null;
+        block.email = null;
+        block.timeDescription = null;
+        block.timeRepeat = null;
 
-				for (var j = 0; j < block.data.length; j++) {
-					var res = block.data[j].split("=");
-					var key = res[0].replace(/ |\n|\r/g, "");
-					var value = res[1];
-					switch (key) {
-						case "v":
-							block.protocol = value;
-							break;
-						case "o":
-							block.originator = this.parseOline(value);
-							break;
-						case "s":
-							block.sessionName = value;
-							break;
-						case "u":
-							block.uri = value;
-							break;
-						case "e":
-							block.email = value;
-							break;
-						case "p":
-							block.phoneNumber = value;
-							break;
-						case "z":
-							block.timeZone = value;
-							break;
-						case "a":
-							block.attributes.push(this.parseAline(value, block));
-							break;
-						case "c":
-							block.connection = this.parseCline(value);
-							break;
-						case "i":
-							block.information = value;
-							break;
-						case "b":
-							block.bandwidths.push(value);
-							break;
-						case "k":
-							block.encryption = value;
-							break;
-						// TIME DESCRIPTION
-						case "t":
-							block.timeDescription = this.parseTline(value);
-							break;
-						case "r":
-							block.timeRepeat = this.parseRline(value);
-							break;
-					}
-				}
-				return block;
-			}
-		}, {
-			key: "parseBlocks",
-			value: function parseBlocks() {
-				for (var i = 0; i < this.blocks.length; i++) {
-					switch (this.blocks[i].type) {
-						case "session":
-							this.sessionBlock = this.blockSessionParser(this.blocks[i]);
-							break;
-						case "audio":
-							this.audioBlock = this.blockMediaParser(this.blocks[i]);
-							break;
-						case "video":
-							this.videoBlock = this.blockMediaParser(this.blocks[i]);
-							break;
-					}
-				}
-			}
-		}]);
+        for (var j = 0; j < block.data.length; j++) {
+          var res = block.data[j].split("=");
+          var key = res[0].replace(/ |\n|\r/g, "");
+          var value = res[1];
+          switch (key) {
+            case "v":
+              block.protocol = value;
+              break;
+            case "o":
+              block.originator = this.parseOline(value);
+              break;
+            case "s":
+              block.sessionName = value;
+              break;
+            case "u":
+              block.uri = value;
+              break;
+            case "e":
+              block.email = value;
+              break;
+            case "p":
+              block.phoneNumber = value;
+              break;
+            case "z":
+              block.timeZone = value;
+              break;
+            case "a":
+              block.attributes.push(this.parseAline(value, block));
+              break;
+            case "c":
+              block.connection = this.parseCline(value);
+              break;
+            case "i":
+              block.information = value;
+              break;
+            case "b":
+              block.bandwidths.push(value);
+              break;
+            case "k":
+              block.encryption = value;
+              break;
+            // TIME DESCRIPTION
+            case "t":
+              block.timeDescription = this.parseTline(value);
+              break;
+            case "r":
+              block.timeRepeat = this.parseRline(value);
+              break;
+          }
+        }
+        return block;
+      }
+    }, {
+      key: "parseBlocks",
+      value: function parseBlocks() {
+        for (var i = 0; i < this.blocks.length; i++) {
+          switch (this.blocks[i].type) {
+            case "session":
+              this.sessionBlock = this.blockSessionParser(this.blocks[i]);
+              break;
+            case "audio":
+              this.audioBlock = this.blockMediaParser(this.blocks[i]);
+              break;
+            case "video":
+              this.videoBlock = this.blockMediaParser(this.blocks[i]);
+              break;
+          }
+        }
+      }
+    }]);
 
-		return parserSdp;
-	}();
+    return parserSdp;
+  }();
 
-	stage.io.protocols.sdp = parserSdp;
+  stage.io.protocols.sdp = parserSdp;
 
-	return parserSdp;
+  return parserSdp;
 };
 
 /***/ }),
-/* 39 */
+/* 40 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
@@ -24343,7 +25002,6 @@ module.exports = function (stage) {
       key: 'buildHeader',
       value: function buildHeader() {
         //FIXE ME RPORT IN VIA PARSER
-        //console.log(this.transaction.dialog.sip.rport)
 
         var rport = this.transaction.dialog.sip.rport;
         var ip = this.transaction.dialog.sip.publicAddress;
@@ -24642,7 +25300,7 @@ module.exports = function (stage) {
     }, {
       key: 'createRequest',
       value: function createRequest(body, typeBody) {
-        if (this.method != "ACK" && this.method != "CANCEL") {
+        if (this.method !== "ACK" && this.method !== "CANCEL") {
           this.dialog.incCseq();
         }
         this.request = new sipRequest(this, body || "", typeBody);
@@ -25719,7 +26377,7 @@ module.exports = function (stage) {
 /* WEBPACK VAR INJECTION */}.call(exports, __webpack_require__(0)))
 
 /***/ }),
-/* 40 */
+/* 41 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
@@ -25731,280 +26389,282 @@ function _classCallCheck(instance, Constructor) { if (!(instance instanceof Cons
 
 module.exports = function (stage) {
 
-	'use strict';
+  'use strict';
 
-	var defaultSettings = {};
+  var defaultSettings = {};
 
-	var settingsSyslog = {
-		moduleName: "REALTIME",
-		defaultSeverity: "INFO"
-	};
+  var settingsSyslog = {
+    moduleName: "REALTIME",
+    defaultSeverity: "INFO"
+  };
 
-	var send = function send(data) {
-		this.protocol.send(data);
-	};
+  var send = function send(data) {
+    this.protocol.send(data);
+  };
 
-	var realtime = function () {
-		function realtime(urlServer, settings) {
-			_classCallCheck(this, realtime);
+  var realtime = function () {
+    function realtime(urlServer, settings) {
+      _classCallCheck(this, realtime);
 
-			if (!urlServer) {
-				throw new Error("realtime url server is not defined");
-			}
-			this.settings = stage.extend({}, defaultSettings, settings);
-			this.notificationCenter = stage.notificationsCenter.create(this.settings, this);
-			this.syslog = new stage.syslog(settingsSyslog);
-			this.url = stage.io.urlToOject(urlServer);
-			//this.crossDomain =  ! stage.io.isSameOrigin(this.url.href);	
-			this.protocol = new stage.io.protocols.bayeux(this.url);
-			this.services = null;
-			this.subscribedService = {};
-			this.nbSubscribed = 0;
-			this.connected = false;
-			this.publicAddress = null;
-			this.domain = null;
+      if (!urlServer) {
+        throw new Error("realtime url server is not defined");
+      }
+      this.settings = stage.extend({}, defaultSettings, settings);
+      this.notificationCenter = stage.notificationsCenter.create(this.settings, this);
+      this.syslog = new stage.syslog(settingsSyslog);
+      this.url = stage.io.urlToOject(urlServer);
+      //this.crossDomain =  ! stage.io.isSameOrigin(this.url.href);
+      this.protocol = new stage.io.protocols.bayeux(this.url);
+      this.services = null;
+      this.subscribedService = {};
+      this.nbSubscribed = 0;
+      this.connected = false;
+      this.publicAddress = null;
+      this.domain = null;
 
-			/*
-    	*	EVENT REALTIME
-    	*/
-			this.notificationCenter.listen(this, "onAuthorized", function () {
-				this.protocol.handshake(this.url.href);
-			});
+      /*
+       *	EVENT REALTIME
+       */
+      this.notificationCenter.listen(this, "onAuthorized", function () {
+        this.protocol.handshake(this.url.href);
+      });
 
-			/*
-    	*	EVENTS PROTOCOL BAYEUX
-    	*/
-			this.protocol.notificationCenter.listen(this, "onMessage", this.onMessage);
-			this.protocol.notificationCenter.listen(this, "onHandshake", function (message, socket) {
-				if (message.ext && message.ext.address) {
-					var addr = JSON.parse(message.ext.address);
-					this.publicAddress = addr.remoteAddress;
-					this.domain = addr.host;
-				}
-				this.notificationCenter.fire("onHandshake", message, socket, this);
-			});
-			this.protocol.notificationCenter.listen(this, "onConnect", function (message) {
-				this.services = message.data;
-				this.connected = true;
-				if (message.ext && message.ext.address) {
-					var addr = JSON.parse(message.ext.address);
-					this.publicAddress = addr.remoteAddress;
-					this.domain = addr.host;
-				}
-				this.notificationCenter.fire("onConnect", message, this);
-			});
-			this.protocol.notificationCenter.listen(this, "onDisconnect", function (message) {
-				this.services = message.data;
-				this.connected = false;
-				this.notificationCenter.fire("onDisconnect", message, this);
-			});
-			this.protocol.notificationCenter.listen(this, "reConnect", function (bayeux) {
-				var _this = this;
+      /*
+       *	EVENTS PROTOCOL BAYEUX
+       */
+      this.protocol.notificationCenter.listen(this, "onMessage", this.onMessage);
+      this.protocol.notificationCenter.listen(this, "onHandshake", function (message, socket) {
+        if (message.ext && message.ext.address) {
+          var addr = JSON.parse(message.ext.address);
+          this.publicAddress = addr.remoteAddress;
+          this.domain = addr.host;
+        }
+        this.notificationCenter.fire("onHandshake", message, socket, this);
+      });
+      this.protocol.notificationCenter.listen(this, "onConnect", function (message) {
+        this.services = message.data;
+        this.connected = true;
+        if (message.ext && message.ext.address) {
+          var addr = JSON.parse(message.ext.address);
+          this.publicAddress = addr.remoteAddress;
+          this.domain = addr.host;
+        }
+        this.notificationCenter.fire("onConnect", message, this);
+      });
+      this.protocol.notificationCenter.listen(this, "onDisconnect", function (message) {
+        this.services = message.data;
+        this.connected = false;
+        this.notificationCenter.fire("onDisconnect", message, this);
+      });
+      this.protocol.notificationCenter.listen(this, "reConnect", function (bayeux) {
+        var _this = this;
 
-				setTimeout(function () {
-					_this.start();
-				}, 60000);
-			});
-			this.protocol.notificationCenter.listen(this, "onSubscribe", function (message) {
-				var service = message.subscription.split("/")[2];
-				this.subscribedService[service] = message;
-				this.nbSubscribed++;
-				this.notificationCenter.fire("onSubscribe", service, message, this);
-			});
-			this.protocol.notificationCenter.listen(this, "onUnsubscribe", function (message) {
-				var service = message.subscription.split("/")[2];
-				delete this.subscribedService[service];
-				this.nbSubscribed--;
-				this.notificationCenter.fire("onUnSubscribe", service, message, this);
-			});
-			this.protocol.notificationCenter.listen(this, "onError", function (code, arg, message) {
-				this.notificationCenter.fire("onError", code, arg, message);
-			});
-			this.protocol.notificationCenter.listen(this, "onClose", function (message) {
-				this.connected = false;
-				this.notificationCenter.fire("onClose", message);
-				for (var service in this.subscribedService) {
-					//this.unSubscribe(service);
-					delete this.subscribedService[service];
-				}
-			});
-			//this.start();	
-		}
+        setTimeout(function () {
+          _this.start();
+        }, 60000);
+      });
+      this.protocol.notificationCenter.listen(this, "onSubscribe", function (message) {
+        var service = message.subscription.split("/")[2];
+        this.subscribedService[service] = message;
+        this.nbSubscribed++;
+        this.notificationCenter.fire("onSubscribe", service, message, this);
+      });
+      this.protocol.notificationCenter.listen(this, "onUnsubscribe", function (message) {
+        var service = message.subscription.split("/")[2];
+        delete this.subscribedService[service];
+        this.nbSubscribed--;
+        this.notificationCenter.fire("onUnSubscribe", service, message, this);
+      });
+      this.protocol.notificationCenter.listen(this, "onError", function (code, arg, message) {
+        this.notificationCenter.fire("onError", code, arg, message);
+      });
+      this.protocol.notificationCenter.listen(this, "onClose", function (message) {
+        this.connected = false;
+        this.notificationCenter.fire("onClose", message);
+        for (var service in this.subscribedService) {
+          //this.unSubscribe(service);
+          delete this.subscribedService[service];
+        }
+      });
+      //this.start();
+    }
 
-		_createClass(realtime, [{
-			key: "listen",
-			value: function listen() {
-				return this.notificationCenter.listen.apply(this.notificationCenter, arguments);
-			}
-		}, {
-			key: "unListen",
-			value: function unListen() {
-				return this.notificationCenter.unListen.apply(this.notificationCenter, arguments);
-			}
-		}, {
-			key: "start",
-			value: function start() {
-				var _this2 = this;
+    _createClass(realtime, [{
+      key: "listen",
+      value: function listen() {
+        return this.notificationCenter.listen.apply(this.notificationCenter, arguments);
+      }
+    }, {
+      key: "unListen",
+      value: function unListen() {
+        return this.notificationCenter.unListen.apply(this.notificationCenter, arguments);
+      }
+    }, {
+      key: "start",
+      value: function start() {
+        var _this2 = this;
 
-				if (this.connected) {
-					//throw new Error("connection already started");
-					this.notificationCenter.fire("onError", 500, this, "connection already started");
-					return false;
-				}
-				var statusCode = {
+        if (this.connected) {
+          //throw new Error("connection already started");
+          this.notificationCenter.fire("onError", 500, this, "connection already started");
+          return false;
+        }
+        var statusCode = {
 
-					401: function _(request, type, message) {
-						var auth = request.getResponseHeader("WWW-Authenticate");
-						var res = request.responseText;
-						var obj = {
-							"WWW-Authenticate": request.getResponseHeader("WWW-Authenticate"),
-							body: request.responseText
-						};
-						_this2.authenticate = new stage.io.authentication.authenticate(_this2.url, obj, {
-							ajax: true,
-							onSuccess: function onSuccess(data, type, xhr) {
-								_this2.notificationCenter.fire('onAuthorized', data, type, xhr);
-							},
-							onError: function onError(obj, type, message) {
-								var res = stage.io.getHeaderJSON(obj);
-								if (res) {
-									_this2.notificationCenter.fire('onError', 401, obj, res);
-								} else {
-									_this2.notificationCenter.fire('onError', 401, obj, message);
-								}
-							}
-						});
-						_this2.notificationCenter.fire('onUnauthorized', _this2.authenticate, _this2);
-					},
-					404: function _(obj, type, message) {
-						// '404 - realtimeD server not available'
-						_this2.notificationCenter.fire('onError', 404, obj, message);
-					},
-					503: function _(obj, type, message) {
-						//  '503 - Service Unavailable'
-						_this2.notificationCenter.fire('onError', 503, obj, message);
-					}
-				};
+          401: function _(request, type, message) {
+            var auth = request.getResponseHeader("WWW-Authenticate");
+            var res = request.responseText;
+            var obj = {
+              "WWW-Authenticate": request.getResponseHeader("WWW-Authenticate"),
+              body: request.responseText
+            };
+            _this2.authenticate = new stage.io.authentication.authenticate(_this2.url, obj, {
+              ajax: true,
+              onSuccess: function onSuccess(data, type, xhr) {
+                _this2.notificationCenter.fire('onAuthorized', data, type, xhr);
+              },
+              onError: function onError(obj, type, message) {
+                var res = stage.io.getHeaderJSON(obj);
+                if (res) {
+                  _this2.notificationCenter.fire('onError', 401, obj, res);
+                } else {
+                  _this2.notificationCenter.fire('onError', 401, obj, message);
+                }
+              }
+            });
+            _this2.notificationCenter.fire('onUnauthorized', _this2.authenticate, _this2);
+          },
+          404: function _(obj, type, message) {
+            // '404 - realtimeD server not available'
+            _this2.notificationCenter.fire('onError', 404, obj, message);
+          },
+          503: function _(obj, type, message) {
+            //  '503 - Service Unavailable'
+            _this2.notificationCenter.fire('onError', 503, obj, message);
+          }
+        };
 
-				return $.ajax({
-					method: 'GET',
-					cache: false,
-					url: this.url.href,
-					statusCode: statusCode,
-					success: function success(data, type, xhr) {
-						_this2.notificationCenter.fire('onAuthorized', data, type, xhr);
-					},
-					error: function error(obj, type, message) {
-						if (obj.status in statusCode) return;
-						_this2.notificationCenter.fire('onError', obj.status, obj, message);
-					}
-				});
-			}
-		}, {
-			key: "subscribe",
-			value: function subscribe(name, data) {
-				if (!this.connected) {
-					this.notificationCenter.fire('onError', 500, this, "Not connected");
-					return false;
-				}
-				if (name in this.services) {
-					if (name in this.subscribedService) {
-						this.notificationCenter.fire('onError', 500, this, "already subscribed");
-						return false;
-					}
-					return send.call(this, this.protocol.subscribe(name, data));
-				}
-				this.notificationCenter.fire('onError', 500, this, "service : " + name + " not exist");
-				return false;
-			}
-		}, {
-			key: "unSubscribe",
-			value: function unSubscribe(name, data) {
-				if (!this.connected) {
-					this.notificationCenter.fire('onError', 500, this, "Not connected");
-					return false;
-				}
-				if (name in this.services) {
+        return $.ajax({
+          method: 'GET',
+          cache: false,
+          url: this.url.href,
+          statusCode: statusCode,
+          success: function success(data, type, xhr) {
+            _this2.notificationCenter.fire('onAuthorized', data, type, xhr);
+          },
+          error: function error(obj, type, message) {
+            if (obj.status in statusCode) {
+              return;
+            }
+            _this2.notificationCenter.fire('onError', obj.status, obj, message);
+          }
+        });
+      }
+    }, {
+      key: "subscribe",
+      value: function subscribe(name, data) {
+        if (!this.connected) {
+          this.notificationCenter.fire('onError', 500, this, "Not connected");
+          return false;
+        }
+        if (name in this.services) {
+          if (name in this.subscribedService) {
+            this.notificationCenter.fire('onError', 500, this, "already subscribed");
+            return false;
+          }
+          return send.call(this, this.protocol.subscribe(name, data));
+        }
+        this.notificationCenter.fire('onError', 500, this, "service : " + name + " not exist");
+        return false;
+      }
+    }, {
+      key: "unSubscribe",
+      value: function unSubscribe(name, data) {
+        if (!this.connected) {
+          this.notificationCenter.fire('onError', 500, this, "Not connected");
+          return false;
+        }
+        if (name in this.services) {
 
-					if (name in this.subscribedService) {
-						var clientId = this.subscribedService[name].clientId;
-						return send.call(this, this.protocol.unSubscribe(name, clientId, data));
-					} else {
-						this.notificationCenter.fire('onError', 500, this, "service : " + name + " not subcribed");
-						return false;
-					}
-				}
-				this.notificationCenter.fire('onError', 404, this, "service : " + name + " not exist");
-				return false;
-			}
-		}, {
-			key: "sendMessage",
-			value: function sendMessage(service, data) {
-				if (!this.connected) {
-					this.notificationCenter.fire('onError', 500, this, "Not connected");
-					return false;
-				}
-				if (service in this.services) {
-					if (service in this.subscribedService) {
-						var clientId = this.subscribedService[service].clientId;
-						try {
-							var proto = this.protocol.sendMessage(service, data, clientId);
-							send.call(this, proto);
-							return JSON.parse(proto).id;
-						} catch (e) {
-							this.fire("onError", 500, e, e.message);
-						}
-					} else {
-						this.notificationCenter.fire('onError', 500, this, "service : " + service + " not subcribed");
-						return false;
-					}
-				} else {
-					this.fire("onError", 404, this, "service :" + service + " not exit");
-				}
-				return false;
-			}
-		}, {
-			key: "stop",
-			value: function stop() {
-				if (this.connected) {
-					this.protocol.stopReConnect();
-					for (var service in this.subscribedService) {
-						//this.unSubscribe(service);
-						delete this.subscribedService[service];
-					}
-					return send.call(this, this.protocol.disconnect());
-				}
-				throw new Error("connection already stoped");
-			}
-		}, {
-			key: "onMessage",
-			value: function onMessage(message) {
-				if (message.error) {
-					if (message.channel) {
-						this.notificationCenter.fire("onError", message.error);
-					} else {
-						this.notificationCenter.fire("onError", message.id, message.successful);
-					}
-				} else {
-					if (message.channel) {
-						this.notificationCenter.fire("onMessage", message.channel.split("/")[2], message.data);
-					} else {
-						this.notificationCenter.fire("onMessage", message.id, message.successful);
-					}
-				}
-			}
-		}]);
+          if (name in this.subscribedService) {
+            var clientId = this.subscribedService[name].clientId;
+            return send.call(this, this.protocol.unSubscribe(name, clientId, data));
+          } else {
+            this.notificationCenter.fire('onError', 500, this, "service : " + name + " not subcribed");
+            return false;
+          }
+        }
+        this.notificationCenter.fire('onError', 404, this, "service : " + name + " not exist");
+        return false;
+      }
+    }, {
+      key: "sendMessage",
+      value: function sendMessage(service, data) {
+        if (!this.connected) {
+          this.notificationCenter.fire('onError', 500, this, "Not connected");
+          return false;
+        }
+        if (service in this.services) {
+          if (service in this.subscribedService) {
+            var clientId = this.subscribedService[service].clientId;
+            try {
+              var proto = this.protocol.sendMessage(service, data, clientId);
+              send.call(this, proto);
+              return JSON.parse(proto).id;
+            } catch (e) {
+              this.fire("onError", 500, e, e.message);
+            }
+          } else {
+            this.notificationCenter.fire('onError', 500, this, "service : " + service + " not subcribed");
+            return false;
+          }
+        } else {
+          this.fire("onError", 404, this, "service :" + service + " not exit");
+        }
+        return false;
+      }
+    }, {
+      key: "stop",
+      value: function stop() {
+        if (this.connected) {
+          this.protocol.stopReConnect();
+          for (var service in this.subscribedService) {
+            //this.unSubscribe(service);
+            delete this.subscribedService[service];
+          }
+          return send.call(this, this.protocol.disconnect());
+        }
+        throw new Error("connection already stoped");
+      }
+    }, {
+      key: "onMessage",
+      value: function onMessage(message) {
+        if (message.error) {
+          if (message.channel) {
+            this.notificationCenter.fire("onError", message.error);
+          } else {
+            this.notificationCenter.fire("onError", message.id, message.successful);
+          }
+        } else {
+          if (message.channel) {
+            this.notificationCenter.fire("onMessage", message.channel.split("/")[2], message.data);
+          } else {
+            this.notificationCenter.fire("onMessage", message.id, message.successful);
+          }
+        }
+      }
+    }]);
 
-		return realtime;
-	}();
+    return realtime;
+  }();
 
-	stage.realtime = realtime;
-	return realtime;
+  stage.realtime = realtime;
+  return realtime;
 };
 /* WEBPACK VAR INJECTION */}.call(exports, __webpack_require__(0)))
 
 /***/ }),
-/* 41 */
+/* 42 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
@@ -26019,13 +26679,13 @@ module.exports = function (stage) {
 
 
 
-var adapterFactory = __webpack_require__(42);
+var adapterFactory = __webpack_require__(43);
 module.exports = adapterFactory({window: global.window});
 
 /* WEBPACK VAR INJECTION */}.call(exports, __webpack_require__(3)))
 
 /***/ }),
-/* 42 */
+/* 43 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
@@ -26077,8 +26737,8 @@ module.exports = function(dependencies, opts) {
   // require('./utils').disableLog(false);
 
   // Browser shims.
-  var chromeShim = __webpack_require__(43) || null;
-  var edgeShim = __webpack_require__(45) || null;
+  var chromeShim = __webpack_require__(44) || null;
+  var edgeShim = __webpack_require__(46) || null;
   var firefoxShim = __webpack_require__(49) || null;
   var safariShim = __webpack_require__(51) || null;
   var commonShim = __webpack_require__(52) || null;
@@ -26171,7 +26831,7 @@ module.exports = function(dependencies, opts) {
 
 
 /***/ }),
-/* 43 */
+/* 44 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
@@ -26846,12 +27506,12 @@ module.exports = {
   shimGetSendersWithDtmf: chromeShim.shimGetSendersWithDtmf,
   shimSourceObject: chromeShim.shimSourceObject,
   shimPeerConnection: chromeShim.shimPeerConnection,
-  shimGetUserMedia: __webpack_require__(44)
+  shimGetUserMedia: __webpack_require__(45)
 };
 
 
 /***/ }),
-/* 44 */
+/* 45 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
@@ -27098,7 +27758,7 @@ module.exports = function(window) {
 
 
 /***/ }),
-/* 45 */
+/* 46 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
@@ -27113,7 +27773,7 @@ module.exports = function(window) {
 
 
 var utils = __webpack_require__(1);
-var shimRTCPeerConnection = __webpack_require__(46);
+var shimRTCPeerConnection = __webpack_require__(47);
 
 module.exports = {
   shimGetUserMedia: __webpack_require__(48),
@@ -27185,7 +27845,7 @@ module.exports = {
 
 
 /***/ }),
-/* 46 */
+/* 47 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
@@ -27199,7 +27859,7 @@ module.exports = {
  /* eslint-env node */
 
 
-var SDPUtils = __webpack_require__(47);
+var SDPUtils = __webpack_require__(7);
 
 function writeMediaSection(transceiver, caps, type, stream, dtlsRole) {
   var sdp = SDPUtils.writeRtpDescription(transceiver.kind, caps);
@@ -28817,646 +29477,6 @@ module.exports = function(window, edgeVersion) {
 
 
 /***/ }),
-/* 47 */
-/***/ (function(module, exports, __webpack_require__) {
-
-"use strict";
- /* eslint-env node */
-
-
-// SDP helpers.
-var SDPUtils = {};
-
-// Generate an alphanumeric identifier for cname or mids.
-// TODO: use UUIDs instead? https://gist.github.com/jed/982883
-SDPUtils.generateIdentifier = function() {
-  return Math.random().toString(36).substr(2, 10);
-};
-
-// The RTCP CNAME used by all peerconnections from the same JS.
-SDPUtils.localCName = SDPUtils.generateIdentifier();
-
-// Splits SDP into lines, dealing with both CRLF and LF.
-SDPUtils.splitLines = function(blob) {
-  return blob.trim().split('\n').map(function(line) {
-    return line.trim();
-  });
-};
-// Splits SDP into sessionpart and mediasections. Ensures CRLF.
-SDPUtils.splitSections = function(blob) {
-  var parts = blob.split('\nm=');
-  return parts.map(function(part, index) {
-    return (index > 0 ? 'm=' + part : part).trim() + '\r\n';
-  });
-};
-
-// Returns lines that start with a certain prefix.
-SDPUtils.matchPrefix = function(blob, prefix) {
-  return SDPUtils.splitLines(blob).filter(function(line) {
-    return line.indexOf(prefix) === 0;
-  });
-};
-
-// Parses an ICE candidate line. Sample input:
-// candidate:702786350 2 udp 41819902 8.8.8.8 60769 typ relay raddr 8.8.8.8
-// rport 55996"
-SDPUtils.parseCandidate = function(line) {
-  var parts;
-  // Parse both variants.
-  if (line.indexOf('a=candidate:') === 0) {
-    parts = line.substring(12).split(' ');
-  } else {
-    parts = line.substring(10).split(' ');
-  }
-
-  var candidate = {
-    foundation: parts[0],
-    component: parseInt(parts[1], 10),
-    protocol: parts[2].toLowerCase(),
-    priority: parseInt(parts[3], 10),
-    ip: parts[4],
-    port: parseInt(parts[5], 10),
-    // skip parts[6] == 'typ'
-    type: parts[7]
-  };
-
-  for (var i = 8; i < parts.length; i += 2) {
-    switch (parts[i]) {
-      case 'raddr':
-        candidate.relatedAddress = parts[i + 1];
-        break;
-      case 'rport':
-        candidate.relatedPort = parseInt(parts[i + 1], 10);
-        break;
-      case 'tcptype':
-        candidate.tcpType = parts[i + 1];
-        break;
-      default: // extension handling, in particular ufrag
-        candidate[parts[i]] = parts[i + 1];
-        break;
-    }
-  }
-  return candidate;
-};
-
-// Translates a candidate object into SDP candidate attribute.
-SDPUtils.writeCandidate = function(candidate) {
-  var sdp = [];
-  sdp.push(candidate.foundation);
-  sdp.push(candidate.component);
-  sdp.push(candidate.protocol.toUpperCase());
-  sdp.push(candidate.priority);
-  sdp.push(candidate.ip);
-  sdp.push(candidate.port);
-
-  var type = candidate.type;
-  sdp.push('typ');
-  sdp.push(type);
-  if (type !== 'host' && candidate.relatedAddress &&
-      candidate.relatedPort) {
-    sdp.push('raddr');
-    sdp.push(candidate.relatedAddress); // was: relAddr
-    sdp.push('rport');
-    sdp.push(candidate.relatedPort); // was: relPort
-  }
-  if (candidate.tcpType && candidate.protocol.toLowerCase() === 'tcp') {
-    sdp.push('tcptype');
-    sdp.push(candidate.tcpType);
-  }
-  if (candidate.ufrag) {
-    sdp.push('ufrag');
-    sdp.push(candidate.ufrag);
-  }
-  return 'candidate:' + sdp.join(' ');
-};
-
-// Parses an ice-options line, returns an array of option tags.
-// a=ice-options:foo bar
-SDPUtils.parseIceOptions = function(line) {
-  return line.substr(14).split(' ');
-}
-
-// Parses an rtpmap line, returns RTCRtpCoddecParameters. Sample input:
-// a=rtpmap:111 opus/48000/2
-SDPUtils.parseRtpMap = function(line) {
-  var parts = line.substr(9).split(' ');
-  var parsed = {
-    payloadType: parseInt(parts.shift(), 10) // was: id
-  };
-
-  parts = parts[0].split('/');
-
-  parsed.name = parts[0];
-  parsed.clockRate = parseInt(parts[1], 10); // was: clockrate
-  // was: channels
-  parsed.numChannels = parts.length === 3 ? parseInt(parts[2], 10) : 1;
-  return parsed;
-};
-
-// Generate an a=rtpmap line from RTCRtpCodecCapability or
-// RTCRtpCodecParameters.
-SDPUtils.writeRtpMap = function(codec) {
-  var pt = codec.payloadType;
-  if (codec.preferredPayloadType !== undefined) {
-    pt = codec.preferredPayloadType;
-  }
-  return 'a=rtpmap:' + pt + ' ' + codec.name + '/' + codec.clockRate +
-      (codec.numChannels !== 1 ? '/' + codec.numChannels : '') + '\r\n';
-};
-
-// Parses an a=extmap line (headerextension from RFC 5285). Sample input:
-// a=extmap:2 urn:ietf:params:rtp-hdrext:toffset
-// a=extmap:2/sendonly urn:ietf:params:rtp-hdrext:toffset
-SDPUtils.parseExtmap = function(line) {
-  var parts = line.substr(9).split(' ');
-  return {
-    id: parseInt(parts[0], 10),
-    direction: parts[0].indexOf('/') > 0 ? parts[0].split('/')[1] : 'sendrecv',
-    uri: parts[1]
-  };
-};
-
-// Generates a=extmap line from RTCRtpHeaderExtensionParameters or
-// RTCRtpHeaderExtension.
-SDPUtils.writeExtmap = function(headerExtension) {
-  return 'a=extmap:' + (headerExtension.id || headerExtension.preferredId) +
-      (headerExtension.direction && headerExtension.direction !== 'sendrecv'
-          ? '/' + headerExtension.direction
-          : '') +
-      ' ' + headerExtension.uri + '\r\n';
-};
-
-// Parses an ftmp line, returns dictionary. Sample input:
-// a=fmtp:96 vbr=on;cng=on
-// Also deals with vbr=on; cng=on
-SDPUtils.parseFmtp = function(line) {
-  var parsed = {};
-  var kv;
-  var parts = line.substr(line.indexOf(' ') + 1).split(';');
-  for (var j = 0; j < parts.length; j++) {
-    kv = parts[j].trim().split('=');
-    parsed[kv[0].trim()] = kv[1];
-  }
-  return parsed;
-};
-
-// Generates an a=ftmp line from RTCRtpCodecCapability or RTCRtpCodecParameters.
-SDPUtils.writeFmtp = function(codec) {
-  var line = '';
-  var pt = codec.payloadType;
-  if (codec.preferredPayloadType !== undefined) {
-    pt = codec.preferredPayloadType;
-  }
-  if (codec.parameters && Object.keys(codec.parameters).length) {
-    var params = [];
-    Object.keys(codec.parameters).forEach(function(param) {
-      params.push(param + '=' + codec.parameters[param]);
-    });
-    line += 'a=fmtp:' + pt + ' ' + params.join(';') + '\r\n';
-  }
-  return line;
-};
-
-// Parses an rtcp-fb line, returns RTCPRtcpFeedback object. Sample input:
-// a=rtcp-fb:98 nack rpsi
-SDPUtils.parseRtcpFb = function(line) {
-  var parts = line.substr(line.indexOf(' ') + 1).split(' ');
-  return {
-    type: parts.shift(),
-    parameter: parts.join(' ')
-  };
-};
-// Generate a=rtcp-fb lines from RTCRtpCodecCapability or RTCRtpCodecParameters.
-SDPUtils.writeRtcpFb = function(codec) {
-  var lines = '';
-  var pt = codec.payloadType;
-  if (codec.preferredPayloadType !== undefined) {
-    pt = codec.preferredPayloadType;
-  }
-  if (codec.rtcpFeedback && codec.rtcpFeedback.length) {
-    // FIXME: special handling for trr-int?
-    codec.rtcpFeedback.forEach(function(fb) {
-      lines += 'a=rtcp-fb:' + pt + ' ' + fb.type +
-      (fb.parameter && fb.parameter.length ? ' ' + fb.parameter : '') +
-          '\r\n';
-    });
-  }
-  return lines;
-};
-
-// Parses an RFC 5576 ssrc media attribute. Sample input:
-// a=ssrc:3735928559 cname:something
-SDPUtils.parseSsrcMedia = function(line) {
-  var sp = line.indexOf(' ');
-  var parts = {
-    ssrc: parseInt(line.substr(7, sp - 7), 10)
-  };
-  var colon = line.indexOf(':', sp);
-  if (colon > -1) {
-    parts.attribute = line.substr(sp + 1, colon - sp - 1);
-    parts.value = line.substr(colon + 1);
-  } else {
-    parts.attribute = line.substr(sp + 1);
-  }
-  return parts;
-};
-
-// Extracts the MID (RFC 5888) from a media section.
-// returns the MID or undefined if no mid line was found.
-SDPUtils.getMid = function(mediaSection) {
-  var mid = SDPUtils.matchPrefix(mediaSection, 'a=mid:')[0];
-  if (mid) {
-    return mid.substr(6);
-  }
-}
-
-SDPUtils.parseFingerprint = function(line) {
-  var parts = line.substr(14).split(' ');
-  return {
-    algorithm: parts[0].toLowerCase(), // algorithm is case-sensitive in Edge.
-    value: parts[1]
-  };
-};
-
-// Extracts DTLS parameters from SDP media section or sessionpart.
-// FIXME: for consistency with other functions this should only
-//   get the fingerprint line as input. See also getIceParameters.
-SDPUtils.getDtlsParameters = function(mediaSection, sessionpart) {
-  var lines = SDPUtils.matchPrefix(mediaSection + sessionpart,
-      'a=fingerprint:');
-  // Note: a=setup line is ignored since we use the 'auto' role.
-  // Note2: 'algorithm' is not case sensitive except in Edge.
-  return {
-    role: 'auto',
-    fingerprints: lines.map(SDPUtils.parseFingerprint)
-  };
-};
-
-// Serializes DTLS parameters to SDP.
-SDPUtils.writeDtlsParameters = function(params, setupType) {
-  var sdp = 'a=setup:' + setupType + '\r\n';
-  params.fingerprints.forEach(function(fp) {
-    sdp += 'a=fingerprint:' + fp.algorithm + ' ' + fp.value + '\r\n';
-  });
-  return sdp;
-};
-// Parses ICE information from SDP media section or sessionpart.
-// FIXME: for consistency with other functions this should only
-//   get the ice-ufrag and ice-pwd lines as input.
-SDPUtils.getIceParameters = function(mediaSection, sessionpart) {
-  var lines = SDPUtils.splitLines(mediaSection);
-  // Search in session part, too.
-  lines = lines.concat(SDPUtils.splitLines(sessionpart));
-  var iceParameters = {
-    usernameFragment: lines.filter(function(line) {
-      return line.indexOf('a=ice-ufrag:') === 0;
-    })[0].substr(12),
-    password: lines.filter(function(line) {
-      return line.indexOf('a=ice-pwd:') === 0;
-    })[0].substr(10)
-  };
-  return iceParameters;
-};
-
-// Serializes ICE parameters to SDP.
-SDPUtils.writeIceParameters = function(params) {
-  return 'a=ice-ufrag:' + params.usernameFragment + '\r\n' +
-      'a=ice-pwd:' + params.password + '\r\n';
-};
-
-// Parses the SDP media section and returns RTCRtpParameters.
-SDPUtils.parseRtpParameters = function(mediaSection) {
-  var description = {
-    codecs: [],
-    headerExtensions: [],
-    fecMechanisms: [],
-    rtcp: []
-  };
-  var lines = SDPUtils.splitLines(mediaSection);
-  var mline = lines[0].split(' ');
-  for (var i = 3; i < mline.length; i++) { // find all codecs from mline[3..]
-    var pt = mline[i];
-    var rtpmapline = SDPUtils.matchPrefix(
-        mediaSection, 'a=rtpmap:' + pt + ' ')[0];
-    if (rtpmapline) {
-      var codec = SDPUtils.parseRtpMap(rtpmapline);
-      var fmtps = SDPUtils.matchPrefix(
-          mediaSection, 'a=fmtp:' + pt + ' ');
-      // Only the first a=fmtp:<pt> is considered.
-      codec.parameters = fmtps.length ? SDPUtils.parseFmtp(fmtps[0]) : {};
-      codec.rtcpFeedback = SDPUtils.matchPrefix(
-          mediaSection, 'a=rtcp-fb:' + pt + ' ')
-        .map(SDPUtils.parseRtcpFb);
-      description.codecs.push(codec);
-      // parse FEC mechanisms from rtpmap lines.
-      switch (codec.name.toUpperCase()) {
-        case 'RED':
-        case 'ULPFEC':
-          description.fecMechanisms.push(codec.name.toUpperCase());
-          break;
-        default: // only RED and ULPFEC are recognized as FEC mechanisms.
-          break;
-      }
-    }
-  }
-  SDPUtils.matchPrefix(mediaSection, 'a=extmap:').forEach(function(line) {
-    description.headerExtensions.push(SDPUtils.parseExtmap(line));
-  });
-  // FIXME: parse rtcp.
-  return description;
-};
-
-// Generates parts of the SDP media section describing the capabilities /
-// parameters.
-SDPUtils.writeRtpDescription = function(kind, caps) {
-  var sdp = '';
-
-  // Build the mline.
-  sdp += 'm=' + kind + ' ';
-  sdp += caps.codecs.length > 0 ? '9' : '0'; // reject if no codecs.
-  sdp += ' UDP/TLS/RTP/SAVPF ';
-  sdp += caps.codecs.map(function(codec) {
-    if (codec.preferredPayloadType !== undefined) {
-      return codec.preferredPayloadType;
-    }
-    return codec.payloadType;
-  }).join(' ') + '\r\n';
-
-  sdp += 'c=IN IP4 0.0.0.0\r\n';
-  sdp += 'a=rtcp:9 IN IP4 0.0.0.0\r\n';
-
-  // Add a=rtpmap lines for each codec. Also fmtp and rtcp-fb.
-  caps.codecs.forEach(function(codec) {
-    sdp += SDPUtils.writeRtpMap(codec);
-    sdp += SDPUtils.writeFmtp(codec);
-    sdp += SDPUtils.writeRtcpFb(codec);
-  });
-  var maxptime = 0;
-  caps.codecs.forEach(function(codec) {
-    if (codec.maxptime > maxptime) {
-      maxptime = codec.maxptime;
-    }
-  });
-  if (maxptime > 0) {
-    sdp += 'a=maxptime:' + maxptime + '\r\n';
-  }
-  sdp += 'a=rtcp-mux\r\n';
-
-  caps.headerExtensions.forEach(function(extension) {
-    sdp += SDPUtils.writeExtmap(extension);
-  });
-  // FIXME: write fecMechanisms.
-  return sdp;
-};
-
-// Parses the SDP media section and returns an array of
-// RTCRtpEncodingParameters.
-SDPUtils.parseRtpEncodingParameters = function(mediaSection) {
-  var encodingParameters = [];
-  var description = SDPUtils.parseRtpParameters(mediaSection);
-  var hasRed = description.fecMechanisms.indexOf('RED') !== -1;
-  var hasUlpfec = description.fecMechanisms.indexOf('ULPFEC') !== -1;
-
-  // filter a=ssrc:... cname:, ignore PlanB-msid
-  var ssrcs = SDPUtils.matchPrefix(mediaSection, 'a=ssrc:')
-  .map(function(line) {
-    return SDPUtils.parseSsrcMedia(line);
-  })
-  .filter(function(parts) {
-    return parts.attribute === 'cname';
-  });
-  var primarySsrc = ssrcs.length > 0 && ssrcs[0].ssrc;
-  var secondarySsrc;
-
-  var flows = SDPUtils.matchPrefix(mediaSection, 'a=ssrc-group:FID')
-  .map(function(line) {
-    var parts = line.split(' ');
-    parts.shift();
-    return parts.map(function(part) {
-      return parseInt(part, 10);
-    });
-  });
-  if (flows.length > 0 && flows[0].length > 1 && flows[0][0] === primarySsrc) {
-    secondarySsrc = flows[0][1];
-  }
-
-  description.codecs.forEach(function(codec) {
-    if (codec.name.toUpperCase() === 'RTX' && codec.parameters.apt) {
-      var encParam = {
-        ssrc: primarySsrc,
-        codecPayloadType: parseInt(codec.parameters.apt, 10),
-        rtx: {
-          ssrc: secondarySsrc
-        }
-      };
-      encodingParameters.push(encParam);
-      if (hasRed) {
-        encParam = JSON.parse(JSON.stringify(encParam));
-        encParam.fec = {
-          ssrc: secondarySsrc,
-          mechanism: hasUlpfec ? 'red+ulpfec' : 'red'
-        };
-        encodingParameters.push(encParam);
-      }
-    }
-  });
-  if (encodingParameters.length === 0 && primarySsrc) {
-    encodingParameters.push({
-      ssrc: primarySsrc
-    });
-  }
-
-  // we support both b=AS and b=TIAS but interpret AS as TIAS.
-  var bandwidth = SDPUtils.matchPrefix(mediaSection, 'b=');
-  if (bandwidth.length) {
-    if (bandwidth[0].indexOf('b=TIAS:') === 0) {
-      bandwidth = parseInt(bandwidth[0].substr(7), 10);
-    } else if (bandwidth[0].indexOf('b=AS:') === 0) {
-      // use formula from JSEP to convert b=AS to TIAS value.
-      bandwidth = parseInt(bandwidth[0].substr(5), 10) * 1000 * 0.95
-          - (50 * 40 * 8);
-    } else {
-      bandwidth = undefined;
-    }
-    encodingParameters.forEach(function(params) {
-      params.maxBitrate = bandwidth;
-    });
-  }
-  return encodingParameters;
-};
-
-// parses http://draft.ortc.org/#rtcrtcpparameters*
-SDPUtils.parseRtcpParameters = function(mediaSection) {
-  var rtcpParameters = {};
-
-  var cname;
-  // Gets the first SSRC. Note that with RTX there might be multiple
-  // SSRCs.
-  var remoteSsrc = SDPUtils.matchPrefix(mediaSection, 'a=ssrc:')
-      .map(function(line) {
-        return SDPUtils.parseSsrcMedia(line);
-      })
-      .filter(function(obj) {
-        return obj.attribute === 'cname';
-      })[0];
-  if (remoteSsrc) {
-    rtcpParameters.cname = remoteSsrc.value;
-    rtcpParameters.ssrc = remoteSsrc.ssrc;
-  }
-
-  // Edge uses the compound attribute instead of reducedSize
-  // compound is !reducedSize
-  var rsize = SDPUtils.matchPrefix(mediaSection, 'a=rtcp-rsize');
-  rtcpParameters.reducedSize = rsize.length > 0;
-  rtcpParameters.compound = rsize.length === 0;
-
-  // parses the rtcp-mux attrіbute.
-  // Note that Edge does not support unmuxed RTCP.
-  var mux = SDPUtils.matchPrefix(mediaSection, 'a=rtcp-mux');
-  rtcpParameters.mux = mux.length > 0;
-
-  return rtcpParameters;
-};
-
-// parses either a=msid: or a=ssrc:... msid lines and returns
-// the id of the MediaStream and MediaStreamTrack.
-SDPUtils.parseMsid = function(mediaSection) {
-  var parts;
-  var spec = SDPUtils.matchPrefix(mediaSection, 'a=msid:');
-  if (spec.length === 1) {
-    parts = spec[0].substr(7).split(' ');
-    return {stream: parts[0], track: parts[1]};
-  }
-  var planB = SDPUtils.matchPrefix(mediaSection, 'a=ssrc:')
-  .map(function(line) {
-    return SDPUtils.parseSsrcMedia(line);
-  })
-  .filter(function(parts) {
-    return parts.attribute === 'msid';
-  });
-  if (planB.length > 0) {
-    parts = planB[0].value.split(' ');
-    return {stream: parts[0], track: parts[1]};
-  }
-};
-
-// Generate a session ID for SDP.
-// https://tools.ietf.org/html/draft-ietf-rtcweb-jsep-20#section-5.2.1
-// recommends using a cryptographically random +ve 64-bit value
-// but right now this should be acceptable and within the right range
-SDPUtils.generateSessionId = function() {
-  return Math.random().toString().substr(2, 21);
-};
-
-// Write boilder plate for start of SDP
-// sessId argument is optional - if not supplied it will
-// be generated randomly
-// sessVersion is optional and defaults to 2
-SDPUtils.writeSessionBoilerplate = function(sessId, sessVer) {
-  var sessionId;
-  var version = sessVer !== undefined ? sessVer : 2;
-  if (sessId) {
-    sessionId = sessId;
-  } else {
-    sessionId = SDPUtils.generateSessionId();
-  }
-  // FIXME: sess-id should be an NTP timestamp.
-  return 'v=0\r\n' +
-      'o=thisisadapterortc ' + sessionId + ' ' + version + ' IN IP4 127.0.0.1\r\n' +
-      's=-\r\n' +
-      't=0 0\r\n';
-};
-
-SDPUtils.writeMediaSection = function(transceiver, caps, type, stream) {
-  var sdp = SDPUtils.writeRtpDescription(transceiver.kind, caps);
-
-  // Map ICE parameters (ufrag, pwd) to SDP.
-  sdp += SDPUtils.writeIceParameters(
-      transceiver.iceGatherer.getLocalParameters());
-
-  // Map DTLS parameters to SDP.
-  sdp += SDPUtils.writeDtlsParameters(
-      transceiver.dtlsTransport.getLocalParameters(),
-      type === 'offer' ? 'actpass' : 'active');
-
-  sdp += 'a=mid:' + transceiver.mid + '\r\n';
-
-  if (transceiver.direction) {
-    sdp += 'a=' + transceiver.direction + '\r\n';
-  } else if (transceiver.rtpSender && transceiver.rtpReceiver) {
-    sdp += 'a=sendrecv\r\n';
-  } else if (transceiver.rtpSender) {
-    sdp += 'a=sendonly\r\n';
-  } else if (transceiver.rtpReceiver) {
-    sdp += 'a=recvonly\r\n';
-  } else {
-    sdp += 'a=inactive\r\n';
-  }
-
-  if (transceiver.rtpSender) {
-    // spec.
-    var msid = 'msid:' + stream.id + ' ' +
-        transceiver.rtpSender.track.id + '\r\n';
-    sdp += 'a=' + msid;
-
-    // for Chrome.
-    sdp += 'a=ssrc:' + transceiver.sendEncodingParameters[0].ssrc +
-        ' ' + msid;
-    if (transceiver.sendEncodingParameters[0].rtx) {
-      sdp += 'a=ssrc:' + transceiver.sendEncodingParameters[0].rtx.ssrc +
-          ' ' + msid;
-      sdp += 'a=ssrc-group:FID ' +
-          transceiver.sendEncodingParameters[0].ssrc + ' ' +
-          transceiver.sendEncodingParameters[0].rtx.ssrc +
-          '\r\n';
-    }
-  }
-  // FIXME: this should be written by writeRtpDescription.
-  sdp += 'a=ssrc:' + transceiver.sendEncodingParameters[0].ssrc +
-      ' cname:' + SDPUtils.localCName + '\r\n';
-  if (transceiver.rtpSender && transceiver.sendEncodingParameters[0].rtx) {
-    sdp += 'a=ssrc:' + transceiver.sendEncodingParameters[0].rtx.ssrc +
-        ' cname:' + SDPUtils.localCName + '\r\n';
-  }
-  return sdp;
-};
-
-// Gets the direction from the mediaSection or the sessionpart.
-SDPUtils.getDirection = function(mediaSection, sessionpart) {
-  // Look for sendrecv, sendonly, recvonly, inactive, default to sendrecv.
-  var lines = SDPUtils.splitLines(mediaSection);
-  for (var i = 0; i < lines.length; i++) {
-    switch (lines[i]) {
-      case 'a=sendrecv':
-      case 'a=sendonly':
-      case 'a=recvonly':
-      case 'a=inactive':
-        return lines[i].substr(2);
-      default:
-        // FIXME: What should happen here?
-    }
-  }
-  if (sessionpart) {
-    return SDPUtils.getDirection(sessionpart);
-  }
-  return 'sendrecv';
-};
-
-SDPUtils.getKind = function(mediaSection) {
-  var lines = SDPUtils.splitLines(mediaSection);
-  var mline = lines[0].split(' ');
-  return mline[0].substr(2);
-};
-
-SDPUtils.isRejected = function(mediaSection) {
-  return mediaSection.split(' ', 2)[1] === '0';
-};
-
-// Expose public methods.
-module.exports = SDPUtils;
-
-
-/***/ }),
 /* 48 */
 /***/ (function(module, exports, __webpack_require__) {
 
@@ -30274,7 +30294,7 @@ module.exports = {
  /* eslint-env node */
 
 
-var SDPUtils = __webpack_require__(53);
+var SDPUtils = __webpack_require__(7);
 var utils = __webpack_require__(1);
 
 // Wraps the peerconnection event eventNameToWrap in a function
@@ -30434,663 +30454,6 @@ module.exports = {
 
 /***/ }),
 /* 53 */
-/***/ (function(module, exports, __webpack_require__) {
-
-"use strict";
- /* eslint-env node */
-
-
-// SDP helpers.
-var SDPUtils = {};
-
-// Generate an alphanumeric identifier for cname or mids.
-// TODO: use UUIDs instead? https://gist.github.com/jed/982883
-SDPUtils.generateIdentifier = function() {
-  return Math.random().toString(36).substr(2, 10);
-};
-
-// The RTCP CNAME used by all peerconnections from the same JS.
-SDPUtils.localCName = SDPUtils.generateIdentifier();
-
-// Splits SDP into lines, dealing with both CRLF and LF.
-SDPUtils.splitLines = function(blob) {
-  return blob.trim().split('\n').map(function(line) {
-    return line.trim();
-  });
-};
-// Splits SDP into sessionpart and mediasections. Ensures CRLF.
-SDPUtils.splitSections = function(blob) {
-  var parts = blob.split('\nm=');
-  return parts.map(function(part, index) {
-    return (index > 0 ? 'm=' + part : part).trim() + '\r\n';
-  });
-};
-
-// Returns lines that start with a certain prefix.
-SDPUtils.matchPrefix = function(blob, prefix) {
-  return SDPUtils.splitLines(blob).filter(function(line) {
-    return line.indexOf(prefix) === 0;
-  });
-};
-
-// Parses an ICE candidate line. Sample input:
-// candidate:702786350 2 udp 41819902 8.8.8.8 60769 typ relay raddr 8.8.8.8
-// rport 55996"
-SDPUtils.parseCandidate = function(line) {
-  var parts;
-  // Parse both variants.
-  if (line.indexOf('a=candidate:') === 0) {
-    parts = line.substring(12).split(' ');
-  } else {
-    parts = line.substring(10).split(' ');
-  }
-
-  var candidate = {
-    foundation: parts[0],
-    component: parseInt(parts[1], 10),
-    protocol: parts[2].toLowerCase(),
-    priority: parseInt(parts[3], 10),
-    ip: parts[4],
-    port: parseInt(parts[5], 10),
-    // skip parts[6] == 'typ'
-    type: parts[7]
-  };
-
-  for (var i = 8; i < parts.length; i += 2) {
-    switch (parts[i]) {
-      case 'raddr':
-        candidate.relatedAddress = parts[i + 1];
-        break;
-      case 'rport':
-        candidate.relatedPort = parseInt(parts[i + 1], 10);
-        break;
-      case 'tcptype':
-        candidate.tcpType = parts[i + 1];
-        break;
-      case 'ufrag':
-        candidate.ufrag = parts[i + 1]; // for backward compability.
-        candidate.usernameFragment = parts[i + 1];
-        break;
-      default: // extension handling, in particular ufrag
-        candidate[parts[i]] = parts[i + 1];
-        break;
-    }
-  }
-  return candidate;
-};
-
-// Translates a candidate object into SDP candidate attribute.
-SDPUtils.writeCandidate = function(candidate) {
-  var sdp = [];
-  sdp.push(candidate.foundation);
-  sdp.push(candidate.component);
-  sdp.push(candidate.protocol.toUpperCase());
-  sdp.push(candidate.priority);
-  sdp.push(candidate.ip);
-  sdp.push(candidate.port);
-
-  var type = candidate.type;
-  sdp.push('typ');
-  sdp.push(type);
-  if (type !== 'host' && candidate.relatedAddress &&
-      candidate.relatedPort) {
-    sdp.push('raddr');
-    sdp.push(candidate.relatedAddress); // was: relAddr
-    sdp.push('rport');
-    sdp.push(candidate.relatedPort); // was: relPort
-  }
-  if (candidate.tcpType && candidate.protocol.toLowerCase() === 'tcp') {
-    sdp.push('tcptype');
-    sdp.push(candidate.tcpType);
-  }
-  if (candidate.ufrag) {
-    sdp.push('ufrag');
-    sdp.push(candidate.ufrag);
-  }
-  return 'candidate:' + sdp.join(' ');
-};
-
-// Parses an ice-options line, returns an array of option tags.
-// a=ice-options:foo bar
-SDPUtils.parseIceOptions = function(line) {
-  return line.substr(14).split(' ');
-}
-
-// Parses an rtpmap line, returns RTCRtpCoddecParameters. Sample input:
-// a=rtpmap:111 opus/48000/2
-SDPUtils.parseRtpMap = function(line) {
-  var parts = line.substr(9).split(' ');
-  var parsed = {
-    payloadType: parseInt(parts.shift(), 10) // was: id
-  };
-
-  parts = parts[0].split('/');
-
-  parsed.name = parts[0];
-  parsed.clockRate = parseInt(parts[1], 10); // was: clockrate
-  // was: channels
-  parsed.numChannels = parts.length === 3 ? parseInt(parts[2], 10) : 1;
-  return parsed;
-};
-
-// Generate an a=rtpmap line from RTCRtpCodecCapability or
-// RTCRtpCodecParameters.
-SDPUtils.writeRtpMap = function(codec) {
-  var pt = codec.payloadType;
-  if (codec.preferredPayloadType !== undefined) {
-    pt = codec.preferredPayloadType;
-  }
-  return 'a=rtpmap:' + pt + ' ' + codec.name + '/' + codec.clockRate +
-      (codec.numChannels !== 1 ? '/' + codec.numChannels : '') + '\r\n';
-};
-
-// Parses an a=extmap line (headerextension from RFC 5285). Sample input:
-// a=extmap:2 urn:ietf:params:rtp-hdrext:toffset
-// a=extmap:2/sendonly urn:ietf:params:rtp-hdrext:toffset
-SDPUtils.parseExtmap = function(line) {
-  var parts = line.substr(9).split(' ');
-  return {
-    id: parseInt(parts[0], 10),
-    direction: parts[0].indexOf('/') > 0 ? parts[0].split('/')[1] : 'sendrecv',
-    uri: parts[1]
-  };
-};
-
-// Generates a=extmap line from RTCRtpHeaderExtensionParameters or
-// RTCRtpHeaderExtension.
-SDPUtils.writeExtmap = function(headerExtension) {
-  return 'a=extmap:' + (headerExtension.id || headerExtension.preferredId) +
-      (headerExtension.direction && headerExtension.direction !== 'sendrecv'
-          ? '/' + headerExtension.direction
-          : '') +
-      ' ' + headerExtension.uri + '\r\n';
-};
-
-// Parses an ftmp line, returns dictionary. Sample input:
-// a=fmtp:96 vbr=on;cng=on
-// Also deals with vbr=on; cng=on
-SDPUtils.parseFmtp = function(line) {
-  var parsed = {};
-  var kv;
-  var parts = line.substr(line.indexOf(' ') + 1).split(';');
-  for (var j = 0; j < parts.length; j++) {
-    kv = parts[j].trim().split('=');
-    parsed[kv[0].trim()] = kv[1];
-  }
-  return parsed;
-};
-
-// Generates an a=ftmp line from RTCRtpCodecCapability or RTCRtpCodecParameters.
-SDPUtils.writeFmtp = function(codec) {
-  var line = '';
-  var pt = codec.payloadType;
-  if (codec.preferredPayloadType !== undefined) {
-    pt = codec.preferredPayloadType;
-  }
-  if (codec.parameters && Object.keys(codec.parameters).length) {
-    var params = [];
-    Object.keys(codec.parameters).forEach(function(param) {
-      params.push(param + '=' + codec.parameters[param]);
-    });
-    line += 'a=fmtp:' + pt + ' ' + params.join(';') + '\r\n';
-  }
-  return line;
-};
-
-// Parses an rtcp-fb line, returns RTCPRtcpFeedback object. Sample input:
-// a=rtcp-fb:98 nack rpsi
-SDPUtils.parseRtcpFb = function(line) {
-  var parts = line.substr(line.indexOf(' ') + 1).split(' ');
-  return {
-    type: parts.shift(),
-    parameter: parts.join(' ')
-  };
-};
-// Generate a=rtcp-fb lines from RTCRtpCodecCapability or RTCRtpCodecParameters.
-SDPUtils.writeRtcpFb = function(codec) {
-  var lines = '';
-  var pt = codec.payloadType;
-  if (codec.preferredPayloadType !== undefined) {
-    pt = codec.preferredPayloadType;
-  }
-  if (codec.rtcpFeedback && codec.rtcpFeedback.length) {
-    // FIXME: special handling for trr-int?
-    codec.rtcpFeedback.forEach(function(fb) {
-      lines += 'a=rtcp-fb:' + pt + ' ' + fb.type +
-      (fb.parameter && fb.parameter.length ? ' ' + fb.parameter : '') +
-          '\r\n';
-    });
-  }
-  return lines;
-};
-
-// Parses an RFC 5576 ssrc media attribute. Sample input:
-// a=ssrc:3735928559 cname:something
-SDPUtils.parseSsrcMedia = function(line) {
-  var sp = line.indexOf(' ');
-  var parts = {
-    ssrc: parseInt(line.substr(7, sp - 7), 10)
-  };
-  var colon = line.indexOf(':', sp);
-  if (colon > -1) {
-    parts.attribute = line.substr(sp + 1, colon - sp - 1);
-    parts.value = line.substr(colon + 1);
-  } else {
-    parts.attribute = line.substr(sp + 1);
-  }
-  return parts;
-};
-
-// Extracts the MID (RFC 5888) from a media section.
-// returns the MID or undefined if no mid line was found.
-SDPUtils.getMid = function(mediaSection) {
-  var mid = SDPUtils.matchPrefix(mediaSection, 'a=mid:')[0];
-  if (mid) {
-    return mid.substr(6);
-  }
-}
-
-SDPUtils.parseFingerprint = function(line) {
-  var parts = line.substr(14).split(' ');
-  return {
-    algorithm: parts[0].toLowerCase(), // algorithm is case-sensitive in Edge.
-    value: parts[1]
-  };
-};
-
-// Extracts DTLS parameters from SDP media section or sessionpart.
-// FIXME: for consistency with other functions this should only
-//   get the fingerprint line as input. See also getIceParameters.
-SDPUtils.getDtlsParameters = function(mediaSection, sessionpart) {
-  var lines = SDPUtils.matchPrefix(mediaSection + sessionpart,
-      'a=fingerprint:');
-  // Note: a=setup line is ignored since we use the 'auto' role.
-  // Note2: 'algorithm' is not case sensitive except in Edge.
-  return {
-    role: 'auto',
-    fingerprints: lines.map(SDPUtils.parseFingerprint)
-  };
-};
-
-// Serializes DTLS parameters to SDP.
-SDPUtils.writeDtlsParameters = function(params, setupType) {
-  var sdp = 'a=setup:' + setupType + '\r\n';
-  params.fingerprints.forEach(function(fp) {
-    sdp += 'a=fingerprint:' + fp.algorithm + ' ' + fp.value + '\r\n';
-  });
-  return sdp;
-};
-// Parses ICE information from SDP media section or sessionpart.
-// FIXME: for consistency with other functions this should only
-//   get the ice-ufrag and ice-pwd lines as input.
-SDPUtils.getIceParameters = function(mediaSection, sessionpart) {
-  var lines = SDPUtils.splitLines(mediaSection);
-  // Search in session part, too.
-  lines = lines.concat(SDPUtils.splitLines(sessionpart));
-  var iceParameters = {
-    usernameFragment: lines.filter(function(line) {
-      return line.indexOf('a=ice-ufrag:') === 0;
-    })[0].substr(12),
-    password: lines.filter(function(line) {
-      return line.indexOf('a=ice-pwd:') === 0;
-    })[0].substr(10)
-  };
-  return iceParameters;
-};
-
-// Serializes ICE parameters to SDP.
-SDPUtils.writeIceParameters = function(params) {
-  return 'a=ice-ufrag:' + params.usernameFragment + '\r\n' +
-      'a=ice-pwd:' + params.password + '\r\n';
-};
-
-// Parses the SDP media section and returns RTCRtpParameters.
-SDPUtils.parseRtpParameters = function(mediaSection) {
-  var description = {
-    codecs: [],
-    headerExtensions: [],
-    fecMechanisms: [],
-    rtcp: []
-  };
-  var lines = SDPUtils.splitLines(mediaSection);
-  var mline = lines[0].split(' ');
-  for (var i = 3; i < mline.length; i++) { // find all codecs from mline[3..]
-    var pt = mline[i];
-    var rtpmapline = SDPUtils.matchPrefix(
-        mediaSection, 'a=rtpmap:' + pt + ' ')[0];
-    if (rtpmapline) {
-      var codec = SDPUtils.parseRtpMap(rtpmapline);
-      var fmtps = SDPUtils.matchPrefix(
-          mediaSection, 'a=fmtp:' + pt + ' ');
-      // Only the first a=fmtp:<pt> is considered.
-      codec.parameters = fmtps.length ? SDPUtils.parseFmtp(fmtps[0]) : {};
-      codec.rtcpFeedback = SDPUtils.matchPrefix(
-          mediaSection, 'a=rtcp-fb:' + pt + ' ')
-        .map(SDPUtils.parseRtcpFb);
-      description.codecs.push(codec);
-      // parse FEC mechanisms from rtpmap lines.
-      switch (codec.name.toUpperCase()) {
-        case 'RED':
-        case 'ULPFEC':
-          description.fecMechanisms.push(codec.name.toUpperCase());
-          break;
-        default: // only RED and ULPFEC are recognized as FEC mechanisms.
-          break;
-      }
-    }
-  }
-  SDPUtils.matchPrefix(mediaSection, 'a=extmap:').forEach(function(line) {
-    description.headerExtensions.push(SDPUtils.parseExtmap(line));
-  });
-  // FIXME: parse rtcp.
-  return description;
-};
-
-// Generates parts of the SDP media section describing the capabilities /
-// parameters.
-SDPUtils.writeRtpDescription = function(kind, caps) {
-  var sdp = '';
-
-  // Build the mline.
-  sdp += 'm=' + kind + ' ';
-  sdp += caps.codecs.length > 0 ? '9' : '0'; // reject if no codecs.
-  sdp += ' UDP/TLS/RTP/SAVPF ';
-  sdp += caps.codecs.map(function(codec) {
-    if (codec.preferredPayloadType !== undefined) {
-      return codec.preferredPayloadType;
-    }
-    return codec.payloadType;
-  }).join(' ') + '\r\n';
-
-  sdp += 'c=IN IP4 0.0.0.0\r\n';
-  sdp += 'a=rtcp:9 IN IP4 0.0.0.0\r\n';
-
-  // Add a=rtpmap lines for each codec. Also fmtp and rtcp-fb.
-  caps.codecs.forEach(function(codec) {
-    sdp += SDPUtils.writeRtpMap(codec);
-    sdp += SDPUtils.writeFmtp(codec);
-    sdp += SDPUtils.writeRtcpFb(codec);
-  });
-  var maxptime = 0;
-  caps.codecs.forEach(function(codec) {
-    if (codec.maxptime > maxptime) {
-      maxptime = codec.maxptime;
-    }
-  });
-  if (maxptime > 0) {
-    sdp += 'a=maxptime:' + maxptime + '\r\n';
-  }
-  sdp += 'a=rtcp-mux\r\n';
-
-  caps.headerExtensions.forEach(function(extension) {
-    sdp += SDPUtils.writeExtmap(extension);
-  });
-  // FIXME: write fecMechanisms.
-  return sdp;
-};
-
-// Parses the SDP media section and returns an array of
-// RTCRtpEncodingParameters.
-SDPUtils.parseRtpEncodingParameters = function(mediaSection) {
-  var encodingParameters = [];
-  var description = SDPUtils.parseRtpParameters(mediaSection);
-  var hasRed = description.fecMechanisms.indexOf('RED') !== -1;
-  var hasUlpfec = description.fecMechanisms.indexOf('ULPFEC') !== -1;
-
-  // filter a=ssrc:... cname:, ignore PlanB-msid
-  var ssrcs = SDPUtils.matchPrefix(mediaSection, 'a=ssrc:')
-  .map(function(line) {
-    return SDPUtils.parseSsrcMedia(line);
-  })
-  .filter(function(parts) {
-    return parts.attribute === 'cname';
-  });
-  var primarySsrc = ssrcs.length > 0 && ssrcs[0].ssrc;
-  var secondarySsrc;
-
-  var flows = SDPUtils.matchPrefix(mediaSection, 'a=ssrc-group:FID')
-  .map(function(line) {
-    var parts = line.split(' ');
-    parts.shift();
-    return parts.map(function(part) {
-      return parseInt(part, 10);
-    });
-  });
-  if (flows.length > 0 && flows[0].length > 1 && flows[0][0] === primarySsrc) {
-    secondarySsrc = flows[0][1];
-  }
-
-  description.codecs.forEach(function(codec) {
-    if (codec.name.toUpperCase() === 'RTX' && codec.parameters.apt) {
-      var encParam = {
-        ssrc: primarySsrc,
-        codecPayloadType: parseInt(codec.parameters.apt, 10),
-        rtx: {
-          ssrc: secondarySsrc
-        }
-      };
-      encodingParameters.push(encParam);
-      if (hasRed) {
-        encParam = JSON.parse(JSON.stringify(encParam));
-        encParam.fec = {
-          ssrc: secondarySsrc,
-          mechanism: hasUlpfec ? 'red+ulpfec' : 'red'
-        };
-        encodingParameters.push(encParam);
-      }
-    }
-  });
-  if (encodingParameters.length === 0 && primarySsrc) {
-    encodingParameters.push({
-      ssrc: primarySsrc
-    });
-  }
-
-  // we support both b=AS and b=TIAS but interpret AS as TIAS.
-  var bandwidth = SDPUtils.matchPrefix(mediaSection, 'b=');
-  if (bandwidth.length) {
-    if (bandwidth[0].indexOf('b=TIAS:') === 0) {
-      bandwidth = parseInt(bandwidth[0].substr(7), 10);
-    } else if (bandwidth[0].indexOf('b=AS:') === 0) {
-      // use formula from JSEP to convert b=AS to TIAS value.
-      bandwidth = parseInt(bandwidth[0].substr(5), 10) * 1000 * 0.95
-          - (50 * 40 * 8);
-    } else {
-      bandwidth = undefined;
-    }
-    encodingParameters.forEach(function(params) {
-      params.maxBitrate = bandwidth;
-    });
-  }
-  return encodingParameters;
-};
-
-// parses http://draft.ortc.org/#rtcrtcpparameters*
-SDPUtils.parseRtcpParameters = function(mediaSection) {
-  var rtcpParameters = {};
-
-  var cname;
-  // Gets the first SSRC. Note that with RTX there might be multiple
-  // SSRCs.
-  var remoteSsrc = SDPUtils.matchPrefix(mediaSection, 'a=ssrc:')
-      .map(function(line) {
-        return SDPUtils.parseSsrcMedia(line);
-      })
-      .filter(function(obj) {
-        return obj.attribute === 'cname';
-      })[0];
-  if (remoteSsrc) {
-    rtcpParameters.cname = remoteSsrc.value;
-    rtcpParameters.ssrc = remoteSsrc.ssrc;
-  }
-
-  // Edge uses the compound attribute instead of reducedSize
-  // compound is !reducedSize
-  var rsize = SDPUtils.matchPrefix(mediaSection, 'a=rtcp-rsize');
-  rtcpParameters.reducedSize = rsize.length > 0;
-  rtcpParameters.compound = rsize.length === 0;
-
-  // parses the rtcp-mux attrіbute.
-  // Note that Edge does not support unmuxed RTCP.
-  var mux = SDPUtils.matchPrefix(mediaSection, 'a=rtcp-mux');
-  rtcpParameters.mux = mux.length > 0;
-
-  return rtcpParameters;
-};
-
-// parses either a=msid: or a=ssrc:... msid lines and returns
-// the id of the MediaStream and MediaStreamTrack.
-SDPUtils.parseMsid = function(mediaSection) {
-  var parts;
-  var spec = SDPUtils.matchPrefix(mediaSection, 'a=msid:');
-  if (spec.length === 1) {
-    parts = spec[0].substr(7).split(' ');
-    return {stream: parts[0], track: parts[1]};
-  }
-  var planB = SDPUtils.matchPrefix(mediaSection, 'a=ssrc:')
-  .map(function(line) {
-    return SDPUtils.parseSsrcMedia(line);
-  })
-  .filter(function(parts) {
-    return parts.attribute === 'msid';
-  });
-  if (planB.length > 0) {
-    parts = planB[0].value.split(' ');
-    return {stream: parts[0], track: parts[1]};
-  }
-};
-
-// Generate a session ID for SDP.
-// https://tools.ietf.org/html/draft-ietf-rtcweb-jsep-20#section-5.2.1
-// recommends using a cryptographically random +ve 64-bit value
-// but right now this should be acceptable and within the right range
-SDPUtils.generateSessionId = function() {
-  return Math.random().toString().substr(2, 21);
-};
-
-// Write boilder plate for start of SDP
-// sessId argument is optional - if not supplied it will
-// be generated randomly
-// sessVersion is optional and defaults to 2
-SDPUtils.writeSessionBoilerplate = function(sessId, sessVer) {
-  var sessionId;
-  var version = sessVer !== undefined ? sessVer : 2;
-  if (sessId) {
-    sessionId = sessId;
-  } else {
-    sessionId = SDPUtils.generateSessionId();
-  }
-  // FIXME: sess-id should be an NTP timestamp.
-  return 'v=0\r\n' +
-      'o=thisisadapterortc ' + sessionId + ' ' + version + ' IN IP4 127.0.0.1\r\n' +
-      's=-\r\n' +
-      't=0 0\r\n';
-};
-
-SDPUtils.writeMediaSection = function(transceiver, caps, type, stream) {
-  var sdp = SDPUtils.writeRtpDescription(transceiver.kind, caps);
-
-  // Map ICE parameters (ufrag, pwd) to SDP.
-  sdp += SDPUtils.writeIceParameters(
-      transceiver.iceGatherer.getLocalParameters());
-
-  // Map DTLS parameters to SDP.
-  sdp += SDPUtils.writeDtlsParameters(
-      transceiver.dtlsTransport.getLocalParameters(),
-      type === 'offer' ? 'actpass' : 'active');
-
-  sdp += 'a=mid:' + transceiver.mid + '\r\n';
-
-  if (transceiver.direction) {
-    sdp += 'a=' + transceiver.direction + '\r\n';
-  } else if (transceiver.rtpSender && transceiver.rtpReceiver) {
-    sdp += 'a=sendrecv\r\n';
-  } else if (transceiver.rtpSender) {
-    sdp += 'a=sendonly\r\n';
-  } else if (transceiver.rtpReceiver) {
-    sdp += 'a=recvonly\r\n';
-  } else {
-    sdp += 'a=inactive\r\n';
-  }
-
-  if (transceiver.rtpSender) {
-    // spec.
-    var msid = 'msid:' + stream.id + ' ' +
-        transceiver.rtpSender.track.id + '\r\n';
-    sdp += 'a=' + msid;
-
-    // for Chrome.
-    sdp += 'a=ssrc:' + transceiver.sendEncodingParameters[0].ssrc +
-        ' ' + msid;
-    if (transceiver.sendEncodingParameters[0].rtx) {
-      sdp += 'a=ssrc:' + transceiver.sendEncodingParameters[0].rtx.ssrc +
-          ' ' + msid;
-      sdp += 'a=ssrc-group:FID ' +
-          transceiver.sendEncodingParameters[0].ssrc + ' ' +
-          transceiver.sendEncodingParameters[0].rtx.ssrc +
-          '\r\n';
-    }
-  }
-  // FIXME: this should be written by writeRtpDescription.
-  sdp += 'a=ssrc:' + transceiver.sendEncodingParameters[0].ssrc +
-      ' cname:' + SDPUtils.localCName + '\r\n';
-  if (transceiver.rtpSender && transceiver.sendEncodingParameters[0].rtx) {
-    sdp += 'a=ssrc:' + transceiver.sendEncodingParameters[0].rtx.ssrc +
-        ' cname:' + SDPUtils.localCName + '\r\n';
-  }
-  return sdp;
-};
-
-// Gets the direction from the mediaSection or the sessionpart.
-SDPUtils.getDirection = function(mediaSection, sessionpart) {
-  // Look for sendrecv, sendonly, recvonly, inactive, default to sendrecv.
-  var lines = SDPUtils.splitLines(mediaSection);
-  for (var i = 0; i < lines.length; i++) {
-    switch (lines[i]) {
-      case 'a=sendrecv':
-      case 'a=sendonly':
-      case 'a=recvonly':
-      case 'a=inactive':
-        return lines[i].substr(2);
-      default:
-        // FIXME: What should happen here?
-    }
-  }
-  if (sessionpart) {
-    return SDPUtils.getDirection(sessionpart);
-  }
-  return 'sendrecv';
-};
-
-SDPUtils.getKind = function(mediaSection) {
-  var lines = SDPUtils.splitLines(mediaSection);
-  var mline = lines[0].split(' ');
-  return mline[0].substr(2);
-};
-
-SDPUtils.isRejected = function(mediaSection) {
-  return mediaSection.split(' ', 2)[1] === '0';
-};
-
-SDPUtils.parseMLine = function(mediaSection) {
-  var lines = SDPUtils.splitLines(mediaSection);
-  var mline = lines[0].split(' ');
-  return {
-    kind: mline[0].substr(2),
-    port: parseInt(mline[1], 10),
-    protocol: mline[2],
-    fmt: mline.slice(3).join(' ')
-  };
-};
-
-// Expose public methods.
-if (true) {
-  module.exports = SDPUtils;
-}
-
-
-/***/ }),
-/* 54 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
@@ -31282,7 +30645,7 @@ module.exports = function (stage) {
 };
 
 /***/ }),
-/* 55 */
+/* 54 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
@@ -32089,7 +31452,7 @@ module.exports = function (stage) {
 };
 
 /***/ }),
-/* 56 */
+/* 55 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
@@ -32570,7 +31933,7 @@ module.exports = function (stage) {
 };
 
 /***/ }),
-/* 57 */
+/* 56 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
@@ -32642,7 +32005,7 @@ module.exports = function (stage) {
 };
 
 /***/ }),
-/* 58 */
+/* 57 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
@@ -33070,7 +32433,7 @@ module.exports = function (stage) {
 };
 
 /***/ }),
-/* 59 */
+/* 58 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
@@ -33524,7 +32887,7 @@ module.exports = function (stage) {
 /* WEBPACK VAR INJECTION */}.call(exports, __webpack_require__(0)))
 
 /***/ }),
-/* 60 */
+/* 59 */
 /***/ (function(module, exports) {
 
 // shim for using process in browser
@@ -33714,7 +33077,7 @@ process.umask = function() { return 0; };
 
 
 /***/ }),
-/* 61 */
+/* 60 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
@@ -33773,7 +33136,7 @@ module.exports = function (stage) {
 };
 
 /***/ }),
-/* 62 */
+/* 61 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
@@ -33987,7 +33350,7 @@ module.exports = function (stage) {
 /* WEBPACK VAR INJECTION */}.call(exports, __webpack_require__(0), __webpack_require__(0)))
 
 /***/ }),
-/* 63 */
+/* 62 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
@@ -34158,7 +33521,7 @@ module.exports = function (stage) {
 /* WEBPACK VAR INJECTION */}.call(exports, __webpack_require__(0), __webpack_require__(0)))
 
 /***/ }),
-/* 64 */
+/* 63 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
@@ -34651,7 +34014,7 @@ module.exports = function (stage) {
 /* WEBPACK VAR INJECTION */}.call(exports, __webpack_require__(0)))
 
 /***/ }),
-/* 65 */
+/* 64 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
@@ -35301,7 +34664,7 @@ module.exports = function (stage) {
 /* WEBPACK VAR INJECTION */}.call(exports, __webpack_require__(0)))
 
 /***/ }),
-/* 66 */
+/* 65 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
@@ -35728,7 +35091,7 @@ module.exports = function (stage) {
 };
 
 /***/ }),
-/* 67 */
+/* 66 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
