@@ -15,6 +15,7 @@ require("../css/demo.css");
 
 module.exports = function () {
 
+  window.stage = stage;
   /*
    *	Class
    *

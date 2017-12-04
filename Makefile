@@ -21,7 +21,7 @@ version := $(foreach bin, $(EXECUTABLES),\
 		$(info $(bin) version : $(shell $(bin) -v  2>${DEVNUL} ) ),\
 		$(info No $(bin) in PATH))) 2>${DEVNUL}
 
-$(info ######## RESULT : $(yarn_EXEC) )
+#$(info ######## RESULT : $(yarn_EXEC) )
 #$(info ######## RESULT : $(node_EXEC) )
 #$(info ######## RESULT : $(npm_EXEC) )
 
@@ -30,7 +30,7 @@ all:
 	make build && echo "success build-prod !" || echo "failure build-prod!"
 
 install:
-	yarn install
+	npm install
 	$(MAKE) build -C ./demo/nodefony
 
 build:

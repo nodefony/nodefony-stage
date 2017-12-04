@@ -7,7 +7,7 @@
   "scripts": {
     "build-dev": "WEBPACK_ENV=dev webpack --verbose",
     "build-prod": "WEBPACK_ENV=prod webpack --verbose",
-    "start": "webpack-dev-server"
+    "start": "npm start --prefix ./demo/nodefony"
   },
   "keywords": [
     "javascript",
@@ -70,7 +70,7 @@
     "sinon-chai": "2.14.0",
     "to-string-loader": "1.1.5",
     "tokenizer": "1.1.2",
-    "uglify-es": "^3.2.0",
+    "uglify-es": "^3.2.1",
     "url-loader": "0.6.2",
     "webpack": "^3.9.1",
     "webpack-dev-server": "^2.9.5",
