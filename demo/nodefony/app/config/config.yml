@@ -34,7 +34,7 @@ lang:
 #        translations:           true
 #        webpack:                true
 #
-watch:                           true
+watch:                           false
 
 ##################################
 #  OVERRIDE BUNDLE MONITORING
@@ -129,7 +129,7 @@ httpBundle:
       options:
         maxAge:                  0                             #30*24*60*60*1000
   session:
-    start:                       false                 # false || true || Name Session Context 
+    start:                       false                 # false || true || Name Session Context
     name:                        "nodefony"
     handler:                     sequelize             # files | sequelize | memcached  "nodefony.session.storage"
     #save_path:                  "./tmp/sessions"      # for session.storage.files only

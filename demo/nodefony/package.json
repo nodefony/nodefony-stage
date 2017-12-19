@@ -4,7 +4,7 @@
   "description": "Nodefony Node.js full-stack web framework",
   "main": "./nodefony",
   "scripts": {
-    "start": "nodefony -d dev",
+    "start": "nodefony  dev",
     "stop": "make stop",
     "prod": "make start",
     "kill": "make kill",
