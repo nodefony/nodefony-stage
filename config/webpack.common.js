@@ -48,17 +48,7 @@ module.exports = function () {
      * See: http://webpack.github.io/docs/configuration.html#module
      */
     module: {
-      rules: [{
-          // BABEL TRANSCODE
-          test: new RegExp("\.es6$|\.js$"),
-          exclude: new RegExp("node_modules"),
-          use: [{
-            loader: 'babel-loader',
-            options: {
-              presets: ['env']
-            }
-          }]
-        },
+      rules: [
         /*
          *	JQUERY EXPOSE BROWSER CONTEXT
          *

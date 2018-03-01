@@ -1,8 +1,8 @@
-const config = require("../../package.json");
 module.exports = function () {
 
+  //const config = require("../../package.json");
   'use strict';
-  const version = config.version;
+  const version = require("../../package.json").version;
 
   // Traf indexOf IE8
   const arrayProto = Array.prototype;

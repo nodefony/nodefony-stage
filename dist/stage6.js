@@ -24180,7 +24180,7 @@ module.exports = {
 /*! exports provided: name, version, description, browser, main, scripts, keywords, repository, bugs, license, licenses, dependencies, devDependencies, author, readmeFilename, contributors, default */
 /***/ (function(module) {
 
-module.exports = {"name":"nodefony-stage","version":"0.1.2","description":"Client Side Nodefony web developpement","browser":"dist/stage6.js","main":"src/core.js","scripts":{"build-dev":"WEBPACK_ENV=dev webpack --verbose","build-prod":"WEBPACK_ENV=prod webpack --verbose","start":"npm start --prefix ./demo/nodefony"},"keywords":["javascript","webpack","nodefony","webrtc","sip","opensip","kamailio","webaudio"],"repository":{"type":"git","url":"git@github.com:nodefony/nodefony-stage.git"},"bugs":{"url":"https://github.com/nodefony/nodefony-stage/issues"},"license":"CECILL-B","licenses":[{"type":"CECILL-B","url":"http://www.cecill.info/licences/Licence_CeCILL-B_V1-en.html"}],"dependencies":{"ascii-table":"0.0.9","asciify":"1.3.5","babel-core":"6.26.0","babel-preset-env":"1.6.1","jquery":"^3.3.1","opn":"^5.2.0","shortid":"2.2.8","twig":"1.10.5","uglifyjs-webpack-plugin":"^1.2.2","webpack-cli":"^2.0.9","webrtc-adapter":"^6.1.1"},"devDependencies":{"assets-webpack-plugin":"3.5.1","babel-loader":"^7.1.3","babel-plugin-transform-runtime":"6.23.0","babel-polyfill":"6.26.0","babel-preset-es2015":"6.24.1","babel-register":"6.26.0","chai":"4.1.2","css-loader":"^0.28.10","exports-loader":"^0.7.0","expose-loader":"0.7.4","file-loader":"^1.1.10","imports-loader":"^0.8.0","jshint":"2.9.5","jshint-loader":"0.8.4","json-loader":"^0.5.7","mocha":"^5.0.1","node-sass":"4.7.2","raw-loader":"0.5.1","sass-loader":"6.0.6","should":"^13.2.1","sinon":"^4.4.2","sinon-chai":"2.14.0","to-string-loader":"1.1.5","tokenizer":"1.1.2","uglify-es":"^3.3.9","url-loader":"0.6.2","webpack":"^4.0.1","webpack-dev-server":"^3.1.0","webpack-merge":"^4.1.2"},"author":"cci <christophe.camensuli@gmail.com>","readmeFilename":"README.md","contributors":[{}]};
+module.exports = {"name":"nodefony-stage","version":"0.1.4","description":"Client Side Nodefony web developpement","browser":"dist/stage6.js","main":"src/core.js","scripts":{"build-dev":"WEBPACK_ENV=dev webpack --verbose","build-prod":"WEBPACK_ENV=prod webpack --verbose","start":"npm start --prefix ./demo/nodefony"},"keywords":["javascript","webpack","nodefony","webrtc","sip","opensip","kamailio","webaudio"],"repository":{"type":"git","url":"git@github.com:nodefony/nodefony-stage.git"},"bugs":{"url":"https://github.com/nodefony/nodefony-stage/issues"},"license":"CECILL-B","licenses":[{"type":"CECILL-B","url":"http://www.cecill.info/licences/Licence_CeCILL-B_V1-en.html"}],"dependencies":{"ascii-table":"0.0.9","asciify":"1.3.5","babel-core":"6.26.0","babel-preset-env":"1.6.1","jquery":"^3.3.1","opn":"^5.2.0","shortid":"2.2.8","twig":"1.10.5","uglifyjs-webpack-plugin":"^1.2.2","webpack-cli":"^2.0.9","webrtc-adapter":"^6.1.1"},"devDependencies":{"assets-webpack-plugin":"3.5.1","babel-loader":"^7.1.3","babel-plugin-transform-runtime":"6.23.0","babel-polyfill":"6.26.0","babel-preset-es2015":"6.24.1","babel-register":"6.26.0","chai":"4.1.2","css-loader":"^0.28.10","exports-loader":"^0.7.0","expose-loader":"0.7.4","file-loader":"^1.1.10","imports-loader":"^0.8.0","jshint":"2.9.5","jshint-loader":"0.8.4","json-loader":"^0.5.7","mocha":"^5.0.1","node-sass":"4.7.2","raw-loader":"0.5.1","sass-loader":"6.0.6","should":"^13.2.1","sinon":"^4.4.2","sinon-chai":"2.14.0","to-string-loader":"1.1.5","tokenizer":"1.1.2","uglify-es":"^3.3.9","url-loader":"0.6.2","webpack":"^4.0.1","webpack-dev-server":"^3.1.0","webpack-merge":"^4.1.2"},"author":"cci <christophe.camensuli@gmail.com>","readmeFilename":"README.md","contributors":[{}]};
 
 /***/ }),
 
@@ -24190,9 +24190,6 @@ module.exports = {"name":"nodefony-stage","version":"0.1.2","description":"Clien
   \*********************/
 /*! no static exports found */
 /***/ (function(module, exports, __webpack_require__) {
-
-"use strict";
-
 
 /*
  *
@@ -24233,11 +24230,12 @@ module.exports = {"name":"nodefony-stage","version":"0.1.2","description":"Clien
  */
 
 // CORE
-var stage = __webpack_require__(/*! ./core/stage.es6 */ "./src/core/stage.es6")();
+const stage = __webpack_require__(/*! ./core/stage.es6 */ "./src/core/stage.es6")();
 __webpack_require__(/*! ./core/notificationsCenter.es6 */ "./src/core/notificationsCenter.es6")(stage);
 __webpack_require__(/*! ./syslog/syslog.es6 */ "./src/syslog/syslog.es6")(stage);
 __webpack_require__(/*! ./kernel/service.es6 */ "./src/kernel/service.es6")(stage);
 __webpack_require__(/*! ./kernel/container.es6 */ "./src/kernel/container.es6")(stage);
+
 
 // TOOLS
 __webpack_require__(/*! ./tools/xml.js */ "./src/tools/xml.js")(stage);
@@ -24275,6 +24273,7 @@ __webpack_require__(/*! ./media/webrtc/webrtc.es6 */ "./src/media/webrtc/webrtc.
 __webpack_require__(/*! ./media/webrtc/user.es6 */ "./src/media/webrtc/user.es6")(stage);
 __webpack_require__(/*! ./media/webrtc/transaction.es6 */ "./src/media/webrtc/transaction.es6")(stage);
 
+
 // KERNEL STAGE ( nodefony )
 __webpack_require__(/*! ./kernel/kernel.es6 */ "./src/kernel/kernel.es6")(stage);
 __webpack_require__(/*! ./kernel/appKernel.es6 */ "./src/kernel/appKernel.es6")(stage);
@@ -24295,14 +24294,7 @@ module.exports = stage;
   !*** ./src/core/notificationsCenter.es6 ***!
   \******************************************/
 /*! no static exports found */
-/***/ (function(module, exports, __webpack_require__) {
-
-"use strict";
-
-
-var _createClass = function () { function defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ("value" in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } } return function (Constructor, protoProps, staticProps) { if (protoProps) defineProperties(Constructor.prototype, protoProps); if (staticProps) defineProperties(Constructor, staticProps); return Constructor; }; }();
-
-function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError("Cannot call a class as a function"); } }
+/***/ (function(module, exports) {
 
 module.exports = function (stage) {
 
@@ -24322,10 +24314,9 @@ module.exports = function (stage) {
    *
    *
    */
-  var Notification = function () {
-    function Notification(settings, context) {
-      _classCallCheck(this, Notification);
+  const Notification = class Notification {
 
+    constructor(settings, context) {
       this.events = {};
       this.garbageEvent = {};
       if (settings) {
@@ -24338,145 +24329,127 @@ module.exports = function (stage) {
      *      @method listen
      *
      */
-
-
-    _createClass(Notification, [{
-      key: 'listen',
-      value: function listen(context, eventName, callback) {
-        var event = arguments[1];
-        var ContextClosure = this;
-        if (!this.events[eventName]) {
-          this.events[eventName] = [];
-          this.garbageEvent[eventName] = [];
-        }
-        if (typeof callback === 'function') {
-          this.garbageEvent[eventName].push(callback);
-          this.events[eventName].push(function (args) {
-            callback.apply(context, args);
-          });
-        }
-        return function () {
-          Array.prototype.unshift.call(arguments, event);
-          return ContextClosure.fire.apply(ContextClosure, arguments);
-        };
+    listen(context, eventName, callback) {
+      var event = arguments[1];
+      var ContextClosure = this;
+      if (!this.events[eventName]) {
+        this.events[eventName] = [];
+        this.garbageEvent[eventName] = [];
       }
-    }, {
-      key: 'on',
-      value: function on(eventName, callback) {
-        var event = arguments[1];
-        var ContextClosure = this;
-        if (!this.events[eventName]) {
-          this.events[eventName] = [];
-          this.garbageEvent[eventName] = [];
-        }
-        if (typeof callback === 'function') {
-          this.garbageEvent[eventName].push(callback);
-          this.events[eventName].push(function (args) {
-            callback(args);
-          });
-        }
-        return function () {
-          Array.prototype.unshift.call(arguments, event);
-          return ContextClosure.fire.apply(ContextClosure, arguments);
-        };
+      if (typeof callback === 'function') {
+        this.garbageEvent[eventName].push(callback);
+        this.events[eventName].push(function (args) {
+          callback.apply(context, args);
+        });
       }
+      return function () {
+        Array.prototype.unshift.call(arguments, event);
+        return ContextClosure.fire.apply(ContextClosure, arguments);
+      };
+    }
 
-      /**
-       *
-       *      @method clearNotifications
-       *
-       */
+    on(eventName, callback) {
+      var event = arguments[1];
+      var ContextClosure = this;
+      if (!this.events[eventName]) {
+        this.events[eventName] = [];
+        this.garbageEvent[eventName] = [];
+      }
+      if (typeof callback === 'function') {
+        this.garbageEvent[eventName].push(callback);
+        this.events[eventName].push(function (args) {
+          callback(args);
+        });
+      }
+      return function () {
+        Array.prototype.unshift.call(arguments, event);
+        return ContextClosure.fire.apply(ContextClosure, arguments);
+      };
+    }
 
-    }, {
-      key: 'clearNotifications',
-      value: function clearNotifications(eventName) {
-        if (eventName) {
-          if (this.events[eventName]) {
-            while (this.events[eventName].length > 0) {
-              this.events[eventName].pop();
-              this.garbageEvent[eventName].pop();
+    /**
+     *
+     *      @method clearNotifications
+     *
+     */
+    clearNotifications(eventName) {
+      if (eventName) {
+        if (this.events[eventName]) {
+          while (this.events[eventName].length > 0) {
+            this.events[eventName].pop();
+            this.garbageEvent[eventName].pop();
+          }
+          delete this.events[eventName];
+          delete this.garbageEvent[eventName];
+        }
+      } else {
+        delete this.events;
+        delete this.garbageEvent;
+        this.events = {};
+        this.garbageEvent = {};
+      }
+    }
+
+    /**
+     *
+     *      @method fire
+     *
+     */
+    fire(eventName) {
+      var ret = true;
+      if (this.events[eventName]) {
+        var args = Array.prototype.slice.call(arguments, 1);
+        for (var i = 0; i < this.events[eventName].length; i++) {
+          try {
+            ret = this.events[eventName][i](args);
+            if (ret) {
+              break;
             }
-            delete this.events[eventName];
-            delete this.garbageEvent[eventName];
+          } catch (e) {
+            console.log(e)
+            throw new Error(e);
+          }
+        }
+      }
+      return ret;
+    }
+
+    /**
+     *
+     *      @method settingsToListen
+     *
+     */
+    settingsToListen(localSettings, context) {
+      for (var i in localSettings) {
+        var res = regListenOn.exec(i);
+        if (!res) {
+          continue;
+        }
+        this.listen(context || this, res[0], localSettings[i]);
+      }
+    }
+
+    unListen(eventName, callback) {
+      if (this.events[eventName]) {
+        if (callback) {
+          for (var i = 0; i < this.garbageEvent[eventName].length; i++) {
+            if (this.garbageEvent[eventName][i] === callback) {
+              this.events[eventName].splice(i, 1);
+              this.garbageEvent[eventName].splice(i, 1);
+            }
           }
         } else {
-          delete this.events;
-          delete this.garbageEvent;
-          this.events = {};
-          this.garbageEvent = {};
+          return this.clearNotifications(eventName);
         }
+      } else {
+        return this.clearNotifications();
       }
-
-      /**
-       *
-       *      @method fire
-       *
-       */
-
-    }, {
-      key: 'fire',
-      value: function fire(eventName) {
-        var ret = true;
-        if (this.events[eventName]) {
-          var args = Array.prototype.slice.call(arguments, 1);
-          for (var i = 0; i < this.events[eventName].length; i++) {
-            try {
-              ret = this.events[eventName][i](args);
-              if (ret) {
-                break;
-              }
-            } catch (e) {
-              console.log(e);
-              throw new Error(e);
-            }
-          }
-        }
-        return ret;
-      }
-
-      /**
-       *
-       *      @method settingsToListen
-       *
-       */
-
-    }, {
-      key: 'settingsToListen',
-      value: function settingsToListen(localSettings, context) {
-        for (var i in localSettings) {
-          var res = regListenOn.exec(i);
-          if (!res) {
-            continue;
-          }
-          this.listen(context || this, res[0], localSettings[i]);
-        }
-      }
-    }, {
-      key: 'unListen',
-      value: function unListen(eventName, callback) {
-        if (this.events[eventName]) {
-          if (callback) {
-            for (var i = 0; i < this.garbageEvent[eventName].length; i++) {
-              if (this.garbageEvent[eventName][i] === callback) {
-                this.events[eventName].splice(i, 1);
-                this.garbageEvent[eventName].splice(i, 1);
-              }
-            }
-          } else {
-            return this.clearNotifications(eventName);
-          }
-        } else {
-          return this.clearNotifications();
-        }
-      }
-    }]);
-
-    return Notification;
-  }();
+    }
+  }
 
   stage.notificationsCenter = {
     notification: Notification,
-    create: function create(settings, context) {
+    create: function (settings, context) {
       return new Notification(settings, context);
     }
   };
@@ -24493,31 +24466,21 @@ module.exports = function (stage) {
 /*! no static exports found */
 /***/ (function(module, exports, __webpack_require__) {
 
-"use strict";
-/* WEBPACK VAR INJECTION */(function(jQuery) {
+/* WEBPACK VAR INJECTION */(function(jQuery) {module.exports = function () {
 
-var _createClass = function () { function defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ("value" in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } } return function (Constructor, protoProps, staticProps) { if (protoProps) defineProperties(Constructor.prototype, protoProps); if (staticProps) defineProperties(Constructor, staticProps); return Constructor; }; }();
-
-var _typeof = typeof Symbol === "function" && typeof Symbol.iterator === "symbol" ? function (obj) { return typeof obj; } : function (obj) { return obj && typeof Symbol === "function" && obj.constructor === Symbol && obj !== Symbol.prototype ? "symbol" : typeof obj; };
-
-function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError("Cannot call a class as a function"); } }
-
-var config = __webpack_require__(/*! ../../package.json */ "./package.json");
-module.exports = function () {
-
+  //const config = require("../../package.json");
   'use strict';
-
-  var version = config.version;
+  const version = __webpack_require__(/*! ../../package.json */ "./package.json").version;
 
   // Traf indexOf IE8
-  var arrayProto = Array.prototype;
+  const arrayProto = Array.prototype;
 
-  var indexOf = function () {
+  const indexOf = function () {
     if (arrayProto.indexOf) {
       return arrayProto.indexOf;
     }
     arrayProto.indexOf = function (value, startIndex) {
-      var index = startIndex === null ? 0 : startIndex < 0 ? Math.max(0, this.length + startIndex) : startIndex;
+      var index = (startIndex) === null ? 0 : (startIndex < 0 ? Math.max(0, this.length + startIndex) : startIndex);
       for (var i = index; i < this.length; i++) {
         if (i in this && this[i] === value) {
           return i;
@@ -24528,16 +24491,28 @@ module.exports = function () {
     return arrayProto.indexOf;
   }();
 
-  var typeOf = function typeOf(value) {
-    var t = typeof value === 'undefined' ? 'undefined' : _typeof(value);
+  const typeOf = function (value) {
+    var t = typeof value;
     if (t === 'object') {
       if (value === null) {
         return "object";
       }
-      if (value instanceof Array || !(value instanceof Object) && Object.prototype.toString.call(value) === '[object Array]' || typeof value.length === 'number' && typeof value.splice !== 'undefined' && typeof value.propertyIsEnumerable !== 'undefined' && !value.propertyIsEnumerable('splice')) {
+      if (value instanceof Array ||
+        (!(value instanceof Object) &&
+          (Object.prototype.toString.call((value)) === '[object Array]') ||
+          typeof value.length === 'number' &&
+          typeof value.splice !== 'undefined' &&
+          typeof value.propertyIsEnumerable !== 'undefined' &&
+          !value.propertyIsEnumerable('splice')
+        )) {
         return "array";
       }
-      if (!(value instanceof Object) && (Object.prototype.toString.call(value) === '[object Function]' || typeof value.call !== 'undefined' && typeof value.propertyIsEnumerable !== 'undefined' && !value.propertyIsEnumerable('call'))) {
+      if (!(value instanceof Object) &&
+        (Object.prototype.toString.call((value)) === '[object Function]' ||
+          typeof value.call !== 'undefined' &&
+          typeof value.propertyIsEnumerable !== 'undefined' &&
+          !value.propertyIsEnumerable('call'))
+      ) {
         return 'function';
       }
       if (value.nodeType === 1) {
@@ -24569,7 +24544,7 @@ module.exports = function () {
     return t;
   };
 
-  var getBrowser = function () {
+  const getBrowser = function () {
     if (navigator.userAgent.indexOf('MSIE') > -1) {
       return "MSIE";
     }
@@ -24591,7 +24566,7 @@ module.exports = function () {
     return "undefined";
   }();
 
-  var getBrowserVersion = function () {
+  const getBrowserVersion = function () {
 
     if (/MSIE (\d+\.\d+);/.test(navigator.userAgent)) {
       return parseInt(RegExp.$1, 10);
@@ -24624,7 +24599,7 @@ module.exports = function () {
     return "undefined";
   }();
 
-  var useragent = navigator.userAgent.toLowerCase();
+  const useragent = navigator.userAgent.toLowerCase();
 
   /**
    *  stage class
@@ -24634,10 +24609,9 @@ module.exports = function () {
    *  @module library
    *
    */
-  var Stage = function () {
-    function Stage() {
-      _classCallCheck(this, Stage);
+  const Stage = class Stage {
 
+    constructor() {
       this.version = version;
       this.typeOf = typeOf;
       this.indexOf = indexOf;
@@ -24658,42 +24632,34 @@ module.exports = function () {
       };
     }
 
-    _createClass(Stage, [{
-      key: 'register',
-      value: function register(name, closure) {
-        var reg = null;
-        if (typeof closure === "function") {
-          // exec closure
-          reg = closure(this, name);
-        } else {
-          reg = closure;
-        }
-        return this[name] = reg;
+    register(name, closure) {
+      let reg = null;
+      if (typeof closure === "function") {
+        // exec closure
+        reg = closure(this, name);
+      } else {
+        reg = closure;
       }
-    }, {
-      key: 'registerModule',
-      value: function registerModule(name, closure) {
-        return this.register.call(this.modules, name, closure);
-      }
-    }, {
-      key: 'registerController',
-      value: function registerController(name, closure) {
-        return this.register.call(this.controllers, name, closure);
-      }
-    }, {
-      key: 'basename',
-      value: function basename(path) {
-        return path.replace(/\\/g, '/').replace(/.*\//, '');
-      }
-    }, {
-      key: 'dirname',
-      value: function dirname(path) {
-        return path.replace(/\\/g, '/').replace(/\/[^\/]*$/, '');
-      }
-    }]);
+      return this[name] = reg;
+    }
 
-    return Stage;
-  }();
+    registerModule(name, closure) {
+      return this.register.call(this.modules, name, closure);
+    }
+
+    registerController(name, closure) {
+      return this.register.call(this.controllers, name, closure);
+    }
+
+    basename(path) {
+      return path.replace(/\\/g, '/').replace(/.*\//, '');
+    }
+
+    dirname(path) {
+      return path.replace(/\\/g, '/').replace(/\/[^\/]*$/, '');
+    }
+
+  };
   return new Stage();
 };
 /* WEBPACK VAR INJECTION */}.call(this, __webpack_require__(/*! jquery */ "./node_modules/jquery/dist/jquery.js-exposed")))
@@ -24705,10 +24671,7 @@ module.exports = function () {
   !*** ./src/crypto/base64.js ***!
   \******************************/
 /*! no static exports found */
-/***/ (function(module, exports, __webpack_require__) {
-
-"use strict";
-
+/***/ (function(module, exports) {
 
 /*
  *
@@ -24720,13 +24683,14 @@ module.exports = function () {
  *
  */
 
+
 module.exports = function (stage) {
 
   // private property
   var _keyStr = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/=";
 
   // public method for encoding
-  var encode64 = function encode64(input) {
+  var encode64 = function (input) {
     var output = "";
     var chr1, chr2, chr3, enc1, enc2, enc3, enc4;
     var i = 0;
@@ -24740,8 +24704,8 @@ module.exports = function (stage) {
       chr3 = input.charCodeAt(i++);
 
       enc1 = chr1 >> 2;
-      enc2 = (chr1 & 3) << 4 | chr2 >> 4;
-      enc3 = (chr2 & 15) << 2 | chr3 >> 6;
+      enc2 = ((chr1 & 3) << 4) | (chr2 >> 4);
+      enc3 = ((chr2 & 15) << 2) | (chr3 >> 6);
       enc4 = chr3 & 63;
 
       if (isNaN(chr2)) {
@@ -24750,13 +24714,16 @@ module.exports = function (stage) {
         enc4 = 64;
       }
 
-      output = output + _keyStr.charAt(enc1) + _keyStr.charAt(enc2) + _keyStr.charAt(enc3) + _keyStr.charAt(enc4);
+      output = output +
+        _keyStr.charAt(enc1) + _keyStr.charAt(enc2) +
+        _keyStr.charAt(enc3) + _keyStr.charAt(enc4);
+
     }
     return output;
   };
 
   // public method for decoding
-  var decode64 = function decode64(input) {
+  var decode64 = function (input) {
     var output = "";
     var chr1, chr2, chr3;
     var enc1, enc2, enc3, enc4;
@@ -24771,9 +24738,9 @@ module.exports = function (stage) {
       enc3 = _keyStr.indexOf(input.charAt(i++));
       enc4 = _keyStr.indexOf(input.charAt(i++));
 
-      chr1 = enc1 << 2 | enc2 >> 4;
-      chr2 = (enc2 & 15) << 4 | enc3 >> 2;
-      chr3 = (enc3 & 3) << 6 | enc4;
+      chr1 = (enc1 << 2) | (enc2 >> 4);
+      chr2 = ((enc2 & 15) << 4) | (enc3 >> 2);
+      chr3 = ((enc3 & 3) << 6) | enc4;
 
       output = output + String.fromCharCode(chr1);
 
@@ -24783,23 +24750,28 @@ module.exports = function (stage) {
       if (enc4 != 64) {
         output = output + String.fromCharCode(chr3);
       }
+
     }
 
     if (i != input.length) {
-      throw new Error("BASE64_BROKEN : There were invalid base64 characters in the input text.\n" + "Valid base64 characters are A-Z, a-z, 0-9, '+', '/',and '='\n" + "Expect errors in decoding.");
+      throw new Error("BASE64_BROKEN : There were invalid base64 characters in the input text.\n" +
+        "Valid base64 characters are A-Z, a-z, 0-9, '+', '/',and '='\n" +
+        "Expect errors in decoding.");
     }
 
     output = _utf8_decode(output);
 
     return output;
+
   };
 
-  var decode = function decode(input, arrayBuffer) {
+
+  var decode = function (input, arrayBuffer) {
     //get last chars to see if are valid
     var lkey1 = _keyStr.indexOf(input.charAt(input.length - 1));
     var lkey2 = _keyStr.indexOf(input.charAt(input.length - 2));
 
-    var bytes = input.length / 4 * 3;
+    var bytes = (input.length / 4) * 3;
     if (lkey1 == 64) bytes--; //padding chars, so skip
     if (lkey2 == 64) bytes--; //padding chars, so skip
 
@@ -24809,7 +24781,10 @@ module.exports = function (stage) {
     var i = 0;
     var j = 0;
 
-    if (arrayBuffer) uarray = new Uint8Array(arrayBuffer);else uarray = new Uint8Array(bytes);
+    if (arrayBuffer)
+      uarray = new Uint8Array(arrayBuffer);
+    else
+      uarray = new Uint8Array(bytes);
 
     input = input.replace(/[^A-Za-z0-9\+\/\=]/g, "");
 
@@ -24820,19 +24795,22 @@ module.exports = function (stage) {
       enc3 = _keyStr.indexOf(input.charAt(j++));
       enc4 = _keyStr.indexOf(input.charAt(j++));
 
-      chr1 = enc1 << 2 | enc2 >> 4;
-      chr2 = (enc2 & 15) << 4 | enc3 >> 2;
-      chr3 = (enc3 & 3) << 6 | enc4;
+      chr1 = (enc1 << 2) | (enc2 >> 4);
+      chr2 = ((enc2 & 15) << 4) | (enc3 >> 2);
+      chr3 = ((enc3 & 3) << 6) | enc4;
 
       uarray[i] = chr1;
       if (enc3 != 64) uarray[i + 1] = chr2;
       if (enc4 != 64) uarray[i + 2] = chr3;
     }
     return uarray;
-  };
+  }
+
+
+
 
   // private method for UTF-8 encoding
-  var _utf8_encode = function _utf8_encode(string) {
+  var _utf8_encode = function (string) {
     string = string.replace(/\r\n/g, "\n");
     var utftext = "";
 
@@ -24842,20 +24820,21 @@ module.exports = function (stage) {
 
       if (c < 128) {
         utftext += String.fromCharCode(c);
-      } else if (c > 127 && c < 2048) {
-        utftext += String.fromCharCode(c >> 6 | 192);
-        utftext += String.fromCharCode(c & 63 | 128);
+      } else if ((c > 127) && (c < 2048)) {
+        utftext += String.fromCharCode((c >> 6) | 192);
+        utftext += String.fromCharCode((c & 63) | 128);
       } else {
-        utftext += String.fromCharCode(c >> 12 | 224);
-        utftext += String.fromCharCode(c >> 6 & 63 | 128);
-        utftext += String.fromCharCode(c & 63 | 128);
+        utftext += String.fromCharCode((c >> 12) | 224);
+        utftext += String.fromCharCode(((c >> 6) & 63) | 128);
+        utftext += String.fromCharCode((c & 63) | 128);
       };
+
     };
     return utftext;
   };
 
   // private method for UTF-8 decoding
-  var _utf8_decode = function _utf8_decode(utftext) {
+  var _utf8_decode = function (utftext) {
     var string = "";
     var i = 0;
     var c = 0;
@@ -24869,27 +24848,30 @@ module.exports = function (stage) {
       if (c < 128) {
         string += String.fromCharCode(c);
         i++;
-      } else if (c > 191 && c < 224) {
+      } else if ((c > 191) && (c < 224)) {
         c2 = utftext.charCodeAt(i + 1);
-        string += String.fromCharCode((c & 31) << 6 | c2 & 63);
+        string += String.fromCharCode(((c & 31) << 6) | (c2 & 63));
         i += 2;
       } else {
         c2 = utftext.charCodeAt(i + 1);
         var c3 = utftext.charCodeAt(i + 2);
-        string += String.fromCharCode((c & 15) << 12 | (c2 & 63) << 6 | c3 & 63);
+        string += String.fromCharCode(((c & 15) << 12) | ((c2 & 63) << 6) | (c3 & 63));
         i += 3;
       }
+
     }
     return string;
   };
 
+
   /* will return a  Uint8Array type */
-  var decodeArrayBuffer = function decodeArrayBuffer(input) {
-    var bytes = input.length / 4 * 3;
+  var decodeArrayBuffer = function (input) {
+    var bytes = (input.length / 4) * 3;
     var ab = new ArrayBuffer(bytes);
     decode(input, ab);
     return ab;
   };
+
 
   stage.crypto.base64 = {
     decodeArrayBuffer: decodeArrayBuffer,
@@ -24907,10 +24889,7 @@ module.exports = function (stage) {
   !*** ./src/crypto/md5.js ***!
   \***************************/
 /*! no static exports found */
-/***/ (function(module, exports, __webpack_require__) {
-
-"use strict";
-
+/***/ (function(module, exports) {
 
 /*
  * A JavaScript implementation of the RSA Data Security, Inc. MD5 Message
@@ -24933,27 +24912,27 @@ module.exports = function (stage) {
   /*
    * Perform a simple self-test to see if the VM is working
    */
-  var md5_vm_test = function md5_vm_test() {
+  var md5_vm_test = function () {
     return rstr2hex("abc").toLowerCase() === "900150983cd24fb0d6963f7d28e17f72";
   };
 
   /*
    * Calculate the MD5 of a raw string
    */
-  var rstr_md5 = function rstr_md5(s) {
+  var rstr_md5 = function (s) {
     return binl2rstr(binl_md5(rstr2binl(s), s.length * 8));
   };
 
   /*
    * Calculate the HMAC-MD5, of a key and some data (raw strings)
    */
-  var rstr_hmac_md5 = function rstr_hmac_md5(key, data) {
+  var rstr_hmac_md5 = function (key, data) {
     var bkey = rstr2binl(key);
     if (bkey.length > 16) {
       bkey = binl_md5(bkey, key.length * 8);
     }
     var ipad = Array(16),
-        opad = Array(16);
+      opad = Array(16);
     for (var i = 0; i < 16; i++) {
       ipad[i] = bkey[i] ^ 0x36363636;
       opad[i] = bkey[i] ^ 0x5C5C5C5C;
@@ -24966,14 +24945,14 @@ module.exports = function (stage) {
   /*
    * Convert a raw string to a hex string
    */
-  var rstr2hex = function rstr2hex(input) {
+  var rstr2hex = function (input) {
     //try { hexcase } catch(e) { hexcase=0; }
     var hex_tab = hexcase ? "0123456789ABCDEF" : "0123456789abcdef";
     var output = "";
     var x;
     for (var i = 0; i < input.length; i++) {
       x = input.charCodeAt(i);
-      output += hex_tab.charAt(x >>> 4 & 0x0F) + hex_tab.charAt(x & 0x0F);
+      output += hex_tab.charAt((x >>> 4) & 0x0F) + hex_tab.charAt(x & 0x0F);
     }
     return output;
   };
@@ -24981,18 +24960,20 @@ module.exports = function (stage) {
   /*
    * Convert a raw string to a base-64 string
    */
-  var rstr2b64 = function rstr2b64(input) {
+  var rstr2b64 = function (input) {
     //try { b64pad } catch(e) { b64pad=''; }
     var tab = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/";
     var output = "";
     var len = input.length;
     for (var i = 0; i < len; i += 3) {
-      var triplet = input.charCodeAt(i) << 16 | (i + 1 < len ? input.charCodeAt(i + 1) << 8 : 0) | (i + 2 < len ? input.charCodeAt(i + 2) : 0);
+      var triplet = (input.charCodeAt(i) << 16) |
+        (i + 1 < len ? input.charCodeAt(i + 1) << 8 : 0) |
+        (i + 2 < len ? input.charCodeAt(i + 2) : 0);
       for (var j = 0; j < 4; j++) {
         if (i * 8 + j * 6 > input.length * 8) {
           output += b64pad;
         } else {
-          output += tab.charAt(triplet >>> 6 * (3 - j) & 0x3F);
+          output += tab.charAt((triplet >>> 6 * (3 - j)) & 0x3F);
         }
       }
     }
@@ -25002,14 +24983,14 @@ module.exports = function (stage) {
   /*
    * Convert a raw string to an arbitrary string encoding
    */
-  var rstr2any = function rstr2any(input, encoding) {
+  var rstr2any = function (input, encoding) {
     var divisor = encoding.length;
     var i, j, q, x, quotient;
 
     /* Convert to an array of 16-bit big-endian values, forming the dividend */
     var dividend = Array(Math.ceil(input.length / 2));
     for (i = 0; i < dividend.length; i++) {
-      dividend[i] = input.charCodeAt(i * 2) << 8 | input.charCodeAt(i * 2 + 1);
+      dividend[i] = (input.charCodeAt(i * 2) << 8) | input.charCodeAt(i * 2 + 1);
     }
 
     /*
@@ -25018,7 +24999,8 @@ module.exports = function (stage) {
      * forms the dividend for the next step. All remainders are stored for later
      * use.
      */
-    var full_length = Math.ceil(input.length * 8 / (Math.log(encoding.length) / Math.log(2)));
+    var full_length = Math.ceil(input.length * 8 /
+      (Math.log(encoding.length) / Math.log(2)));
     var remainders = Array(full_length);
     for (j = 0; j < full_length; j++) {
       quotient = Array();
@@ -25047,7 +25029,7 @@ module.exports = function (stage) {
    * Encode a string as utf-8.
    * For efficiency, this assumes the input is valid utf-16.
    */
-  var str2rstr_utf8 = function str2rstr_utf8(input) {
+  var str2rstr_utf8 = function (input) {
     var output = "";
     var i = -1;
     var x, y;
@@ -25065,11 +25047,17 @@ module.exports = function (stage) {
       if (x <= 0x7F) {
         output += String.fromCharCode(x);
       } else if (x <= 0x7FF) {
-        output += String.fromCharCode(0xC0 | x >>> 6 & 0x1F, 0x80 | x & 0x3F);
+        output += String.fromCharCode(0xC0 | ((x >>> 6) & 0x1F),
+          0x80 | (x & 0x3F));
       } else if (x <= 0xFFFF) {
-        output += String.fromCharCode(0xE0 | x >>> 12 & 0x0F, 0x80 | x >>> 6 & 0x3F, 0x80 | x & 0x3F);
+        output += String.fromCharCode(0xE0 | ((x >>> 12) & 0x0F),
+          0x80 | ((x >>> 6) & 0x3F),
+          0x80 | (x & 0x3F));
       } else if (x <= 0x1FFFFF) {
-        output += String.fromCharCode(0xF0 | x >>> 18 & 0x07, 0x80 | x >>> 12 & 0x3F, 0x80 | x >>> 6 & 0x3F, 0x80 | x & 0x3F);
+        output += String.fromCharCode(0xF0 | ((x >>> 18) & 0x07),
+          0x80 | ((x >>> 12) & 0x3F),
+          0x80 | ((x >>> 6) & 0x3F),
+          0x80 | (x & 0x3F));
       }
     }
     return output;
@@ -25078,18 +25066,20 @@ module.exports = function (stage) {
   /*
    * Encode a string as utf-16
    */
-  var str2rstr_utf16le = function str2rstr_utf16le(input) {
+  var str2rstr_utf16le = function (input) {
     var output = "";
     for (var i = 0; i < input.length; i++) {
-      output += String.fromCharCode(input.charCodeAt(i) & 0xFF, input.charCodeAt(i) >>> 8 & 0xFF);
+      output += String.fromCharCode(input.charCodeAt(i) & 0xFF,
+        (input.charCodeAt(i) >>> 8) & 0xFF);
     }
     return output;
   };
 
-  var str2rstr_utf16be = function str2rstr_utf16be(input) {
+  var str2rstr_utf16be = function (input) {
     var output = "";
     for (var i = 0; i < input.length; i++) {
-      output += String.fromCharCode(input.charCodeAt(i) >>> 8 & 0xFF, input.charCodeAt(i) & 0xFF);
+      output += String.fromCharCode((input.charCodeAt(i) >>> 8) & 0xFF,
+        input.charCodeAt(i) & 0xFF);
     }
     return output;
   };
@@ -25098,13 +25088,13 @@ module.exports = function (stage) {
    * Convert a raw string to an array of little-endian words
    * Characters >255 have their high-byte silently ignored.
    */
-  var rstr2binl = function rstr2binl(input) {
+  var rstr2binl = function (input) {
     var output = Array(input.length >> 2);
     for (var i = 0; i < output.length; i++) {
       output[i] = 0;
     }
     for (var i = 0; i < input.length * 8; i += 8) {
-      output[i >> 5] |= (input.charCodeAt(i / 8) & 0xFF) << i % 32;
+      output[i >> 5] |= (input.charCodeAt(i / 8) & 0xFF) << (i % 32);
     }
     return output;
   };
@@ -25112,10 +25102,10 @@ module.exports = function (stage) {
   /*
    * Convert an array of little-endian words to a string
    */
-  var binl2rstr = function binl2rstr(input) {
+  var binl2rstr = function (input) {
     var output = "";
     for (var i = 0; i < input.length * 32; i += 8) {
-      output += String.fromCharCode(input[i >> 5] >>> i % 32 & 0xFF);
+      output += String.fromCharCode((input[i >> 5] >>> (i % 32)) & 0xFF);
     }
     return output;
   };
@@ -25123,10 +25113,10 @@ module.exports = function (stage) {
   /*
    * Calculate the MD5 of an array of little-endian words, and a bit length.
    */
-  var binl_md5 = function binl_md5(x, len) {
+  var binl_md5 = function (x, len) {
     /* append padding */
-    x[len >> 5] |= 0x80 << len % 32;
-    x[(len + 64 >>> 9 << 4) + 14] = len;
+    x[len >> 5] |= 0x80 << ((len) % 32);
+    x[(((len + 64) >>> 9) << 4) + 14] = len;
 
     var a = 1732584193;
     var b = -271733879;
@@ -25218,65 +25208,65 @@ module.exports = function (stage) {
   /*
    * These functions implement the four basic operations the algorithm uses.
    */
-  var md5_cmn = function md5_cmn(q, a, b, x, s, t) {
+  var md5_cmn = function (q, a, b, x, s, t) {
     return safe_add(bit_rol(safe_add(safe_add(a, q), safe_add(x, t)), s), b);
   };
-  var md5_ff = function md5_ff(a, b, c, d, x, s, t) {
-    return md5_cmn(b & c | ~b & d, a, b, x, s, t);
+  var md5_ff = function (a, b, c, d, x, s, t) {
+    return md5_cmn((b & c) | ((~b) & d), a, b, x, s, t);
   };
-  var md5_gg = function md5_gg(a, b, c, d, x, s, t) {
-    return md5_cmn(b & d | c & ~d, a, b, x, s, t);
+  var md5_gg = function (a, b, c, d, x, s, t) {
+    return md5_cmn((b & d) | (c & (~d)), a, b, x, s, t);
   };
-  var md5_hh = function md5_hh(a, b, c, d, x, s, t) {
+  var md5_hh = function (a, b, c, d, x, s, t) {
     return md5_cmn(b ^ c ^ d, a, b, x, s, t);
   };
-  var md5_ii = function md5_ii(a, b, c, d, x, s, t) {
-    return md5_cmn(c ^ (b | ~d), a, b, x, s, t);
+  var md5_ii = function (a, b, c, d, x, s, t) {
+    return md5_cmn(c ^ (b | (~d)), a, b, x, s, t);
   };
 
   /*
    * Add integers, wrapping at 2^32. This uses 16-bit operations internally
    * to work around bugs in some JS interpreters.
    */
-  var safe_add = function safe_add(x, y) {
+  var safe_add = function (x, y) {
     var lsw = (x & 0xFFFF) + (y & 0xFFFF);
     var msw = (x >> 16) + (y >> 16) + (lsw >> 16);
-    return msw << 16 | lsw & 0xFFFF;
+    return (msw << 16) | (lsw & 0xFFFF);
   };
 
   /*
    * Bitwise rotate a 32-bit number to the left.
    */
-  var bit_rol = function bit_rol(num, cnt) {
-    return num << cnt | num >>> 32 - cnt;
+  var bit_rol = function (num, cnt) {
+    return (num << cnt) | (num >>> (32 - cnt));
   };
 
   stage.crypto.md5 = {
-    hex_md5: function hex_md5(s) {
+    hex_md5: function (s) {
       return rstr2hex(rstr_md5(str2rstr_utf8(s)));
     },
-    hex_md5_noUTF8: function hex_md5_noUTF8(s) {
+    hex_md5_noUTF8: function (s) {
       return rstr2hex(rstr_md5(s));
     },
-    str_md5: function str_md5(s) {
+    str_md5: function (s) {
       return rstr_md5(str2rstr_utf8(s));
     },
-    b64_md5: function b64_md5(s) {
+    b64_md5: function (s) {
       return rstr2b64(rstr_md5(str2rstr_utf8(s)));
     },
-    any_md5: function any_md5(s, e) {
+    any_md5: function (s, e) {
       return rstr2any(rstr_md5(str2rstr_utf8(s)), e);
     },
-    hex_hmac_md5: function hex_hmac_md5(k, d) {
+    hex_hmac_md5: function (k, d) {
       return rstr2hex(rstr_hmac_md5(str2rstr_utf8(k), str2rstr_utf8(d)));
     },
-    str_hmac_md5: function str_hmac_md5(k, d) {
+    str_hmac_md5: function (k, d) {
       return rstr_hmac_md5(str2rstr_utf8(k), str2rstr_utf8(d));
     },
-    b64_hmac_md5: function b64_hmac_md5(k, d) {
+    b64_hmac_md5: function (k, d) {
       return rstr2b64(rstr_hmac_md5(str2rstr_utf8(k), str2rstr_utf8(d)));
     },
-    any_hmac_md5: function any_hmac_md5(k, d, e) {
+    any_hmac_md5: function (k, d, e) {
       return rstr2any(rstr_hmac_md5(str2rstr_utf8(k), str2rstr_utf8(d)), e);
     }
   };
@@ -25290,77 +25280,68 @@ module.exports = function (stage) {
   !*** ./src/io/authentication/mechanisms/digest-md5/digestMd5.es6 ***!
   \*******************************************************************/
 /*! no static exports found */
-/***/ (function(module, exports, __webpack_require__) {
+/***/ (function(module, exports) {
 
-"use strict";
+module.exports =  function(stage){
 
-
-var _typeof = typeof Symbol === "function" && typeof Symbol.iterator === "symbol" ? function (obj) { return typeof obj; } : function (obj) { return obj && typeof Symbol === "function" && obj.constructor === Symbol && obj !== Symbol.prototype ? "symbol" : typeof obj; };
-
-var _createClass = function () { function defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ("value" in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } } return function (Constructor, protoProps, staticProps) { if (protoProps) defineProperties(Constructor.prototype, protoProps); if (staticProps) defineProperties(Constructor, staticProps); return Constructor; }; }();
-
-function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError("Cannot call a class as a function"); } }
-
-module.exports = function (stage) {
-
-	var keyWord = {
-		realm: true,
-		qop: true,
-		charset: true,
-		algorithm: true,
-		nonce: true
+	var keyWord= {
+		realm:true,
+		qop:true,
+		charset:true,
+		algorithm:true,
+		nonce:true
 	};
 
-	var reg = /^([^=]+)=(.+)$/;
-	var parserAuthenticate = function parserAuthenticate(str) {
-		var ret = str.replace(/"/g, "");
-		ret = ret.replace(/Digest /g, "");
+	var reg =/^([^=]+)=(.+)$/;
+	var parserAuthenticate = function(str){
+		var ret = str.replace(/"/g,"");
+		ret = ret.replace(/Digest /g,"");
 		var head = ret.split(",");
 		var obj = {};
-		for (var i = 0; i < head.length; i++) {
+		for (var i= 0 ; i < head.length ; i++){
 			var res = reg.exec(head[i]);
-			if (res && res[1]) {
+			if (res && res[1]){
 				obj[res[1]] = res[2];
 			}
-		}
+		}	
 		return obj;
 	};
 
-	var MD5 = stage.crypto.md5.hex_md5_noUTF8;
-	var BASE64 = stage.crypto.base64.encode;
+	var MD5 = stage.crypto.md5.hex_md5_noUTF8 ;
+	var BASE64 = stage.crypto.base64.encode ;
 	var DBASE64 = stage.crypto.base64.decode;
 
-	var generateA1 = function generateA1(username, realm, password, nonce, cnonce) {
-		var A1 = null;
-		if (cnonce) {
-			A1 = username + ":" + realm + ":" + password + ":" + nonce + ":" + cnonce;
-		} else {
-			A1 = username + ":" + realm + ":" + password; //+ ":" + nonce ;
+	var generateA1 = function(username, realm, password, nonce, cnonce){
+		var A1 = null ;
+		if (cnonce){
+			A1 = username + ":" + realm + ":" + password + ":" + nonce+ ":" + cnonce ;
+		}else{
+			A1 = username + ":" + realm + ":" + password ;//+ ":" + nonce ;
 		}
-		return MD5(A1);
+		return MD5(A1); 
 	};
 
-	var generateA2 = function generateA2(method, uri, entity_body, qop) {
+	var generateA2 = function(method, uri, entity_body, qop){
 		var A2 = "";
-		if (!qop || qop === "auth") {
-			A2 = method + ":" + uri;
-		} else if (qop === "auth-int") {
-			if (entity_body) {
+		if( ! qop || qop ===  "auth"){
+			A2 = method +":" + uri ;
+		} else if(qop === "auth-int"){
+			if( entity_body ){
 				var entity = MD5(entity_body);
-				A2 = method + ":" + uri + ":" + entity;
-			} else {
-				A2 = method + ":" + uri + ":" + "d41d8cd98f00b204e9800998ecf8427e";
+				A2 = method + ":" + uri + ":" + entity ; 
+			}else{
+				A2 = method + ":" + uri + ":" + "d41d8cd98f00b204e9800998ecf8427e" ;
 			}
 		}
 		return MD5(A2);
 	};
 
-	var responseDigest = function responseDigest(A1, nonce, noncecount, cnonce, qop, A2) {
+	var responseDigest = function(A1, nonce, noncecount, cnonce, qop, A2){
 		var res = "";
-		if (qop === "auth" || qop === "auth-int") {
-			res = A1 + ":" + nonce + ":" + noncecount + ":" + cnonce + ":" + qop + ":" + A2;
-		} else {
-			res = A1 + ":" + nonce + ":" + A2;
+		if(qop === "auth" || qop === "auth-int"){
+			res = A1 + ":" + nonce +":" + noncecount +":" + cnonce +":" + qop + ":" + A2 ;
+		}else{
+			res = A1 + ":" + nonce + ":" + A2 ;
 		}
 		return MD5(res);
 	};
@@ -25368,125 +25349,123 @@ module.exports = function (stage) {
 	/*
  	 *
  	 */
-	var digestMd5 = function () {
-		function digestMd5(url, method, headers, body) {
-			_classCallCheck(this, digestMd5);
+	const digestMd5 = class digestMd5  {
 
-			this.method = method;
+		constructor(url, method, headers, body){
+			this.method = method ;
 			this.entity_body = body;
 			this.url = url;
 			this.uri = this.url.requestUri;
-			this.protocol = this.url.protocol.replace(":", "");
+			this.protocol = this.url.protocol.replace(":","");
 			this.host = this.url.host;
-			switch (typeof headers === "undefined" ? "undefined" : _typeof(headers)) {
+			switch (typeof headers){
 				case "object":
 					this.parseChallenge(headers);
-					break;
+ 					break;	
 				default:
 					throw new Error("digetMD5 bad format header");
+			}	
+		}
+
+		parseChallenge (headers){
+			//console.log(headers)
+			var parsing = {};
+			switch (typeof headers){
+				case "string" : 
+					//TODO
+					throw new Error("digetMD5 bad format challenge");
+				case "object" :
+					for (var ele in headers ){
+						switch (ele){
+							case "challenge":
+								if (typeof headers.challenge === "string"){
+									try{
+										this.challengeB64 = DBASE64(headers.challenge);
+									}catch(e){
+										this.challengeB64 = headers.challenge ;
+										//throw new Error("DIGEST MD5 ERROR DECODE BAS64")	
+									}
+
+								}
+								break;
+							default:
+								parsing[ele] = headers[ele];
+
+						}
+					}
+					break;	
+				default:
+					throw new Error("digetMD5 bad format challenge");
+			}
+			var challenge = stage.extend(parserAuthenticate(this.challengeB64), parsing );
+			//var challenge = parserAuthenticate(this.challengeB64);
+			//console.log(challenge)
+			for (var name in challenge){
+				if (name in keyWord){
+					this[name] = challenge[name];
+				}else{
+					console.warn("digestMd5 parser challenge header name dropped: "+name);
+				}	
 			}
 		}
 
-		_createClass(digestMd5, [{
-			key: "parseChallenge",
-			value: function parseChallenge(headers) {
-				//console.log(headers)
-				var parsing = {};
-				switch (typeof headers === "undefined" ? "undefined" : _typeof(headers)) {
-					case "string":
-						//TODO
-						throw new Error("digetMD5 bad format challenge");
-					case "object":
-						for (var ele in headers) {
-							switch (ele) {
-								case "challenge":
-									if (typeof headers.challenge === "string") {
-										try {
-											this.challengeB64 = DBASE64(headers.challenge);
-										} catch (e) {
-											this.challengeB64 = headers.challenge;
-											//throw new Error("DIGEST MD5 ERROR DECODE BAS64")	
-										}
-									}
-									break;
-								default:
-									parsing[ele] = headers[ele];
+		generateAuthorization (username, password){
 
-							}
-						}
-						break;
-					default:
-						throw new Error("digetMD5 bad format challenge");
-				}
-				var challenge = stage.extend(parserAuthenticate(this.challengeB64), parsing);
-				//var challenge = parserAuthenticate(this.challengeB64);
-				//console.log(challenge)
-				for (var name in challenge) {
-					if (name in keyWord) {
-						this[name] = challenge[name];
-					} else {
-						console.warn("digestMd5 parser challenge header name dropped: " + name);
-					}
-				}
+			var line = 'Digest username="'+username+'"';
+			if (! this.realm){
+				this.realm = username+"@"+this.url.host ;
 			}
-		}, {
-			key: "generateAuthorization",
-			value: function generateAuthorization(username, password) {
 
-				var line = 'Digest username="' + username + '"';
-				if (!this.realm) {
-					this.realm = username + "@" + this.url.host;
-				}
+			var res ={
+				nonce:'"'+this.nonce+'"',
+				realm:'"'+this.realm+'"',
+				response:null
+			};
 
-				var res = {
-					nonce: '"' + this.nonce + '"',
-					realm: '"' + this.realm + '"',
-					response: null
-				};
+			this["digest-uri"] = this.protocol+"/"+this.host;
+			//this["digest-uri"] = '"'+this.protocol+"/"+this.uri+'"';
 
-				this["digest-uri"] = this.protocol + "/" + this.host;
-				//this["digest-uri"] = '"'+this.protocol+"/"+this.uri+'"';
+			res["digest-uri"] = '"'+this["digest-uri"]+'"';
 
-				res["digest-uri"] = '"' + this["digest-uri"] + '"';
+			/*if (this.charset){
+			  res["charset"]=this.charset;
+			  }*/
 
-				/*if (this.charset){
-      res["charset"]=this.charset;
-      }*/
-
-				if (this.qop) {
-					this.cnonce = BASE64(Math.floor(Math.random() * 100000000).toString());
-					res["cnonce"] = '"' + this.cnonce + '"';
-					res["qop"] = this.qop;
-				}
-				if (this.opaque) {
-					res["opaque"] = this.opaque;
-				}
-
-				this.nc = "00000001";
-				res["nc"] = this.nc;
-
-				this.A1 = generateA1(username, this.realm, password /*, this.nonce, this.cnonce*/);
-				this.A2 = generateA2(this.method, this["digest-uri"], this.entity_body, this.qop);
-
-				res.response = responseDigest(this.A1, this.nonce, this.nc, this.cnonce, this.qop, this.A2);
-				// generate Authorization 
-
-				for (var ele in res) {
-					line += "," + ele + "=" + res[ele];
-				}
-				//console.log(line)
-				var toSend = BASE64(line);
-				return toSend;
+			if (this.qop){
+				this.cnonce = BASE64( Math.floor( (Math.random()*100000000)) .toString() ) ;
+				res["cnonce"]='"'+this.cnonce+'"';
+				res["qop"]=this.qop;
 			}
-		}]);
+			if (this.opaque){
+				res["opaque"]=this.opaque;
+			}
 
-		return digestMd5;
-	}();
+			this.nc = "00000001";
+			res["nc"]=this.nc;
 
-	stage.io.authentication.Digest = digestMd5;
-	stage.io.authentication.mechanisms.Digest = digestMd5;
+			this.A1 = generateA1(username, this.realm, password/*, this.nonce, this.cnonce*/);	
+			this.A2 = generateA2(this.method, this["digest-uri"], this.entity_body, this.qop);
+
+
+			res.response = responseDigest(this.A1, this.nonce, this.nc, this.cnonce, this.qop, this.A2);	
+			// generate Authorization 
+
+			for (var ele in res){
+				line+=","+ele+"="+res[ele];
+			}
+			//console.log(line)
+			var toSend = BASE64(line);
+			return toSend;
+
+		}
+	};
+
+	stage.io.authentication.Digest = digestMd5 ;
+	stage.io.authentication.mechanisms.Digest = digestMd5 ;
 	return digestMd5;
+
 };
+
 
 /***/ }),
 
@@ -25495,93 +25474,82 @@ module.exports = function (stage) {
   !*** ./src/io/authentication/sasl/sasl.es6 ***!
   \*********************************************/
 /*! no static exports found */
-/***/ (function(module, exports, __webpack_require__) {
+/***/ (function(module, exports) {
 
-"use strict";
-
-
-var _typeof = typeof Symbol === "function" && typeof Symbol.iterator === "symbol" ? function (obj) { return typeof obj; } : function (obj) { return obj && typeof Symbol === "function" && obj.constructor === Symbol && obj !== Symbol.prototype ? "symbol" : typeof obj; };
-
-var _createClass = function () { function defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ("value" in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } } return function (Constructor, protoProps, staticProps) { if (protoProps) defineProperties(Constructor.prototype, protoProps); if (staticProps) defineProperties(Constructor, staticProps); return Constructor; }; }();
-
-function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError("Cannot call a class as a function"); } }
-
-module.exports = function (stage) {
-
-	var reg = /^([^=]+)=(.+)$/;
-	var parserSasl = function parserSasl(str) {
+module.exports =  function(stage){
+	
+	var reg =/^([^=]+)=(.+)$/;
+	var parserSasl = function(str){
 		//console.log(str)
-		var ret = str.replace(/"/g, "");
+		var ret = str.replace(/"/g,"");
 		var head = ret.split(",");
-		var obj = {};
-		for (var i = 0; i < head.length; i++) {
-			var res = reg.exec(head[i]);
-			if (res && res[1]) obj[res[1]] = res[2];
-		}
+		var obj = {}
+		for (var i= 0 ; i < head.length ; i++){
+			var res = reg.exec(head[i])
+			if (res && res[1])
+				obj[res[1]] = res[2]
+		}	
 		return obj;
 	};
 
-	var Sasl = function () {
-		function Sasl(url, method, headers, body) {
-			_classCallCheck(this, Sasl);
 
+	var Sasl = class Sasl  {
+
+		constructor(url, method, headers, body){
 			this.method = method;
 			this.url = url;
-			this.name = "sasl";
+			this.name = "sasl" ;
 			this.headers = parserSasl(headers);
-			this.body = body;
+			this.body = body ;
 			this.mechanisms = this.headers.mechanisms;
 			var mechanism = this.getBestMechanism(this.mechanisms);
-			if (mechanism) {
-				delete this.headers.mechanisms;
-				this.bestMechanism = mechanism.name;
-				this.mechanism = new mechanism.Class(this.url, this.method, this.headers, this.body);
-			} else {
-				throw new Error("SALS mechanism not found");
-			}
+			if (mechanism){
+				delete this.headers.mechanisms
+					this.bestMechanism = mechanism.name
+					this.mechanism = new mechanism.Class(this.url, this.method, this.headers, this.body);	
+			}else{
+				throw new Error("SALS mechanism not found")	
+			}		
 		}
 
-		_createClass(Sasl, [{
-			key: "getBestMechanism",
-			value: function getBestMechanism(mechanism) {
-				var goodM = null;
-				switch (typeof mechanism === "undefined" ? "undefined" : _typeof(mechanism)) {
-					case "object":
-						for (var i = 0; i < mechanism.length; i++) {
-							if (mechanism[i] in stage.io.authentication.mechanisms) {
-								var goodM = stage.io.authentication.mechanisms[mechanism[i]];
-								var name = mechanism[i];
-								break;
-							}
+		getBestMechanism (mechanism){
+			var goodM = null;
+			switch (typeof mechanism){
+				case "object" :
+					for (var i= 0 ; i < mechanism.length ; i++){
+						if (mechanism[i] in stage.io.authentication.mechanisms){
+							var goodM = stage.io.authentication.mechanisms[mechanism[i]];
+							var name = mechanism[i];
+							break;
 						}
-						break;
-					case "string":
-						//console.log(mechanism.split(" "));
-						return this.getBestMechanism(mechanism.split(" "));
-						break;
-					default:
-						throw new Error("FORMAT SALS mechanism bad format");
+					}
+					break;
+				case "string" :
+					//console.log(mechanism.split(" "));
+					return this.getBestMechanism( mechanism.split(" ") );
+					break;
+				default:
+					throw new Error("FORMAT SALS mechanism bad format")
 
-				}
-				return {
-					name: name,
-					Class: goodM
-				};
 			}
-		}, {
-			key: "getAuthorization",
-			value: function getAuthorization(user, password) {
-				return 'SASL mechanism="' + this.bestMechanism + '",' + this.mechanism.generateAuthorization(user, password);
+			return {
+				name:name,
+					Class:goodM
 			}
-		}]);
+		};
 
-		return Sasl;
-	}();
+		getAuthorization (user, password){
+			return  'SASL mechanism="'+this.bestMechanism+'",'+this.mechanism.generateAuthorization(user, password);
+		}
 
-	stage.io.authentication.SASL = Sasl;
+	};
 
-	return Sasl;
+	stage.io.authentication.SASL = Sasl ;
+	
+	return Sasl ;
+
 };
+
 
 /***/ }),
 
@@ -25592,30 +25560,19 @@ module.exports = function (stage) {
 /*! no static exports found */
 /***/ (function(module, exports, __webpack_require__) {
 
-"use strict";
-/* WEBPACK VAR INJECTION */(function($) {
-
-var _typeof = typeof Symbol === "function" && typeof Symbol.iterator === "symbol" ? function (obj) { return typeof obj; } : function (obj) { return obj && typeof Symbol === "function" && obj.constructor === Symbol && obj !== Symbol.prototype ? "symbol" : typeof obj; };
-
-var _createClass = function () { function defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ("value" in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } } return function (Constructor, protoProps, staticProps) { if (protoProps) defineProperties(Constructor.prototype, protoProps); if (staticProps) defineProperties(Constructor, staticProps); return Constructor; }; }();
-
-function _possibleConstructorReturn(self, call) { if (!self) { throw new ReferenceError("this hasn't been initialised - super() hasn't been called"); } return call && (typeof call === "object" || typeof call === "function") ? call : self; }
-
-function _inherits(subClass, superClass) { if (typeof superClass !== "function" && superClass !== null) { throw new TypeError("Super expression must either be null or a function, not " + typeof superClass); } subClass.prototype = Object.create(superClass && superClass.prototype, { constructor: { value: subClass, enumerable: false, writable: true, configurable: true } }); if (superClass) Object.setPrototypeOf ? Object.setPrototypeOf(subClass, superClass) : subClass.__proto__ = superClass; }
-
-function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError("Cannot call a class as a function"); } }
-
-module.exports = function (stage) {
+/* WEBPACK VAR INJECTION */(function($) {module.exports = function (stage) {
 
   'use strict';
 
-  var isSameOrigin = function isSameOrigin(url) {
+  const isSameOrigin = function (url) {
     var loc = window.location;
     var a = urlToOject(url);
-    return a.hostname === loc.hostname && a.port == loc.port && a.protocol === loc.protocol;
+    return a.hostname === loc.hostname &&
+      a.port == loc.port &&
+      a.protocol === loc.protocol;
   };
 
-  var isSecure = function isSecure(url) {
+  const isSecure = function (url) {
     var loc = window.location;
     var a = urlToOject(url);
     return a.protocol === "https:";
@@ -25635,18 +25592,17 @@ module.exports = function (stage) {
    *
    *
    */
-  var authenticate = function () {
-    function authenticate(url, request, settings) {
-      _classCallCheck(this, authenticate);
+  const authenticate = class authenticate {
 
-      this.url = (typeof url === "undefined" ? "undefined" : _typeof(url)) === "object" ? url : stage.io.urlToOject(url);
+    constructor(url, request, settings) {
+      this.url = typeof url === "object" ? url : stage.io.urlToOject(url);
       this.crossDomain = !stage.io.isSameOrigin(url);
       // notification center
       this.notificationCenter = stage.notificationsCenter.create(settings);
       // get header WWW-Authenticate
-      var _authenticate = request["WWW-Authenticate"].split(" ");
+      var authenticate = request["WWW-Authenticate"].split(" ");
       //  get type authentification
-      var authType = Array.prototype.shift.call(_authenticate);
+      var authType = Array.prototype.shift.call(authenticate);
       var headers = request["WWW-Authenticate"].replace(authType + " ", "");
       //console.log(authType);
       this.method = "POST";
@@ -25661,46 +25617,38 @@ module.exports = function (stage) {
       }
     }
 
-    _createClass(authenticate, [{
-      key: "getAuthenticationType",
-      value: function getAuthenticationType(type) {
-        if (type in stage.io.authentication) {
-          return stage.io.authentication[type];
-        } else {
-          throw new Error("SSE client can't negociate : " + type);
-        }
+    getAuthenticationType(type) {
+      if (type in stage.io.authentication) {
+        return stage.io.authentication[type];
+      } else {
+        throw new Error("SSE client can't negociate : " + type);
       }
-    }, {
-      key: "register",
-      value: function register(username, password) {
-        var _this = this;
+    }
 
-        var line = this.authentication.getAuthorization(username, password);
-        this.notificationCenter.fire("onRegister", this, line);
-        if (this.ajax) {
-          $.ajax({
-            type: this.method,
-            url: this.url.href,
-            cache: false,
-            crossDomain: this.crossDomain ? false : true,
-            error: function error(obj, type, message) {
-              _this.notificationCenter.fire("onError", obj, type, message);
-            },
-            beforeSend: function beforeSend(xhr) {
-              xhr.setRequestHeader("Authorization", line);
-              //if (this.crossDomain)
-              //xhr.setRequestHeader("X-Requested-With", "XMLHttpRequest");
-            },
-            success: function success(data, state, obj) {
-              _this.notificationCenter.fire("onSuccess", data, state, obj);
-            }
-          });
-        }
+    register(username, password) {
+      var line = this.authentication.getAuthorization(username, password);
+      this.notificationCenter.fire("onRegister", this, line);
+      if (this.ajax) {
+        $.ajax({
+          type: this.method,
+          url: this.url.href,
+          cache: false,
+          crossDomain: this.crossDomain ? false : true,
+          error: (obj, type, message) => {
+            this.notificationCenter.fire("onError", obj, type, message);
+          },
+          beforeSend: (xhr) => {
+            xhr.setRequestHeader("Authorization", line);
+            //if (this.crossDomain)
+            //xhr.setRequestHeader("X-Requested-With", "XMLHttpRequest");
+          },
+          success: (data, state, obj) => {
+            this.notificationCenter.fire("onSuccess", data, state, obj);
+          }
+        });
       }
-    }]);
-
-    return authenticate;
-  }();
+    }
+  };
 
   /**
    * We need our custom method because encodeURIComponent is too aggressive and doesn't follow
@@ -25713,9 +25661,13 @@ module.exports = function (stage) {
    *    sub-delims    = "!" / "$" / "&" / "'" / "(" / ")"
    *                     / "*" / "+" / "," / ";" / "="
    */
-  var encodeUriSegment = function encodeUriSegment(val) {
-    return encodeUriQuery(val, true).replace(/%26/gi, '&').replace(/%3D/gi, '=').replace(/%2B/gi, '+');
+  const encodeUriSegment = function (val) {
+    return encodeUriQuery(val, true).
+    replace(/%26/gi, '&').
+    replace(/%3D/gi, '=').
+    replace(/%2B/gi, '+');
   };
+
 
   /**
    * This method is intended for encoding *key* or *value* parts of query component. We need a custom
@@ -25728,12 +25680,19 @@ module.exports = function (stage) {
    *    sub-delims    = "!" / "$" / "&" / "'" / "(" / ")"
    *                     / "*" / "+" / "," / ";" / "="
    */
-  var encodeUriQuery = function encodeUriQuery(val, pctEncodeSpaces) {
-    return encodeURIComponent(val).replace(/%40/gi, '@').replace(/%3A/gi, ':').replace(/%24/g, '$').replace(/%2C/gi, ',').replace(/%3B/gi, ';').replace(/%20/g, pctEncodeSpaces ? '%20' : '+');
+  const encodeUriQuery = function (val, pctEncodeSpaces) {
+    return encodeURIComponent(val).
+    replace(/%40/gi, '@').
+    replace(/%3A/gi, ':').
+    replace(/%24/g, '$').
+    replace(/%2C/gi, ',').
+    replace(/%3B/gi, ';').
+    replace(/%20/g, (pctEncodeSpaces ? '%20' : '+'));
   };
 
-  var regSearch = /^\?(.*)/;
-  var parseKeyValue = function parseKeyValue(search) {
+
+  const regSearch = /^\?(.*)/;
+  const parseKeyValue = function (search) {
     //console.log(search)
     var test = regSearch.exec(search);
     //console.log(test)
@@ -25741,9 +25700,8 @@ module.exports = function (stage) {
       search = test[1];
     }
     var obj = {},
-        key_value,
-        key;
-    var tab = (search || "").split('&');
+      key_value, key;
+    var tab = (search ||  "").split('&');
     if (tab.length) {
       for (var i = 0; i < tab.length; i++) {
         try {
@@ -25757,11 +25715,11 @@ module.exports = function (stage) {
               obj[key] = val;
             } else {
               switch (stage.typeOf(obj[key])) {
-                case "array":
-                  obj[key].push(val);
-                  break;
-                default:
-                  obj[key] = [obj[key], val];
+              case "array":
+                obj[key].push(val);
+                break;
+              default:
+                obj[key] = [obj[key], val];
               }
             }
           }
@@ -25773,27 +25731,28 @@ module.exports = function (stage) {
     return obj;
   };
 
-  var toKeyValue = function toKeyValue(obj) {
+  const toKeyValue = function (obj) {
     var parts = [];
     for (var ele in obj) {
       switch (stage.typeOf(obj[ele])) {
-        case "array":
-          for (var i = 0; i < obj[ele].length; i++) {
-            parts.push(encodeUriQuery(ele, true) + (obj[ele][i] === true ? '' : '=' + encodeUriQuery(obj[ele][i], true)));
-          }
-          break;
-        case "string":
-        case "boolean":
-          parts.push(encodeUriQuery(ele, true) + (obj[ele] === true ? '' : '=' + encodeUriQuery(obj[ele], true)));
-          break;
-        default:
-          continue;
+      case "array":
+        for (var i = 0; i < obj[ele].length; i++) {
+          parts.push(encodeUriQuery(ele, true) + (obj[ele][i] === true ? '' : '=' + encodeUriQuery(obj[ele][i], true)));
+        }
+        break;
+      case "string":
+      case "boolean":
+        parts.push(encodeUriQuery(ele, true) + (obj[ele] === true ? '' : '=' + encodeUriQuery(obj[ele], true)));
+        break;
+      default:
+        continue;
       }
     }
     return parts.length ? parts.join('&') : '';
   };
 
-  var getHeaderJSON = function getHeaderJSON(xhr) {
+
+  const getHeaderJSON = function (xhr) {
     var json = xhr.getResponseHeader("X-Json");
     if (json) {
       try {
@@ -25805,7 +25764,7 @@ module.exports = function (stage) {
     return null;
   };
 
-  var urlToOject = function urlToOject(url) {
+  const urlToOject = function (url) {
     var result = {};
 
     var anchor = document.createElement('a');
@@ -25828,29 +25787,22 @@ module.exports = function (stage) {
     return result;
   };
 
-  var nativeWebSocket = window.WebSocket ? true : false;
+  const nativeWebSocket = window.WebSocket ? true : false;
 
-  var transportCore = function (_stage$notificationsC) {
-    _inherits(transportCore, _stage$notificationsC);
+  const transportCore = class transportCore extends stage.notificationsCenter.notification {
 
-    function transportCore(url, settings, context) {
-      _classCallCheck(this, transportCore);
-
+    constructor(url, settings, context) {
+      super(settings, context);
       // Manage Url
-      var _this2 = _possibleConstructorReturn(this, (transportCore.__proto__ || Object.getPrototypeOf(transportCore)).call(this, settings, context));
-
       if (url) {
-        _this2.url = urlToOject(url);
-        _this2.crossDomain = !isSameOrigin(url);
-        _this2.error = null;
+        this.url = urlToOject(url);
+        this.crossDomain = !isSameOrigin(url);
+        this.error = null;
       } else {
-        _this2.fire("onError", new Error("Transport URL not defined"));
+        this.fire("onError", new Error("Transport URL not defined"));
       }
-      return _this2;
     }
-
-    return transportCore;
-  }(stage.notificationsCenter.notification);
+  };
 
   stage.io = {
     nativeWebSocket: nativeWebSocket,
@@ -25884,18 +25836,11 @@ module.exports = function (stage) {
 /*! no static exports found */
 /***/ (function(module, exports, __webpack_require__) {
 
-"use strict";
-/* WEBPACK VAR INJECTION */(function($) {
-
-var _createClass = function () { function defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ("value" in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } } return function (Constructor, protoProps, staticProps) { if (protoProps) defineProperties(Constructor.prototype, protoProps); if (staticProps) defineProperties(Constructor, staticProps); return Constructor; }; }();
-
-function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError("Cannot call a class as a function"); } }
-
-module.exports = function (stage) {
+/* WEBPACK VAR INJECTION */(function($) {module.exports = function (stage) {
 
   'use strict';
 
-  var clientsCapabilities = function () {
+  const clientsCapabilities = function () {
     var tab = [];
     var ws = stage.io.nativeWebSocket ? tab.push("websocket") : null;
     var poll = stage.io.poll ? tab.push("poll") : null;
@@ -25904,26 +25849,24 @@ module.exports = function (stage) {
     return tab;
   }();
 
-  var onHandshakeResponse = function onHandshakeResponse(message) {
-    var _this = this;
-
+  const onHandshakeResponse = function (message) {
     if (message.successful) {
       try {
         var socket = this.getBestConnection(message.supportedConnectionTypes);
         this.socket = new socket.Class(socket.url);
-        this.socket.onmessage = function (message) {
+        this.socket.onmessage = (message) => {
           if (message.data) {
-            _this.onMessage(message.data);
+            this.onMessage(message.data);
           }
         };
-        this.socket.onopen = function () {
-          _this.socket.send(_this.connect(message));
-          _this.notificationCenter.fire("onHandshake", message, _this.socket);
+        this.socket.onopen = () => {
+          this.socket.send(this.connect(message));
+          this.notificationCenter.fire("onHandshake", message, this.socket);
         };
         this.socket.onerror = this.notificationCenter.listen(this, "onError");
-        this.socket.onclose = function (err) {
-          delete _this.socket;
-          _this.notificationCenter.fire("onClose", err);
+        this.socket.onclose = (err) => {
+          delete this.socket;
+          this.notificationCenter.fire("onClose", err);
         };
       } catch (e) {
         throw new Error(e);
@@ -25933,25 +25876,25 @@ module.exports = function (stage) {
     }
   };
 
-  var reconnect = function reconnect() {
+  const reconnect = function () {
     this.reconnect = true;
     this.notificationCenter.fire("reConnect", this);
   };
 
-  var onConnectResponse = function onConnectResponse(message) {
+  const onConnectResponse = function (message) {
     if (message.successful) {
       this.connected = true;
       this.idconnection = message.clientId;
       if (message.advice) {
         for (var ele in message.advice) {
           switch (ele) {
-            case "reconnect":
-              if (message.advice[ele] === "retry") {
-                if (!this.reconnect) {
-                  this.notificationCenter.listen(this, "onClose", reconnect);
-                }
+          case "reconnect":
+            if (message.advice[ele] === "retry") {
+              if (!this.reconnect) {
+                this.notificationCenter.listen(this, "onClose", reconnect);
               }
-              break;
+            }
+            break;
           }
         }
       }
@@ -25962,7 +25905,7 @@ module.exports = function (stage) {
     }
   };
 
-  var onDisconnectResponse = function onDisconnectResponse(message) {
+  const onDisconnectResponse = function (message) {
     if (message.successful) {
       if (this.socket) {
         this.socket.close();
@@ -25974,7 +25917,7 @@ module.exports = function (stage) {
     }
   };
 
-  var onSubscribeResponse = function onSubscribeResponse(message) {
+  const onSubscribeResponse = function (message) {
     if (message.successful) {
       this.notificationCenter.fire("onSubscribe", message);
     } else {
@@ -25982,7 +25925,7 @@ module.exports = function (stage) {
     }
   };
 
-  var onUnsubscribeResponse = function onUnsubscribeResponse(message) {
+  const onUnsubscribeResponse = function (message) {
     if (message.successful) {
       this.notificationCenter.fire("onUnsubscribe", message);
     } else {
@@ -25990,26 +25933,26 @@ module.exports = function (stage) {
     }
   };
 
-  var onError = function onError(message) {
+  const onError = function (message) {
     if (message.error) {
       try {
         switch (stage.typeOf(message.error)) {
-          case "string":
-            var res = message.error.split(":");
-            var code = res[0];
-            var arg = res[1];
-            var mess = res[2];
-            break;
-          case "object":
-            if (message.error) {
-              return onError.call(this, message.error);
-            }
-            break;
-          case "Error":
-            message.error = "500::" + message.error.message;
+        case "string":
+          var res = message.error.split(":");
+          var code = res[0];
+          var arg = res[1];
+          var mess = res[2];
+          break;
+        case "object":
+          if (message.error) {
             return onError.call(this, message.error);
-          default:
-            throw new Error("Bad protocole error BAYEUX");
+          }
+          break;
+        case "Error":
+          message.error = "500::" + message.error.message;
+          return onError.call(this, message.error);
+        default:
+          throw new Error("Bad protocole error BAYEUX");
 
         }
         return this.notificationCenter.fire("onError", code, arg, mess);
@@ -26023,10 +25966,9 @@ module.exports = function (stage) {
    *	BAYEUX PROTOCOL
    *
    */
-  var bayeux = function () {
-    function bayeux(url) {
-      _classCallCheck(this, bayeux);
+  const bayeux = class bayeux {
 
+    constructor(url) {
       this.name = "bayeux";
       this.notificationCenter = stage.notificationsCenter.create(this.settings, this);
       this.url = url;
@@ -26037,144 +25979,127 @@ module.exports = function (stage) {
       };
     }
 
-    _createClass(bayeux, [{
-      key: "getBestConnection",
-      value: function getBestConnection(supportedConnectionTypes) {
-        if (this.url.protocol === "https:" || this.url.protocol === "wss:") {
-          this.url.protocol = "wss:";
-        } else {
-          this.url.protocol = "ws:";
-        }
-        this.socketType = "WEBSOCKET";
-        return {
-          Class: window.WebSocket,
-          url: this.url.protocol + "//" + this.url.host + this.url.requestUri
-        };
+    getBestConnection(supportedConnectionTypes) {
+      if (this.url.protocol === "https:" || this.url.protocol === "wss:") {
+        this.url.protocol = "wss:";
+      } else {
+        this.url.protocol = "ws:";
       }
-    }, {
-      key: "build",
-      value: function build(obj) {
-        var res = [];
-        res.push(obj);
-        return res;
-      }
-    }, {
-      key: "handshake",
-      value: function handshake() {
-        var req = JSON.stringify(stage.extend({}, this.request, {
-          channel: "/meta/handshake",
-          minimumVersion: "1.0",
-          supportedConnectionTypes: clientsCapabilities
-        }));
-        return this.send(req);
-      }
-    }, {
-      key: "connect",
-      value: function connect(message) {
-        return JSON.stringify({
-          channel: "/meta/connect",
-          clientId: message.clientId,
-          connectionType: this.socketType
-        });
-      }
-    }, {
-      key: "stopReConnect",
-      value: function stopReConnect(message) {
-        this.notificationCenter.unListen("onClose", reconnect);
-      }
-    }, {
-      key: "disconnect",
-      value: function disconnect() {
-        return JSON.stringify({
-          channel: "/meta/disconnect",
-          clientId: this.idconnection
-        });
-      }
-    }, {
-      key: "subscribe",
-      value: function subscribe(name, data) {
-        return JSON.stringify({
-          channel: "/meta/subscribe",
-          clientId: this.idconnection,
-          subscription: "/service/" + name,
-          data: data
-        });
-      }
-    }, {
-      key: "unSubscribe",
-      value: function unSubscribe(name, clientId, data) {
-        return JSON.stringify({
-          channel: "/meta/unsubscribe",
-          clientId: clientId,
-          subscription: "/service/" + name,
-          data: data
-        });
-      }
-    }, {
-      key: "sendMessage",
-      value: function sendMessage(service, data, clientId) {
-        return JSON.stringify({
-          channel: "/service/" + service,
-          clientId: clientId,
-          id: new Date().getTime(),
-          data: data
-        });
-      }
-    }, {
-      key: "onMessage",
-      value: function onMessage(message) {
-        try {
-          if (typeof message === "string") {
-            message = JSON.parse(message);
-          }
-        } catch (e) {
-          message.error = e;
-          onError.call(this, message);
-          return;
-        }
-        switch (message.channel) {
-          case "/meta/handshake":
-            return onHandshakeResponse.call(this, message);
-          case "/meta/connect":
-            return onConnectResponse.call(this, message);
-          case "/meta/disconnect":
-            return onDisconnectResponse.call(this, message);
-          case "/meta/subscribe":
-            return onSubscribeResponse.call(this, message);
-          case "/meta/unsubscribe":
-            return onUnsubscribeResponse.call(this, message);
-          default:
-            // /some/channel
-            this.notificationCenter.fire("onMessage", message);
-        }
-      }
-    }, {
-      key: "send",
-      value: function send(data) {
-        var _this2 = this;
+      this.socketType = "WEBSOCKET";
+      return {
+        Class: window.WebSocket,
+        url: this.url.protocol + "//" + this.url.host + this.url.requestUri
+      };
+    }
 
-        if (this.socket) {
-          return this.socket.send(data);
-        }
-        return $.ajax({
-          method: 'POST',
-          cache: false,
-          url: this.url.href,
-          dataType: "json",
-          contentType: "application/json",
-          data: data,
-          success: function success(data, type, xhr) {
-            _this2.onMessage(data);
-          },
-          error: function error(obj, type, message) {
-            _this2.notificationCenter.fire('onError', obj, type, message);
-          }
-        });
-      }
-    }]);
+    build(obj) {
+      var res = [];
+      res.push(obj);
+      return res;
+    }
 
-    return bayeux;
-  }();
+    handshake() {
+      var req = JSON.stringify(stage.extend({}, this.request, {
+        channel: "/meta/handshake",
+        minimumVersion: "1.0",
+        supportedConnectionTypes: clientsCapabilities
+      }));
+      return this.send(req);
+    }
+
+    connect(message) {
+      return JSON.stringify({
+        channel: "/meta/connect",
+        clientId: message.clientId,
+        connectionType: this.socketType
+      });
+    }
+
+    stopReConnect(message) {
+      this.notificationCenter.unListen("onClose", reconnect);
+    }
+
+    disconnect() {
+      return JSON.stringify({
+        channel: "/meta/disconnect",
+        clientId: this.idconnection,
+      });
+    }
+
+    subscribe(name, data) {
+      return JSON.stringify({
+        channel: "/meta/subscribe",
+        clientId: this.idconnection,
+        subscription: "/service/" + name,
+        data: data
+      });
+    }
+
+    unSubscribe(name, clientId, data) {
+      return JSON.stringify({
+        channel: "/meta/unsubscribe",
+        clientId: clientId,
+        subscription: "/service/" + name,
+        data: data
+      });
+    }
+
+    sendMessage(service, data, clientId) {
+      return JSON.stringify({
+        channel: "/service/" + service,
+        clientId: clientId,
+        id: new Date().getTime(),
+        data: data
+      });
+    }
+
+    onMessage(message) {
+      try {
+        if (typeof message === "string") {
+          message = JSON.parse(message);
+        }
+      } catch (e) {
+        message.error = e;
+        onError.call(this, message);
+        return;
+      }
+      switch (message.channel) {
+      case "/meta/handshake":
+        return onHandshakeResponse.call(this, message);
+      case "/meta/connect":
+        return onConnectResponse.call(this, message);
+      case "/meta/disconnect":
+        return onDisconnectResponse.call(this, message);
+      case "/meta/subscribe":
+        return onSubscribeResponse.call(this, message);
+      case "/meta/unsubscribe":
+        return onUnsubscribeResponse.call(this, message);
+      default:
+        // /some/channel
+        this.notificationCenter.fire("onMessage", message);
+      }
+    }
+
+    send(data) {
+      if (this.socket) {
+        return this.socket.send(data);
+      }
+      return $.ajax({
+        method: 'POST',
+        cache: false,
+        url: this.url.href,
+        dataType: "json",
+        contentType: "application/json",
+        data: data,
+        success: (data, type, xhr) => {
+          this.onMessage(data);
+        },
+        error: (obj, type, message) => {
+          this.notificationCenter.fire('onError', obj, type, message);
+        }
+      });
+    }
+  };
 
   stage.io.protocols.bayeux = bayeux;
   return bayeux;
@@ -26188,27 +26113,21 @@ module.exports = function (stage) {
   !*** ./src/io/protocols/sip/sdp.es6 ***!
   \**************************************/
 /*! no static exports found */
-/***/ (function(module, exports, __webpack_require__) {
-
-"use strict";
-
-
-var _createClass = function () { function defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ("value" in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } } return function (Constructor, protoProps, staticProps) { if (protoProps) defineProperties(Constructor.prototype, protoProps); if (staticProps) defineProperties(Constructor, staticProps); return Constructor; }; }();
-
-function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError("Cannot call a class as a function"); } }
+/***/ (function(module, exports) {
 
 module.exports = function (stage) {
 
   'use strict';
 
-  var defaultAparser = function defaultAparser(value, block) {
+
+  const defaultAparser = function (value, block) {
     if (value) {
       return value;
     }
     return null;
   };
 
-  var rtpmapParser = function rtpmapParser(value, block) {
+  const rtpmapParser = function (value, block) {
     //a=rtpmap:<payload type> <encoding name>/<clock rate>[/<encoding parameters>]
     if (value) {
       var obj = {
@@ -26221,19 +26140,19 @@ module.exports = function (stage) {
       var res = value.split(" ");
       for (var i = 0; i < res.length; i++) {
         switch (i) {
-          case 0:
-            obj.payloadType = res[i];
-            break;
-          case 1:
-            var ret = res[i].split("/");
-            obj.encodingName = ret[0];
-            if (ret[1]) {
-              obj.clockRate = ret[1];
-            }
-            if (ret[2]) {
-              obj.encodingParameters = ret[2];
-            }
-            break;
+        case 0:
+          obj.payloadType = res[i];
+          break;
+        case 1:
+          var ret = res[i].split("/");
+          obj.encodingName = ret[0];
+          if (ret[1]) {
+            obj.clockRate = ret[1];
+          }
+          if (ret[2]) {
+            obj.encodingParameters = ret[2];
+          }
+          break;
         }
       }
 
@@ -26246,7 +26165,7 @@ module.exports = function (stage) {
     return null;
   };
 
-  var candidateParser = function candidateParser(value, block) {
+  var candidateParser = function (value, block) {
     /* a=candidate:0 1 UDP 2122252543 169.254.105.57 65488 typ host
      * a=candidate:6glsxoSzDfHGkyMz 1 UDP 2130706431 93.20.94.1 35796 typ host
      * a=candidate:2 1 UDP 1694498815 192.0.2.3 45664 typ srflx raddr 10.0.1.1 rport 8998
@@ -26288,48 +26207,48 @@ module.exports = function (stage) {
       var res = value.split(" ");
       for (var i = 0; i < res.length; i++) {
         switch (i) {
-          case 0:
-            obj.foundation = res[i];
+        case 0:
+          obj.foundation = res[i];
+          break;
+        case 1:
+          obj.componentId = res[i];
+          break;
+        case 2:
+          obj.transport = res[i];
+          var ret = res[i].split("/");
+          obj.transport = ret[0];
+          if (ret[1]) {
+            obj.transportExt = ret[1];
+          }
+          break;
+        case 3:
+          obj.priority = res[i];
+          break;
+        case 4:
+          obj.connectionAddress = res[i];
+          break;
+        case 5:
+          obj.port = res[i];
+          break;
+        default:
+          switch (res[i]) {
+          case "typ":
+            obj.candidateType = res[i + 1];
             break;
-          case 1:
-            obj.componentId = res[i];
+          case "raddr":
+            obj.remoteAddr = res[i + 1];
             break;
-          case 2:
-            obj.transport = res[i];
-            var ret = res[i].split("/");
-            obj.transport = ret[0];
-            if (ret[1]) {
-              obj.transportExt = ret[1];
-            }
+          case "rport":
+            obj.remotePort = res[i + 1];
             break;
-          case 3:
-            obj.priority = res[i];
+          case "generation":
+            obj.generation = res[i + 1];
             break;
-          case 4:
-            obj.connectionAddress = res[i];
+          case "network-id":
+            obj.networkId = res[i + 1];
             break;
-          case 5:
-            obj.port = res[i];
-            break;
-          default:
-            switch (res[i]) {
-              case "typ":
-                obj.candidateType = res[i + 1];
-                break;
-              case "raddr":
-                obj.remoteAddr = res[i + 1];
-                break;
-              case "rport":
-                obj.remotePort = res[i + 1];
-                break;
-              case "generation":
-                obj.generation = res[i + 1];
-                break;
-              case "network-id":
-                obj.networkId = res[i + 1];
-                break;
-            }
-            break;
+          }
+          break;
         }
       }
       block.candidates.push(obj);
@@ -26338,7 +26257,7 @@ module.exports = function (stage) {
     return null;
   };
 
-  var aAttribute = {
+  const aAttribute = {
     "cat": defaultAparser,
     "keywds": defaultAparser,
     "tool": defaultAparser,
@@ -26356,7 +26275,7 @@ module.exports = function (stage) {
     "candidate": candidateParser
   };
 
-  var aAttributeDirection = {
+  const aAttributeDirection = {
     "recvonly": defaultAparser,
     "sendrecv": defaultAparser,
     "sendonly": defaultAparser,
@@ -26367,10 +26286,9 @@ module.exports = function (stage) {
    *	SDP PROTOCOL
    *
    */
-  var parserSdp = function () {
-    function parserSdp(body) {
-      _classCallCheck(this, parserSdp);
+  const parserSdp = class parserSdp {
 
+    constructor(body) {
       if (!body) {
         throw new Error("SDP parser no data found !! ");
       }
@@ -26386,437 +26304,417 @@ module.exports = function (stage) {
       this.parseBlocks();
     }
 
-    _createClass(parserSdp, [{
-      key: "detectBlocks",
-      value: function detectBlocks() {
-        var line = this.raw.split("\n");
-        var nbLines = line.length;
-        var first = 0;
-        var m = null;
-        for (var i = 0; i < nbLines; i++) {
-          var res = line[i].split("=");
-          var key = res[0].replace(/ |\n|\r/g, "");
-          var value = res[1];
-          var _data = null;
-          var _size = null;
-          var _media = null;
-          var _type = null;
-          switch (key) {
-            case "m":
-              if (first === 0) {
-                _data = line.slice(first, i);
-                _size = _data.length;
-              } else {
-                _data = line.slice(first + 1, i);
-                _size = _data.length;
-              }
-              var _parseM = this.parseMline(m);
-              if (_parseM) {
-                _media = _parseM;
-                _type = _parseM.media;
-              } else {
-                _media = null;
-                _type = "session";
-              }
-              this.blocks.push({
-                type: _type,
-                direction: null,
-                //start		: first,
-                //end		: i,
-                data: _data,
-                //size		: size,
-                media: _media,
-                information: "",
-                attributes: [],
-                bandwidths: [],
-                candidates: [],
-                connection: null,
-                encryption: null
-              });
-              first = i;
-              m = value;
-              break;
-          }
-        }
-        var data = line.slice(first + 1, nbLines);
-        var size = data.length;
-        var media = null;
-        var type = null;
-        var parseM = this.parseMline(m);
-        if (parseM) {
-          media = parseM;
-          type = parseM.media;
-        } else {
-          media = null;
-          type = "session";
-        }
-        this.blocks.push({
-          type: type,
-          direction: null,
-          //start		: first,
-          //end		: nbLines,
-          data: data,
-          //size		: size,
-          media: media,
-          information: "",
-          attributes: [],
-          bandwidths: [],
-          candidates: [],
-          connection: null,
-          encryption: null
-        });
-      }
-    }, {
-      key: "parseMline",
-      value: function parseMline(data) {
-        // RFC https://tools.ietf.org/html/rfc4566#section-5.14
-        //=<media> <port>/<number of ports> <proto> <fmt> ...
-        var obj = null;
-        if (data) {
-          obj = {
-            media: "",
-            port: "",
-            nbPort: 0,
-            proto: "",
-            fmt: [],
-            raw: data
-          };
-          var res = data.split(" ");
-          for (var i = 0; i < res.length; i++) {
-            switch (i) {
-              case 0:
-                obj.media = res[i];
-                break;
-              case 1:
-                var ret = res[i].split("/");
-                obj.port = ret[0];
-                if (ret[1]) {
-                  obj.nbPort = ret[1];
-                } else {
-                  obj.nbPort = 1;
-                }
-                break;
-              case 2:
-                obj.proto = res[i];
-                break;
-              default:
-                obj.fmt.push(res[i]);
-            }
-          }
-          return obj;
-        }
-        return null;
-      }
-    }, {
-      key: "parseAline",
-      value: function parseAline(data, block) {
-        //a=<attribute>:<value>
-        var obj = {};
-        if (!data) {
-          return obj;
-        }
-        var res = data.split(":");
-        var attribute = res[0].replace(/ |\n|\r/g, "");
+    detectBlocks() {
+      var line = this.raw.split("\n");
+      var nbLines = line.length;
+      var first = 0;
+      var m = null;
+      for (var i = 0; i < nbLines; i++) {
+        var res = line[i].split("=");
+        var key = res[0].replace(/ |\n|\r/g, "");
         var value = res[1];
-        if (aAttribute[attribute]) {
-          obj[attribute] = aAttribute[attribute](value, block);
-        } else {
-          switch (attribute) {
-            case "setup":
-              obj[attribute] = value;
-              block.setup = value;
-              break;
-            default:
-              if (aAttributeDirection[attribute]) {
-                var ele = aAttributeDirection[attribute](attribute, block);
-                obj[attribute] = ele;
-                block.direction = ele;
-              } else {
-                obj[attribute] = value;
-              }
+        let data = null;
+        let size = null;
+        let media = null;
+        let type = null;
+        switch (key) {
+        case "m":
+          if (first === 0) {
+            data = line.slice(first, i);
+            size = data.length;
+          } else {
+            data = line.slice(first + 1, i);
+            size = data.length;
+          }
+          let parseM = this.parseMline(m);
+          if (parseM) {
+            media = parseM;
+            type = parseM.media;
+          } else {
+            media = null;
+            type = "session";
+          }
+          this.blocks.push({
+            type: type,
+            direction: null,
+            //start		: first,
+            //end		: i,
+            data: data,
+            //size		: size,
+            media: media,
+            information: "",
+            attributes: [],
+            bandwidths: [],
+            candidates: [],
+            connection: null,
+            encryption: null
+          });
+          first = i;
+          m = value;
+          break;
+        }
+      }
+      var data = line.slice(first + 1, nbLines);
+      var size = data.length;
+      var media = null;
+      var type = null;
+      var parseM = this.parseMline(m);
+      if (parseM) {
+        media = parseM;
+        type = parseM.media;
+      } else {
+        media = null;
+        type = "session";
+      }
+      this.blocks.push({
+        type: type,
+        direction: null,
+        //start		: first,
+        //end		: nbLines,
+        data: data,
+        //size		: size,
+        media: media,
+        information: "",
+        attributes: [],
+        bandwidths: [],
+        candidates: [],
+        connection: null,
+        encryption: null
+      });
+    }
+
+    parseMline(data) {
+      // RFC https://tools.ietf.org/html/rfc4566#section-5.14
+      //=<media> <port>/<number of ports> <proto> <fmt> ...
+      let obj = null;
+      if (data) {
+        obj = {
+          media: "",
+          port: "",
+          nbPort: 0,
+          proto: "",
+          fmt: [],
+          raw: data
+        };
+        var res = data.split(" ");
+        for (var i = 0; i < res.length; i++) {
+          switch (i) {
+          case 0:
+            obj.media = res[i];
+            break;
+          case 1:
+            var ret = res[i].split("/");
+            obj.port = ret[0];
+            if (ret[1]) {
+              obj.nbPort = ret[1];
+            } else {
+              obj.nbPort = 1;
+            }
+            break;
+          case 2:
+            obj.proto = res[i];
+            break;
+          default:
+            obj.fmt.push(res[i]);
           }
         }
         return obj;
       }
-    }, {
-      key: "parseCline",
-      value: function parseCline(data) {
-        //c=<nettype> <addrtype> <connection-address>
-        if (data) {
-          var obj = {
-            nettype: null,
-            addrtype: null,
-            address: null,
-            raw: data
-          };
-          var res = data.split(" ");
-          for (var i = 0; i < res.length; i++) {
-            switch (i) {
-              case 0:
-                obj.nettype = res[i];
-                break;
-              case 1:
-                obj.addrtype = res[i];
+      return null;
+    }
 
-                break;
-              case 2:
-                obj.address = res[i];
-                break;
-            }
-          }
-          return obj;
-        }
-        return null;
+    parseAline(data, block) {
+      //a=<attribute>:<value>
+      let obj = {};
+      if (!data) {
+        return obj;
       }
-    }, {
-      key: "parseOline",
-      value: function parseOline(data) {
-        //o=<username> <sess-id> <sess-version> <nettype> <addrtype> <unicast-address>
-        var obj = null;
-        if (data) {
-          obj = {
-            username: null,
-            sessId: null,
-            sessVersion: null,
-            nettype: null,
-            addrtype: null,
-            unicastAddr: null,
-            raw: data
-          };
-          var res = data.split(" ");
-          for (var i = 0; i < res.length; i++) {
-            switch (i) {
-              case 0:
-                obj.username = res[i];
-                break;
-              case 1:
-                obj.sessId = res[i];
-                break;
-              case 2:
-                obj.sessVersion = res[i];
-                break;
-              case 3:
-                obj.nettype = res[i];
-                break;
-              case 4:
-                obj.addrtype = res[i];
-                break;
-              case 5:
-                obj.unicastAddr = res[i];
-                break;
-            }
-          }
-          return obj;
-        }
-        return null;
-      }
-
-      /*
-       *	TIME DESCRIPTION
-       */
-
-    }, {
-      key: "parseTline",
-      value: function parseTline(data) {
-        //t=<start-time> <stop-time>
-        if (data) {
-          var obj = {
-            start: null,
-            stop: null,
-            raw: data
-          };
-          var res = data.split(" ");
-          for (var i = 0; i < res.length; i++) {
-            switch (i) {
-              case 0:
-                obj.start = res[i];
-                break;
-              case 1:
-                obj.stop = res[i];
-                break;
-            }
-          }
-          return obj;
-        }
-        return null;
-      }
-    }, {
-      key: "parseRline",
-      value: function parseRline(data) {
-        //r=<repeat interval> <active duration> <offsets from start-time>
-        if (data) {
-          var obj = {
-            interval: null,
-            duration: null,
-            offsets: null,
-            raw: data
-          };
-          var res = data.split(" ");
-          for (var i = 0; i < res.length; i++) {
-            switch (i) {
-              case 0:
-                obj.interval = res[i];
-                break;
-              case 1:
-                obj.duration = res[i];
-                break;
-              case 2:
-                obj.offsets = res[i];
-                break;
-            }
-          }
-          return obj;
-        }
-        return null;
-      }
-
-      /** BLOCK MEDIA
-       *    Media description, if present
-       *  m=  (media name and transport address)
-       *  i= (media title)
-       *  c= (connection information -- optional if included at
-       *     session level)
-       *  b= (zero or more bandwidth information lines)
-       *  k= (encryption key)
-       *  a= (zero or more media attribute lines)
-       */
-
-    }, {
-      key: "blockMediaParser",
-      value: function blockMediaParser(block) {
-        block.rtpmap = [];
-        for (var j = 0; j < block.data.length; j++) {
-          var res = block.data[j].split("=");
-          var key = res[0].replace(/ |\n|\r/g, "");
-          var value = res[1];
-          switch (key) {
-            case "a":
-              block.attributes.push(this.parseAline(value, block));
-              break;
-            case "c":
-              block.connection = this.parseCline(value);
-              break;
-            case "i":
-              block.information = value;
-              break;
-            case "b":
-              block.bandwidths.push(value);
-              break;
-            case "k":
-              block.encryption = value;
-              break;
-          }
-        }
-        return block;
-      }
-
-      /*  BLOCK SESSION
-       *    session description
-       *  v=  (protocol version)
-       *  o=  (originator and session identifier)
-       *  s=  (session name)
-       *  i= (session information)
-       *  u= (URI of description)
-       *  e= (email address)
-       *  p= (phone number)
-       *  c= (connection information -- not required if included in
-       *     all media)
-       *  b= (zero or more bandwidth information lines)
-       *     One or more time descriptions ("t=" and "r=" lines; see below)
-       *  z= (time zone adjustments)
-       *  k= (encryption key)
-       *  a= (zero or more session attribute lines)
-       *     Zero or more media descriptions
-       */
-
-    }, {
-      key: "blockSessionParser",
-      value: function blockSessionParser(block) {
-        block.protocol = null;
-        block.originator = null;
-        block.timeZone = null;
-        block.sessionName = null;
-        block.originator = null;
-        block.protocol = null;
-        block.uri = null;
-        block.phoneNumber = null;
-        block.email = null;
-        block.timeDescription = null;
-        block.timeRepeat = null;
-
-        for (var j = 0; j < block.data.length; j++) {
-          var res = block.data[j].split("=");
-          var key = res[0].replace(/ |\n|\r/g, "");
-          var value = res[1];
-          switch (key) {
-            case "v":
-              block.protocol = value;
-              break;
-            case "o":
-              block.originator = this.parseOline(value);
-              break;
-            case "s":
-              block.sessionName = value;
-              break;
-            case "u":
-              block.uri = value;
-              break;
-            case "e":
-              block.email = value;
-              break;
-            case "p":
-              block.phoneNumber = value;
-              break;
-            case "z":
-              block.timeZone = value;
-              break;
-            case "a":
-              block.attributes.push(this.parseAline(value, block));
-              break;
-            case "c":
-              block.connection = this.parseCline(value);
-              break;
-            case "i":
-              block.information = value;
-              break;
-            case "b":
-              block.bandwidths.push(value);
-              break;
-            case "k":
-              block.encryption = value;
-              break;
-            // TIME DESCRIPTION
-            case "t":
-              block.timeDescription = this.parseTline(value);
-              break;
-            case "r":
-              block.timeRepeat = this.parseRline(value);
-              break;
-          }
-        }
-        return block;
-      }
-    }, {
-      key: "parseBlocks",
-      value: function parseBlocks() {
-        for (var i = 0; i < this.blocks.length; i++) {
-          switch (this.blocks[i].type) {
-            case "session":
-              this.sessionBlock = this.blockSessionParser(this.blocks[i]);
-              break;
-            case "audio":
-              this.audioBlock = this.blockMediaParser(this.blocks[i]);
-              break;
-            case "video":
-              this.videoBlock = this.blockMediaParser(this.blocks[i]);
-              break;
+      let res = data.split(":");
+      let attribute = res[0].replace(/ |\n|\r/g, "");
+      let value = res[1];
+      if (aAttribute[attribute]) {
+        obj[attribute] = aAttribute[attribute](value, block);
+      } else {
+        switch (attribute) {
+        case "setup":
+          obj[attribute] = value;
+          block.setup = value;
+          break;
+        default:
+          if (aAttributeDirection[attribute]) {
+            var ele = aAttributeDirection[attribute](attribute, block);
+            obj[attribute] = ele;
+            block.direction = ele;
+          } else {
+            obj[attribute] = value;
           }
         }
       }
-    }]);
+      return obj;
+    }
 
-    return parserSdp;
-  }();
+    parseCline(data) {
+      //c=<nettype> <addrtype> <connection-address>
+      if (data) {
+        var obj = {
+          nettype: null,
+          addrtype: null,
+          address: null,
+          raw: data
+        };
+        var res = data.split(" ");
+        for (var i = 0; i < res.length; i++) {
+          switch (i) {
+          case 0:
+            obj.nettype = res[i];
+            break;
+          case 1:
+            obj.addrtype = res[i];
+
+            break;
+          case 2:
+            obj.address = res[i];
+            break;
+          }
+        }
+        return obj;
+      }
+      return null;
+    }
+
+    parseOline(data) {
+      //o=<username> <sess-id> <sess-version> <nettype> <addrtype> <unicast-address>
+      let obj = null;
+      if (data) {
+        obj = {
+          username: null,
+          sessId: null,
+          sessVersion: null,
+          nettype: null,
+          addrtype: null,
+          unicastAddr: null,
+          raw: data
+        };
+        let res = data.split(" ");
+        for (let i = 0; i < res.length; i++) {
+          switch (i) {
+          case 0:
+            obj.username = res[i];
+            break;
+          case 1:
+            obj.sessId = res[i];
+            break;
+          case 2:
+            obj.sessVersion = res[i];
+            break;
+          case 3:
+            obj.nettype = res[i];
+            break;
+          case 4:
+            obj.addrtype = res[i];
+            break;
+          case 5:
+            obj.unicastAddr = res[i];
+            break;
+          }
+        }
+        return obj;
+      }
+      return null;
+    }
+
+    /*
+     *	TIME DESCRIPTION
+     */
+    parseTline(data) {
+      //t=<start-time> <stop-time>
+      if (data) {
+        var obj = {
+          start: null,
+          stop: null,
+          raw: data
+        };
+        var res = data.split(" ");
+        for (var i = 0; i < res.length; i++) {
+          switch (i) {
+          case 0:
+            obj.start = res[i];
+            break;
+          case 1:
+            obj.stop = res[i];
+            break;
+          }
+        }
+        return obj;
+      }
+      return null;
+    }
+
+    parseRline(data) {
+      //r=<repeat interval> <active duration> <offsets from start-time>
+      if (data) {
+        var obj = {
+          interval: null,
+          duration: null,
+          offsets: null,
+          raw: data
+        };
+        var res = data.split(" ");
+        for (var i = 0; i < res.length; i++) {
+          switch (i) {
+          case 0:
+            obj.interval = res[i];
+            break;
+          case 1:
+            obj.duration = res[i];
+            break;
+          case 2:
+            obj.offsets = res[i];
+            break;
+          }
+        }
+        return obj;
+      }
+      return null;
+    }
+
+    /** BLOCK MEDIA
+     *    Media description, if present
+     *  m=  (media name and transport address)
+     *  i= (media title)
+     *  c= (connection information -- optional if included at
+     *     session level)
+     *  b= (zero or more bandwidth information lines)
+     *  k= (encryption key)
+     *  a= (zero or more media attribute lines)
+     */
+    blockMediaParser(block) {
+      block.rtpmap = [];
+      for (var j = 0; j < block.data.length; j++) {
+        var res = block.data[j].split("=");
+        var key = res[0].replace(/ |\n|\r/g, "");
+        var value = res[1];
+        switch (key) {
+        case "a":
+          block.attributes.push(this.parseAline(value, block));
+          break;
+        case "c":
+          block.connection = this.parseCline(value);
+          break;
+        case "i":
+          block.information = value;
+          break;
+        case "b":
+          block.bandwidths.push(value);
+          break;
+        case "k":
+          block.encryption = value;
+          break;
+        }
+      }
+      return block;
+    }
+
+    /*  BLOCK SESSION
+     *    session description
+     *  v=  (protocol version)
+     *  o=  (originator and session identifier)
+     *  s=  (session name)
+     *  i= (session information)
+     *  u= (URI of description)
+     *  e= (email address)
+     *  p= (phone number)
+     *  c= (connection information -- not required if included in
+     *     all media)
+     *  b= (zero or more bandwidth information lines)
+     *     One or more time descriptions ("t=" and "r=" lines; see below)
+     *  z= (time zone adjustments)
+     *  k= (encryption key)
+     *  a= (zero or more session attribute lines)
+     *     Zero or more media descriptions
+     */
+    blockSessionParser(block) {
+      block.protocol = null;
+      block.originator = null;
+      block.timeZone = null;
+      block.sessionName = null;
+      block.originator = null;
+      block.protocol = null;
+      block.uri = null;
+      block.phoneNumber = null;
+      block.email = null;
+      block.timeDescription = null;
+      block.timeRepeat = null;
+
+      for (var j = 0; j < block.data.length; j++) {
+        var res = block.data[j].split("=");
+        var key = res[0].replace(/ |\n|\r/g, "");
+        var value = res[1];
+        switch (key) {
+        case "v":
+          block.protocol = value;
+          break;
+        case "o":
+          block.originator = this.parseOline(value);
+          break;
+        case "s":
+          block.sessionName = value;
+          break;
+        case "u":
+          block.uri = value;
+          break;
+        case "e":
+          block.email = value;
+          break;
+        case "p":
+          block.phoneNumber = value;
+          break;
+        case "z":
+          block.timeZone = value;
+          break;
+        case "a":
+          block.attributes.push(this.parseAline(value, block));
+          break;
+        case "c":
+          block.connection = this.parseCline(value);
+          break;
+        case "i":
+          block.information = value;
+          break;
+        case "b":
+          block.bandwidths.push(value);
+          break;
+        case "k":
+          block.encryption = value;
+          break;
+          // TIME DESCRIPTION
+        case "t":
+          block.timeDescription = this.parseTline(value);
+          break;
+        case "r":
+          block.timeRepeat = this.parseRline(value);
+          break;
+        }
+      }
+      return block;
+    }
+
+    parseBlocks() {
+      for (var i = 0; i < this.blocks.length; i++) {
+        switch (this.blocks[i].type) {
+        case "session":
+          this.sessionBlock = this.blockSessionParser(this.blocks[i]);
+          break;
+        case "audio":
+          this.audioBlock = this.blockMediaParser(this.blocks[i]);
+          break;
+        case "video":
+          this.videoBlock = this.blockMediaParser(this.blocks[i]);
+          break;
+        }
+      }
+    }
+  };
 
   stage.io.protocols.sdp = parserSdp;
 
@@ -26832,26 +26730,16 @@ module.exports = function (stage) {
 /*! no static exports found */
 /***/ (function(module, exports, __webpack_require__) {
 
-"use strict";
-/* WEBPACK VAR INJECTION */(function($) {
-
-var _createClass = function () { function defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ("value" in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } } return function (Constructor, protoProps, staticProps) { if (protoProps) defineProperties(Constructor.prototype, protoProps); if (staticProps) defineProperties(Constructor, staticProps); return Constructor; }; }();
-
-function _possibleConstructorReturn(self, call) { if (!self) { throw new ReferenceError("this hasn't been initialised - super() hasn't been called"); } return call && (typeof call === "object" || typeof call === "function") ? call : self; }
-
-function _inherits(subClass, superClass) { if (typeof superClass !== "function" && superClass !== null) { throw new TypeError("Super expression must either be null or a function, not " + typeof superClass); } subClass.prototype = Object.create(superClass && superClass.prototype, { constructor: { value: subClass, enumerable: false, writable: true, configurable: true } }); if (superClass) Object.setPrototypeOf ? Object.setPrototypeOf(subClass, superClass) : subClass.__proto__ = superClass; }
-
-function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError("Cannot call a class as a function"); } }
-
-module.exports = function (stage) {
+/* WEBPACK VAR INJECTION */(function($) {module.exports = function (stage) {
 
   'use strict';
 
-  var byteToHex = function byteToHex(byte) {
+
+  const byteToHex = function (byte) {
     return ('0' + byte.toString(16)).slice(-2);
   };
 
-  var generateId = function generateId(len) {
+  const generateId = function (len) {
     var arr = new Uint8Array((len || 40) / 2);
     window.crypto.getRandomValues(arr);
     return [].map.call(arr, byteToHex).join("");
@@ -26863,12 +26751,12 @@ module.exports = function (stage) {
    *
    *
    */
-  var stringify = function stringify(value) {
+  const stringify = function (value) {
     return '"' + value + '"';
   };
 
-  var reg = /^([^=]+)=(.+)$/;
-  var parserAuthenticate = function parserAuthenticate(str) {
+  const reg = /^([^=]+)=(.+)$/;
+  const parserAuthenticate = function (str) {
     var ret = str.replace(/"/g, "");
     ret = ret.replace(/Digest /g, "");
     var head = ret.split(",");
@@ -26883,11 +26771,11 @@ module.exports = function (stage) {
     return obj;
   };
 
-  var MD5 = stage.crypto.md5.hex_md5_noUTF8;
+  const MD5 = stage.crypto.md5.hex_md5_noUTF8;
   //var BASE64 = stage.crypto.base64.encode ;
 
-  var digest = {
-    generateA1: function generateA1(username, realm, password, nonce, cnonce) {
+  const digest = {
+    generateA1: function (username, realm, password, nonce, cnonce) {
       var A1 = null;
       if (cnonce) {
         A1 = username + ":" + realm + ":" + password + ":" + nonce + ":" + cnonce;
@@ -26897,7 +26785,7 @@ module.exports = function (stage) {
       //console.log(A1)
       return MD5(A1);
     },
-    generateA2: function generateA2(method, uri, entity_body, qop) {
+    generateA2: function (method, uri, entity_body, qop) {
       var A2 = "";
       if (!qop || qop === "auth") {
         A2 = method + ":" + uri;
@@ -26912,7 +26800,7 @@ module.exports = function (stage) {
       //console.log(A2)
       return MD5(A2);
     },
-    generateResponse: function generateResponse(A1, nonce, noncecount, cnonce, qop, A2) {
+    generateResponse: function (A1, nonce, noncecount, cnonce, qop, A2) {
       var res = "";
       if (qop === "auth" || qop === "auth-int") {
         res = A1 + ":" + nonce + ":" + noncecount + ":" + cnonce + ":" + qop + ":" + A2;
@@ -26924,9 +26812,10 @@ module.exports = function (stage) {
     }
   };
 
-  var authenticate = function () {
-    function authenticate(dialog, username, password) {
-      _classCallCheck(this, authenticate);
+
+  const authenticate = class authenticate {
+
+    constructor(dialog, username, password) {
 
       this.dialog = dialog;
       this.userName = username;
@@ -26941,64 +26830,60 @@ module.exports = function (stage) {
       this.entity_body = null;
     }
 
-    _createClass(authenticate, [{
-      key: 'register',
-      value: function register(message, type) {
-        //console.log("AUTH REGISTER")
-        //console.log(message);
-        var head = message.authenticate;
-        if (!head) {
-          head = this.dialog.authenticate;
-        } else {
-          this.dialog.authenticate = head;
-        }
-        this.realm = head.realm;
-        this.nonce = head.nonce;
-        this.cnonce = head.cnonce;
-        this.qop = head.qop;
-        this.algorithm = head.Digestalgorithm ? head.Digestalgorithm : "md5";
-        if (message.rawBody) {
-          this.entity_body = message.rawBody;
-        }
-        switch (this.algorithm.toLowerCase()) {
-          case "md5":
-            this.response = this.digestMD5(message.method);
-            break;
-        }
+    register(message, type) {
+      //console.log("AUTH REGISTER")
+      //console.log(message);
+      var head = message.authenticate;
+      if (!head) {
+        head = this.dialog.authenticate;
+      } else {
+        this.dialog.authenticate = head;
+      }
+      this.realm = head.realm;
+      this.nonce = head.nonce;
+      this.cnonce = head.cnonce;
+      this.qop = head.qop;
+      this.algorithm = head.Digestalgorithm ? head.Digestalgorithm : "md5";
+      if (message.rawBody) {
+        this.entity_body = message.rawBody;
+      }
+      switch (this.algorithm.toLowerCase()) {
+      case "md5":
+        this.response = this.digestMD5(message.method);
+        break;
+      }
 
-        var method = "";
-        if (!type) {
+      var method = "";
+      if (!type) {
+        method = "Authorization: ";
+      } else {
+        if (type === "proxy") {
+          method = "Proxy-Authorization: ";
+        } else {
           method = "Authorization: ";
-        } else {
-          if (type === "proxy") {
-            method = "Proxy-Authorization: ";
-          } else {
-            method = "Authorization: ";
-          }
         }
-        var line = "Digest username=" + stringify(this.userName) + ", realm=" + stringify(this.realm) + ", nonce=" + stringify(this.nonce) + ", uri=" + stringify(this.uri) + ", algorithm=" + this.algorithm + ", response=" + stringify(this.response);
-        this.lineResponse = method + line;
-
-        //var transac = message.transaction ;
-        var transac = this.dialog.createTransaction(message.transaction.to);
-        this.dialog.tagTo = null;
-        //this.dialog.sip.fire("onInitCall", this.dialog.toName, this.dialog, transac);
-        var request = transac.createRequest(this.dialog.body, this.dialog.bodyType);
-        request.header.response = this.lineResponse;
-        request.send();
-        return transac;
       }
-    }, {
-      key: 'digestMD5',
-      value: function digestMD5(method) {
-        var A1 = digest.generateA1(this.userName, this.realm, this.password, this.nonce, this.cnonce);
-        var A2 = digest.generateA2(method, this.uri, this.entity_body, this.qop);
-        return digest.generateResponse(A1, this.nonce, this.nonceCount, this.cnonce, this.qop, A2);
-      }
-    }]);
+      var line = "Digest username=" + stringify(this.userName) + ", realm=" + stringify(this.realm) + ", nonce=" + stringify(this.nonce) + ", uri=" + stringify(this.uri) + ", algorithm=" + this.algorithm + ", response=" + stringify(this.response);
+      this.lineResponse = method + line;
 
-    return authenticate;
-  }();
+      //var transac = message.transaction ;
+      var transac = this.dialog.createTransaction(message.transaction.to);
+      this.dialog.tagTo = null;
+      //this.dialog.sip.fire("onInitCall", this.dialog.toName, this.dialog, transac);
+      var request = transac.createRequest(this.dialog.body, this.dialog.bodyType);
+      request.header.response = this.lineResponse;
+      request.send();
+      return transac;
+
+    }
+
+    digestMD5(method) {
+      var A1 = digest.generateA1(this.userName, this.realm, this.password, this.nonce, this.cnonce);
+      var A2 = digest.generateA2(method, this.uri, this.entity_body, this.qop);
+      return digest.generateResponse(A1, this.nonce, this.nonceCount, this.cnonce, this.qop, A2);
+    }
+  };
+
 
   /*
    *
@@ -27007,7 +26892,7 @@ module.exports = function (stage) {
    *
    */
   //var regContact = /.*<(sip:.*)>(.*)|.*<(sips:.*)>(.*)/g;
-  var regHeaders = {
+  const regHeaders = {
     line: /\r\n|\r|\n/,
     headName: /: */,
     Allow: /, */,
@@ -27019,7 +26904,7 @@ module.exports = function (stage) {
     contact: /.*<(sips?:.*)>(.*)?$/
   };
 
-  var parsefromTo = function parsefromTo(type, value) {
+  const parsefromTo = function (type, value) {
     try {
       var sp = value.split(";");
       this.message[type + "Tag"] = null;
@@ -27027,7 +26912,7 @@ module.exports = function (stage) {
       var res2 = regHeaders.fromTo.exec(res);
       //console.log(regHeaders.fromToG.exec(res))
       //console.log(res2)
-      this.message[type + "Name"] = res2.length > 2 ? res2[1].replace(/ |\n|\r/g, "").replace(/"/g, "") : "";
+      this.message[type + "Name"] = (res2.length > 2) ? res2[1].replace(/ |\n|\r/g, "").replace(/"/g, "") : "";
       this.message[type] = res2[1].replace(" ", "") + "@" + res2[2].replace(/ |\n|\r/g, "");
       var ret = regHeaders.fromToG.exec(res);
       if (ret && ret[1]) {
@@ -27051,10 +26936,10 @@ module.exports = function (stage) {
     }
   };
 
-  var headerSip = function () {
-    function headerSip(message, header) {
-      _classCallCheck(this, headerSip);
 
+  const headerSip = class headerSip {
+
+    constructor(message, header) {
       this.rawHeader = {};
       this.message = message;
       this.method = null;
@@ -27073,193 +26958,175 @@ module.exports = function (stage) {
       }
     }
 
-    _createClass(headerSip, [{
-      key: 'parse',
-      value: function parse(header) {
-        var _this = this;
+    parse(header) {
+      var tab = header.split(regHeaders.line);
+      var type = tab.shift();
+      this.firstLine = type.split(" ");
+      $.each(tab, (Index, ele) => {
+        var res = regHeaders.headName.exec(ele);
+        var size = res[0].length;
+        var headName = res.input.substr(0, res.index);
+        var headValue = res.input.substr(res.index + size);
+        this.rawHeader[headName] = headValue;
+        var func = "set" + headName;
+        if (func === "setVia") {
+          var index = this.Via.push(headValue);
+          this[headName][index - 1] = this[func](headValue, ele);
+        } else {
+          this[headName] = headValue;
+          if (this[func]) {
+            try {
+              this[headName] = this[func](headValue);
+            } catch (e) {
+              this.message.sip.logger("Parse : " + headName, "ERROR");
+              throw e;
+            }
+          }
+        }
+      });
+      if (!this["Content-Type"]) {
+        this.message.contentType = null;
+      } else {
+        this.message.contentType = this["Content-Type"];
+      }
+    }
 
-        var tab = header.split(regHeaders.line);
-        var type = tab.shift();
-        this.firstLine = type.split(" ");
-        $.each(tab, function (Index, ele) {
-          var res = regHeaders.headName.exec(ele);
-          var size = res[0].length;
-          var headName = res.input.substr(0, res.index);
-          var headValue = res.input.substr(res.index + size);
-          _this.rawHeader[headName] = headValue;
-          var func = "set" + headName;
-          if (func === "setVia") {
-            var index = _this.Via.push(headValue);
-            _this[headName][index - 1] = _this[func](headValue, ele);
-          } else {
-            _this[headName] = headValue;
-            if (_this[func]) {
-              try {
-                _this[headName] = _this[func](headValue);
-              } catch (e) {
-                _this.message.sip.logger("Parse : " + headName, "ERROR");
-                throw e;
-              }
-            }
-          }
-        });
-        if (!this["Content-Type"]) {
-          this.message.contentType = null;
-        } else {
-          this.message.contentType = this["Content-Type"];
-        }
-      }
-    }, {
-      key: 'setFrom',
-      value: function setFrom(value) {
-        parsefromTo.call(this, "from", value);
-        return value;
-      }
-    }, {
-      key: 'setTo',
-      value: function setTo(value) {
-        parsefromTo.call(this, "to", value);
-        return value;
-      }
-    }, {
-      key: "setWWW-Authenticate",
-      value: function setWWWAuthenticate(value) {
-        this.message.authenticate = parserAuthenticate(value);
-        /*var ele ={};
-        var res = value.split(",")
-        for (var i=0 ; i < res.length ;i++){
-        var ret = regHeaders.algorithm.exec(res[i]);
-        var size = ret[0].length;
-        var headName = ret.input.substr(0,ret.index).replace(" ","");
-        var headValue = ret.input.substr(ret.index+size).replace(/"/g,"");
-        ele[headName] = headValue.replace(/"/g,"");
-        }
-        this.message.authenticate = ele ;*/
-        return value;
-      }
-    }, {
-      key: "setProxy-Authenticate",
-      value: function setProxyAuthenticate(value) {
-        this.message.authenticate = parserAuthenticate(value);
-        return value;
-      }
-    }, {
-      key: "setRecord-Route",
-      value: function setRecordRoute(value) {
-        this.recordRoutes.push(value);
-        return value;
-      }
-    }, {
-      key: "setRoute",
-      value: function setRoute(value) {
-        this.routes.push(value);
-        return value;
-      }
-    }, {
-      key: 'setDate',
-      value: function setDate(value) {
-        try {
-          this.message.date = new Date(value);
-        } catch (e) {
-          this.message.date = value;
-        }
-        return value;
-      }
-    }, {
-      key: "setCall-ID",
-      value: function setCallID(value) {
-        this.message.callId = value;
-        return value;
-        /*this.callIdRaw = value ;
-        var res = regHeaders.CallId.exec(value);
-        if (res){
-        this.message.callId =res[1];
-        return res[1];
-        }else{
-        this.message.callId =value;
-        return value;
-        }*/
-      }
-    }, {
-      key: 'setCSeq',
-      value: function setCSeq(value) {
-        var res = value.split(" ");
-        this.message.cseq = parseInt(res[0], 10);
-        this.message.method = res[1];
-        return value;
-      }
-    }, {
-      key: 'setContact',
-      value: function setContact(value) {
-        var parseValue = regHeaders.contact.exec(value);
-        if (parseValue) {
-          this.message.contact = parseValue[1];
-          if (parseValue[2]) {
-            var clean = parseValue[2].replace(/^;(.*)/, "$1");
-            var sp = clean.split(";");
-            for (var i = 0; i < sp.length; i++) {
-              var res = sp[i].split("=");
-              if (!res) {
-                continue;
-              }
-              var name = res[0].toLowerCase();
-              if (name === "expires") {
-                this["contact-" + name] = res[1];
-              }
-            }
-          }
-        } else {
-          throw new Error("Contact parse error : " + value);
-        }
-        return value;
-      }
-    }, {
-      key: 'setAllow',
-      value: function setAllow(value) {
-        if (value) {
-          return this.Allow.split(regHeaders.Allow);
-        } else {
-          return this.Allow;
-        }
-      }
-    }, {
-      key: 'setSupported',
-      value: function setSupported(value) {
-        if (value) {
-          return this.Supported.split(regHeaders.Allow);
-        } else {
-          return this.Supported;
-        }
-      }
-    }, {
-      key: 'setVia',
-      value: function setVia(value, raw) {
-        if (value) {
-          var res = value.split(regHeaders.Via);
-          var obj = {
-            line: Array.prototype.shift.call(res),
-            raw: raw
-          };
-          for (var i = 0; i < res.length; i++) {
-            var tab = res[i].split('=');
-            if (tab) {
-              if (tab[0] === "branch") {
-                if (!this.branch) {
-                  this.branch = tab[1];
-                }
-              }
-              obj[tab[0]] = tab[1];
-            }
-          }
-          return obj;
-        } else {
-          return value;
-        }
-      }
-    }]);
+    setFrom(value) {
+      parsefromTo.call(this, "from", value);
+      return value;
+    }
 
-    return headerSip;
-  }();
+    setTo(value) {
+      parsefromTo.call(this, "to", value);
+      return value;
+    }
+
+    "setWWW-Authenticate" (value) {
+      this.message.authenticate = parserAuthenticate(value);
+      /*var ele ={};
+		  	var res = value.split(",")
+		  	for (var i=0 ; i < res.length ;i++){
+		  	var ret = regHeaders.algorithm.exec(res[i]);
+		  	var size = ret[0].length;
+		  	var headName = ret.input.substr(0,ret.index).replace(" ","");
+		  	var headValue = ret.input.substr(ret.index+size).replace(/"/g,"");
+		  	ele[headName] = headValue.replace(/"/g,"");
+		  	}
+		  	this.message.authenticate = ele ;*/
+      return value;
+    }
+
+    "setProxy-Authenticate" (value) {
+      this.message.authenticate = parserAuthenticate(value);
+      return value;
+    }
+
+    "setRecord-Route" (value) {
+      this.recordRoutes.push(value);
+      return value;
+    }
+
+    "setRoute" (value) {
+      this.routes.push(value);
+      return value;
+    }
+
+    setDate(value) {
+      try {
+        this.message.date = new Date(value);
+      } catch (e) {
+        this.message.date = value;
+      }
+      return value;
+    }
+
+    "setCall-ID" (value) {
+      this.message.callId = value;
+      return value;
+      /*this.callIdRaw = value ;
+		  	var res = regHeaders.CallId.exec(value);
+		  	if (res){
+		  	this.message.callId =res[1];
+		  	return res[1];
+
+		  	}else{
+		  	this.message.callId =value;
+		  	return value;
+		  	}*/
+    }
+
+    setCSeq(value) {
+      var res = value.split(" ");
+      this.message.cseq = parseInt(res[0], 10);
+      this.message.method = res[1];
+      return value;
+    }
+
+    setContact(value) {
+      var parseValue = regHeaders.contact.exec(value);
+      if (parseValue) {
+        this.message.contact = parseValue[1];
+        if (parseValue[2]) {
+          var clean = parseValue[2].replace(/^;(.*)/, "$1");
+          var sp = clean.split(";");
+          for (var i = 0; i < sp.length; i++) {
+            var res = sp[i].split("=");
+            if (!res) {
+              continue;
+            }
+            var name = res[0].toLowerCase();
+            if (name === "expires") {
+              this["contact-" + name] = res[1];
+            }
+          }
+        }
+      } else {
+        throw new Error("Contact parse error : " + value);
+      }
+      return value;
+    }
+
+    setAllow(value) {
+      if (value) {
+        return this.Allow.split(regHeaders.Allow);
+      } else {
+        return this.Allow;
+      }
+    }
+
+    setSupported(value) {
+      if (value) {
+        return this.Supported.split(regHeaders.Allow);
+      } else {
+        return this.Supported;
+      }
+    }
+
+    setVia(value, raw) {
+      if (value) {
+        var res = value.split(regHeaders.Via);
+        var obj = {
+          line: Array.prototype.shift.call(res),
+          raw: raw
+        };
+        for (var i = 0; i < res.length; i++) {
+          var tab = res[i].split('=');
+          if (tab) {
+            if (tab[0] === "branch") {
+              if (!this.branch) {
+                this.branch = tab[1];
+              }
+            }
+            obj[tab[0]] = tab[1];
+          }
+        }
+        return obj;
+      } else {
+        return value;
+      }
+    }
+  };
+
 
   /*
    *
@@ -27268,10 +27135,9 @@ module.exports = function (stage) {
    *
    *
    */
-  var bodySip = function () {
-    function bodySip(message, body) {
-      _classCallCheck(this, bodySip);
+  const bodySip = class bodySip {
 
+    constructor(message, body) {
       this.message = message;
       this.message.rawBody = body;
       this.size = this.message.contentLength;
@@ -27283,58 +27149,52 @@ module.exports = function (stage) {
       }
     }
 
-    _createClass(bodySip, [{
-      key: 'parse',
-      value: function parse(type, body) {
-        switch (type) {
-          case "application/sdp":
-            this.sdpParser(body);
-            break;
-          case "application/dtmf-relay":
-            this.dtmfParser(body);
-            break;
-          default:
-            this.body = body;
-        }
+    parse(type, body) {
+      switch (type) {
+      case "application/sdp":
+        this.sdpParser(body);
+        break;
+      case "application/dtmf-relay":
+        this.dtmfParser(body);
+        break;
+      default:
+        this.body = body;
       }
-    }, {
-      key: 'sdpParser',
-      value: function sdpParser(body) {
-        // Parser SDP
-        this.body = body || "";
-        if (!body) {
-          this.sdp = null;
-        } else {
-          try {
-            this.sdp = new stage.io.protocols.sdp(body);
-            //console.log(this.sdp)
-          } catch (e) {
-            throw e;
-          }
-        }
-      }
-    }, {
-      key: 'dtmfParser',
-      value: function dtmfParser(body) {
-        // Parser DTMF
-        this.body = body || "";
-        if (!body) {
-          this.dtmf = null;
-        } else {
-          // Parser dtmf
-          var obj = {};
-          var line = body.split("\n");
-          for (var i = 0; i < line.length; i++) {
-            var res = line[i].split("=");
-            obj[res[0].replace(/ |\n|\r/g, "")] = res[1];
-          }
-          this.dtmf = obj;
-        }
-      }
-    }]);
+    }
 
-    return bodySip;
-  }();
+    sdpParser(body) {
+      // Parser SDP
+      this.body = body || "";
+      if (!body) {
+        this.sdp = null;
+      } else {
+        try {
+          this.sdp = new stage.io.protocols.sdp(body);
+          //console.log(this.sdp)
+        } catch (e) {
+          throw e;
+        }
+      }
+    }
+
+    dtmfParser(body) {
+      // Parser DTMF
+      this.body = body || "";
+      if (!body) {
+        this.dtmf = null;
+      } else {
+        // Parser dtmf
+        var obj = {};
+        var line = body.split("\n");
+        for (var i = 0; i < line.length; i++) {
+          var res = line[i].split("=");
+          obj[res[0].replace(/ |\n|\r/g, "")] = res[1];
+        }
+        this.dtmf = obj;
+      }
+    }
+  };
+
 
   /*
    *
@@ -27343,13 +27203,12 @@ module.exports = function (stage) {
    *
    *
    */
-  var endline = "\r\n";
-  var endHeader = "\r\n\r\n";
+  const endline = "\r\n";
+  const endHeader = "\r\n\r\n";
 
-  var sipRequest = function () {
-    function sipRequest(transaction, bodyMessage, typeBody) {
-      _classCallCheck(this, sipRequest);
+  const sipRequest = class sipRequest {
 
+    constructor(transaction, bodyMessage, typeBody) {
       this.transaction = transaction;
       this["request-port"] = this.transaction.dialog.sip.serverPort;
 
@@ -27363,112 +27222,101 @@ module.exports = function (stage) {
       this.buildBody(bodyMessage || "", typeBody);
     }
 
-    _createClass(sipRequest, [{
-      key: 'buildRequestline',
-      value: function buildRequestline() {
-        this.requestLine.method = this.transaction.method.toUpperCase();
-        this.requestLine.version = this.transaction.dialog.sip.version;
+    buildRequestline() {
+      this.requestLine.method = this.transaction.method.toUpperCase();
+      this.requestLine.version = this.transaction.dialog.sip.version;
+    }
+
+    getRequestline(uri) {
+      switch (this.transaction.method) {
+      case "REGISTER":
+        this["request-uri"] = "sip:" + this.transaction.dialog.sip.server;
+        return this.transaction.method + " " + this["request-uri"] + " " + this.requestLine.version + endline;
+      case "INVITE":
+      case "BYE":
+      case "NOTIFY":
+      case "INFO":
+      case "CANCEL":
+      case "ACK":
+        this["request-uri"] = this.transaction.dialog["request-uri"];
+        return this.transaction.method + " " + this["request-uri"] + " " + this.requestLine.version + endline;
       }
-    }, {
-      key: 'getRequestline',
-      value: function getRequestline(uri) {
-        switch (this.transaction.method) {
-          case "REGISTER":
-            this["request-uri"] = "sip:" + this.transaction.dialog.sip.server;
-            return this.transaction.method + " " + this["request-uri"] + " " + this.requestLine.version + endline;
-          case "INVITE":
-          case "BYE":
-          case "NOTIFY":
-          case "INFO":
-          case "CANCEL":
-          case "ACK":
-            this["request-uri"] = this.transaction.dialog["request-uri"];
-            return this.transaction.method + " " + this["request-uri"] + " " + this.requestLine.version + endline;
+    }
+
+    buildHeader() {
+      //FIXE ME RPORT IN VIA PARSER
+
+      let rport = this.transaction.dialog.sip.rport;
+      let ip = this.transaction.dialog.sip.publicAddress;
+
+      this.header.via = "Via: " + this.transaction.dialog.sip.via + ";" + "branch=" + this.transaction.branch;
+      //if ( rport ){
+      //this.header.via  = "Via: "+this.transaction.dialog.sip.version+"/"+this.transaction.dialog.sip.settings.transport+" " +ip+":"+rport+";"+"branch="+this.transaction.branch;
+      //}else{
+      //this.header.via  = "Via: "+this.transaction.dialog.sip.version+"/"+this.transaction.dialog.sip.settings.transport+" " +ip+":"+this["request-port"]+";"+"branch="+this.transaction.branch;
+      //}
+      this.header.cseq = "CSeq: " + this.transaction.dialog.cseq + " " + this.transaction.method;
+
+      this.header.from = "From: " + this.transaction.dialog.from + ";tag=" + this.transaction.dialog.tagFrom;
+
+      let tagTo = this.transaction.dialog.tagTo ? ";tag=" + this.transaction.dialog.tagTo : "";
+      this.header.to = "To: " + this.transaction.to + tagTo;
+
+      this.header.callId = "Call-ID: " + this.transaction.dialog.callId;
+      this.header.expires = "Expires: " + this.transaction.dialog.expires;
+      this.header.maxForward = "Max-Forwards: " + this.transaction.dialog.maxForward;
+      this.header.userAgent = "User-Agent: " + this.transaction.dialog.sip.settings.userAgent;
+
+      this.header.contact = "Contact: " + this.transaction.dialog.contact;
+
+      if (this.transaction.dialog.routes && this.transaction.dialog.routes.length) {
+        this.header.routes = [];
+        for (let i = this.transaction.dialog.routes.length - 1; i >= 0; i--) {
+          this.header.routes.push("Route: " + this.transaction.dialog.routes[i]);
         }
       }
-    }, {
-      key: 'buildHeader',
-      value: function buildHeader() {
-        //FIXE ME RPORT IN VIA PARSER
+    }
 
-        var rport = this.transaction.dialog.sip.rport;
-        var ip = this.transaction.dialog.sip.publicAddress;
-
-        this.header.via = "Via: " + this.transaction.dialog.sip.via + ";" + "branch=" + this.transaction.branch;
-        //if ( rport ){
-        //this.header.via  = "Via: "+this.transaction.dialog.sip.version+"/"+this.transaction.dialog.sip.settings.transport+" " +ip+":"+rport+";"+"branch="+this.transaction.branch;
-        //}else{
-        //this.header.via  = "Via: "+this.transaction.dialog.sip.version+"/"+this.transaction.dialog.sip.settings.transport+" " +ip+":"+this["request-port"]+";"+"branch="+this.transaction.branch;
-        //}
-        this.header.cseq = "CSeq: " + this.transaction.dialog.cseq + " " + this.transaction.method;
-
-        this.header.from = "From: " + this.transaction.dialog.from + ";tag=" + this.transaction.dialog.tagFrom;
-
-        var tagTo = this.transaction.dialog.tagTo ? ";tag=" + this.transaction.dialog.tagTo : "";
-        this.header.to = "To: " + this.transaction.to + tagTo;
-
-        this.header.callId = "Call-ID: " + this.transaction.dialog.callId;
-        this.header.expires = "Expires: " + this.transaction.dialog.expires;
-        this.header.maxForward = "Max-Forwards: " + this.transaction.dialog.maxForward;
-        this.header.userAgent = "User-Agent: " + this.transaction.dialog.sip.settings.userAgent;
-
-        this.header.contact = "Contact: " + this.transaction.dialog.contact;
-
-        if (this.transaction.dialog.routes && this.transaction.dialog.routes.length) {
-          this.header.routes = [];
-          for (var i = this.transaction.dialog.routes.length - 1; i >= 0; i--) {
-            this.header.routes.push("Route: " + this.transaction.dialog.routes[i]);
+    getHeader() {
+      var head = "";
+      for (var line in this.header) {
+        switch (stage.typeOf(this.header[line])) {
+        case "string":
+          head += this.header[line] + endline;
+          break;
+        case "array":
+          for (var i = 0; i < this.header[line].length; i++) {
+            head += this.header[line][i] + endline;
           }
+          break;
         }
       }
-    }, {
-      key: 'getHeader',
-      value: function getHeader() {
-        var head = "";
-        for (var line in this.header) {
-          switch (stage.typeOf(this.header[line])) {
-            case "string":
-              head += this.header[line] + endline;
-              break;
-            case "array":
-              for (var i = 0; i < this.header[line].length; i++) {
-                head += this.header[line][i] + endline;
-              }
-              break;
-          }
-        }
-        return head;
-      }
-    }, {
-      key: 'buildBody',
-      value: function buildBody(body, type) {
-        this.header.contentLength = "Content-Length: " + body.length;
-        if (type) {
-          this.header.contentType = "Content-Type: " + type;
-        }
-        this.body = body || "";
-      }
-    }, {
-      key: 'getBody',
-      value: function getBody() {
-        return this.body;
-      }
-    }, {
-      key: 'getMessage',
-      value: function getMessage() {
-        //console.log(this.getRequestline() + this.getHeader() + endline + this.getBody())
-        //console.log(this.getRequestline() + this.getHeader() + endline + this.getBody())
-        return this.rawResponse = this.getRequestline() + this.getHeader() + endline + this.getBody();
-      }
-    }, {
-      key: 'send',
-      value: function send() {
-        return this.transaction.send(this.getMessage());
-      }
-    }]);
+      return head;
+    }
 
-    return sipRequest;
-  }();
+    buildBody(body, type) {
+      this.header.contentLength = "Content-Length: " + body.length;
+      if (type) {
+        this.header.contentType = "Content-Type: " + type;
+      }
+      this.body = body ||  "";
+    }
+
+    getBody() {
+      return this.body;
+    }
+
+    getMessage() {
+      //console.log(this.getRequestline() + this.getHeader() + endline + this.getBody())
+      //console.log(this.getRequestline() + this.getHeader() + endline + this.getBody())
+      return this.rawResponse = this.getRequestline() + this.getHeader() + endline + this.getBody();
+    }
+
+    send() {
+      return this.transaction.send(this.getMessage());
+    }
+  };
+
 
   /*
    *
@@ -27477,14 +27325,13 @@ module.exports = function (stage) {
    *
    *
    */
-  var codeMessage = {
+  const codeMessage = {
     200: "OK"
   };
 
-  var sipResponse = function () {
-    function sipResponse(message, code, messageCode, bodyMessage, typeBody) {
-      _classCallCheck(this, sipResponse);
+  const sipResponse = class sipResponse {
 
+    constructor(message, code, messageCode, bodyMessage, typeBody) {
       this.message = message;
       this.transaction = message.transaction;
       this.dialog = message.dialog;
@@ -27495,140 +27342,129 @@ module.exports = function (stage) {
       this.buildBody(bodyMessage || "", typeBody);
     }
 
-    _createClass(sipResponse, [{
-      key: 'buildHeader',
-      value: function buildHeader(message) {
-        for (var head in message.rawHeader) {
-          var i = 0;
-          switch (head) {
-            case "Allow":
-            case "Supported":
-              var ptr = "";
-              for (i = 0; i < message.header[head].length; i++) {
-                if (i < message.header[head].length - 1) {
-                  ptr += message.header[head][i] + ",";
-                } else {
-                  ptr += message.header[head][i];
-                }
-              }
-              this.header.push(head + ": " + ptr);
-              break;
-            case "Via":
-              if (this.responseLine.code == "487") {
-                for (i = 0; i < this.dialog[head].length; i++) {
-                  this.header.push(this.dialog[head][i].raw);
-                }
-              } else {
-                for (i = 0; i < message.header[head].length; i++) {
-                  this.header.push(message.header[head][i].raw);
-                }
-              }
-              break;
-            case "User-Agent":
-              this.header.push("User-Agent: " + this.transaction.dialog.sip.settings.userAgent);
-              break;
-            case "Contact":
-              /*var rport = this.transaction.dialog.sip.rport ;
-              var ip = this.transaction.dialog.sip.publicAddress;
-              if ( rport ){
-              	this.header.push( "Contact: <sip:" +this.transaction.to+"@"+ip+":"+rport+";transport="+this.transaction.dialog.sip.settings.transport.toLowerCase()+">");
-              }else{
-              	this.header.push( "Contact: <sip:" +this.transaction.to+"@"+ip+";transport="+this.transaction.dialog.sip.settings.transport.toLowerCase()+">");
-              }*/
-              this.header.push("Contact: " + this.dialog.contact);
-              break;
-            case "To":
-              //console.log(message.header[head] )
-              //console.log(this.dialog.sip.displayName )
-              var ret = regHeaders.fromToG.exec(message.header[head]);
-              //console.log(ret)
-              if (ret && !ret[1]) {
-                //console.log("traff to")
-                message.header[head] = '"' + this.dialog.sip.displayName + '"' + message.header[head];
-              }
-              //console.log(message.header[head])
-              if (!message.header[head].match(/;tag=/)) {
-                this.header.push(head + ": " + message.header[head] + (this.transaction.dialog.tagFrom ? ";tag=" + this.transaction.dialog.tagFrom : ""));
-              } else {
-                this.header.push(head + ": " + message.header[head]);
-              }
-              break;
-            case "Record-Route":
-              for (i = this.message.dialog.routes.length - 1; i >= 0; i--) {
-                this.header.push(head + ": " + this.message.header.recordRoutes[i]);
-              }
-              break;
-            case "CSeq":
-              if (this.responseLine.code == "487" && this.dialog.method === "CANCEL") {
-                this.header.push(head + ": " + message.header[head].replace("CANCEL", "INVITE"));
-              } else {
-                this.header.push(head + ": " + message.header[head]);
-              }
-              break;
-            case "Content-Type":
-            case "Organization":
-            case "Server":
-            case "Content-Length":
-              break;
-            default:
-              this.header.push(head + ": " + message.header[head]);
+    buildHeader(message) {
+      for (let head in message.rawHeader) {
+        let i = 0;
+        switch (head) {
+        case "Allow":
+        case "Supported":
+          var ptr = "";
+          for (i = 0; i < message.header[head].length; i++) {
+            if (i < message.header[head].length - 1) {
+              ptr += message.header[head][i] + ",";
+            } else {
+              ptr += message.header[head][i];
+            }
           }
+          this.header.push(head + ": " + ptr);
+          break;
+        case "Via":
+          if (this.responseLine.code == "487") {
+            for (i = 0; i < this.dialog[head].length; i++) {
+              this.header.push(this.dialog[head][i].raw);
+            }
+          } else {
+            for (i = 0; i < message.header[head].length; i++) {
+              this.header.push(message.header[head][i].raw);
+            }
+          }
+          break;
+        case "User-Agent":
+          this.header.push("User-Agent: " + this.transaction.dialog.sip.settings.userAgent);
+          break;
+        case "Contact":
+          /*var rport = this.transaction.dialog.sip.rport ;
+          var ip = this.transaction.dialog.sip.publicAddress;
+          if ( rport ){
+          	this.header.push( "Contact: <sip:" +this.transaction.to+"@"+ip+":"+rport+";transport="+this.transaction.dialog.sip.settings.transport.toLowerCase()+">");
+          }else{
+          	this.header.push( "Contact: <sip:" +this.transaction.to+"@"+ip+";transport="+this.transaction.dialog.sip.settings.transport.toLowerCase()+">");
+          }*/
+          this.header.push("Contact: " + this.dialog.contact);
+          break;
+        case "To":
+          //console.log(message.header[head] )
+          //console.log(this.dialog.sip.displayName )
+          var ret = regHeaders.fromToG.exec(message.header[head]);
+          //console.log(ret)
+          if (ret && (!ret[1])) {
+            //console.log("traff to")
+            message.header[head] = '"' + this.dialog.sip.displayName + '"' + message.header[head];
+          }
+          //console.log(message.header[head])
+          if (!message.header[head].match(/;tag=/)) {
+            this.header.push(head + ": " + message.header[head] + (this.transaction.dialog.tagFrom ? ";tag=" + this.transaction.dialog.tagFrom : ""));
+          } else {
+            this.header.push(head + ": " + message.header[head]);
+          }
+          break;
+        case "Record-Route":
+          for (i = this.message.dialog.routes.length - 1; i >= 0; i--) {
+            this.header.push(head + ": " + this.message.header.recordRoutes[i]);
+          }
+          break;
+        case "CSeq":
+          if (this.responseLine.code == "487" && this.dialog.method === "CANCEL") {
+            this.header.push(head + ": " + message.header[head].replace("CANCEL", "INVITE"));
+          } else {
+            this.header.push(head + ": " + message.header[head]);
+          }
+          break;
+        case "Content-Type":
+        case "Organization":
+        case "Server":
+        case "Content-Length":
+          break;
+        default:
+          this.header.push(head + ": " + message.header[head]);
         }
       }
-    }, {
-      key: 'getHeader',
-      value: function getHeader() {
-        var head = "";
-        for (var line in this.header) {
-          head += this.header[line] + endline;
-        }
-        return head;
-      }
-    }, {
-      key: 'buildBody',
-      value: function buildBody(body, type) {
-        this.header.contentLength = "Content-Length: " + body.length;
-        if (type) {
-          this.header.contentType = "Content-Type: " + type;
-        }
-        this.body = body || "";
-      }
-    }, {
-      key: 'getBody',
-      value: function getBody() {
-        return this.body;
-      }
-    }, {
-      key: 'buildResponseLine',
-      value: function buildResponseLine(code, messageCode) {
-        this.responseLine.method = this.transaction.method.toUpperCase();
-        this.responseLine.version = this.transaction.dialog.sip.version;
-        this.responseLine.code = code;
-        this.responseLine.message = messageCode || codeMessage[code];
-      }
-    }, {
-      key: 'getResponseline',
-      value: function getResponseline() {
-        if (this.responseLine.method === "ACK") {
-          return this.responseLine.method + " " + "sip:" + this.transaction.from + "@" + this.transaction.dialog.sip.server + " " + this.responseLine.version + endline;
-        }
-        return this.responseLine.version + " " + this.responseLine.code + " " + this.responseLine.message + endline;
-      }
-    }, {
-      key: 'getMessage',
-      value: function getMessage() {
-        //console.log("RESPONSE : " +this.getResponseline() + this.getHeader() + endline + this.getBody())
-        return this.rawResponse = this.getResponseline() + this.getHeader() + endline + this.getBody();
-      }
-    }, {
-      key: 'send',
-      value: function send() {
-        return this.transaction.send(this.getMessage());
-      }
-    }]);
+    }
 
-    return sipResponse;
-  }();
+    getHeader() {
+      let head = "";
+      for (let line in this.header) {
+        head += this.header[line] + endline;
+      }
+      return head;
+    }
+
+    buildBody(body, type) {
+      this.header.contentLength = "Content-Length: " + body.length;
+      if (type) {
+        this.header.contentType = "Content-Type: " + type;
+      }
+      this.body = body ||  "";
+    }
+
+    getBody() {
+      return this.body;
+    }
+
+    buildResponseLine(code, messageCode) {
+      this.responseLine.method = this.transaction.method.toUpperCase();
+      this.responseLine.version = this.transaction.dialog.sip.version;
+      this.responseLine.code = code;
+      this.responseLine.message = messageCode || codeMessage[code];
+    }
+
+    getResponseline() {
+      if (this.responseLine.method === "ACK") {
+        return this.responseLine.method + " " + "sip:" + this.transaction.from + "@" + this.transaction.dialog.sip.server + " " + this.responseLine.version + endline;
+      }
+      return this.responseLine.version + " " + this.responseLine.code + " " + this.responseLine.message + endline;
+    }
+
+    getMessage() {
+      //console.log("RESPONSE : " +this.getResponseline() + this.getHeader() + endline + this.getBody())
+      return this.rawResponse = this.getResponseline() + this.getHeader() + endline + this.getBody();
+    }
+
+    send() {
+      return this.transaction.send(this.getMessage());
+    }
+  };
+
 
   /*
    *
@@ -27636,14 +27472,13 @@ module.exports = function (stage) {
    *
    *
    */
-  var generateHex = function generateHex() {
+  const generateHex = function () {
     return Math.floor(Math.random() * 167772150000000).toString(16);
   };
 
-  var Transaction = function () {
-    function Transaction(to, dialog) {
-      _classCallCheck(this, Transaction);
+  const Transaction = class Transaction {
 
+    constructor(to, dialog) {
       this.dialog = dialog;
       if (to instanceof Message) {
         this.hydrate(to);
@@ -27658,103 +27493,94 @@ module.exports = function (stage) {
       this.interval = null;
     }
 
-    _createClass(Transaction, [{
-      key: 'hydrate',
-      value: function hydrate(message) {
-        this.message = message;
-        if (message.type === "REQUEST") {
-          this.to = this.dialog.to;
-          this.from = this.dialog.from;
-          this.method = this.dialog.method;
-          this.branch = this.message.header.branch;
-        }
-        if (message.type === "RESPONSE") {
-          this.to = this.dialog.to;
-          this.from = this.dialog.from;
-          this.method = this.dialog.method;
-          this.branch = this.message.header.branch;
-        }
+    hydrate(message) {
+      this.message = message;
+      if (message.type === "REQUEST") {
+        this.to = this.dialog.to;
+        this.from = this.dialog.from;
+        this.method = this.dialog.method;
+        this.branch = this.message.header.branch;
       }
-    }, {
-      key: 'generateBranchId',
-      value: function generateBranchId() {
-        var hex = generateHex();
-        if (hex.length === 12) {
-          return "z9hG4bK" + hex;
-        } else {
-          return this.generateBranchId();
-        }
+      if (message.type === "RESPONSE") {
+        this.to = this.dialog.to;
+        this.from = this.dialog.from;
+        this.method = this.dialog.method;
+        this.branch = this.message.header.branch;
       }
-    }, {
-      key: 'createRequest',
-      value: function createRequest(body, typeBody) {
-        if (this.method !== "ACK" && this.method !== "CANCEL") {
-          this.dialog.incCseq();
-        }
-        this.request = new sipRequest(this, body || "", typeBody);
-        this.message = null;
-        return this.request;
-      }
-    }, {
-      key: 'createResponse',
-      value: function createResponse(code, message, body, typeBody) {
-        if (this.method === "INVITE" || this.method === "ACK") {
-          switch (true) {
-            case code < 200:
-              this.dialog.status = this.dialog.statusCode.EARLY;
-              break;
-            case code < 300:
-              this.dialog.status = this.dialog.statusCode.ESTABLISHED;
-              break;
-            default:
-              this.dialog.status = this.dialog.statusCode.TERMINATED;
-          }
-        }
-        this.response = new sipResponse(this.message, code, message, body, typeBody);
-        return this.response;
-      }
-    }, {
-      key: 'send',
-      value: function send(message) {
-        return this.dialog.sip.send(message);
-      }
-    }, {
-      key: 'cancel',
-      value: function cancel() {
-        this.method = "CANCEL";
-        this.dialog.routes = null;
-        this.dialog.tagTo = "";
-        var request = this.createRequest();
-        request.send();
-        this.dialog.status = this.dialog.statusCode.CANCEL;
-        return request;
-      }
-    }, {
-      key: 'decline',
-      value: function decline() {
-        var ret = this.createResponse(603, "Declined");
-        ret.send();
-        return ret;
-      }
-    }, {
-      key: 'clear',
-      value: function clear() {
-        // CLEAR INTERVAL
-        if (this.interval) {
-          clearInterval(this.interval);
-        }
-      }
-    }]);
+    }
 
-    return Transaction;
-  }();
+    generateBranchId() {
+      let hex = generateHex();
+      if (hex.length === 12) {
+        return "z9hG4bK" + hex;
+      } else {
+        return this.generateBranchId();
+      }
+    }
+
+    createRequest(body, typeBody) {
+      if (this.method !== "ACK" && this.method !== "CANCEL") {
+        this.dialog.incCseq();
+      }
+      this.request = new sipRequest(this, body || "", typeBody);
+      this.message = null;
+      return this.request;
+    }
+
+    createResponse(code, message, body, typeBody) {
+      if (this.method === "INVITE" || this.method === "ACK") {
+        switch (true) {
+        case code < 200:
+          this.dialog.status = this.dialog.statusCode.EARLY;
+          break;
+        case code < 300:
+          this.dialog.status = this.dialog.statusCode.ESTABLISHED;
+          break;
+        default:
+          this.dialog.status = this.dialog.statusCode.TERMINATED;
+        }
+      }
+      this.response = new sipResponse(this.message, code, message, body, typeBody);
+      return this.response;
+    }
+
+    send(message) {
+      return this.dialog.sip.send(message);
+    }
+
+    cancel() {
+      this.method = "CANCEL";
+      this.dialog.routes = null;
+      this.dialog.tagTo = "";
+      let request = this.createRequest();
+      request.send();
+      this.dialog.status = this.dialog.statusCode.CANCEL;
+      return request;
+    }
+
+    decline() {
+      let ret = this.createResponse(
+        603,
+        "Declined"
+      );
+      ret.send();
+      return ret;
+    }
+
+    clear() {
+      // CLEAR INTERVAL
+      if (this.interval) {
+        clearInterval(this.interval);
+      }
+    }
+  };
 
   /*
    *
    * CLASS DIALOG
    *
    */
-  var statusCode = {
+  const statusCode = {
     INITIAL: 0,
     EARLY: 1, // on 1xx
     ESTABLISHED: 2, // on 200 ok
@@ -27762,10 +27588,9 @@ module.exports = function (stage) {
     CANCEL: 4 // cancel
   };
 
-  var Dialog = function () {
-    function Dialog(method, sip) {
-      _classCallCheck(this, Dialog);
+  const Dialog = class Dialog {
 
+    constructor(method, sip) {
       this.sip = sip;
       this.transactions = {};
       this.statusCode = statusCode;
@@ -27787,247 +27612,238 @@ module.exports = function (stage) {
 
         this.to = null;
         this.tagTo = null;
+
       }
       //this.contact = this.sip.generateContact( null, null, true) ;
       this.contact = this.sip.contact;
     }
 
-    _createClass(Dialog, [{
-      key: 'hydrate',
-      value: function hydrate(message) {
+    hydrate(message) {
 
-        if (message.type === "REQUEST") {
-          this.cseq = message.cseq;
-          this.method = message.method;
+      if (message.type === "REQUEST") {
+        this.cseq = message.cseq;
+        this.method = message.method;
+        this.callId = message.callId;
+
+        // to
+        if (message.fromNameDisplay) {
+          this.to = '"' + message.fromNameDisplay + '"' + "<sip:" + message.from + ">";
+        } else {
+          this.to = "<sip:" + message.from + ">";
+        }
+        this.toName = message.fromName;
+        this.tagTo = message.fromTag || this.generateTag();
+        //from
+        this.tagFrom = message.toTag || this.tagFrom;
+        if (message.toNameDisplay) {
+          this.from = '"' + message.toNameDisplay + '"' + '<sip:' + message.to + '>';
+        } else {
+          this.from = "<sip:" + message.to + ">";
+        }
+        this.fromName = message.toName;
+
+
+        // manage routes
+        if (message.header.recordRoutes.length) {
+          this.routes = message.header.recordRoutes.reverse();
+        }
+
+        // FIXME if (  ! this["request-uri"] &&  message.contact )
+        if (message.contact) {
+          //this["request-uri"] =  message.contact + ":" + message.rport
+          this["request-uri"] = message.contact;
+        }
+
+      }
+      if (message.type === "RESPONSE") {
+        this.cseq = message.cseq;
+        if (!this.callId) {
           this.callId = message.callId;
-
-          // to
-          if (message.fromNameDisplay) {
-            this.to = '"' + message.fromNameDisplay + '"' + "<sip:" + message.from + ">";
-          } else {
-            this.to = "<sip:" + message.from + ">";
-          }
-          this.toName = message.fromName;
-          this.tagTo = message.fromTag || this.generateTag();
-          //from
-          this.tagFrom = message.toTag || this.tagFrom;
+        }
+        if (!this.to) {
           if (message.toNameDisplay) {
-            this.from = '"' + message.toNameDisplay + '"' + '<sip:' + message.to + '>';
+            this.to = '"' + message.toNameDisplay + '"' + "<sip:" + message.to + ">";
           } else {
-            this.from = "<sip:" + message.to + ">";
+            this.to = "<sip:" + message.to + ">";
           }
-          this.fromName = message.toName;
-
-          // manage routes
-          if (message.header.recordRoutes.length) {
-            this.routes = message.header.recordRoutes.reverse();
-          }
-
-          // FIXME if (  ! this["request-uri"] &&  message.contact )
-          if (message.contact) {
-            //this["request-uri"] =  message.contact + ":" + message.rport
-            this["request-uri"] = message.contact;
+        } else {
+          if (message.toNameDisplay) {
+            this.to = '"' + message.toNameDisplay + '"' + "<sip:" + message.to + ">";
           }
         }
-        if (message.type === "RESPONSE") {
-          this.cseq = message.cseq;
-          if (!this.callId) {
-            this.callId = message.callId;
-          }
-          if (!this.to) {
-            if (message.toNameDisplay) {
-              this.to = '"' + message.toNameDisplay + '"' + "<sip:" + message.to + ">";
-            } else {
-              this.to = "<sip:" + message.to + ">";
-            }
-          } else {
-            if (message.toNameDisplay) {
-              this.to = '"' + message.toNameDisplay + '"' + "<sip:" + message.to + ">";
-            }
-          }
 
-          if (message.toTag) {
-            this.tagTo = message.toTag;
-          }
-          if (message.fromTag) {
-            this.tagFrom = message.fromTag;
-          }
-          // FIXME if (  ! this["request-uri"] &&  message.contact )
-          if (message.contact) {
-            //this["request-uri"] =  message.contact + ":" + message.rport
-            this["request-uri"] = message.contact;
-          }
+        if (message.toTag) {
+          this.tagTo = message.toTag;
+        }
+        if (message.fromTag) {
+          this.tagFrom = message.fromTag;
+        }
+        // FIXME if (  ! this["request-uri"] &&  message.contact )
+        if (message.contact) {
+          //this["request-uri"] =  message.contact + ":" + message.rport
+          this["request-uri"] = message.contact;
+        }
 
-          // manage routes
-          if (message.header.recordRoutes.length) {
-            this.routes = message.header.recordRoutes;
-          }
+        // manage routes
+        if (message.header.recordRoutes.length) {
+          this.routes = message.header.recordRoutes;
         }
       }
-    }, {
-      key: 'generateCallId',
-      value: function generateCallId() {
-        return generateId() + "@nodefony";
+    }
+
+    generateCallId() {
+      return generateId() + "@nodefony";
+    }
+
+    generateTag() {
+      return "nodefony" + parseInt(Math.random() * 1000000000, 10);
+    }
+
+    generateCseq() {
+      return 1;
+    }
+
+    incCseq() {
+      this.cseq = this.cseq + 1;
+      return this.cseq;
+    }
+
+    getTransaction(id) {
+      if (id in this.transactions) {
+        return this.transactions[id];
       }
-    }, {
-      key: 'generateTag',
-      value: function generateTag() {
-        return "nodefony" + parseInt(Math.random() * 1000000000, 10);
+      return null;
+    }
+
+    createTransaction(to) {
+      this.currentTransaction = new Transaction(to || this.to, this);
+      this.sip.logger("SIP NEW TRANSACTION :" + this.currentTransaction.branch, "DEBUG");
+      this.transactions[this.currentTransaction.branch] = this.currentTransaction;
+      return this.currentTransaction;
+    }
+
+    register() {
+      let trans = this.createTransaction(this.from);
+      this.to = this.from;
+      let request = trans.createRequest();
+      request.send();
+      return trans;
+
+    }
+
+    unregister() {
+      this.expires = 0;
+      this.contact = "*";
+      let trans = this.createTransaction(this.from);
+      this.to = this.from;
+      this.tagTo = null;
+      let request = trans.createRequest();
+      request.send();
+      return trans;
+    }
+
+    ack(message) {
+      if (!this["request-uri"]) {
+        this["request-uri"] = this.sip["request-uri"];
       }
-    }, {
-      key: 'generateCseq',
-      value: function generateCseq() {
-        return 1;
-      }
-    }, {
-      key: 'incCseq',
-      value: function incCseq() {
-        this.cseq = this.cseq + 1;
-        return this.cseq;
-      }
-    }, {
-      key: 'getTransaction',
-      value: function getTransaction(id) {
-        if (id in this.transactions) {
-          return this.transactions[id];
-        }
+      //this.method = "ACK" ;
+      let trans = this.createTransaction();
+      trans.method = "ACK";
+      let request = trans.createRequest();
+      request.send();
+      return request;
+    }
+
+    invite(userTo, description, type) {
+
+      if (this.status === this.statusCode.CANCEL) {
         return null;
       }
-    }, {
-      key: 'createTransaction',
-      value: function createTransaction(to) {
-        this.currentTransaction = new Transaction(to || this.to, this);
-        this.sip.logger("SIP NEW TRANSACTION :" + this.currentTransaction.branch, "DEBUG");
-        this.transactions[this.currentTransaction.branch] = this.currentTransaction;
-        return this.currentTransaction;
+      this.sip.logger("SIP INVITE DIALOG");
+      if (userTo) {
+        this.to = "<sip:" + userTo + ">";
       }
-    }, {
-      key: 'register',
-      value: function register() {
-        var trans = this.createTransaction(this.from);
-        this.to = this.from;
-        var request = trans.createRequest();
-        request.send();
-        return trans;
+      this.method = "INVITE";
+      if (!this["request-uri"]) {
+        this["request-uri"] = "sip:" + userTo;
       }
-    }, {
-      key: 'unregister',
-      value: function unregister() {
-        this.expires = 0;
-        this.contact = "*";
-        var trans = this.createTransaction(this.from);
-        this.to = this.from;
-        this.tagTo = null;
-        var request = trans.createRequest();
-        request.send();
-        return trans;
-      }
-    }, {
-      key: 'ack',
-      value: function ack(message) {
-        if (!this["request-uri"]) {
-          this["request-uri"] = this.sip["request-uri"];
-        }
-        //this.method = "ACK" ;
-        var trans = this.createTransaction();
-        trans.method = "ACK";
-        var request = trans.createRequest();
-        request.send();
-        return request;
-      }
-    }, {
-      key: 'invite',
-      value: function invite(userTo, description, type) {
 
-        if (this.status === this.statusCode.CANCEL) {
-          return null;
-        }
-        this.sip.logger("SIP INVITE DIALOG");
-        if (userTo) {
-          this.to = "<sip:" + userTo + ">";
-        }
-        this.method = "INVITE";
-        if (!this["request-uri"]) {
-          this["request-uri"] = "sip:" + userTo;
-        }
+      if (description.sdp) {
+        this.bodyType = "application/sdp";
+        this.body = description.sdp;
+      } else {
+        this.bodyType = type;
+        this.body = description;
+      }
+      let trans = this.createTransaction(this.to);
+      let request = trans.createRequest(this.body, this.bodyType);
+      request.send();
+      return trans;
 
-        if (description.sdp) {
-          this.bodyType = "application/sdp";
-          this.body = description.sdp;
+    }
+
+    notify(userTo, notify, typeNotify) {
+      this.method = "NOTIFY";
+      if (userTo) {
+        this.to = "<sip:" + userTo + ">";
+      }
+      if (!this["request-uri"]) {
+        this["request-uri"] = "sip:" + userTo;
+      }
+      if (typeNotify) {
+        this.bodyType = typeNotify;
+      }
+      if (notify) {
+        this.body = notify;
+      }
+      let trans = this.createTransaction(this.to);
+      let request = trans.createRequest(this.body, this.bodyType);
+      request.send();
+      return this;
+
+    }
+
+    info(info, typeInfo) {
+      this.method = "INFO";
+
+      if (typeInfo) {
+        this.bodyType = typeInfo;
+      }
+      if (info) {
+        this.body = info;
+      }
+      let trans = this.createTransaction(this.to);
+      let request = trans.createRequest(this.body, this.bodyType);
+      request.send();
+      return this;
+
+    }
+
+    bye() {
+      this.method = "BYE";
+      let trans = this.createTransaction();
+      let request = trans.createRequest();
+      request.send();
+      return this;
+
+    }
+
+    clear(id) {
+      if (id) {
+        if (this.transactions[id]) {
+          this.transactions[id].clear();
         } else {
-          this.bodyType = type;
-          this.body = description;
+          throw new Error("TRANSACTION not found :" + id);
         }
-        var trans = this.createTransaction(this.to);
-        var request = trans.createRequest(this.body, this.bodyType);
-        request.send();
-        return trans;
+      } else {
+        for (let transac in this.transactions) {
+          this.transactions[transac].clear();
+        }
       }
-    }, {
-      key: 'notify',
-      value: function notify(userTo, _notify, typeNotify) {
-        this.method = "NOTIFY";
-        if (userTo) {
-          this.to = "<sip:" + userTo + ">";
-        }
-        if (!this["request-uri"]) {
-          this["request-uri"] = "sip:" + userTo;
-        }
-        if (typeNotify) {
-          this.bodyType = typeNotify;
-        }
-        if (_notify) {
-          this.body = _notify;
-        }
-        var trans = this.createTransaction(this.to);
-        var request = trans.createRequest(this.body, this.bodyType);
-        request.send();
-        return this;
-      }
-    }, {
-      key: 'info',
-      value: function info(_info, typeInfo) {
-        this.method = "INFO";
+    }
+  };
 
-        if (typeInfo) {
-          this.bodyType = typeInfo;
-        }
-        if (_info) {
-          this.body = _info;
-        }
-        var trans = this.createTransaction(this.to);
-        var request = trans.createRequest(this.body, this.bodyType);
-        request.send();
-        return this;
-      }
-    }, {
-      key: 'bye',
-      value: function bye() {
-        this.method = "BYE";
-        var trans = this.createTransaction();
-        var request = trans.createRequest();
-        request.send();
-        return this;
-      }
-    }, {
-      key: 'clear',
-      value: function clear(id) {
-        if (id) {
-          if (this.transactions[id]) {
-            this.transactions[id].clear();
-          } else {
-            throw new Error("TRANSACTION not found :" + id);
-          }
-        } else {
-          for (var transac in this.transactions) {
-            this.transactions[transac].clear();
-          }
-        }
-      }
-    }]);
 
-    return Dialog;
-  }();
 
   /*
    *
@@ -28035,14 +27851,14 @@ module.exports = function (stage) {
    *
    *
    */
-  var firstline = function firstline(firstLine) {
-    var method = firstLine[0];
-    var code = firstLine[1];
+  const firstline = function (firstLine) {
+    let method = firstLine[0];
+    let code = firstLine[1];
     if (method === "BYE" && !code) {
       code = 200;
     }
-    var message = "";
-    for (var i = 2; i < firstLine.length; i++) {
+    let message = "";
+    for (let i = 2; i < firstLine.length; i++) {
       message += firstLine[i] + " ";
     }
     return {
@@ -28052,11 +27868,10 @@ module.exports = function (stage) {
     };
   };
 
-  var regSIP = /\r\n\r\n/;
-  var Message = function () {
-    function Message(message, sip) {
-      _classCallCheck(this, Message);
+  const regSIP = /\r\n\r\n/;
+  const Message = class Message {
 
+    constructor(message, sip) {
       this.sip = sip;
       if (message) {
         this.rawMessage = message;
@@ -28084,127 +27899,114 @@ module.exports = function (stage) {
         }
         this.getDialog();
         this.getTransaction();
+
       } else {
         throw new Error("BAD FORMAT MESSAGE SIP no message", 500);
       }
     }
 
-    _createClass(Message, [{
-      key: 'getType',
-      value: function getType() {
-        if (this.code) {
-          if (typeof this.code === "number" && !isNaN(this.code)) {
-            this.type = "RESPONSE";
-          } else {
-            throw new Error("BAD FORMAT MESSAGE SIP message code   ");
-          }
+    getType() {
+      if (this.code) {
+        if ((typeof this.code) === "number" && !isNaN(this.code)) {
+          this.type = "RESPONSE";
         } else {
-          if (this.method) {
-            this.type = "REQUEST";
-          } else {
-            this.type = null;
-            throw new Error("BAD FORMAT MESSAGE SIP message type not defined  ");
-          }
+          throw new Error("BAD FORMAT MESSAGE SIP message code   ");
+        }
+      } else {
+        if (this.method) {
+          this.type = "REQUEST";
+        } else {
+          this.type = null;
+          throw new Error("BAD FORMAT MESSAGE SIP message type not defined  ");
         }
       }
-    }, {
-      key: 'parseBody',
-      value: function parseBody() {
+    }
+
+    parseBody() {
+      try {
+        if (this.split[1]) {
+          this.body = new bodySip(this, this.split[1]);
+        } else {
+          this.body = new bodySip(this, "");
+        }
+      } catch (e) {
+        this.sip.logger("SIP parseBody Message :" + this.split[1], "ERROR");
+        throw e;
+      }
+    }
+
+    parseHeader() {
+      if (this.split[0]) {
         try {
-          if (this.split[1]) {
-            this.body = new bodySip(this, this.split[1]);
-          } else {
-            this.body = new bodySip(this, "");
-          }
+          this.header = new headerSip(this, this.split[0]);
         } catch (e) {
-          this.sip.logger("SIP parseBody Message :" + this.split[1], "ERROR");
+          this.sip.logger("SIP parseHeader Message :" + this.split[0], "ERROR");
           throw e;
         }
+      } else {
+        throw ("BAD FORMAT MESSAGE SIP no header ", 500);
       }
-    }, {
-      key: 'parseHeader',
-      value: function parseHeader() {
-        if (this.split[0]) {
-          try {
-            this.header = new headerSip(this, this.split[0]);
-          } catch (e) {
-            this.sip.logger("SIP parseHeader Message :" + this.split[0], "ERROR");
-            throw e;
-          }
-        } else {
-          throw "BAD FORMAT MESSAGE SIP no header ", 500;
-        }
-      }
-    }, {
-      key: 'getContact',
-      value: function getContact() {
-        return this.contact;
-      }
-    }, {
-      key: 'getHeader',
-      value: function getHeader() {
-        return this.header;
-      }
-    }, {
-      key: 'getBody',
-      value: function getBody() {
-        return this.body;
-      }
-    }, {
-      key: 'getStatusLine',
-      value: function getStatusLine() {
-        return this.statusLine;
-      }
-    }, {
-      key: 'getCode',
-      value: function getCode() {
-        return this.code;
-      }
-    }, {
-      key: 'getDialog',
-      value: function getDialog() {
-        if (this.header["Call-ID"]) {
-          this.dialog = this.sip.getDialog(this.header["Call-ID"]);
-          if (!this.dialog) {
-            this.dialog = this.sip.createDialog(this);
-          } else {
-            this.sip.logger("SIP HYDRATE DIALOG :" + this.dialog.callId, "DEBUG");
-            this.dialog.hydrate(this);
-          }
-          return this.dialog;
-        } else {
-          throw new Error("BAD FORMAT SIP MESSAGE no Call-ID", 500);
-        }
-      }
-    }, {
-      key: 'getTransaction',
-      value: function getTransaction() {
-        if (this.header.branch) {
-          if (!this.dialog) {
-            this.getDialog();
-          }
-          if (this.dialog) {
-            this.transaction = this.dialog.getTransaction(this.header.branch);
-            if (!this.transaction) {
-              this.transaction = this.dialog.createTransaction(this);
-            } else {
-              this.sip.logger("SIP HYDRATE TRANSACTION :" + this.transaction.branch, "DEBUG");
-              this.transaction.hydrate(this);
-            }
-          } else {
-            this.transaction = null;
-          }
-          return this.transaction;
-        } else {
-          // TODO CSEQ mandatory
-          this.sip.logger(this.rawMessage, "ERROR");
-          throw new Error("BAD FORMAT SIP MESSAGE no Branch", 500);
-        }
-      }
-    }]);
+    }
 
-    return Message;
-  }();
+    getContact() {
+      return this.contact;
+    }
+
+    getHeader() {
+      return this.header;
+    }
+
+    getBody() {
+      return this.body;
+    }
+
+    getStatusLine() {
+      return this.statusLine;
+    }
+
+    getCode() {
+      return this.code;
+    }
+
+    getDialog() {
+      if (this.header["Call-ID"]) {
+        this.dialog = this.sip.getDialog(this.header["Call-ID"]);
+        if (!this.dialog) {
+          this.dialog = this.sip.createDialog(this);
+        } else {
+          this.sip.logger("SIP HYDRATE DIALOG :" + this.dialog.callId, "DEBUG");
+          this.dialog.hydrate(this);
+        }
+        return this.dialog;
+      } else {
+        throw new Error("BAD FORMAT SIP MESSAGE no Call-ID", 500);
+      }
+    }
+
+    getTransaction() {
+      if (this.header.branch) {
+        if (!this.dialog) {
+          this.getDialog();
+        }
+        if (this.dialog) {
+          this.transaction = this.dialog.getTransaction(this.header.branch);
+          if (!this.transaction) {
+            this.transaction = this.dialog.createTransaction(this);
+          } else {
+            this.sip.logger("SIP HYDRATE TRANSACTION :" + this.transaction.branch, "DEBUG");
+            this.transaction.hydrate(this);
+          }
+        } else {
+          this.transaction = null;
+        }
+        return this.transaction;
+      } else {
+        // TODO CSEQ mandatory
+        this.sip.logger(this.rawMessage, "ERROR");
+        throw new Error("BAD FORMAT SIP MESSAGE no Branch", 500);
+      }
+    }
+  };
 
   /*
    *
@@ -28214,12 +28016,11 @@ module.exports = function (stage) {
    *
    */
   // entry point response transport
-  var onMessage = function onMessage(response) {
-    var _this2 = this;
+  const onMessage = function (response) {
 
     this.logger(response, "INFO", "RECIEVE");
-    var message = null;
-    var res = null;
+    let message = null;
+    let res = null;
     try {
       //console.log(this.fragment)
       if (this.fragment) {
@@ -28233,7 +28034,7 @@ module.exports = function (stage) {
     } catch (e) {
       //console.log(e);
       // bad split
-      for (var i = 0; i < e.length; i++) {
+      for (let i = 0; i < e.length; i++) {
         if (e[i]) {
           try {
             onMessage.call(this, e[i]);
@@ -28253,232 +28054,232 @@ module.exports = function (stage) {
     this.fire("onMessage", message.rawMessage);
 
     switch (message.method) {
-      case "REGISTER":
-        this.rport = message.header.Via[0].rport;
-        if (this.rport) {
-          this["request-uri"] = "sip:" + this.userName + "@" + this.publicAddress + ":" + this.rport + ";transport=" + this.transportType;
-        }
-        switch (message.code) {
-          case 401:
-          case 407:
-            if (this.registered === 200) {
-              if (this.registerInterval) {
-                clearInterval(this.registerInterval);
-              }
-              this.registerInterval = null;
-            } else {
+    case "REGISTER":
+      this.rport = message.header.Via[0].rport;
+      if (this.rport) {
+        this["request-uri"] = "sip:" + this.userName + "@" + this.publicAddress + ":" + this.rport + ";transport=" + this.transportType;
+      }
+      switch (message.code) {
+      case 401:
+      case 407:
+        if (this.registered === 200) {
+          if (this.registerInterval) {
+            clearInterval(this.registerInterval);
+          }
+          this.registerInterval = null;
+        } else {
 
-              if (this.registered === 401 || this.registered === 407) {
-                if (this.registerInterval) {
-                  clearInterval(this.registerInterval);
-                }
-                this.registerInterval = null;
-                this.registered = null;
-                this.notificationsCenter.fire("onError", this, message);
-                break;
-              }
-              this.registered = message.code;
-            }
-            delete this.authenticateRegister;
-            this.authenticateRegister = null;
-            this.authenticateRegister = new authenticate(message.dialog, this.userName, this.settings.password);
-            this.authenticateRegister.register(message, message.code === 407 ? "proxy" : null);
-            break;
-          case 403:
+          if (this.registered === 401 || this.registered === 407) {
             if (this.registerInterval) {
               clearInterval(this.registerInterval);
             }
-            this.registered = message.code;
-            //console.log("Forbidden (bad auth)")
-            delete this.authenticateRegister;
-            this.authenticateRegister = null;
+            this.registerInterval = null;
+            this.registered = null;
             this.notificationsCenter.fire("onError", this, message);
             break;
-          case 404:
-            if (this.registerInterval) {
-              clearInterval(this.registerInterval);
-            }
-            this.registered = message.code;
-            delete this.authenticateRegister;
-            this.authenticateRegister = null;
-            this.notificationsCenter.fire("onError", this, message);
-            break;
-          case 200:
-            if (this.registerInterval) {
-              clearInterval(this.registerInterval);
-            }
-            if (!message.contact) {
-              this.registered = "404";
-              this.clear();
-              this.notificationsCenter.fire("onUnRegister", this, message);
-              return;
-            }
-            if (this.registered === 401 || this.registered === null) {
-              this.notificationsCenter.fire("onRegister", this, message);
-            }
-            this.registered = message.code;
-
-            var expires = message.header["contact-expires"] || this.settings.expires;
-            expires = parseInt(expires, 10) * 900; // 10% (ms)
-            this.registerInterval = setInterval(function () {
-              _this2.authenticateRegister.register(message);
-              _this2.notificationsCenter.fire("onRenew", _this2, _this2.authenticateRegister, message);
-              //this.register(this.userName, this.settings.password);
-            }, expires);
-            break;
-          default:
-            this.registered = message.code;
-            delete this.authenticateRegister;
-            this.authenticateRegister = null;
-            //console.log(message);
-            this.notificationsCenter.fire("on" + message.code, this, message);
-            break;
+          }
+          this.registered = message.code;
         }
+        delete this.authenticateRegister;
+        this.authenticateRegister = null;
+        this.authenticateRegister = new authenticate(message.dialog, this.userName, this.settings.password);
+        this.authenticateRegister.register(message, message.code === 407 ? "proxy" : null);
         break;
-      case "INVITE":
-        //this.rport = message.rport || this.rport;
-
-        switch (message.type) {
-          case "REQUEST":
-            if (message.dialog.status === message.dialog.statusCode.INITIAL) {
-              this.fire("onInitCall", message.dialog.toName, message.dialog, message.transaction);
-              if (message.header.Via) {
-                message.dialog.Via = message.header.Via;
-              }
-              this.notificationsCenter.fire("onInvite", message, message.dialog);
-            } else {
-              //console.log(message.dialog.statusCode[message.dialog.status])
-              if (message.dialog.status === message.dialog.statusCode.ESTABLISHED) {
-                this.notificationsCenter.fire("onInvite", message, message.dialog);
-              } else {
-                var ret = message.transaction.createResponse(200, "OK");
-                ret.send();
-              }
-            }
-            break;
-          case "RESPONSE":
-            if (message.code >= 200) {
-              message.dialog.ack(message);
-            }
-            switch (message.code) {
-              case 407:
-              case 401:
-                delete this.authenticate;
-                this.authenticate = null;
-                this.authenticate = new authenticate(message.dialog, this.userName, this.settings.password);
-                var transaction = this.authenticate.register(message, message.code === 407 ? "proxy" : null);
-                this.fire("onInitCall", message.dialog.toName, message.dialog, transaction);
-                break;
-              case 180:
-                this.notificationsCenter.fire("onRinging", this, message);
-                message.dialog.status = message.dialog.statusCode.EARLY;
-                break;
-              case 100:
-                this.notificationsCenter.fire("onTrying", this, message);
-                message.dialog.status = message.dialog.statusCode.EARLY;
-                break;
-              case 200:
-                this.notificationsCenter.fire("onCall", message);
-                message.dialog.status = message.dialog.statusCode.ESTABLISHED;
-                break;
-              case 486:
-              case 603:
-                this.notificationsCenter.fire("onDecline", message);
-                break;
-              case 403:
-                this.authenticate = false;
-                this.notificationsCenter.fire("onError", this, message);
-                break;
-              case 487:
-              case 404:
-              case 477:
-              case 480:
-              case 484:
-              case 488:
-                this.notificationsCenter.fire("onError", this, message);
-                break;
-              case 408:
-                this.notificationsCenter.fire("onTimeout", this, message);
-                break;
-              case 500:
-                this.notificationsCenter.fire("onError", this, message);
-                break;
-              default:
-                this.notificationsCenter.fire("on" + message.code, this, message);
-                break;
-            }
-            break;
-          default:
-          // error BAD FORMAT
+      case 403:
+        if (this.registerInterval) {
+          clearInterval(this.registerInterval);
         }
+        this.registered = message.code;
+        //console.log("Forbidden (bad auth)")
+        delete this.authenticateRegister;
+        this.authenticateRegister = null;
+        this.notificationsCenter.fire("onError", this, message);
         break;
-      case "ACK":
-        //console.log("ACK");
-        //TODO manage interval messages timer retransmission
-        break;
-      case "BYE":
-        switch (message.code) {
-          case 200:
-            //console.log("200")
-            this.notificationsCenter.fire("onBye", message);
-            break;
-          default:
-            this.notificationsCenter.fire("onBye", message);
-            if (message.type === "REQUEST") {
-              res = message.transaction.createResponse(200, "OK");
-              res.send();
-            }
+      case 404:
+        if (this.registerInterval) {
+          clearInterval(this.registerInterval);
         }
+        this.registered = message.code;
+        delete this.authenticateRegister;
+        this.authenticateRegister = null;
+        this.notificationsCenter.fire("onError", this, message);
         break;
-      case "INFO":
-        switch (message.type) {
-          case "REQUEST":
-            //console.log("SIP   :"+ message.method + " "+" type: "+message.contentType );
-            this.notificationsCenter.fire("onInfo", message);
-            res = message.transaction.createResponse(200, "OK");
-            res.send();
-            break;
-          case "RESPONSE":
-            //console.log("SIP   :"+ message.method + " "+" code:"+message.code );
-            this.notificationsCenter.fire("onDrop", message);
-            break;
+      case 200:
+        if (this.registerInterval) {
+          clearInterval(this.registerInterval);
         }
-        break;
-
-      case "CANCEL":
-        switch (message.type) {
-          case "REQUEST":
-            this.notificationsCenter.fire("onCancel", message);
-            res = message.transaction.createResponse(200, "OK");
-            res.send();
-            message.dialog.status = message.dialog.statusCode.CANCEL;
-            res = message.transaction.createResponse(487, "Request Terminated");
-            res.send();
-            message.dialog.status = message.dialog.statusCode.TERMINATED;
-
-            break;
-          case "RESPONSE":
-
-            this.notificationsCenter.fire("onDrop", message);
-            break;
+        if (!message.contact) {
+          this.registered = "404";
+          this.clear();
+          this.notificationsCenter.fire("onUnRegister", this, message);
+          return;
         }
-        break;
-      case "REFER":
-        this.logger("SIP REFER NOT ALLOWED :" + message.method, "WARNING");
-        this.notificationsCenter.fire("onDrop", message);
+        if (this.registered === 401 || this.registered === null) {
+          this.notificationsCenter.fire("onRegister", this, message);
+        }
+        this.registered = message.code;
+
+        let expires = message.header["contact-expires"] ||  this.settings.expires;
+        expires = parseInt(expires, 10) * 900; // 10% (ms)
+        this.registerInterval = setInterval(() => {
+          this.authenticateRegister.register(message);
+          this.notificationsCenter.fire("onRenew", this, this.authenticateRegister, message);
+          //this.register(this.userName, this.settings.password);
+        }, expires);
         break;
       default:
-        this.logger("SIP DROP :" + message.method + " " + " code:" + message.code, "WARNING");
+        this.registered = message.code;
+        delete this.authenticateRegister;
+        this.authenticateRegister = null;
+        //console.log(message);
+        this.notificationsCenter.fire("on" + message.code, this, message);
+        break;
+      }
+      break;
+    case "INVITE":
+      //this.rport = message.rport || this.rport;
+
+      switch (message.type) {
+      case "REQUEST":
+        if (message.dialog.status === message.dialog.statusCode.INITIAL) {
+          this.fire("onInitCall", message.dialog.toName, message.dialog, message.transaction);
+          if (message.header.Via) {
+            message.dialog.Via = message.header.Via;
+          }
+          this.notificationsCenter.fire("onInvite", message, message.dialog);
+        } else {
+          //console.log(message.dialog.statusCode[message.dialog.status])
+          if (message.dialog.status === message.dialog.statusCode.ESTABLISHED) {
+            this.notificationsCenter.fire("onInvite", message, message.dialog);
+          } else {
+            let ret = message.transaction.createResponse(200, "OK");
+            ret.send();
+          }
+        }
+        break;
+      case "RESPONSE":
+        if (message.code >= 200) {
+          message.dialog.ack(message);
+        }
+        switch (message.code) {
+        case 407:
+        case 401:
+          delete this.authenticate;
+          this.authenticate = null;
+          this.authenticate = new authenticate(message.dialog, this.userName, this.settings.password);
+          var transaction = this.authenticate.register(message, message.code === 407 ? "proxy" : null);
+          this.fire("onInitCall", message.dialog.toName, message.dialog, transaction);
+          break;
+        case 180:
+          this.notificationsCenter.fire("onRinging", this, message);
+          message.dialog.status = message.dialog.statusCode.EARLY;
+          break;
+        case 100:
+          this.notificationsCenter.fire("onTrying", this, message);
+          message.dialog.status = message.dialog.statusCode.EARLY;
+          break;
+        case 200:
+          this.notificationsCenter.fire("onCall", message);
+          message.dialog.status = message.dialog.statusCode.ESTABLISHED;
+          break;
+        case 486:
+        case 603:
+          this.notificationsCenter.fire("onDecline", message);
+          break;
+        case 403:
+          this.authenticate = false;
+          this.notificationsCenter.fire("onError", this, message);
+          break;
+        case 487:
+        case 404:
+        case 477:
+        case 480:
+        case 484:
+        case 488:
+          this.notificationsCenter.fire("onError", this, message);
+          break;
+        case 408:
+          this.notificationsCenter.fire("onTimeout", this, message);
+          break;
+        case 500:
+          this.notificationsCenter.fire("onError", this, message);
+          break;
+        default:
+          this.notificationsCenter.fire("on" + message.code, this, message);
+          break;
+        }
+        break;
+      default:
+        // error BAD FORMAT
+      }
+      break;
+    case "ACK":
+      //console.log("ACK");
+      //TODO manage interval messages timer retransmission
+      break;
+    case "BYE":
+      switch (message.code) {
+      case 200:
+        //console.log("200")
+        this.notificationsCenter.fire("onBye", message);
+        break;
+      default:
+        this.notificationsCenter.fire("onBye", message);
+        if (message.type === "REQUEST") {
+          res = message.transaction.createResponse(200, "OK");
+          res.send();
+        }
+      }
+      break;
+    case "INFO":
+      switch (message.type) {
+      case "REQUEST":
+        //console.log("SIP   :"+ message.method + " "+" type: "+message.contentType );
+        this.notificationsCenter.fire("onInfo", message);
+        res = message.transaction.createResponse(200, "OK");
+        res.send();
+        break;
+      case "RESPONSE":
+        //console.log("SIP   :"+ message.method + " "+" code:"+message.code );
         this.notificationsCenter.fire("onDrop", message);
+        break;
+      }
+      break;
+
+    case "CANCEL":
+      switch (message.type) {
+      case "REQUEST":
+        this.notificationsCenter.fire("onCancel", message);
+        res = message.transaction.createResponse(200, "OK");
+        res.send();
+        message.dialog.status = message.dialog.statusCode.CANCEL;
+        res = message.transaction.createResponse(487, "Request Terminated");
+        res.send();
+        message.dialog.status = message.dialog.statusCode.TERMINATED;
+
+        break;
+      case "RESPONSE":
+
+        this.notificationsCenter.fire("onDrop", message);
+        break;
+      }
+      break;
+    case "REFER":
+      this.logger("SIP REFER NOT ALLOWED :" + message.method, "WARNING");
+      this.notificationsCenter.fire("onDrop", message);
+      break;
+    default:
+      this.logger("SIP DROP :" + message.method + " " + " code:" + message.code, "WARNING");
+      this.notificationsCenter.fire("onDrop", message);
       // TODO RESPONSE WITH METHOD NOT ALLOWED
     }
   };
 
-  var onStart = function onStart() {
+  var onStart = function () {
     this.fire("onStart", this);
   };
 
-  var onStop = function onStop() {
+  var onStop = function () {
     this.stop();
   };
 
@@ -28494,270 +28295,248 @@ module.exports = function (stage) {
     transport: "TCP"
   };
 
+
   // CLASS
-  var SIP = function (_stage$Service) {
-    _inherits(SIP, _stage$Service);
+  const SIP = class SIP extends stage.Service {
 
-    function SIP(server, transport, settings) {
-      _classCallCheck(this, SIP);
+    constructor(server, transport, settings) {
 
-      var _this3 = _possibleConstructorReturn(this, (SIP.__proto__ || Object.getPrototypeOf(SIP)).call(this, "SIP", null, null, settings));
-
-      _this3.settings = stage.extend({}, defaultSettings, settings);
+      super("SIP", null, null, settings);
+      this.settings = stage.extend({}, defaultSettings, settings);
       //this.settings.url = stage.io.urlToOject(url)
       //this.notificationsCenter = stage.notificationsCenter.create(this.settings, this);
-      _this3.dialogs = {};
-      _this3.version = _this3.settings.version;
+      this.dialogs = {};
+      this.version = this.settings.version;
 
       //
-      _this3.server = server;
-      _this3.serverPort = _this3.settings.portServer;
+      this.server = server;
+      this.serverPort = this.settings.portServer;
 
-      _this3.authenticate = false;
-      _this3.authenticateRegister = null;
+      this.authenticate = false;
+      this.authenticateRegister = null;
 
       // REGISTER
-      _this3.registerInterval = null;
-      _this3.registered = null;
-      _this3.diagRegister = null;
+      this.registerInterval = null;
+      this.registered = null;
+      this.diagRegister = null;
 
       // TRANSPORT
-      _this3.transport = transport;
-      if (_this3.transport) {
-        _this3.initTransport();
+      this.transport = transport;
+      if (this.transport) {
+        this.initTransport();
       }
-      _this3.transportType = _this3.settings.transport.toLowerCase();
+      this.transportType = this.settings.transport.toLowerCase();
 
-      _this3.contact = null;
-      _this3.via = null;
+      this.contact = null;
+      this.via = null;
       // IDENTIFIANT
       //  USER
       //this.userName = this.settings.userName ;
       //this.from = "<sip:"+this.userName+"@"+this.publicAddress+">" ;
       //this.contact = this.generateContact();
       //this["request-uri"] =  "sip:"+this.userName+"@"+this.publicAddress+";transport="+this.transportType ;
-      return _this3;
     }
 
-    _createClass(SIP, [{
-      key: 'generateInvalid',
-      value: function generateInvalid() {
-        return parseInt(Math.random() * 1000000000, 10) + ".nodefony.invalid";
+    generateInvalid() {
+      return parseInt(Math.random() * 1000000000, 10) + ".nodefony.invalid";
+    }
+
+    generateVia(addr) {
+      if (this.rport) {
+        return this.version + "/" + this.settings.transport + " " + addr + ";rport";
+      } else {
+        return this.version + "/" + this.settings.transport + " " + addr;
       }
-    }, {
-      key: 'generateVia',
-      value: function generateVia(addr) {
-        if (this.rport) {
-          return this.version + "/" + this.settings.transport + " " + addr + ";rport";
+    }
+
+    generateContact(userName, password, force, settings) {
+      if (userName) {
+        this.userName = userName;
+        if (settings && settings.displayName) {
+          this.displayName = settings.displayName;
         } else {
-          return this.version + "/" + this.settings.transport + " " + addr;
+          this.displayName = userName;
+        }
+        this.from = '"' + this.displayName + '"' + '<sip:' + this.userName + '@' + this.publicAddress + '>';
+        this["request-uri"] = "sip:" + this.userName + "@" + this.publicAddress + ";transport=" + this.transportType;
+        if (password) {
+          this.settings.password = password;
         }
       }
-    }, {
-      key: 'generateContact',
-      value: function generateContact(userName, password, force, settings) {
-        if (userName) {
-          this.userName = userName;
-          if (settings && settings.displayName) {
-            this.displayName = settings.displayName;
+
+      if (!this.contact || force) {
+        var invalid = null;
+        switch (this.transportType) {
+        case "ws":
+        case "wss":
+          invalid = this.generateInvalid();
+          this.via = this.generateVia(invalid);
+          if (this.rport) {
+            return '"' + this.displayName + '"' + "<sip:" + this.userName + "@" + invalid + ":" + this.rport + ";transport=" + this.transportType + ">";
           } else {
-            this.displayName = userName;
+            return '"' + this.displayName + '"' + "<sip:" + this.userName + "@" + invalid + ";transport=" + this.transportType + ">";
           }
-          this.from = '"' + this.displayName + '"' + '<sip:' + this.userName + '@' + this.publicAddress + '>';
-          this["request-uri"] = "sip:" + this.userName + "@" + this.publicAddress + ";transport=" + this.transportType;
-          if (password) {
-            this.settings.password = password;
-          }
-        }
-
-        if (!this.contact || force) {
-          var invalid = null;
-          switch (this.transportType) {
-            case "ws":
-            case "wss":
-              invalid = this.generateInvalid();
-              this.via = this.generateVia(invalid);
-              if (this.rport) {
-                return '"' + this.displayName + '"' + "<sip:" + this.userName + "@" + invalid + ":" + this.rport + ";transport=" + this.transportType + ">";
-              } else {
-                return '"' + this.displayName + '"' + "<sip:" + this.userName + "@" + invalid + ";transport=" + this.transportType + ">";
-              }
-              break;
-            case "tcp":
-            case "udp":
-              invalid = this.generateInvalid();
-              this.via = this.generateVia(invalid);
-              //this.via = this.generateVia(this.publicAddress);
-              if (this.rport) {
-                return '"' + this.displayName + '"' + "<sip:" + this.userName + "@" + invalid + ":" + this.rport + ";transport=" + this.transportType + ">";
-              } else {
-                return '"' + this.displayName + '"' + "<sip:" + this.userName + "@" + invalid + ";transport=" + this.transportType + ">";
-              }
-              break;
-            default:
-              throw new Error("SIP TRANSPORT TYPE NOT ALLOWED");
-          }
-        }
-        return this.contact;
-      }
-    }, {
-      key: 'getDialog',
-      value: function getDialog(id) {
-        if (id in this.dialogs) {
-          return this.dialogs[id];
-        }
-        return null;
-      }
-    }, {
-      key: 'initTransport',
-      value: function initTransport(transport) {
-        if (transport) {
-          this.transport = transport;
-        }
-
-        // GET REMOTE IP
-        if (this.transport.publicAddress) {
-          this.publicAddress = this.transport.domain.hostname;
-          this.publicAddress = this.server;
-        } else {
-          this.publicAddress = this.server;
-        }
-
-        switch (this.settings.transport) {
-          // realtime nodefony
-          case "TCP":
-          case "UDP":
-            this.transport.listen(this, "onSubscribe", function (service, message) {
-              if (service === "SIP" || service === "OPENSIP") {
-                onStart.call(this, message);
-              }
-            });
-
-            this.transport.listen(this, "onUnsubscribe", function (service, message) {
-              if (service === "SIP" || service === "OPENSIP") {
-                onStop.call(this, message);
-              }
-            });
-            this.transport.listen(this, "onMessage", function (service, message) {
-              if (service === "SIP" || service === "OPENSIP") {
-                onMessage.call(this, message);
-              }
-            });
-
-            this.transport.listen(this, "onClose", function (message) {
-              this.quit(message);
-            });
-            break;
-          case "WS":
-          case "WSS":
-            this.transport.listen(this, "onMessage", function (message) {
-              //this.notificationsCenter.fire("onMessage",message.data);
-              onMessage.call(this, message.data);
-            });
-            this.transport.listen(this, "onError", function (message) {
-              this.notificationsCenter.fire("onError", this.transport, message);
-            });
-            this.transport.listen(this, "onConnect", function (message) {
-              this.connect(message);
-            });
-            this.transport.listen(this, "onClose", function (message) {
-              this.quit(message);
-            });
-            break;
-          default:
-            this.fire("onError", new Error("TRANSPORT LAYER NOT DEFINED"));
-        }
-      }
-    }, {
-      key: 'clear',
-      value: function clear() {
-        if (this.registerInterval) {
-          clearInterval(this.registerInterval);
-        }
-        //TODO
-        //clean all setinterval
-        for (var dia in this.dialogs) {
-          //this.dialogs[dia].unregister();
-          this.dialogs[dia].clear();
-        }
-      }
-    }, {
-      key: 'quit',
-      value: function quit(message) {
-        this.fire("onQuit", this, message);
-        //this.unregister();
-        this.clear();
-      }
-    }, {
-      key: 'connect',
-      value: function connect(message) {
-        this.fire("onConnect", this, message);
-      }
-    }, {
-      key: 'createDialog',
-      value: function createDialog(method) {
-        var dialog = new Dialog(method, this);
-        this.logger("SIP NEW DIALOG :" + dialog.callId, "DEBUG");
-        this.dialogs[dialog.callId] = dialog;
-        return dialog;
-      }
-    }, {
-      key: 'register',
-      value: function register(userName, password, settings) {
-        this.logger("TRY TO REGISTER SIP : " + userName + password, "DEBUG");
-        this.contact = this.generateContact(userName, password, false, settings);
-        this.diagRegister = this.createDialog("REGISTER");
-        this.diagRegister.register();
-        return this.diagRegister;
-      }
-    }, {
-      key: 'unregister',
-      value: function unregister() {
-        if (this.diagRegister && this.registered) {
-          return this.diagRegister.unregister();
-        }
-      }
-    }, {
-      key: 'invite',
-      value: function invite(userTo, description) {
-        var diagInv = this.createDialog("INVITE");
-        var transaction = diagInv.invite(userTo + "@" + this.publicAddress, description);
-        diagInv.toName = userTo;
-        this.fire("onInitCall", userTo, diagInv, transaction);
-        return diagInv;
-      }
-    }, {
-      key: 'notify',
-      value: function notify(userTo, description, type) {
-        var diagNotify = this.createDialog("NOTIFY");
-        diagNotify.notify(userTo + "@" + this.publicAddress, description, type);
-        return diagNotify;
-      }
-    }, {
-      key: 'send',
-      value: function send(data) {
-        this.logger(data, "INFO", "SEND");
-        this.fire("onSend", data);
-        this.transport.send(data);
-      }
-    }, {
-      key: 'bye',
-      value: function bye(callId) {
-        for (var dialog in this.dialogs) {
-          if (callId) {
-            if (this.dialogs[dialog].callId === callId && this.dialogs[dialog].method !== "REGISTER" && this.dialogs[dialog].status === this.dialogs[dialog].statusCode.ESTABLISHED) {
-              this.dialogs[dialog].bye();
-              break;
-            }
+          break;
+        case "tcp":
+        case "udp":
+          invalid = this.generateInvalid();
+          this.via = this.generateVia(invalid);
+          //this.via = this.generateVia(this.publicAddress);
+          if (this.rport) {
+            return '"' + this.displayName + '"' + "<sip:" + this.userName + "@" + invalid + ":" + this.rport + ";transport=" + this.transportType + ">";
           } else {
+            return '"' + this.displayName + '"' + "<sip:" + this.userName + "@" + invalid + ";transport=" + this.transportType + ">";
+          }
+          break;
+        default:
+          throw new Error("SIP TRANSPORT TYPE NOT ALLOWED");
+        }
+      }
+      return this.contact;
+    }
+
+    getDialog(id) {
+      if (id in this.dialogs) {
+        return this.dialogs[id];
+      }
+      return null;
+    }
+
+    initTransport(transport) {
+      if (transport) {
+        this.transport = transport;
+      }
+
+      // GET REMOTE IP
+      if (this.transport.publicAddress) {
+        this.publicAddress = this.transport.domain.hostname;
+        this.publicAddress = this.server;
+      } else {
+        this.publicAddress = this.server;
+      }
+
+      switch (this.settings.transport) {
+        // realtime nodefony
+      case "TCP":
+      case "UDP":
+        this.transport.listen(this, "onSubscribe", function (service, message) {
+          if (service === "SIP" ||  service === "OPENSIP") {
+            onStart.call(this, message);
+          }
+        });
+
+        this.transport.listen(this, "onUnsubscribe", function (service, message) {
+          if (service === "SIP" ||  service === "OPENSIP") {
+            onStop.call(this, message);
+          }
+        });
+        this.transport.listen(this, "onMessage", function (service, message) {
+          if (service === "SIP" ||  service === "OPENSIP") {
+            onMessage.call(this, message);
+          }
+        });
+
+        this.transport.listen(this, "onClose", function (message) {
+          this.quit(message);
+        });
+        break;
+      case "WS":
+      case "WSS":
+        this.transport.listen(this, "onMessage", function (message) {
+          //this.notificationsCenter.fire("onMessage",message.data);
+          onMessage.call(this, message.data);
+        });
+        this.transport.listen(this, "onError", function (message) {
+          this.notificationsCenter.fire("onError", this.transport, message);
+        });
+        this.transport.listen(this, "onConnect", function (message) {
+          this.connect(message);
+        });
+        this.transport.listen(this, "onClose", function (message) {
+          this.quit(message);
+        });
+        break;
+      default:
+        this.fire("onError", new Error("TRANSPORT LAYER NOT DEFINED"));
+      }
+    }
+
+    clear() {
+      if (this.registerInterval) {
+        clearInterval(this.registerInterval);
+      }
+      //TODO
+      //clean all setinterval
+      for (var dia in this.dialogs) {
+        //this.dialogs[dia].unregister();
+        this.dialogs[dia].clear();
+      }
+    }
+
+    quit(message) {
+      this.fire("onQuit", this, message);
+      //this.unregister();
+      this.clear();
+    }
+
+    connect(message) {
+      this.fire("onConnect", this, message);
+    }
+
+    createDialog(method) {
+      var dialog = new Dialog(method, this);
+      this.logger("SIP NEW DIALOG :" + dialog.callId, "DEBUG");
+      this.dialogs[dialog.callId] = dialog;
+      return dialog;
+    }
+
+    register(userName, password, settings) {
+      this.logger("TRY TO REGISTER SIP : " + userName + password, "DEBUG");
+      this.contact = this.generateContact(userName, password, false, settings);
+      this.diagRegister = this.createDialog("REGISTER");
+      this.diagRegister.register();
+      return this.diagRegister;
+    }
+
+    unregister() {
+      if (this.diagRegister && this.registered) {
+        return this.diagRegister.unregister();
+      }
+    }
+
+    invite(userTo, description) {
+      var diagInv = this.createDialog("INVITE");
+      var transaction = diagInv.invite(userTo + "@" + this.publicAddress, description);
+      diagInv.toName = userTo;
+      this.fire("onInitCall", userTo, diagInv, transaction);
+      return diagInv;
+    }
+
+    notify(userTo, description, type) {
+      var diagNotify = this.createDialog("NOTIFY");
+      diagNotify.notify(userTo + "@" + this.publicAddress, description, type);
+      return diagNotify;
+    }
+
+    send(data) {
+      this.logger(data, "INFO", "SEND");
+      this.fire("onSend", data);
+      this.transport.send(data);
+    }
+
+    bye(callId) {
+      for (let dialog in this.dialogs) {
+        if (callId) {
+          if (this.dialogs[dialog].callId === callId && this.dialogs[dialog].method !== "REGISTER" && this.dialogs[dialog].status === this.dialogs[dialog].statusCode.ESTABLISHED) {
             this.dialogs[dialog].bye();
+            break;
           }
+        } else {
+          this.dialogs[dialog].bye();
         }
       }
-    }]);
-
-    return SIP;
-  }(stage.Service);
+    }
+  };
 
   stage.io.protocols.sip = SIP;
   return SIP;
@@ -28773,32 +28552,27 @@ module.exports = function (stage) {
 /*! no static exports found */
 /***/ (function(module, exports, __webpack_require__) {
 
-"use strict";
-/* WEBPACK VAR INJECTION */(function($) {
-
-var _createClass = function () { function defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ("value" in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } } return function (Constructor, protoProps, staticProps) { if (protoProps) defineProperties(Constructor.prototype, protoProps); if (staticProps) defineProperties(Constructor, staticProps); return Constructor; }; }();
-
-function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError("Cannot call a class as a function"); } }
-
-module.exports = function (stage) {
+/* WEBPACK VAR INJECTION */(function($) {module.exports = function (stage) {
 
   'use strict';
 
-  var defaultSettings = {};
+  const defaultSettings = {
 
-  var settingsSyslog = {
+  };
+
+  const settingsSyslog = {
     moduleName: "REALTIME",
     defaultSeverity: "INFO"
   };
 
-  var send = function send(data) {
+  const send = function (data) {
     this.protocol.send(data);
   };
 
-  var realtime = function () {
-    function realtime(urlServer, settings) {
-      _classCallCheck(this, realtime);
 
+  const realtime = class realtime {
+
+    constructor(urlServer, settings) {
       if (!urlServer) {
         throw new Error("realtime url server is not defined");
       }
@@ -28850,10 +28624,8 @@ module.exports = function (stage) {
         this.notificationCenter.fire("onDisconnect", message, this);
       });
       this.protocol.notificationCenter.listen(this, "reConnect", function (bayeux) {
-        var _this = this;
-
-        setTimeout(function () {
-          _this.start();
+        setTimeout(() => {
+          this.start();
         }, 60000);
       });
       this.protocol.notificationCenter.listen(this, "onSubscribe", function (message) {
@@ -28882,174 +28654,160 @@ module.exports = function (stage) {
       //this.start();
     }
 
-    _createClass(realtime, [{
-      key: "listen",
-      value: function listen() {
-        return this.notificationCenter.listen.apply(this.notificationCenter, arguments);
-      }
-    }, {
-      key: "unListen",
-      value: function unListen() {
-        return this.notificationCenter.unListen.apply(this.notificationCenter, arguments);
-      }
-    }, {
-      key: "start",
-      value: function start() {
-        var _this2 = this;
+    listen() {
+      return this.notificationCenter.listen.apply(this.notificationCenter, arguments);
+    }
 
-        if (this.connected) {
-          //throw new Error("connection already started");
-          this.notificationCenter.fire("onError", 500, this, "connection already started");
-          return false;
-        }
-        var statusCode = {
+    unListen() {
+      return this.notificationCenter.unListen.apply(this.notificationCenter, arguments);
+    }
 
-          401: function _(request, type, message) {
-            var auth = request.getResponseHeader("WWW-Authenticate");
-            var res = request.responseText;
-            var obj = {
-              "WWW-Authenticate": request.getResponseHeader("WWW-Authenticate"),
-              body: request.responseText
-            };
-            _this2.authenticate = new stage.io.authentication.authenticate(_this2.url, obj, {
-              ajax: true,
-              onSuccess: function onSuccess(data, type, xhr) {
-                _this2.notificationCenter.fire('onAuthorized', data, type, xhr);
-              },
-              onError: function onError(obj, type, message) {
-                var res = stage.io.getHeaderJSON(obj);
-                if (res) {
-                  _this2.notificationCenter.fire('onError', 401, obj, res);
-                } else {
-                  _this2.notificationCenter.fire('onError', 401, obj, message);
-                }
+    start() {
+      if (this.connected) {
+        //throw new Error("connection already started");
+        this.notificationCenter.fire("onError", 500, this, "connection already started");
+        return false;
+      }
+      const statusCode = {
+
+        401: (request, type, message) => {
+          let auth = request.getResponseHeader("WWW-Authenticate");
+          let res = request.responseText;
+          let obj = {
+            "WWW-Authenticate": request.getResponseHeader("WWW-Authenticate"),
+            body: request.responseText
+          };
+          this.authenticate = new stage.io.authentication.authenticate(this.url, obj, {
+            ajax: true,
+            onSuccess: (data, type, xhr) => {
+              this.notificationCenter.fire('onAuthorized', data, type, xhr);
+            },
+            onError: (obj, type, message) => {
+              var res = stage.io.getHeaderJSON(obj);
+              if (res) {
+                this.notificationCenter.fire('onError', 401, obj, res);
+              } else {
+                this.notificationCenter.fire('onError', 401, obj, message);
               }
-            });
-            _this2.notificationCenter.fire('onUnauthorized', _this2.authenticate, _this2);
-          },
-          404: function _(obj, type, message) {
-            // '404 - realtimeD server not available'
-            _this2.notificationCenter.fire('onError', 404, obj, message);
-          },
-          503: function _(obj, type, message) {
-            //  '503 - Service Unavailable'
-            _this2.notificationCenter.fire('onError', 503, obj, message);
-          }
-        };
-
-        return $.ajax({
-          method: 'GET',
-          cache: false,
-          url: this.url.href,
-          statusCode: statusCode,
-          success: function success(data, type, xhr) {
-            _this2.notificationCenter.fire('onAuthorized', data, type, xhr);
-          },
-          error: function error(obj, type, message) {
-            if (obj.status in statusCode) {
-              return;
             }
-            _this2.notificationCenter.fire('onError', obj.status, obj, message);
-          }
-        });
-      }
-    }, {
-      key: "subscribe",
-      value: function subscribe(name, data) {
-        if (!this.connected) {
-          this.notificationCenter.fire('onError', 500, this, "Not connected");
-          return false;
+          });
+          this.notificationCenter.fire('onUnauthorized', this.authenticate, this);
+        },
+        404: (obj, type, message) => {
+          // '404 - realtimeD server not available'
+          this.notificationCenter.fire('onError', 404, obj, message);
+        },
+        503: (obj, type, message) => {
+          //  '503 - Service Unavailable'
+          this.notificationCenter.fire('onError', 503, obj, message);
         }
-        if (name in this.services) {
-          if (name in this.subscribedService) {
-            this.notificationCenter.fire('onError', 500, this, "already subscribed");
-            return false;
+      };
+
+      return $.ajax({
+        method: 'GET',
+        cache: false,
+        url: this.url.href,
+        statusCode: statusCode,
+        success: (data, type, xhr) => {
+          this.notificationCenter.fire('onAuthorized', data, type, xhr);
+        },
+        error: (obj, type, message) => {
+          if (obj.status in statusCode) {
+            return;
           }
-          return send.call(this, this.protocol.subscribe(name, data));
+          this.notificationCenter.fire('onError', obj.status, obj, message);
         }
-        this.notificationCenter.fire('onError', 500, this, "service : " + name + " not exist");
+      });
+    }
+
+    subscribe(name, data) {
+      if (!this.connected) {
+        this.notificationCenter.fire('onError', 500, this, "Not connected");
         return false;
       }
-    }, {
-      key: "unSubscribe",
-      value: function unSubscribe(name, data) {
-        if (!this.connected) {
-          this.notificationCenter.fire('onError', 500, this, "Not connected");
+      if (name in this.services) {
+        if (name in this.subscribedService) {
+          this.notificationCenter.fire('onError', 500, this, "already subscribed");
           return false;
         }
-        if (name in this.services) {
+        return send.call(this, this.protocol.subscribe(name, data));
+      }
+      this.notificationCenter.fire('onError', 500, this, "service : " + name + " not exist");
+      return false;
+    }
 
-          if (name in this.subscribedService) {
-            var clientId = this.subscribedService[name].clientId;
-            return send.call(this, this.protocol.unSubscribe(name, clientId, data));
-          } else {
-            this.notificationCenter.fire('onError', 500, this, "service : " + name + " not subcribed");
-            return false;
-          }
-        }
-        this.notificationCenter.fire('onError', 404, this, "service : " + name + " not exist");
+    unSubscribe(name, data) {
+      if (!this.connected) {
+        this.notificationCenter.fire('onError', 500, this, "Not connected");
         return false;
       }
-    }, {
-      key: "sendMessage",
-      value: function sendMessage(service, data) {
-        if (!this.connected) {
-          this.notificationCenter.fire('onError', 500, this, "Not connected");
+      if (name in this.services) {
+
+        if (name in this.subscribedService) {
+          var clientId = this.subscribedService[name].clientId;
+          return send.call(this, this.protocol.unSubscribe(name, clientId, data));
+        } else {
+          this.notificationCenter.fire('onError', 500, this, "service : " + name + " not subcribed");
           return false;
         }
-        if (service in this.services) {
-          if (service in this.subscribedService) {
-            var clientId = this.subscribedService[service].clientId;
-            try {
-              var proto = this.protocol.sendMessage(service, data, clientId);
-              send.call(this, proto);
-              return JSON.parse(proto).id;
-            } catch (e) {
-              this.fire("onError", 500, e, e.message);
-            }
-          } else {
-            this.notificationCenter.fire('onError', 500, this, "service : " + service + " not subcribed");
-            return false;
+      }
+      this.notificationCenter.fire('onError', 404, this, "service : " + name + " not exist");
+      return false;
+    }
+
+    sendMessage(service, data) {
+      if (!this.connected) {
+        this.notificationCenter.fire('onError', 500, this, "Not connected");
+        return false;
+      }
+      if (service in this.services) {
+        if (service in this.subscribedService) {
+          var clientId = this.subscribedService[service].clientId;
+          try {
+            var proto = this.protocol.sendMessage(service, data, clientId);
+            send.call(this, proto);
+            return JSON.parse(proto).id;
+          } catch (e) {
+            this.fire("onError", 500, e, e.message);
           }
         } else {
-          this.fire("onError", 404, this, "service :" + service + " not exit");
+          this.notificationCenter.fire('onError', 500, this, "service : " + service + " not subcribed");
+          return false;
         }
-        return false;
+      } else {
+        this.fire("onError", 404, this, "service :" + service + " not exit");
       }
-    }, {
-      key: "stop",
-      value: function stop() {
-        if (this.connected) {
-          this.protocol.stopReConnect();
-          for (var service in this.subscribedService) {
-            //this.unSubscribe(service);
-            delete this.subscribedService[service];
-          }
-          return send.call(this, this.protocol.disconnect());
-        }
-        throw new Error("connection already stoped");
-      }
-    }, {
-      key: "onMessage",
-      value: function onMessage(message) {
-        if (message.error) {
-          if (message.channel) {
-            this.notificationCenter.fire("onError", message.error);
-          } else {
-            this.notificationCenter.fire("onError", message.id, message.successful);
-          }
-        } else {
-          if (message.channel) {
-            this.notificationCenter.fire("onMessage", message.channel.split("/")[2], message.data);
-          } else {
-            this.notificationCenter.fire("onMessage", message.id, message.successful);
-          }
-        }
-      }
-    }]);
+      return false;
+    }
 
-    return realtime;
-  }();
+    stop() {
+      if (this.connected) {
+        this.protocol.stopReConnect();
+        for (var service in this.subscribedService) {
+          //this.unSubscribe(service);
+          delete this.subscribedService[service];
+        }
+        return send.call(this, this.protocol.disconnect());
+      }
+      throw new Error("connection already stoped");
+    }
+
+    onMessage(message) {
+      if (message.error) {
+        if (message.channel) {
+          this.notificationCenter.fire("onError", message.error);
+        } else {
+          this.notificationCenter.fire("onError", message.id, message.successful);
+        }
+      } else {
+        if (message.channel) {
+          this.notificationCenter.fire("onMessage", message.channel.split("/")[2], message.data);
+        } else {
+          this.notificationCenter.fire("onMessage", message.id, message.successful);
+        }
+      }
+    }
+  };
 
   stage.realtime = realtime;
   return realtime;
@@ -29065,23 +28823,13 @@ module.exports = function (stage) {
 /*! no static exports found */
 /***/ (function(module, exports, __webpack_require__) {
 
-"use strict";
-/* WEBPACK VAR INJECTION */(function(jQuery) {
+/* WEBPACK VAR INJECTION */(function(jQuery) {module.exports =  function(stage){
 
-var _createClass = function () { function defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ("value" in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } } return function (Constructor, protoProps, staticProps) { if (protoProps) defineProperties(Constructor.prototype, protoProps); if (staticProps) defineProperties(Constructor, staticProps); return Constructor; }; }();
-
-function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError("Cannot call a class as a function"); } }
-
-function _possibleConstructorReturn(self, call) { if (!self) { throw new ReferenceError("this hasn't been initialised - super() hasn't been called"); } return call && (typeof call === "object" || typeof call === "function") ? call : self; }
-
-function _inherits(subClass, superClass) { if (typeof superClass !== "function" && superClass !== null) { throw new TypeError("Super expression must either be null or a function, not " + typeof superClass); } subClass.prototype = Object.create(superClass && superClass.prototype, { constructor: { value: subClass, enumerable: false, writable: true, configurable: true } }); if (superClass) Object.setPrototypeOf ? Object.setPrototypeOf(subClass, superClass) : subClass.__proto__ = superClass; }
-
-module.exports = function (stage) {
 
 	var defaultSettings = {
 		delay: 0,
 		async: false,
-
+		
 		ajax: {
 			cache: true,
 			dataType: 'json',
@@ -29089,71 +28837,59 @@ module.exports = function (stage) {
 			contentType: 'application/x-www-form-urlencoded; charset=UTF-8'
 		}
 	};
-
-	var pollAction = function pollAction(ajaxConfig) {
+	
+	var pollAction = function(ajaxConfig){
 		ajaxConfig.data = this.data.get();
 		this.transport = jQuery.ajax(ajaxConfig);
 	};
-
-	var pollling = function pollling(ajaxConfig) {
-
-		if (this.settings.delay) {
-			this.timer = setTimeout(pollAction.bind(this, ajaxConfig), this.settings.delay);
+	
+	var pollling = function(ajaxConfig){
+		
+		if(this.settings.delay){
+			this.timer = setTimeout(pollAction.bind(this, ajaxConfig), this.settings.delay);	
 		} else {
 			pollAction.call(this, ajaxConfig);
-		}
+		}		
 	};
-
+	
 	/*
  	 *
  	 *
  	 */
-	var longPoll = function (_stage$io$transports$) {
-		_inherits(longPoll, _stage$io$transports$);
+	var longPoll = class longPoll extends stage.io.transports.poll  {
 
-		function longPoll(url, settings) {
-			_classCallCheck(this, longPoll);
-
-			var _this = _possibleConstructorReturn(this, (longPoll.__proto__ || Object.getPrototypeOf(longPoll)).call(this, url, settings));
-
-			_this.settings = stage.extend(true, {}, defaultSettings, settings);
-			return _this;
+		constructor(url, settings){
+			super(url, settings);
+			this.settings = stage.extend(true, {}, defaultSettings, settings);
 		}
 
-		_createClass(longPoll, [{
-			key: 'start',
-			value: function start() {
-				var _this2 = this;
-
-				var ajaxConfig = this.buildAjaxSettings();
-				this.transport = null;
-				ajaxConfig.complete = function (xhr, status) {
-					pollling.call(_this2, ajaxConfig);
-				};
+		start (){
+			var ajaxConfig = this.buildAjaxSettings();
+			this.transport = null;
+			ajaxConfig.complete = (xhr, status) => {
 				pollling.call(this, ajaxConfig);
-				return this;
+			};
+			pollling.call(this, ajaxConfig);
+			return this;
+		}
+
+		stop (){
+			this.transport.abort();
+			this.transport = null;
+
+			if(this.timer){
+				clearTimeout(this.timer);
 			}
-		}, {
-			key: 'stop',
-			value: function stop() {
-				this.transport.abort();
-				this.transport = null;
+			this.connectState = false;
+			this.fire('onStop', this);
+			return this;
+		}
+	}
 
-				if (this.timer) {
-					clearTimeout(this.timer);
-				}
-				this.connectState = false;
-				this.fire('onStop', this);
-				return this;
-			}
-		}]);
-
-		return longPoll;
-	}(stage.io.transports.poll);
-
-	stage.io.transports.longPoll = longPoll;
+	stage.io.transports.longPoll = longPoll ;
 	return longPoll;
 };
+
 /* WEBPACK VAR INJECTION */}.call(this, __webpack_require__(/*! jquery */ "./node_modules/jquery/dist/jquery.js-exposed")))
 
 /***/ }),
@@ -29165,25 +28901,12 @@ module.exports = function (stage) {
 /*! no static exports found */
 /***/ (function(module, exports, __webpack_require__) {
 
-"use strict";
-/* WEBPACK VAR INJECTION */(function(jQuery) {
-
-var _typeof = typeof Symbol === "function" && typeof Symbol.iterator === "symbol" ? function (obj) { return typeof obj; } : function (obj) { return obj && typeof Symbol === "function" && obj.constructor === Symbol && obj !== Symbol.prototype ? "symbol" : typeof obj; };
-
-var _createClass = function () { function defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ("value" in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } } return function (Constructor, protoProps, staticProps) { if (protoProps) defineProperties(Constructor.prototype, protoProps); if (staticProps) defineProperties(Constructor, staticProps); return Constructor; }; }();
-
-function _possibleConstructorReturn(self, call) { if (!self) { throw new ReferenceError("this hasn't been initialised - super() hasn't been called"); } return call && (typeof call === "object" || typeof call === "function") ? call : self; }
-
-function _inherits(subClass, superClass) { if (typeof superClass !== "function" && superClass !== null) { throw new TypeError("Super expression must either be null or a function, not " + typeof superClass); } subClass.prototype = Object.create(superClass && superClass.prototype, { constructor: { value: subClass, enumerable: false, writable: true, configurable: true } }); if (superClass) Object.setPrototypeOf ? Object.setPrototypeOf(subClass, superClass) : subClass.__proto__ = superClass; }
-
-function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError("Cannot call a class as a function"); } }
-
-module.exports = function (stage) {
+/* WEBPACK VAR INJECTION */(function(jQuery) {module.exports =  function(stage){
 
 	var defaultSettings = {
 		delay: 1000,
-		async: true,
-
+		async : true,
+		
 		ajax: {
 			cache: true,
 			dataType: 'json',
@@ -29192,177 +28915,156 @@ module.exports = function (stage) {
 		}
 	};
 
-	var pollling = function pollling(ajaxConfig) {
-
-		var tokenKey = new Date().getTime();
+	var pollling = function(ajaxConfig){
+		
+		var tokenKey = (new Date()).getTime();
 		ajaxConfig.data = this.data.get();
 		var transport = jQuery.ajax(ajaxConfig);
 		transport.tokenKey = tokenKey;
 		this.transport[tokenKey] = transport;
 	};
-
+	
 	/*
  	 *
  	 */
-	var httpData = function () {
-		function httpData(contentType, method) {
-			_classCallCheck(this, httpData);
-
+	var httpData = class httpData  {
+		constructor(contentType, method){
 			this.reset();
-			if (contentType) {
+			if(contentType) {
 				this.contentType = contentType;
 			}
-			if (method) {
+			if(method) {
 				this.method = method;
 			}
 		}
 
-		_createClass(httpData, [{
-			key: 'add',
-			value: function add(data, permanent) {
-				this[permanent ? "permanent" : "transient"] = data;
-			}
-		}, {
-			key: 'get',
-			value: function get() {
-
-				var data = this.transient ? this.transient : this.permanent;
-				this.transient = '';
-				//return this.contentType.search('json') >= 0 && typeof(data) == 'object' && this.method.toUpperCase() != 'GET' ? JSON.stringify(data) : data;
-				switch (this.contentType.split(';')[0].replace(/ /g, '')) {
-					case 'application/json':
-					case 'text/json':
-						if (this.method.toUpperCase() != 'GET' && (typeof data === 'undefined' ? 'undefined' : _typeof(data)) == 'object') {
-							data = JSON.stringify(data);
-						}
-						break;
-				}
-
-				return data;
-			}
-		}, {
-			key: 'reset',
-			value: function reset() {
-				this.contentType = '';
-				this.method = 'GET';
-				this.permanent = '';
-				this.transient = '';
-			}
-		}]);
-
-		return httpData;
-	}();
-
-	/*
-  *	EVENT :
-  *		onStart
-  *		onStop
-  *		onMessage
-  *		onError 
-  */
-	var poll = function (_stage$io$transport) {
-		_inherits(poll, _stage$io$transport);
-
-		function poll(url, settings) {
-			_classCallCheck(this, poll);
-
-			var _this = _possibleConstructorReturn(this, (poll.__proto__ || Object.getPrototypeOf(poll)).call(this, url, settings));
-
-			_this.settings = jQuery.extend(true, {}, defaultSettings, settings);
-			_this.data = new httpData(_this.settings.ajax.contentType, _this.settings.ajax.type);
-			_this.connectState = false;
-			return _this;
+		add (data, permanent){
+			this[permanent ? "permanent" : "transient"] = data;
 		}
 
-		_createClass(poll, [{
-			key: 'buildAjaxSettings',
-			value: function buildAjaxSettings() {
+		get (){
 
-				var settings = jQuery.extend(true, {}, this.settings.ajax, {
-					url: this.url.href,
-					crossDomain: this.crossDomain,
-					beforeSend: function (xhr) {
-						if (!this.connectState) {
-							this.fire.call(this, "onStart", this);
-							this.connectState = true;
-						}
-					}.bind(this),
-					success: function (data, state, xhr) {
-						this.fire("onMessage", data, this, xhr);
-					}.bind(this),
-					error: function (xhr, status, error) {
-						switch (status) {
-							case 'abort':
-								this.fire("onAbort", error, this, xhr);
-								break;
+	    		var data = (this.transient ? this.transient : this.permanent);
+	    		this.transient = '';
+        		//return this.contentType.search('json') >= 0 && typeof(data) == 'object' && this.method.toUpperCase() != 'GET' ? JSON.stringify(data) : data;
+	    		switch(this.contentType.split(';')[0].replace(/ /g, '')){
+	    			case 'application/json':
+	    			case 'text/json':
+	    				if(this.method.toUpperCase() != 'GET' && typeof(data) == 'object'){
+	    					data = JSON.stringify(data);
+	    				} 
+	    				break;
+	    		}
 
-							case 'timeout':
-								this.fire("onTimeout", error, this, xhr);
-								break;
+	    		return data;
+		}
 
-							default:
-								this.fire("onError", error, this, xhr);
-						}
-					}.bind(this)
-				});
-				return settings;
-			}
-		}, {
-			key: 'start',
-			value: function start() {
+		reset (){
+	    		this.contentType = '';
+	    		this.method = 'GET';
+			this.permanent = '';
+			this.transient = '';
+		}
 
-				var ajaxConfig = this.buildAjaxSettings();
+	};
 
-				this.transport = {};
-				ajaxConfig.complete = function (xhr, status) {
-					if (this.transport[xhr.tokenKey]) delete this.transport[xhr.tokenKey];
-				}.bind(this);
-				pollling.call(this, ajaxConfig);
-				this.idInterval = setInterval(pollling.bind(this, ajaxConfig), this.settings.delay);
+	/*
+	 *	EVENT :
+	 *		onStart
+	 *		onStop
+	 *		onMessage
+	 *		onError 
+	 */
+	var poll = class poll extends stage.io.transport  {
 
-				return this;
-			}
-		}, {
-			key: 'setData',
-			value: function setData(data, permanent) {
-				this.data.add(data, permanent);
-				return this;
-			}
-		}, {
-			key: 'stop',
-			value: function stop() {
+		constructor(url, settings){
+			super(url, settings);
+			this.settings = jQuery.extend(true, {}, defaultSettings, settings);
+			this.data = new httpData(this.settings.ajax.contentType, this.settings.ajax.type);
+			this.connectState = false;	
+		}
 
-				if (Object.keys(this.transport).length > 0) {
-					for (var tokenKey in this.transport) {
-						this.transport[tokenKey].abort();
-						delete this.transport[tokenKey];
-					}
+		buildAjaxSettings (){
+
+			var settings = jQuery.extend(true, {}, this.settings.ajax,{
+				url: this.url.href,
+			    crossDomain: this.crossDomain,
+			    beforeSend: function(xhr){
+				    if ( ! this.connectState){
+					    this.fire.call(this, "onStart", this);
+					    this.connectState = true;
+				    }
+			    }.bind(this),
+			    success: function(data, state, xhr){
+				    this.fire("onMessage", data , this, xhr);
+			    }.bind(this),
+			    error: function(xhr, status, error){
+				    switch(status){
+					    case 'abort':
+						    this.fire("onAbort", error, this, xhr);	
+						    break;
+
+					    case 'timeout':
+						    this.fire("onTimeout", error, this, xhr);	
+						    break;
+
+					    default:
+						    this.fire("onError", error, this, xhr);
+				    }
+			    }.bind(this)
+			});
+			return settings;
+		}
+
+		start (){
+
+			var ajaxConfig = this.buildAjaxSettings();
+
+			this.transport = {};
+			ajaxConfig.complete = function(xhr, status){
+				if(this.transport[xhr.tokenKey]) delete this.transport[xhr.tokenKey];
+			}.bind(this);
+			pollling.call(this, ajaxConfig);
+			this.idInterval = setInterval(pollling.bind(this, ajaxConfig), this.settings.delay);
+
+			return this;
+		}
+
+		setData (data, permanent){
+			this.data.add(data, permanent);
+			return this;
+		}
+
+		stop (){
+
+			if (Object.keys(this.transport).length > 0){
+				for(var tokenKey in this.transport){
+					this.transport[tokenKey].abort();
+					delete this.transport[tokenKey];
 				}
-
-				if (this.idInterval) {
-					clearInterval(this.idInterval);
-					this.idInterval = null;
-				}
-
-				this.connectState = false;
-
-				this.fire('onStop', this);
-				return this;
 			}
-		}, {
-			key: 'destroy',
-			value: function destroy() {
-				this.close();
-				return this;
+
+			if(this.idInterval) {
+				clearInterval(this.idInterval);
+				this.idInterval = null;
 			}
-		}]);
 
-		return poll;
-	}(stage.io.transport);
+			this.connectState = false;
 
-	stage.io.transports.poll = poll;
+			this.fire('onStop', this);
+			return this;
+		}
+
+		destroy (){
+			this.close();
+			return this;
+		}
+	};	
+	
+	stage.io.transports.poll = poll ;
 	return poll;
 };
+
 /* WEBPACK VAR INJECTION */}.call(this, __webpack_require__(/*! jquery */ "./node_modules/jquery/dist/jquery.js-exposed")))
 
 /***/ }),
@@ -29372,18 +29074,7 @@ module.exports = function (stage) {
   !*** ./src/io/transports/socket.es6 ***!
   \**************************************/
 /*! no static exports found */
-/***/ (function(module, exports, __webpack_require__) {
-
-"use strict";
-
-
-var _createClass = function () { function defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ("value" in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } } return function (Constructor, protoProps, staticProps) { if (protoProps) defineProperties(Constructor.prototype, protoProps); if (staticProps) defineProperties(Constructor, staticProps); return Constructor; }; }();
-
-function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError("Cannot call a class as a function"); } }
-
-function _possibleConstructorReturn(self, call) { if (!self) { throw new ReferenceError("this hasn't been initialised - super() hasn't been called"); } return call && (typeof call === "object" || typeof call === "function") ? call : self; }
-
-function _inherits(subClass, superClass) { if (typeof superClass !== "function" && superClass !== null) { throw new TypeError("Super expression must either be null or a function, not " + typeof superClass); } subClass.prototype = Object.create(superClass && superClass.prototype, { constructor: { value: subClass, enumerable: false, writable: true, configurable: true } }); if (superClass) Object.setPrototypeOf ? Object.setPrototypeOf(subClass, superClass) : subClass.__proto__ = superClass; }
+/***/ (function(module, exports) {
 
 module.exports = function (stage) {
 
@@ -29391,69 +29082,61 @@ module.exports = function (stage) {
     type: "websocket" //   websocket | poll | longPoll
   };
 
-  var bestTransport = function bestTransport() {};
+  var bestTransport = function () {
 
-  var socket = function (_stage$notificationsC) {
-    _inherits(socket, _stage$notificationsC);
+  };
 
-    function socket(url, localSettings) {
-      _classCallCheck(this, socket);
+  var socket = class socket extends stage.notificationsCenter.notification {
+
+    constructor(url, localSettings) {
 
       var settings = stage.extend({}, defaultSettings, localSettings);
 
-      var _this = _possibleConstructorReturn(this, (socket.__proto__ || Object.getPrototypeOf(socket)).call(this, settings));
+      super(settings);
 
-      _this.settings = settings;
+      this.settings = settings;
 
-      switch (_this.settings.type) {
-        case "websocket":
-          _this.socket = stage.io.transports.websocket;
-          break;
-        case "poll":
-          _this.socket = stage.io.transports.ajax;
-          break;
-        case "longPoll":
-          _this.socket = stage.io.transports.ajax;
-          break;
+      switch (this.settings.type) {
+      case "websocket":
+        this.socket = stage.io.transports.websocket;
+        break;
+      case "poll":
+        this.socket = stage.io.transports.ajax;
+        break;
+      case "longPoll":
+        this.socket = stage.io.transports.ajax;
+        break;
       }
 
-      _this.listen(_this, "onConnect");
-      _this.listen(_this, "onClose");
-      _this.listen(_this, "onError");
-      _this.listen(_this, "onMessage");
-      _this.listen(_this, "onTimeout");
-      return _this;
+      this.listen(this, "onConnect");
+      this.listen(this, "onClose");
+      this.listen(this, "onError");
+      this.listen(this, "onMessage");
+      this.listen(this, "onTimeout");
     }
 
-    _createClass(socket, [{
-      key: "write",
-      value: function write(settings) {
-        this.transport.send();
-      }
-    }, {
-      key: "close",
-      value: function close(settings) {
-        this.transport.close();
-      }
-    }, {
-      key: "connect",
-      value: function connect(url, settings) {
-        this.transport = new this.socket(url, settings);
-        this.transport.onmessage = this.listen(this, "onMessage");
-      }
-    }, {
-      key: "destroy",
-      value: function destroy(settings) {
-        this.transport = null;
-        this.clearNotifications();
-      }
-    }]);
+    write(settings) {
+      this.transport.send();
+    }
 
-    return socket;
-  }(stage.notificationsCenter.notification);
+    close(settings) {
+      this.transport.close();
+    }
+
+    connect(url, settings) {
+      this.transport = new this.socket(url, settings);
+      this.transport.onmessage = this.listen(this, "onMessage");
+    }
+
+    destroy(settings) {
+      this.transport = null;
+      this.clearNotifications();
+    }
+  };
 
   stage.io.socket = socket;
   return socket;
+
 };
 
 /***/ }),
@@ -29463,72 +29146,48 @@ module.exports = function (stage) {
   !*** ./src/io/transports/websockets/websocket.es6 ***!
   \****************************************************/
 /*! no static exports found */
-/***/ (function(module, exports, __webpack_require__) {
-
-"use strict";
-
-
-var _createClass = function () { function defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ("value" in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } } return function (Constructor, protoProps, staticProps) { if (protoProps) defineProperties(Constructor.prototype, protoProps); if (staticProps) defineProperties(Constructor, staticProps); return Constructor; }; }();
-
-function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError("Cannot call a class as a function"); } }
-
-function _possibleConstructorReturn(self, call) { if (!self) { throw new ReferenceError("this hasn't been initialised - super() hasn't been called"); } return call && (typeof call === "object" || typeof call === "function") ? call : self; }
-
-function _inherits(subClass, superClass) { if (typeof superClass !== "function" && superClass !== null) { throw new TypeError("Super expression must either be null or a function, not " + typeof superClass); } subClass.prototype = Object.create(superClass && superClass.prototype, { constructor: { value: subClass, enumerable: false, writable: true, configurable: true } }); if (superClass) Object.setPrototypeOf ? Object.setPrototypeOf(subClass, superClass) : subClass.__proto__ = superClass; }
+/***/ (function(module, exports) {
 
 module.exports = function (stage) {
 
   /*
    *
    */
-  var websocket = function (_stage$io$transport) {
-    _inherits(websocket, _stage$io$transport);
+  const websocket = class websocket extends stage.io.transport {
 
-    function websocket(url, settings) {
-      _classCallCheck(this, websocket);
-
+    constructor(url, settings) {
       if (url) {
-        var _this = _possibleConstructorReturn(this, (websocket.__proto__ || Object.getPrototypeOf(websocket)).call(this, url, settings));
-
-        _this.connect(url, settings);
+        super(url, settings);
+        this.connect(url, settings);
       } else {
-        var _this = _possibleConstructorReturn(this, (websocket.__proto__ || Object.getPrototypeOf(websocket)).call(this));
-
-        _this.socket = null;
-      }
-      return _possibleConstructorReturn(_this);
-    }
-
-    _createClass(websocket, [{
-      key: "connect",
-      value: function connect(url, settings) {
-        this.socket = new WebSocket(url, settings.protocol);
-        this.socket.onmessage = this.listen(this, "onMessage");
-        this.socket.onerror = this.listen(this, "onError");
-        this.socket.onopen = this.listen(this, "onConnect");
-        this.socket.onclose = this.listen(this, "onClose");
-        return this.socket;
-      }
-    }, {
-      key: "close",
-      value: function close(url, settings) {
-        this.socket.close();
-      }
-    }, {
-      key: "send",
-      value: function send(data) {
-        this.socket.send(data);
-      }
-    }, {
-      key: "destroy",
-      value: function destroy(data) {
-        delete this.socket;
+        super();
         this.socket = null;
       }
-    }]);
+    }
 
-    return websocket;
-  }(stage.io.transport);
+    connect(url, settings) {
+      this.socket = new WebSocket(url, settings.protocol);
+      this.socket.onmessage = this.listen(this, "onMessage");
+      this.socket.onerror = this.listen(this, "onError");
+      this.socket.onopen = this.listen(this, "onConnect");
+      this.socket.onclose = this.listen(this, "onClose");
+      return this.socket;
+    }
+
+
+    close(url, settings) {
+      this.socket.close();
+    }
+
+    send(data) {
+      this.socket.send(data);
+    }
+
+    destroy(data) {
+      delete this.socket;
+      this.socket = null;
+    }
+  };
 
   stage.io.transports.websocket = websocket;
 
@@ -29542,62 +29201,48 @@ module.exports = function (stage) {
   !*** ./src/kernel/appKernel.es6 ***!
   \**********************************/
 /*! no static exports found */
-/***/ (function(module, exports, __webpack_require__) {
+/***/ (function(module, exports) {
 
-"use strict";
-
-
-function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError("Cannot call a class as a function"); } }
-
-function _possibleConstructorReturn(self, call) { if (!self) { throw new ReferenceError("this hasn't been initialised - super() hasn't been called"); } return call && (typeof call === "object" || typeof call === "function") ? call : self; }
-
-function _inherits(subClass, superClass) { if (typeof superClass !== "function" && superClass !== null) { throw new TypeError("Super expression must either be null or a function, not " + typeof superClass); } subClass.prototype = Object.create(superClass && superClass.prototype, { constructor: { value: subClass, enumerable: false, writable: true, configurable: true } }); if (superClass) Object.setPrototypeOf ? Object.setPrototypeOf(subClass, superClass) : subClass.__proto__ = superClass; }
-
-module.exports = function (stage) {
+module.exports =  function(stage){
 
 	'use strict';
 
-	var appKernel = function (_stage$kernel) {
-		_inherits(appKernel, _stage$kernel);
+		 
+	var appKernel = class appKernel extends  stage.kernel  {
 
-		function appKernel(url, environnement, settings) {
-			_classCallCheck(this, appKernel);
+		constructor(url, environnement, settings){
 
-			switch (arguments.length) {
-				case 0:
-					url = null;
-					environnement = "prod";
-					settings = {};
-					break;
-				case 1:
-					environnement = url;
-					settings = {};
-					break;
+			switch (arguments.length){
+				case 0 :
+					url = null ;
+					environnement = "prod" ;
+					settings = {} ;
+				break;
+				case 1 :
+					environnement = url ;
+					settings = {} ;
+				break;
 				case 2:
 					settings = environnement;
 					environnement = url;
-					url = null;
-					break;
+					url = null ;
+				break
 			}
-
-			var _this = _possibleConstructorReturn(this, (appKernel.__proto__ || Object.getPrototypeOf(appKernel)).call(this, environnement, settings));
-
-			if (url) {
-				_this.loadModule(url, {
-					async: false
+			super(environnement, settings);
+			if ( url ){
+				this.loadModule(url,{
+					async:false
 				});
-			} else {
-				_this.fire("onBoot", _this);
+			}else{
+				this.fire("onBoot", this);
 			}
-			return _this;
 		}
+	};
 
-		return appKernel;
-	}(stage.kernel);
-
-	stage.appKernel = appKernel;
-	return appKernel;
+	stage.appKernel = appKernel ;
+	return appKernel ;
 };
+
 
 /***/ }),
 
@@ -29608,147 +29253,145 @@ module.exports = function (stage) {
 /*! no static exports found */
 /***/ (function(module, exports, __webpack_require__) {
 
-"use strict";
-/* WEBPACK VAR INJECTION */(function($, jQuery) {
+/* WEBPACK VAR INJECTION */(function($, jQuery) {const shortId = __webpack_require__(/*! shortid */ "./node_modules/shortid/index.js");
 
-var _createClass = function () { function defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ("value" in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } } return function (Constructor, protoProps, staticProps) { if (protoProps) defineProperties(Constructor.prototype, protoProps); if (staticProps) defineProperties(Constructor, staticProps); return Constructor; }; }();
-
-function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError("Cannot call a class as a function"); } }
-
-var shortId = __webpack_require__(/*! shortid */ "./node_modules/shortid/index.js");
-
-module.exports = function (stage) {
+module.exports =  function(stage){
 
 	'use strict';
 
-	var generateId = function generateId() {
+	var generateId = function(){
 		return shortId.generate();
 	};
 
-	var loader = function () {
 
+	var loader = function(){
+		
 		var AJAX = {
-			css: {
-				mineType: "text/css",
-				tag: "style",
-				media: "screen",
-				type: "stylesheet",
-				position: "HEAD"
+			css : {
+				mineType :	"text/css",
+				tag:		"style",
+				media:		"screen",
+				type:		"stylesheet",
+				position:	"HEAD"
 			},
-			js: {
-				mineType: "text/javascript",
-				tag: "script",
-				position: "BODY"
+			js:{
+				mineType :	"text/javascript",
+				tag:		"script",
+				position:	"BODY"
 			}
 		};
 
 		var SCRIPT = {
-			css: {
-				mineType: "text/css",
-				tag: "link",
-				media: "screen",
-				type: "stylesheet",
-				position: "HEAD"
+			css : {
+				mineType :	"text/css",
+				tag:		"link",
+				media:		"screen",
+				type:		"stylesheet",
+				position:	"HEAD"
 			},
-			js: {
-				mineType: "text/javascript",
-				tag: "script",
-				position: "BODY"
+			js:{
+				mineType :	"text/javascript",
+				tag:		"script",
+				position:	"BODY"
 			}
 		};
 
-		var insert = function insert(position, script) {
-			switch (position) {
-				case "HEAD":
+		var insert = function(position, script){
+			switch(position){
+				case "HEAD" :
 					var head = document.getElementsByTagName('head')[0];
 					head.appendChild(script);
-					break;
-				case "BODY":
-					var body = document.getElementsByTagName('body')[0];
+				break;
+				case "BODY" :
+					var body = document.getElementsByTagName('body')[0]
 					body.appendChild(script);
-					break;
+				break;
 			}
 		};
 
-		return function (src, tag, id, transport, callback) {
-			var _this = this;
 
+		return function(src, tag , id, transport, callback){
 			//if (tag == "js") transport = "ajax";
 			//if (tag == "css") transport = "ajax";
-			switch (tag) {
+			switch (tag){
 				case "js":
 					/*var def = AJAX[tag];
-     var script = document.createElement(def.tag);
-     script.setAttribute('type', def.mineType);
-     script.setAttribute('id', id + '_'+tag);
-     if ( tag === "css" ){
-     	script.setAttribute('media', def.media);
-     }
-     $.ajax(src, {
-     	async:false,
-     	//cache:true,
-     	dataType:"text",
-     	success:function(data, status, xhr){
-     		this.cache[id] = script ;
-     		insert(def.position, script);
-     		$(script).text(data);
-     		this.logger("LOAD FILE :" + src,"DEBUG");
-     		callback(null, xhr);
-     	}.bind(this),
-     	error:function(xhr, status, message){
-     		this.logger(src+" :" +message,"ERROR");
-     		callback(message, xhr);
-     	}.bind(this)
-     });*/
-
+					var script = document.createElement(def.tag);
+					script.setAttribute('type', def.mineType);
+					script.setAttribute('id', id + '_'+tag);
+					if ( tag === "css" ){
+						script.setAttribute('media', def.media);
+					}
+					$.ajax(src, {
+						async:false,
+						//cache:true,
+						dataType:"text",
+						success:function(data, status, xhr){
+							this.cache[id] = script ;
+							insert(def.position, script);
+							$(script).text(data);
+							this.logger("LOAD FILE :" + src,"DEBUG");
+							callback(null, xhr);
+						}.bind(this),
+						error:function(xhr, status, message){
+							this.logger(src+" :" +message,"ERROR");
+							callback(message, xhr);
+						}.bind(this)
+					});*/
+					 
 					return $.ajax({
 						url: src,
-						async: false,
+					        async:false,
 						dataType: "script",
-						success: function success(data, status, xhr) {
+						success: (data, status, xhr) => {
 							//this.logger("LOAD FILE :" + src,"DEBUG");
-							callback(null, xhr);
+							callback(null, xhr);	
 						},
-						error: function error(xhr, status, message) {
-							_this.logger(src + " :" + message, "ERROR");
+						error:(xhr, status, message) => {
+							this.logger(src+" :" +message,"ERROR");
 							callback(message, xhr);
 						}
 					});
+					
 
-					break;
+
+
+				break;
 				case "css":
 					var def = SCRIPT[tag];
 					var script = document.createElement(def.tag);
 					script.setAttribute('type', def.mineType);
-					script.setAttribute('id', id + '_' + tag);
-					if (tag === "css") {
+					script.setAttribute('id', id + '_'+tag);
+					if ( tag === "css" ){
 						script.setAttribute('media', def.media);
-						script.href = src; /*+ '?time=' + id;*/
+						script.href = src;/*+ '?time=' + id;*/
 						script.rel = def.type;
 						script.async = false;
 					}
-					if (tag === "js") {
-						script.src = src; /*+ '?time=' + id;*/
+					if (tag === "js"){
+						script.src = src;/*+ '?time=' + id;*/
 						script.async = false;
 					}
-					script.onload = function () {
-						_this.cache[id] = script;
-						_this.logger("LOAD FILE :" + src, "DEBUG");
+					script.onload = () => {
+						this.cache[id] = script;
+						this.logger("LOAD FILE :" + src,"DEBUG");
 						callback(null, script);
 					};
-					script.onerror = function (error) {
-						_this.logger(src, "ERROR");
+					script.onerror = (error) => {
+						this.logger(src ,"ERROR");
 						callback(error, script);
 					};
 					insert(def.position, script);
-					break;
+				break;
 				default:
-					this.logger(new Error("autoload  type transport error "), "ERROR");
+					this.logger( new Error ("autoload  type transport error "), "ERROR" );
 					return null;
 			}
-			return script;
-		};
+			return script ;
+		}
 	}();
+
+
 
 	/*
  	 *
@@ -29756,66 +29399,59 @@ module.exports = function (stage) {
  	 *
  	 */
 	var defaultSetting = {
-		transport: "script",
-		prefix: null
+		transport:"script",
+		prefix:null
 	};
 
 	var regType = /(.*)\.(js)$|(.*)\.(css)$/;
 
-	var autoload = function () {
-		function autoload(kernel, settings) {
-			_classCallCheck(this, autoload);
+	var autoload = class autoload {
 
-			this.settings = jQuery.extend({}, defaultSetting, settings);
+		constructor(kernel, settings){
+			this.settings = jQuery.extend({}, defaultSetting, settings)
 			this.cache = {};
-			this.prefix = this.settings.prefix;
-			this.syslog = kernel.syslog || null;
-			this.transport = this.settings.transport;
+			this.prefix = this.settings.prefix  ;
+			this.syslog = kernel.syslog || null ;
+			this.transport = this.settings.transport ;
 			this.logger("INITIALIZE AUTOLOAD SERVICE", "DEBUG");
 		}
 
-		_createClass(autoload, [{
-			key: 'load',
-			value: function load(file, callback) {
-				var id = generateId();
-				var res = regType.exec(file);
-				if (!res) {
-					this.logger("autoload error type file  ", "ERROR");
-					return null;
-				}
-				var script = loader.call(this, file, res[2] || res[4], id, this.transport, callback);
-				return id;
+		load (file, callback){
+			var id = generateId();
+			var res = regType.exec(file);
+			if ( ! res) {
+				this.logger("autoload error type file  ","ERROR")
+				return null;
 			}
-		}, {
-			key: 'logger',
-			value: function logger(pci, severity, msgid, msg) {
-				if (this.syslog) {
-					if (!msgid) msgid = "AUTOLOADER  ";
-					return this.syslog.logger(pci, severity, msgid, msg);
-				} else {
-					console.log(pci);
-				}
-			}
-		}, {
-			key: 'unLoad',
-			value: function unLoad(id, callback) {
-				if (id in this.cache) {
-					var tag = this.cache[id];
-					tag.parentNode.removeChild(tag);
-					delete this.cache[id];
-					return callback(id);
-				} else {
-					this.logger("Autoload unLoad no tag find :" + id, "ERROR");
-				}
-			}
-		}]);
+			var script = loader.call(this, file, res[2] || res[4] , id, this.transport, callback)
+			return id 
+		}
 
-		return autoload;
-	}();
+		logger (pci, severity, msgid,  msg){
+			if (this.syslog){
+				if (! msgid) msgid = "AUTOLOADER  ";
+				return this.syslog.logger(pci, severity , msgid,  msg);
+			}else{
+				console.log(pci);
+			}
+		}
 
-	stage.autoload = autoload;
-	return autoload;
+		unLoad (id, callback){
+			if (id in this.cache){
+				var tag = this.cache[id]
+				tag.parentNode.removeChild(tag);
+				delete 	this.cache[id] ;	
+				return callback(id);
+			}else{
+				this.logger("Autoload unLoad no tag find :" +id ,"ERROR")
+			}
+		}
+	};
+
+	stage.autoload =  autoload ;
+	return autoload ; 
 };
+
 /* WEBPACK VAR INJECTION */}.call(this, __webpack_require__(/*! jquery */ "./node_modules/jquery/dist/jquery.js-exposed"), __webpack_require__(/*! jquery */ "./node_modules/jquery/dist/jquery.js-exposed")))
 
 /***/ }),
@@ -29827,65 +29463,51 @@ module.exports = function (stage) {
 /*! no static exports found */
 /***/ (function(module, exports, __webpack_require__) {
 
-"use strict";
+const shortId = __webpack_require__(/*! shortid */ "./node_modules/shortid/index.js");
 
-
-var _get = function get(object, property, receiver) { if (object === null) object = Function.prototype; var desc = Object.getOwnPropertyDescriptor(object, property); if (desc === undefined) { var parent = Object.getPrototypeOf(object); if (parent === null) { return undefined; } else { return get(parent, property, receiver); } } else if ("value" in desc) { return desc.value; } else { var getter = desc.get; if (getter === undefined) { return undefined; } return getter.call(receiver); } };
-
-var _typeof = typeof Symbol === "function" && typeof Symbol.iterator === "symbol" ? function (obj) { return typeof obj; } : function (obj) { return obj && typeof Symbol === "function" && obj.constructor === Symbol && obj !== Symbol.prototype ? "symbol" : typeof obj; };
-
-var _createClass = function () { function defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ("value" in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } } return function (Constructor, protoProps, staticProps) { if (protoProps) defineProperties(Constructor.prototype, protoProps); if (staticProps) defineProperties(Constructor, staticProps); return Constructor; }; }();
-
-function _possibleConstructorReturn(self, call) { if (!self) { throw new ReferenceError("this hasn't been initialised - super() hasn't been called"); } return call && (typeof call === "object" || typeof call === "function") ? call : self; }
-
-function _inherits(subClass, superClass) { if (typeof superClass !== "function" && superClass !== null) { throw new TypeError("Super expression must either be null or a function, not " + typeof superClass); } subClass.prototype = Object.create(superClass && superClass.prototype, { constructor: { value: subClass, enumerable: false, writable: true, configurable: true } }); if (superClass) Object.setPrototypeOf ? Object.setPrototypeOf(subClass, superClass) : subClass.__proto__ = superClass; }
-
-function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError("Cannot call a class as a function"); } }
-
-var shortId = __webpack_require__(/*! shortid */ "./node_modules/shortid/index.js");
-
-module.exports = function (stage) {
+module.exports =  function(stage){
 
 	'use strict';
 
-	var ISDefined = function ISDefined(ele) {
-		if (ele !== null && ele !== undefined) {
-			return true;
+
+	var ISDefined = function(ele){
+		if (ele !== null && ele !== undefined ){
+			return true ;
 		}
 		return false;
 	};
 
-	var generateId = function generateId() {
+	var generateId = function(){
 		return shortId.generate();
 	};
 
-	var parseParameterString = function parseParameterString(str, value) {
-		var ns = null;
-		switch (stage.typeOf(str)) {
-			case "string":
-				return parseParameterString.call(this, str.split("."), value);
-			case "array":
-				switch (str.length) {
-					case 1:
+	var parseParameterString = function(str, value){
+		var ns = null ; 
+		switch( stage.typeOf(str) ){
+			case "string" :
+				return parseParameterString.call(this,str.split(".") , value);
+			case "array" :
+				switch(str.length){
+					case 1 :
 						ns = Array.prototype.shift.call(str);
-						if (!this[ns]) {
+						if ( ! this[ns] ){
 							this[ns] = value;
-						} else {
-							if (ISDefined(value)) {
-								this[ns] = value;
-							} else {
+						}else{
+							if ( ISDefined(value) ){
+								this[ns] = value ;
+							}else{
 								return this[ns];
 							}
 						}
-						return value;
-					default:
+						return value ;
+					default :
 						ns = Array.prototype.shift.call(str);
-						if (!this[ns] && ISDefined(value)) {
+						if ( ! this[ns] && ISDefined(value)  ){
 							this[ns] = {};
 						}
-						return parseParameterString.call(this[ns], str, value);
+						return parseParameterString.call(this[ns], str, value);	
 				}
-				break;
+			break;
 			default:
 				return false;
 		}
@@ -29896,133 +29518,115 @@ module.exports = function (stage) {
  	 *	CONTAINER CLASS
  	 *
  	 */
-	var Container = function () {
-		function Container(services, parameters) {
-			_classCallCheck(this, Container);
+	var Container = class Container {
 
-			this.protoService = function () {};
-			this.protoParameters = function () {};
+		constructor (services, parameters){
+			this.protoService = function(){};
+			this.protoParameters = function(){};
 			this.scope = {};
 			this.services = new this.protoService();
-			if (services && (typeof services === 'undefined' ? 'undefined' : _typeof(services)) === "object") {
-				for (var service in services) {
+			if (services && typeof services === "object"){
+				for (var service in services){
 					this.set(service, services[service]);
 				}
 			}
 			this.parameters = new this.protoParameters();
-			if (parameters && (typeof parameters === 'undefined' ? 'undefined' : _typeof(parameters)) === "object") {
-				for (var parameter in parameters) {
+			if (parameters && typeof parameters === "object"){
+				for (var parameter in parameters){
 					this.set(parameter, parameters[parameter]);
 				}
 			}
 		}
 
-		_createClass(Container, [{
-			key: 'logger',
-			value: function logger(pci, severity, msgid, msg) {
-				var syslog = this.get("syslog");
-				if (!msgid) {
-					msgid = "CONTAINER SERVICES ";
-				}
-				return syslog.logger(pci, severity, msgid, msg);
-			}
-		}, {
-			key: 'set',
-			value: function set(name, object) {
-				return this.protoService.prototype[name] = object;
-			}
-		}, {
-			key: 'get',
-			value: function get(name) {
-				if (name in this.services) {
-					return this.services[name];
-				}
-				return null;
-				//this.logger("GET : " + name+" don't exist", "WARNING");	
-			}
-		}, {
-			key: 'has',
-			value: function has(name) {
+		logger (pci, severity, msgid,  msg){
+			var syslog = this.get("syslog");
+			if (! msgid) { msgid = "CONTAINER SERVICES "; }
+			return syslog.logger(pci, severity, msgid,  msg);
+		}
+
+		set (name, object){
+			return this.protoService.prototype[name] = object;
+		}
+
+		get (name){
+			if (name in this.services){
 				return this.services[name];
 			}
-		}, {
-			key: 'addScope',
-			value: function addScope(name) {
-				if (!this.scope[name]) {
-					return this.scope[name] = {};
-				}
-				return this.scope[name];
-			}
-		}, {
-			key: 'enterScope',
-			value: function enterScope(name) {
-				var sc = new Scope(name, this);
-				this.scope[name][sc.id] = sc;
-				return sc;
-			}
-		}, {
-			key: 'enterScopeExtended',
-			value: function enterScopeExtended(name) {
-				var sc = new ExtendedScope(name, this);
-				this.scope[name][sc.id] = sc;
-				return sc;
-			}
-		}, {
-			key: 'leaveScope',
-			value: function leaveScope(scope) {
-				if (this.scope[scope.name]) {
-					var sc = this.scope[scope.name][scope.id];
-					if (sc) {
-						sc.clean();
-						//console.log("pass leaveScope "+ scope.id)
-						delete this.scope[scope.name][scope.id];
-						sc = null;
-					}
-					//console.log(this.scope)
-				}
-			}
-		}, {
-			key: 'removeScope',
-			value: function removeScope(name) {
-				if (this.scope[name]) {
-					for (var scope in this.scope[name]) {
-						this.leaveScope(this.scope[name][scope]);
-					}
-					delete this.scope[name];
-				}
-			}
-		}, {
-			key: 'setParameters',
-			value: function setParameters(name, str) {
-				if (typeof name !== "string") {
-					this.logger(new Error("setParameters : container parameter name must be a string"));
-					return false;
-				}
-				if (!ISDefined(str)) {
-					this.logger(new Error("setParameters : " + name + " container parameter value must be define"));
-					return false;
-				}
-				if (parseParameterString.call(this.protoParameters.prototype, name, str) === str) {
-					return str;
-				} else {
-					this.logger(new Error("container parameter " + name + " parse error"));
-					return false;
-				}
-			}
-		}, {
-			key: 'getParameters',
-			value: function getParameters(name) {
-				if (typeof name !== "string") {
-					this.logger(new Error("container parameter name must be a string"));
-					return false;
-				}
-				//return parseParameterString.call(this.protoParameters.prototype, name, null);  
-				return parseParameterString.call(this.parameters, name, null);
-			}
-		}]);
+			return null;
+			//this.logger("GET : " + name+" don't exist", "WARNING");	
+		}
 
-		return Container;
-	}();
+		has (name){
+			return this.services[name];
+		}
+
+		addScope (name){
+			if (! this.scope[name] ){
+				return  this.scope[name] = {};
+			}
+			return this.scope[name];
+		}
+
+		enterScope (name){
+			var sc = new Scope(name, this);
+			this.scope[name][sc.id] = sc ;
+			return sc;
+		}
+
+		enterScopeExtended (name){
+			var sc = new ExtendedScope(name, this);
+			this.scope[name][sc.id] = sc ;
+			return sc;
+		}
+
+		leaveScope (scope){
+			if ( this.scope[scope.name] ){
+				var sc = this.scope[scope.name][scope.id];
+				if (sc){
+					sc.clean();
+					//console.log("pass leaveScope "+ scope.id)
+					delete this.scope[scope.name][scope.id];
+					sc= null ;
+				}
+				//console.log(this.scope)
+			}
+		}
+
+		removeScope (name){
+			if ( this.scope[name] ){
+				for( var scope in this.scope[name] ){
+					this.leaveScope(this.scope[name][scope]) ;
+				}
+				delete this.scope[name] ;
+			}
+		}
+
+		setParameters (name, str){
+			if (typeof name !== "string"){
+				this.logger(new Error("setParameters : container parameter name must be a string"));
+				return false;
+			}
+			if ( ! ISDefined(str) ){
+				this.logger(new Error("setParameters : "+name+" container parameter value must be define"));
+				return false;
+			}
+			if ( parseParameterString.call(this.protoParameters.prototype, name, str) === str ){
+				return str;
+			}else{
+				this.logger(new Error("container parameter "+ name+" parse error"));
+				return false;
+			}
+		}
+
+		getParameters (name){
+			if (typeof name !== "string"){
+				this.logger(new Error("container parameter name must be a string"));
+				return false;
+			}
+			//return parseParameterString.call(this.protoParameters.prototype, name, null);  
+			return parseParameterString.call(this.parameters, name, null);  
+		}
+	};
 
 	/*
  	 *
@@ -30030,115 +29634,93 @@ module.exports = function (stage) {
  	 *
  	 */
 
-	var Scope = function (_Container) {
-		_inherits(Scope, _Container);
+	var Scope = class Scope extends Container {
 
-		function Scope(name, parent) {
-			_classCallCheck(this, Scope);
+		constructor( name, parent){
+    			super();
+    			this.name = name;
+			this.parent = parent;
+    			this.services = new parent.protoService();
+    			this.parameters = new parent.protoParameters();
+    			this.scope = parent.scope;
+			this.id = generateId();
 
-			var _this = _possibleConstructorReturn(this, (Scope.__proto__ || Object.getPrototypeOf(Scope)).call(this));
-
-			_this.name = name;
-			_this.parent = parent;
-			_this.services = new parent.protoService();
-			_this.parameters = new parent.protoParameters();
-			_this.scope = parent.scope;
-			_this.id = generateId();
-
-			return _this;
 		}
 
-		_createClass(Scope, [{
-			key: 'set',
-			value: function set(name, obj) {
-				this.services[name] = obj;
-				return _get(Scope.prototype.__proto__ || Object.getPrototypeOf(Scope.prototype), 'set', this).call(this, name, obj);
-			}
-		}, {
-			key: 'clean',
-			value: function clean() {
-				this.services = null;
-				delete this.services;
-				this.parameters = null;
-				delete this.parameters;
-			}
-		}, {
-			key: 'setParameters',
-			value: function setParameters(name, str) {
-				if (parseParameterString.call(this.parameters, name, str) === str) {
-					return _get(Scope.prototype.__proto__ || Object.getPrototypeOf(Scope.prototype), 'setParameters', this).call(this, name, str);
-				} else {
-					this.logger(new Error("container parameter " + name + " parse error"));
-					return false;
-				}
-			}
-		}]);
+		set (name, obj){
+    			this.services[name] = obj ;
+    			return super.set(name, obj);
+		}
 
-		return Scope;
-	}(Container);
+		clean (){
+			this.services = null ; 
+			delete this.services ;
+			this.parameters = null ;
+			delete this.parameters ;
+		}
+
+		setParameters (name, str){
+			if ( parseParameterString.call(this.parameters, name, str) === str ){
+				return super.setParameters(name, str);
+			}else{
+				this.logger(new Error("container parameter "+ name+" parse error"));
+				return false;
+			}
+		}
+	};
 
 	/*
  	 *
  	 *	ExtendedScope CLASS
  	 *
  	 */
-	var ExtendedScope = function (_Container2) {
-		_inherits(ExtendedScope, _Container2);
+	var ExtendedScope = class ExtendedScope extends Container {
 
-		function ExtendedScope(name, parent) {
-			_classCallCheck(this, ExtendedScope);
+		constructor (name, parent){
+    			super();
+    			this.name = name;
+			this.parent = parent;
+    			this.services = new parent.protoService();
+    			this.parameters = new parent.protoParameters();
+    			this.scope = parent.scope;
+			this.id = generateId();
 
-			var _this2 = _possibleConstructorReturn(this, (ExtendedScope.__proto__ || Object.getPrototypeOf(ExtendedScope)).call(this));
+			this.protoService = function(){};
+			this.protoService.prototype = stage.extend({},this.parent.protoService.prototype);
 
-			_this2.name = name;
-			_this2.parent = parent;
-			_this2.services = new parent.protoService();
-			_this2.parameters = new parent.protoParameters();
-			_this2.scope = parent.scope;
-			_this2.id = generateId();
-
-			_this2.protoService = function () {};
-			_this2.protoService.prototype = stage.extend({}, _this2.parent.protoService.prototype);
-
-			_this2.protoParameters = function () {};
-			_this2.protoParameters.prototype = stage.extend({}, _this2.parent.protoParameters.prototype);
-			return _this2;
+			this.protoParameters = function(){};
+			this.protoParameters.prototype = stage.extend({},this.parent.protoParameters.prototype) ;
 		}
 
-		_createClass(ExtendedScope, [{
-			key: 'clean',
-			value: function clean() {
-				this.services = null;
-				delete this.services;
-				this.parameters = null;
-				delete this.parameters;
-				this.protoService = null;
-				this.protoParameters = null;
-			}
-		}, {
-			key: 'set',
-			value: function set(name, obj) {
-				this.services[name] = obj;
-				return _get(ExtendedScope.prototype.__proto__ || Object.getPrototypeOf(ExtendedScope.prototype), 'set', this).call(this, name, obj);
-			}
-		}, {
-			key: 'setParameters',
-			value: function setParameters(name, str) {
-				if (parseParameterString.call(this.parameters, name, str) === str) {
-					return _get(ExtendedScope.prototype.__proto__ || Object.getPrototypeOf(ExtendedScope.prototype), 'setParameters', this).call(this, name, str);
-				} else {
-					this.logger(new Error("container parameter " + name + " parse error"));
-					return false;
-				}
-			}
-		}]);
+		clean (){
+			this.services = null ; 
+			delete this.services ;
+			this.parameters = null ;
+			delete this.parameters ;
+			this.protoService = null ;
+			this.protoParameters = null ;
+		}
 
-		return ExtendedScope;
-	}(Container);
 
-	stage.Container = Container;
+		set (name, obj){
+    			this.services[name] = obj ;
+    			return super.set(name, obj);
+		}
+
+		setParameters (name, str){
+			if ( parseParameterString.call(this.parameters, name, str) === str ){
+				return super.setParameters(name, str);
+			}else{
+				this.logger(new Error("container parameter "+ name+" parse error"));
+				return false;
+			}
+		}
+	};
+	
+	stage.Container = Container ;
 	return Container;
 };
+
 
 /***/ }),
 
@@ -30149,171 +29731,138 @@ module.exports = function (stage) {
 /*! no static exports found */
 /***/ (function(module, exports, __webpack_require__) {
 
-"use strict";
-/* WEBPACK VAR INJECTION */(function(jQuery, $) {
-
-var _createClass = function () { function defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ("value" in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } } return function (Constructor, protoProps, staticProps) { if (protoProps) defineProperties(Constructor.prototype, protoProps); if (staticProps) defineProperties(Constructor, staticProps); return Constructor; }; }();
-
-function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError("Cannot call a class as a function"); } }
-
-function _possibleConstructorReturn(self, call) { if (!self) { throw new ReferenceError("this hasn't been initialised - super() hasn't been called"); } return call && (typeof call === "object" || typeof call === "function") ? call : self; }
-
-function _inherits(subClass, superClass) { if (typeof superClass !== "function" && superClass !== null) { throw new TypeError("Super expression must either be null or a function, not " + typeof superClass); } subClass.prototype = Object.create(superClass && superClass.prototype, { constructor: { value: subClass, enumerable: false, writable: true, configurable: true } }); if (superClass) Object.setPrototypeOf ? Object.setPrototypeOf(subClass, superClass) : subClass.__proto__ = superClass; }
-
-module.exports = function (stage) {
+/* WEBPACK VAR INJECTION */(function(jQuery, $) {module.exports =  function(stage){
 
 	'use strict';
+
 
 	/*
  	 *
  	 *	CLASS CONTROLLER
  	 *
  	 */
-
 	var tabFxEvent = ["stage-click", "stage-dblclick", "stage-focus", "stage-blur", "stage-mouseover", "stage-mouseout", "stage-mouseenter", "stage-mouseleave", "stage-change"];
 
-	var Controller = function (_stage$Service) {
-		_inherits(Controller, _stage$Service);
+	var Controller = class Controller extends stage.Service{
 
-		function Controller(name, container, module) {
-			_classCallCheck(this, Controller);
-
-			var _this = _possibleConstructorReturn(this, (Controller.__proto__ || Object.getPrototypeOf(Controller)).call(this, name, container, container.get("notificationsCenter")));
-
-			_this.module = module;
-			_this.i18n = _this.kernel.i18n;
-			_this.router = _this.kernel.router;
-			return _this;
+		constructor(name, container, module){
+			super(name, container, container.get("notificationsCenter") );
+			this.module = module ; 
+			this.i18n = this.kernel.i18n;
+			this.router = this.kernel.router;
+		}
+		
+		redirect (url){
+			return this.router.redirect.apply(this.router, arguments)
 		}
 
-		_createClass(Controller, [{
-			key: "redirect",
-			value: function redirect(url) {
-				return this.router.redirect.apply(this.router, arguments);
+		/*
+	 	*
+	 	*
+	 	*/
+		forward (pattern, args){
+			return this.router.forward(pattern, args)
+		}
+
+		/*
+	 	*
+	 	*
+	 	*/
+		generateUrl (name, variables, absolute){
+			if (absolute === true){
+				var url = this.router.url().split("#");
+				absolute = this.router.url[0];
 			}
+			return this.router.generateUrl.apply(this.router, arguments);
+		}
 
-			/*
-   	*
-   	*
-   	*/
-
-		}, {
-			key: "forward",
-			value: function forward(pattern, args) {
-				return this.router.forward(pattern, args);
-			}
-
-			/*
-   	*
-   	*
-   	*/
-
-		}, {
-			key: "generateUrl",
-			value: function generateUrl(name, variables, absolute) {
-				if (absolute === true) {
-					var url = this.router.url().split("#");
-					absolute = this.router.url[0];
+		evalInContext (js, context){
+			var func = function(context) { 
+				var $controller = context;
+				return function(js){
+					"use strict";
+					return eval(js);
 				}
-				return this.router.generateUrl.apply(this.router, arguments);
+			}(this);
+			try {
+				return func.call( context || this , jQuery.trim( js ));
+			}catch(e){
+				this.logger("DOM PARSER TWIG ERROR " + e, "ERROR");	
 			}
-		}, {
-			key: "evalInContext",
-			value: function evalInContext(js, context) {
-				var func = function (context) {
-					var $controller = context;
-					return function (js) {
-						"use strict";
+		}
 
-						return eval(js);
-					};
-				}(this);
-				try {
-					return func.call(context || this, jQuery.trim(js));
-				} catch (e) {
-					this.logger("DOM PARSER TWIG ERROR " + e, "ERROR");
-				}
-			}
-		}, {
-			key: "domParser",
-			value: function domParser(domElement) {
-				var _this2 = this;
 
-				domElement.find('[' + tabFxEvent.join('],[') + ']').each(function (index, ele) {
-					var attributes = ele.attributes;
-					var jElement = $(ele);
-					var ctrl = jElement.closest('[stage-ctrl]');
-					var scope = null;
-					if (ctrl.length) {
-						var pattern = $(ctrl).attr("stage-ctrl");
-						try {
-							scope = _this2.router.resolvePattern(pattern).controller;
-						} catch (e) {
-							_this2.logger("DOM PARSER ERROR : " + e, "ERROR");
-							return;
-						}
-					} else {
-						scope = _this2;
+		domParser (domElement){
+			domElement.find('[' + tabFxEvent.join('],[') + ']').each((index, ele) => {
+				var attributes = ele.attributes;
+				var jElement = $(ele);
+				var ctrl = jElement.closest('[stage-ctrl]');
+				var scope = null ;
+				if(ctrl.length){
+					var pattern = $(ctrl).attr("stage-ctrl") ;
+					try {
+						scope = this.router.resolvePattern(pattern).controller;
+					}catch (e){
+						this.logger("DOM PARSER ERROR : " + e , "ERROR")
+						return ;
 					}
-					for (var i = 0; i < attributes.length; i++) {
-						var attribute = attributes[i];
-						if (tabFxEvent.indexOf(attribute.name) > -1) {
-							var ele = function () {
-								var content = attribute.value;
-								jElement.on(attribute.name.replace('stage-', ''), function () {
-									scope.evalInContext(content, this);
-								});
-							}();
-						}
-					}
-				});
-			}
-
-			/*
-   	*
-   	*
-   	*/
-
-		}, {
-			key: "render",
-			value: function render(element, partial, type) {
-				var ele = $(element);
-				try {
-					switch (type) {
-						case "append":
-							ele.append(partial);
-							break;
-						case "prepend":
-							ele.prepend(partial);
-							break;
-						default:
-							ele.empty();
-							ele.html(partial);
-
-					}
-					return this.domParser(ele);
-				} catch (e) {
-					this.logger("DOM PARSER TWIG ERROR : " + e, "ERROR");
+				} else {
+					scope = this;
 				}
-			}
-		}, {
-			key: "renderPartial",
-			value: function renderPartial(pattern, obj) {
-				try {
-					var template = this.module.getTemplatePattern(pattern);
-					return template.render(obj);
-				} catch (e) {
-					this.logger(e, "ERROR");
+				for(var i = 0; i < attributes.length; i++){
+					var attribute = attributes[i];
+					if(tabFxEvent.indexOf(attribute.name) > -1){
+						var ele = function(){
+							var content = attribute.value;
+							jElement.on(attribute.name.replace('stage-', ''), function(){
+								scope.evalInContext(content, this);
+							});
+						}();
+					}
 				}
+			});
+		}
+
+		/*
+	 	*
+	 	*
+	 	*/
+		render (element, partial, type){
+			var ele = $(element);
+			try {
+				switch (type){
+					case "append":
+						ele.append(partial) ;
+					break;
+					case "prepend":
+						ele.prepend(partial) ;
+					break;
+					default:
+						ele.empty();
+						ele.html(partial);
+
+				}
+				return this.domParser(ele);
+			}catch(e){
+				this.logger("DOM PARSER TWIG ERROR : "+e, "ERROR") ;
 			}
-		}]);
 
-		return Controller;
-	}(stage.Service);
+		}
 
-	stage.Controller = Controller;
-	return Controller;
+		renderPartial (pattern, obj){
+			try {
+				var template = this.module.getTemplatePattern(pattern);
+				return template.render(obj);
+			}catch(e){
+				this.logger(e, "ERROR")
+			}
+		}
+	};
+
+	stage.Controller = Controller ;
+	return Controller ;
 };
+
 /* WEBPACK VAR INJECTION */}.call(this, __webpack_require__(/*! jquery */ "./node_modules/jquery/dist/jquery.js-exposed"), __webpack_require__(/*! jquery */ "./node_modules/jquery/dist/jquery.js-exposed")))
 
 /***/ }),
@@ -30325,58 +29874,46 @@ module.exports = function (stage) {
 /*! no static exports found */
 /***/ (function(module, exports, __webpack_require__) {
 
-"use strict";
-/* WEBPACK VAR INJECTION */(function($) {
+/* WEBPACK VAR INJECTION */(function($) {const Twig = __webpack_require__(/*! twig */ "./node_modules/twig/twig.js");
 
-var _createClass = function () { function defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ("value" in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } } return function (Constructor, protoProps, staticProps) { if (protoProps) defineProperties(Constructor.prototype, protoProps); if (staticProps) defineProperties(Constructor, staticProps); return Constructor; }; }();
-
-function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError("Cannot call a class as a function"); } }
-
-function _possibleConstructorReturn(self, call) { if (!self) { throw new ReferenceError("this hasn't been initialised - super() hasn't been called"); } return call && (typeof call === "object" || typeof call === "function") ? call : self; }
-
-function _inherits(subClass, superClass) { if (typeof superClass !== "function" && superClass !== null) { throw new TypeError("Super expression must either be null or a function, not " + typeof superClass); } subClass.prototype = Object.create(superClass && superClass.prototype, { constructor: { value: subClass, enumerable: false, writable: true, configurable: true } }); if (superClass) Object.setPrototypeOf ? Object.setPrototypeOf(subClass, superClass) : subClass.__proto__ = superClass; }
-
-var Twig = __webpack_require__(/*! twig */ "./node_modules/twig/twig.js");
-
-module.exports = function (stage) {
+module.exports =  function(stage){
 
 	'use strict';
 
 	var settingsSyslog = {
 		//rateLimit:100,
 		//burstLimit:10,
-		moduleName: "KERNEL",
-		defaultSeverity: "INFO"
+		moduleName:"KERNEL",
+		defaultSeverity:"INFO"
 	};
 
 	var defaultSettings = {
-		debug: false,
-		router: true,
-		i18n: true,
-		location: {
-			html5Mode: false,
-			hashPrefix: "/"
+		debug:false,
+		router:true,
+		i18n:true,
+		location:{
+			html5Mode:false,
+			hashPrefix:"/"
 		}
 	};
 
 	var defaultEnvEnable = {
-		dev: true,
-		development: true,
-		prod: true,
-		production: true
+		dev:		true,
+		development:	true,	
+		prod:		true,
+		production:	true,	
 	};
+
 
 	/*
  	 *	OVERRIDE TWIG IMPORT TEMPLATE
  	 */
-	var loadRemoteTwig = function loadRemoteTwig(Twig, location, params, callback, error_callback) {
-		var _this = this;
-
-		var id = params.id,
-		    method = params.method,
-		    async = params.async,
-		    precompiled = params.precompiled,
-		    template = null;
+	var loadRemoteTwig = function(Twig, location, params, callback, error_callback){
+		var id  = params.id,
+		method      = params.method,
+		async       = params.async,
+		precompiled = params.precompiled,
+		template    = null;
 
 		// Default to async
 		if (async === undefined) async = true;
@@ -30397,382 +29934,358 @@ module.exports = function (stage) {
 		}
 		//console.log(params.async)
 		$.ajax({
-			url: location,
-			async: async,
-			success: function success(mydata, status, xhr) {
-				var moduleName = _this.getModuleName(location);
-				if (precompiled === true) {
+			url:location,
+			async:async,
+			success:(mydata, status, xhr) => {
+				var moduleName = this.getModuleName( location )
+			        if (precompiled === true) {
 					mydata = JSON.parse(mydata);
 				}
 				params.url = location;
 				params.data = mydata;
 				template = new Twig.Template(params);
-				if (_this.modules[moduleName]) {
-					var module = _this.modules[moduleName];
-					var name = module.getTemplateName(location);
-					module.registerTemplate(name, template, "template");
+				if (this.modules[moduleName]){
+					var module = this.modules[moduleName] ;
+					var name = module.getTemplateName(location)
+					module.registerTemplate(name, template, "template")
 				}
 				if (callback) {
 					callback(template);
 				}
 			},
-			error: function error(xrh, status, message) {
-				error_callback(xrh, status, message);
+			error: (xrh, status, message) => {
+				error_callback(xrh, status, message)
 			}
-		});
+		})
 		if (async === false) {
 			return template;
 		} else {
 			// placeholder for now, should eventually return a deferred object.
 			return true;
-		}
+		}	
 	};
 
 	/*
- *
- *	KERNEL CLASS	
- */
+	*
+	*	KERNEL CLASS	
+	*/
 
-	var Kernel = function (_stage$Service) {
-		_inherits(Kernel, _stage$Service);
+	var Kernel = class Kernel  extends stage.Service {
 
-		function Kernel(environment, settings) {
-			_classCallCheck(this, Kernel);
+		constructor(environment, settings){
 
-			var _this2 = _possibleConstructorReturn(this, (Kernel.__proto__ || Object.getPrototypeOf(Kernel)).call(this, "KERNEL", null, null, {
-				syslog: settingsSyslog
-			}));
+			super("KERNEL",null, null ,{
+				syslog:settingsSyslog
+			});
 
-			_this2.container.set("kernel", _this2);
+			this.container.set("kernel", this);
 
-			_this2.modules = {};
-			_this2.settings = stage.extend(true, {}, defaultSettings, settings);
+			this.modules = {};
+			this.settings = stage.extend(true, {}, defaultSettings , settings );
 
-			if (environment in defaultEnvEnable) {
-				switch (environment) {
-					case "dev":
-					case "development":
-						_this2.environment = "dev";
-						break;
-					case "prod":
-					case "production":
-						_this2.environment = "prod";
-						break;
+			if ( environment in defaultEnvEnable ){
+				switch ( environment ){
+					case "dev" :
+					case "development" :
+						this.environment = "dev";
+					break;
+					case "prod" :
+					case "production" :
+						this.environment = "prod";
+					break;
 				}
-			} else {
-				_this2.logger("Bad Variable environment :" + environment, "WARNING");
-				_this2.environment = "prod";
+			}else{
+				this.logger("Bad Variable environment :" + environment,"WARNING");
+				this.environment = "prod";
 			}
 
-			_this2.debug = _this2.settings.debug;
-			_this2.booted = false;
-			_this2.isDomReady = false;
-			_this2.uiContainer = null;
+			this.debug = this.settings.debug ;
+			this.booted = false;
+			this.isDomReady = false;
+			this.uiContainer = null;
 
 			// syslog
-			_this2.initializeLog(settingsSyslog);
+			this.initializeLog(settingsSyslog);
 
 			// autoloader
-			_this2.autoloader = new stage.autoload(_this2, {
-				transport: "script"
+			this.autoloader = new stage.autoload(this, {
+				transport:"script"
 			});
-			_this2.container.set("autoloader", _this2.autoloader);
+			this.container.set("autoloader", this.autoloader);
 
+			
 			// Router
-			_this2.initRouter();
+			this.initRouter();
 
 			// template
-			_this2.initTwig();
+			this.initTwig();
 
 			// translation i18n
-			_this2.initTranslation();
+			this.initTranslation();
 
 			// Service REST
-			_this2.initRest();
+			this.initRest()
 
 			// EVENT NATIF
-			$(document).ready(_this2.listen(_this2, "onDomReady", _this2.domReady));
-			$(window).resize(_this2.listen(_this2, "onResize"));
-			$(window).on("unload", _this2.unLoad.bind(_this2));
-			$(window).on("load", _this2.onLoad.bind(_this2));
+			$(document).ready( this.listen(this, "onDomReady", this.domReady) );
+			$(window).resize( this.listen(this,"onResize") );
+			$(window).on( "unload",  this.unLoad.bind(this) );
+			$(window).on( "load", this.onLoad.bind(this) );
 
 			//BOOT	
-			_this2.listen(_this2, "onBoot", _this2.boot);
+			this.listen(this, "onBoot" , this.boot)
 			//READY
-			_this2.listen(_this2, "onReady", _this2.ready);
+			this.listen(this, "onReady" , this.ready)
 
-			_this2.notificationsCenter.settingsToListen(_this2.settings, _this2);
-			return _this2;
+			this.notificationsCenter.settingsToListen(this.settings, this);
+		}
+		
+		initRouter (){
+			if ( this.settings.router ){
+				// location
+				this.initLocation();
+				this.router = new stage.router(this, this.container);
+				this.container.set("router", this.router);
+			}
 		}
 
-		_createClass(Kernel, [{
-			key: "initRouter",
-			value: function initRouter() {
-				if (this.settings.router) {
-					// location
-					this.initLocation();
-					this.router = new stage.router(this, this.container);
-					this.container.set("router", this.router);
+		initLocation (){
+			this.locationService = new stage.location(this, this.settings.location) ;
+			this.container.set("location", this.locationService);
+		}
+
+		initRest (){
+			if (stage.Rest) {
+				this.restService = new stage.Rest(this.container);
+				this.set("rest", this.restService);
+			}
+		}
+
+		initTranslation (){
+			if ( this.settings.i18n ){
+				if ( ! stage.i18n ){
+ 		       			this.logger("you must load transation i18n services js file !!!!!", "ERROR")
+					return;
 				}
+				this.i18n = new stage.i18n(this, this.container);
+				this.container.set("i18n", this.i18n);
 			}
-		}, {
-			key: "initLocation",
-			value: function initLocation() {
-				this.locationService = new stage.location(this, this.settings.location);
-				this.container.set("location", this.locationService);
+		}
+
+		initTwig (){
+			this.logger("INITIALIZE TWIG SERVICE", "DEBUG");
+			if (this.environment === "dev"){
+				Twig.cache = false ;	
 			}
-		}, {
-			key: "initRest",
-			value: function initRest() {
-				if (stage.Rest) {
-					this.restService = new stage.Rest(this.container);
-					this.set("rest", this.restService);
+			this.templateEngine = Twig.twig  ; 
+			//extended log error traf
+			Twig.extend((Twig) => {
+				Twig.log.error = (message) => {
+					this.logger(message, "ERROR");
 				}
+			});
+
+			Twig.extend((Twig) => {
+				Twig.Templates.loadRemote = loadRemoteTwig.bind(this, Twig) 
+			});
+
+			//extended FUNCTION
+			Twig.extendFunction("controller", function() {
+				var pattern = Array.prototype.shift.call(arguments);
+				var sp = pattern.split(":");
+				var module = this.getModule(sp[0]);
+				if (module){
+					var controller = module.getController(sp[1]);
+					if (controller){
+						var action = sp[2];
+						if ( controller[action] ){
+							return controller[action].apply(controller, arguments);	
+						}
+					}
+				}
+			}.bind(this));
+			this.container.set("twig", this.templateEngine);
+			return this.templateEngine ;
+		}
+
+		domReady (){
+			if ( ! this.booted ) return ; 
+			this.logger("domReady", "DEBUG");
+			this.fire("onDomLoad", this);
+			var element = this.uiContainer ? $(this.uiContainer) : $("body");
+			try {
+				if ( this.modules.app ){
+					this.modules.app.initialize(element);	
+				}		
+				for (var module in this.modules){
+					if (module === "app") continue;
+					this.modules[module].initialize(element);
+				}	
+				this.fire("onReady", this);
+				this.isDomReady = true;
+			}catch(e){
+				this.logger(e,"ERROR");
 			}
-		}, {
-			key: "initTranslation",
-			value: function initTranslation() {
-				if (this.settings.i18n) {
-					if (!stage.i18n) {
-						this.logger("you must load transation i18n services js file !!!!!", "ERROR");
+		}
+
+		onLoad (event){
+			this.fire("onLoad", this, event);	
+		}
+
+		unLoad (event){
+			this.fire("onUnLoad", this, event);	
+		}
+	
+		getModule (name){
+			return this.modules[name] ;
+		}
+
+		initializeLog (settings){
+			if (this.environment === "dev"){
+				// CRITIC ERROR
+				this.syslog.listenWithConditions(this,{
+					severity:{
+						data:"CRITIC,ERROR"
+					}		
+				},function(pdu){
+					if (pdu.payload.stack ){
+						console.error( "SYSLOG " + pdu.severityName +" " + pdu.msgid + " "+new Date(pdu.timeStamp) + " " + pdu.msg+" : "+  pdu.payload.stack);
+					}else{
+						console.error( "SYSLOG " + pdu.severityName +" " + pdu.msgid + " "+new Date(pdu.timeStamp) + " " + pdu.msg+" : "+  pdu.payload);	
+					}
+					/*if (pdu.typePayload === "Error" ){
+						if (pdu.payload.stack ){
+							console.error( "SYSLOG " + pdu.severityName +" " + pdu.msgid + " "+new Date(pdu.timeStamp) + " " + pdu.msg+" : "+  pdu.payload.stack);
+						}
 						return;
 					}
-					this.i18n = new stage.i18n(this, this.container);
-					this.container.set("i18n", this.i18n);
-				}
-			}
-		}, {
-			key: "initTwig",
-			value: function initTwig() {
-				var _this3 = this;
-
-				this.logger("INITIALIZE TWIG SERVICE", "DEBUG");
-				if (this.environment === "dev") {
-					Twig.cache = false;
-				}
-				this.templateEngine = Twig.twig;
-				//extended log error traf
-				Twig.extend(function (Twig) {
-					Twig.log.error = function (message) {
-						_this3.logger(message, "ERROR");
-					};
+					console.error( "SYSLOG " + pdu.severityName +" " + pdu.msgid + " "+new Date(pdu.timeStamp) + " " + pdu.msg+" : "+  pdu.payload);*/	
 				});
 
-				Twig.extend(function (Twig) {
-					Twig.Templates.loadRemote = loadRemoteTwig.bind(_this3, Twig);
+				// INFO DEBUG
+				var data ;
+				this.debug ? data = "INFO,DEBUG" : data = "INFO" ;
+				this.syslog.listenWithConditions(this,{
+					severity:{
+						data:data
+					}		
+				},function(pdu){
+					console.info( "SYSLOG " + pdu.severityName +" " + pdu.msgid + " "+new Date(pdu.timeStamp) + " " + pdu.msg+" : "+ pdu.payload);
 				});
+				this.syslog.listenWithConditions(this,{
+					severity:{
+						data:"WARNING"
+					}		
+				},function(pdu){
+					console.warn( "SYSLOG " + pdu.severityName +" " + pdu.msgid + " "+new Date(pdu.timeStamp) + " " + pdu.msg+" : "+ pdu.payload);
+				});
+			}
+			return this.syslog;
+		}
 
-				//extended FUNCTION
-				Twig.extendFunction("controller", function () {
-					var pattern = Array.prototype.shift.call(arguments);
-					var sp = pattern.split(":");
-					var module = this.getModule(sp[0]);
-					if (module) {
-						var controller = module.getController(sp[1]);
-						if (controller) {
-							var action = sp[2];
-							if (controller[action]) {
-								return controller[action].apply(controller, arguments);
-							}
-						}
-					}
-				}.bind(this));
-				this.container.set("twig", this.templateEngine);
-				return this.templateEngine;
-			}
-		}, {
-			key: "domReady",
-			value: function domReady() {
-				if (!this.booted) return;
-				this.logger("domReady", "DEBUG");
-				this.fire("onDomLoad", this);
-				var element = this.uiContainer ? $(this.uiContainer) : $("body");
-				try {
-					if (this.modules.app) {
-						this.modules.app.initialize(element);
-					}
-					for (var module in this.modules) {
-						if (module === "app") continue;
-						this.modules[module].initialize(element);
-					}
-					this.fire("onReady", this);
-					this.isDomReady = true;
-				} catch (e) {
-					this.logger(e, "ERROR");
-				}
-			}
-		}, {
-			key: "onLoad",
-			value: function onLoad(event) {
-				this.fire("onLoad", this, event);
-			}
-		}, {
-			key: "unLoad",
-			value: function unLoad(event) {
-				this.fire("onUnLoad", this, event);
-			}
-		}, {
-			key: "getModule",
-			value: function getModule(name) {
-				return this.modules[name];
-			}
-		}, {
-			key: "initializeLog",
-			value: function initializeLog(settings) {
-				if (this.environment === "dev") {
-					// CRITIC ERROR
-					this.syslog.listenWithConditions(this, {
-						severity: {
-							data: "CRITIC,ERROR"
-						}
-					}, function (pdu) {
-						if (pdu.payload.stack) {
-							console.error("SYSLOG " + pdu.severityName + " " + pdu.msgid + " " + new Date(pdu.timeStamp) + " " + pdu.msg + " : " + pdu.payload.stack);
-						} else {
-							console.error("SYSLOG " + pdu.severityName + " " + pdu.msgid + " " + new Date(pdu.timeStamp) + " " + pdu.msg + " : " + pdu.payload);
-						}
-						/*if (pdu.typePayload === "Error" ){
-      	if (pdu.payload.stack ){
-      		console.error( "SYSLOG " + pdu.severityName +" " + pdu.msgid + " "+new Date(pdu.timeStamp) + " " + pdu.msg+" : "+  pdu.payload.stack);
-      	}
-      	return;
-      }
-      console.error( "SYSLOG " + pdu.severityName +" " + pdu.msgid + " "+new Date(pdu.timeStamp) + " " + pdu.msg+" : "+  pdu.payload);*/
-					});
+		boot (){
+			this.booted = true;
+		}
 
-					// INFO DEBUG
-					var data;
-					this.debug ? data = "INFO,DEBUG" : data = "INFO";
-					this.syslog.listenWithConditions(this, {
-						severity: {
-							data: data
-						}
-					}, function (pdu) {
-						console.info("SYSLOG " + pdu.severityName + " " + pdu.msgid + " " + new Date(pdu.timeStamp) + " " + pdu.msg + " : " + pdu.payload);
-					});
-					this.syslog.listenWithConditions(this, {
-						severity: {
-							data: "WARNING"
-						}
-					}, function (pdu) {
-						console.warn("SYSLOG " + pdu.severityName + " " + pdu.msgid + " " + new Date(pdu.timeStamp) + " " + pdu.msg + " : " + pdu.payload);
-					});
-				}
-				return this.syslog;
-			}
-		}, {
-			key: "boot",
-			value: function boot() {
-				this.booted = true;
-			}
-		}, {
-			key: "ready",
-			value: function ready() {
-				//this.fire("onUrlChange", this.router.url() )
-			}
-		}, {
-			key: "loadModule",
-			value: function loadModule(url, settings) {
-				var _this4 = this;
+		ready (){
+			//this.fire("onUrlChange", this.router.url() )
+		}
 
-				var res = stage.io.urlToOject(url);
-				var moduleName = res.basename;
-
-				return $.ajax(url, stage.extend({
-					cache: false,
-					method: "GET",
-					//async:false,
-					dataType: "xml",
-					success: function success(data, status, xhr) {
-						try {
-							//FIXME try to parse with url
-							var res = stage.xml.parseXml(data);
-							var moduleName = res.module["@id"];
-							var type = res.module["@type"];
-							var moduleSrc = res.module["@src"];
-
-							switch (type) {
-								case "application/javascript":
-									if (moduleSrc) {
-										if (moduleName in _this4.modules) {
-											_this4.modules[moduleName].initialize();
-											_this4.modules[moduleName].fire("onInitialize", moduleName);
-											_this4.fire("onInitializeModule", moduleName);
-										} else {
-											_this4.autoloader.load(moduleSrc, function (error, transport) {
-												if (error) {
-													_this4.fire("onError", error);
-													throw error;
-												}
-												_this4.registerModule(moduleName, res);
-												if (moduleName === "app") _this4.fire("onBoot", _this4);
-											});
-										}
-									}
-									break;
-							}
-						} catch (e) {
-							_this4.logger(e, "ERROR");
-							_this4.fire("onError", e);
-							throw e;
-						}
-					},
-					error: function error(xhr, status, message) {
-						_this4.fire("onGetConfigError", moduleName);
-						_this4.fire("onError", message);
-					}
-				}, settings));
-			}
-		}, {
-			key: "registerModule",
-			value: function registerModule(name, xml) {
-				var _this5 = this;
-
-				if (name in stage.modules) {
-					var kernelcontext = this;
-					var Class = stage.modules[name]; //.herite(stage.Module);
-					this.container.addScope(name);
-					Class.prototype.name = name;
+		loadModule (url, settings){
+			var res = stage.io.urlToOject(url);
+			var moduleName = res.basename ;
+					
+			return $.ajax(url,stage.extend( {
+				cache:false,
+				method:"GET",
+				//async:false,
+				dataType:"xml",
+				success:(data, status, xhr) => {
 					try {
-						if (this.isDomReady) {
-							this.modules[name] = new Class(this, xml, {
-								onReady: function onReady() {
-									if (_this5.initialize) {
-										try {
-											_this5.initialize();
-											_this5.fire("onInitialize", name);
-											kernelcontext.fire("onInitializeModule", name);
-										} catch (e) {
-											_this5.logger("INITIALIZE MODULE : " + name + " " + e, "ERRROR");
-											throw e;
-										}
+						//FIXME try to parse with url
+						var res = stage.xml.parseXml(data);
+						var moduleName = res.module["@id"];
+						var type = res.module["@type"];
+						var moduleSrc = res.module["@src"];
+				 	
+						switch ( type ){
+							case "application/javascript" :
+								if ( moduleSrc ){
+									if (moduleName in this.modules) {
+										this.modules[moduleName].initialize();
+										this.modules[moduleName].fire("onInitialize", moduleName);	
+										this.fire("onInitializeModule", moduleName);	
+									} else {							
+										this.autoloader.load(moduleSrc, (error, transport) => {
+											if (error){
+												this.fire("onError", error);
+												throw error;
+											}
+											this.registerModule(moduleName, res);
+											if (moduleName === "app")
+												this.fire("onBoot", this);
+										});
 									}
-								} });
-						} else {
-							this.modules[name] = new Class(this, xml);
+								}
+							break;
 						}
-						this.container.set(name, this.modules[name]);
-					} catch (e) {
-						this.logger("INSTANCE MODULE : " + name + " " + e, "ERRROR");
-						throw e;
+					}catch(e){
+						this.logger(e, "ERROR");
+						this.fire("onError", e);
+						throw e ;
 					}
+				},
+				error:(xhr, status, message) => {
+					this.fire("onGetConfigError", moduleName);
+					this.fire("onError", message);	
+				}
+			}, settings))
+		}
+
+		registerModule (name, xml){
+			if (name in stage.modules){
+				var kernelcontext = this;
+				var Class = stage.modules[name]; //.herite(stage.Module);
+				this.container.addScope(name);
+				Class.prototype.name = name;
+				try {
+					if (this.isDomReady){
+						this.modules[name] = new Class(this, xml,{
+							onReady:() => {
+								if (this.initialize){
+									try {
+										this.initialize();
+										this.fire("onInitialize", name);	
+										kernelcontext.fire("onInitializeModule", name);
+									}catch(e){
+										this.logger("INITIALIZE MODULE : "+name +" "+e, "ERRROR");
+										throw e;
+									}
+								}
+						}});	
+						
+					}else{
+						this.modules[name] = new Class(this, xml);
+					}
+					this.container.set(name, this.modules[name]);
+				}catch(e){
+					this.logger("INSTANCE MODULE : "+name +" "+e, "ERRROR")
+					throw e;
 				}
 			}
-		}, {
-			key: "getModuleName",
-			value: function getModuleName(url) {
-				var module = stage.dirname(url);
-				var tab = module.split("/");
-				return tab[tab.indexOf("Resources") - 1];
-			}
-		}]);
+		}
 
-		return Kernel;
-	}(stage.Service);
+		getModuleName (url){
+			var module = stage.dirname(url);
+			var tab = module.split("/")
+			return tab[tab.indexOf("Resources")-1];
+		}
+	};
 
-	stage.kernel = Kernel;
-	return Kernel;
+	stage.kernel = Kernel ;
+	return  Kernel;
 };
+
 /* WEBPACK VAR INJECTION */}.call(this, __webpack_require__(/*! jquery */ "./node_modules/jquery/dist/jquery.js-exposed")))
 
 /***/ }),
@@ -30784,315 +30297,290 @@ module.exports = function (stage) {
 /*! no static exports found */
 /***/ (function(module, exports, __webpack_require__) {
 
-"use strict";
-/* WEBPACK VAR INJECTION */(function($) {
-
-var _createClass = function () { function defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ("value" in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } } return function (Constructor, protoProps, staticProps) { if (protoProps) defineProperties(Constructor.prototype, protoProps); if (staticProps) defineProperties(Constructor, staticProps); return Constructor; }; }();
-
-function _possibleConstructorReturn(self, call) { if (!self) { throw new ReferenceError("this hasn't been initialised - super() hasn't been called"); } return call && (typeof call === "object" || typeof call === "function") ? call : self; }
-
-function _inherits(subClass, superClass) { if (typeof superClass !== "function" && superClass !== null) { throw new TypeError("Super expression must either be null or a function, not " + typeof superClass); } subClass.prototype = Object.create(superClass && superClass.prototype, { constructor: { value: subClass, enumerable: false, writable: true, configurable: true } }); if (superClass) Object.setPrototypeOf ? Object.setPrototypeOf(subClass, superClass) : subClass.__proto__ = superClass; }
-
-function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError("Cannot call a class as a function"); } }
-
-module.exports = function (stage) {
+/* WEBPACK VAR INJECTION */(function($) {module.exports =  function(stage){
 
 	'use strict';
 
-	var nativeHistory = !!(window.history && window.history.pushState);
+	var nativeHistory = !!(window.history && window.history.pushState );
 	var PATH_MATCH = /^([^\?#]*)(\?([^#]*))?(#(.*))?$/;
-	var DEFAULT_PORTS = { 'http': 80, 'https': 443 };
+	var DEFAULT_PORTS = {'http': 80, 'https': 443};
+
 
 	/*
  	 *	CLASS BROWSER
  	 *
  	 */
 
-	var changeUrl = function changeUrl(event) {
-		var cache = null;
-		var location = this.kernel.locationService;
+	var changeUrl = function(event){
+		var cache = null ;
+		var location = this.kernel.locationService ;
 		var url = this.url();
 
-		if (url === this.lastUrl && url === this.location.href && this.lastUrl !== location.initialUrl) {
+		if ( ( url === this.lastUrl && url === this.location.href ) && this.lastUrl !== location.initialUrl){ 
 			//console.log(" changeUrl PASS SAME")
 			return;
 		}
 
-		if (!event) {
-			this.kernel.logger(" FORCE URL CHANGE BROWER EVENT NOT FIRE", "WARNING");
+		if ( ! event ){
+			this.kernel.logger(" FORCE URL CHANGE BROWER EVENT NOT FIRE" , "WARNING" );
 			//console.log(location.url())
-			var newUrl = location.url();
-			this.kernel.notificationsCenter.fire("onUrlChange", newUrl, this.lastHash, url, cache);
-			this.lastUrlr = url;
-			this.lastHash = newUrl;
-			return;
+			var newUrl = location.url() ;
+			this.kernel.notificationsCenter.fire("onUrlChange", newUrl , this.lastHash, url ,cache)
+			this.lastUrlr= url;
+			this.lastHash = newUrl ;
+			return ;
 		}
 		//console.log("change URL :" + url +" IINIT "+location.initialUrl)
 		//console.log("change LAST URL :" + this.lastUrl)
 		var parse = location.parse(url);
 		//console.log(location)
-		if (!parse) {
-			this.kernel.notificationsCenter.fire("onUrlChange", "", this.lastHash, url, cache);
+		if ( ! parse ){
+			this.kernel.notificationsCenter.fire("onUrlChange", "", this.lastHash, url,  cache)
 			this.lastUrl = "";
 			this.lastHash = "";
-			return;
+			return ;
 		}
 
-		var newUrl = location.url();
-
-		this.kernel.notificationsCenter.fire("onUrlChange", newUrl, this.lastHash, url, cache);
+		var newUrl = location.url() ;
+		
+		this.kernel.notificationsCenter.fire("onUrlChange", newUrl, this.lastHash , url ,cache)
 		this.lastUrl = url;
-		this.lastHash = newUrl;
+		this.lastHash = newUrl ;
 	};
 
-	var myurl = function myurl(options) {
-		if (nativeHistory && options.html5Mode) {
+
+	var myurl = function(options){
+		if (nativeHistory && options.html5Mode){
 			return function (url, replace, state) {
 				//TODO
 				/*if (this.location !== window.location) this.location = window.location;
-    if (this.history !== window.History) this.history = window.History;
-    	if (url){
-    	this.kernel.logger(replace ? "REPLACE URL : " + url : "CHANGE URL : " + url,"WARNING")
-    		this.history[replace ? 'replaceState' : 'pushState'](state, '', url);
-    }else{
-    	return this.location.href.replace(/%27/g,"'");	
-    }*/
-			};
-		} else {
-			return function (url, replace, state) {
-				if (url) {
-					if (this.kernel && this.kernel.get("location")) if (this.location !== window.location) this.location = window.location;
-					var same = url === this.lastUrl && url === this.location.href ? true : false;
+				if (this.history !== window.History) this.history = window.History;
+
+				if (url){
+					this.kernel.logger(replace ? "REPLACE URL : " + url : "CHANGE URL : " + url,"WARNING")
+						this.history[replace ? 'replaceState' : 'pushState'](state, '', url);
+				}else{
+					return this.location.href.replace(/%27/g,"'");	
+				}*/
+			}
+		}else{
+			return function (url, replace, state)  {
+				if (url){
+					if (this.kernel && this.kernel.get("location") )
+
+					if (this.location !== window.location) this.location = window.location;
+					var same = ( url === this.lastUrl && url === this.location.href ? true : false );
 					if (this.history !== window.history) this.history = window.history;
-					this.kernel.logger(replace ? "REPLACE URL : " + url : "CHANGE URL : " + url, "WARNING");
-					if (same) {
-						if (url === this.kernel.locationService.initialUrl) {
-							//FORCE changeUrl 
-							changeUrl.call(this);
+					this.kernel.logger(replace ? "REPLACE URL : " + url : "CHANGE URL : " + url,"WARNING");
+					if ( same ){
+						if  (  url === this.kernel.locationService.initialUrl ){
+								//FORCE changeUrl 
+								changeUrl.call(this)
 						}
-						return url;
+						return url ;
 					}
 					//console.log(url)
-					if (replace) {
-						this.location.replace(url);
-						return url;
+					if ( replace ){
+						this.location.replace(url);	
+						return url ;
 					}
-					return this.location.href = url;
-				} else {
-					return this.location.href.replace(/%27/g, "'");
-				}
-			};
-		}
-	};
+					return this.location.href = url;				
+				}else{
+					return this.location.href.replace(/%27/g,"'");	
+				}			
+			}
+		}	
+	}; 
 
-	var urlBrowser = null;
-	var browser = function () {
-		function browser(kernel, settings) {
-			_classCallCheck(this, browser);
+	var urlBrowser = null ;
+	var browser = class browser {
 
+		constructor(kernel, settings){
 			this.location = window.location;
 			this.history = window.History;
 			urlBrowser = myurl.call(this, settings);
 			this.lastUrl = this.url();
-			this.kernel = kernel;
-			$(window).bind('hashchange', changeUrl.bind(this));
+			this.kernel = 	kernel ;
+			$(window).bind('hashchange', changeUrl.bind(this)); 
 			//if (nativeHistory){
 			//	$(window).bind('popstate', changeUrl.bind(this))
 			//}
 		}
 
-		_createClass(browser, [{
-			key: 'url',
-			value: function url(_url, replace, state) {
-				return urlBrowser.call(this, _url, replace, state);
-			}
-		}]);
+		url (url, replace, state){
+			return urlBrowser.call(this, url, replace, state);		
+		}
 
-		return browser;
-	}();
+	};
+
+
 
 	/*
  	 *	CLASS LOCATION
  	 *
  	 */
 
-	var beginsWith = function beginsWith(begin, whole) {
-		if (whole.indexOf(begin) === 0) {
-			return whole.substr(begin.length);
-		}
+
+	
+	var beginsWith = function(begin, whole) {
+  		if (whole.indexOf(begin) === 0) {
+    			return whole.substr(begin.length);
+  		}
 	};
 
-	var stripHash = function stripHash(url) {
+	var stripHash = function(url){
 		var index = url.indexOf('#');
-		return index == -1 ? url : url.substr(0, index);
+  		return index == -1 ? url : url.substr(0, index);
 	};
 
-	var Location = function (_stage$Service) {
-		_inherits(Location, _stage$Service);
 
-		function Location(browser, base, kernel, settings) {
-			_classCallCheck(this, Location);
+	var Location = class Location  extends stage.Service {
 
-			var _this = _possibleConstructorReturn(this, (Location.__proto__ || Object.getPrototypeOf(Location)).call(this, "LOCATION", kernel.container, kernel.notificationsCenter));
 
-			_this.settings = settings;
-			_this.browser = browser;
-			_this.replace = false;
-
-			_this.initialUrl = _this.browser.url();
-			_this.base = base;
-			_this.hashPrefix = "#" + _this.settings.hashPrefix;
-			_this.proto = _this.stripFile(_this.base);
-			_this.parseAbsoluteUrl(_this.initialUrl);
-			_this.parse(_this.initialUrl);
-			_this.logger("INITIALIZE LOCATION SERVICE", "DEBUG");
+		constructor(browser, base, kernel, settings){
+			super("LOCATION", kernel.container, kernel.notificationsCenter );
+			this.settings = settings
+			this.browser = browser ;
+			this.replace = false ;
+			
+			this.initialUrl = this.browser.url();
+			this.base = base
+			this.hashPrefix = "#"+this.settings.hashPrefix ;
+			this.proto = this.stripFile(this.base);
+			this.parseAbsoluteUrl(this.initialUrl);
+			this.parse(this.initialUrl);
+			this.logger("INITIALIZE LOCATION SERVICE", "DEBUG");
 
 			// rewrite hashbang url <> html5 url
 			//var abs = this.absUrl();
 			//if ( abs != this.initialUrl) {
 			//	this.browser.url(abs, true);
 			//}
-			return _this;
+		}
+		
+		absUrl (){
+			return this._absUrl ;
 		}
 
-		_createClass(Location, [{
-			key: 'absUrl',
-			value: function absUrl() {
-				return this._absUrl;
-			}
-		}, {
-			key: 'url',
-			value: function url(_url2) {
-				if (typeof _url2 === "undefined") return this._url;
-				var match = PATH_MATCH.exec(_url2);
-				if (match[1]) this.path(decodeURIComponent(match[1]));
-				if (match[2] || match[1]) this.search(match[3] || '');
-				this.hash(match[5] || '');
-			}
-		}, {
-			key: 'protocol',
-			value: function protocol() {
-				return this._protocol;
-			}
-		}, {
-			key: 'host',
-			value: function host() {
-				return this._host;
-			}
-		}, {
-			key: 'port',
-			value: function port() {
-				return this._port;
-			}
-		}, {
-			key: 'path',
-			value: function path(_path) {
-				if (typeof _path === "undefined") {
-					return this._path;
-				}
-				this._path = _path;
-				try {
-					this.change();
-				} catch (e) {
-					this.logger(e, "ERROR");
-					throw e;
-				}
-				return this._path;
-			}
-		}, {
-			key: 'search',
-			value: function search(_search) {
-				if (typeof _search === "undefined") {
-					return this._search;
-				}
-				this._search = _search;
-				try {
-					this.change();
-				} catch (e) {
-					this.logger(e, "ERROR");
-					throw e;
-				}
-				return this._search;
-			}
-		}, {
-			key: 'hash',
-			value: function hash(_hash) {
-				if (typeof _hash === "undefined") {
-					return this._hash;
-				}
-				this._hash = _hash;
-				try {
-					this.change();
-				} catch (e) {
-					this.logger(e, "ERROR");
-					throw e;
-				}
-				return this._hash;
-			}
-		}, {
-			key: 'state',
-			value: function state() {}
-		}, {
-			key: 'replace',
-			value: function replace(value) {
-				if (value) return this.replace = value;
-				return this.replace;
-			}
-		}, {
-			key: 'encodePath',
-			value: function encodePath(path) {
-				var segments = path.split('/');
-				var i = segments.length;
+		url (url){
+			if (typeof url === "undefined")
+				return this._url;
+			var match = PATH_MATCH.exec(url);
+			if (match[1]) this.path(decodeURIComponent(match[1]));
+			if (match[2] || match[1]) this.search(match[3] || '');
+			this.hash(match[5] || '');
+		}
 
-				while (i--) {
-					segments[i] = stage.io.encodeUriSegment(segments[i]);
-				}
+		protocol (){
+			return this._protocol;	
+		}
 
-				return segments.join('/');
+		host (){
+			return this._host;	
+		}
+
+		port (){
+			return this._port ;	
+		}
+
+		path (path){
+			if (typeof path === "undefined"){
+				return this._path ;
 			}
-		}, {
-			key: 'stripFile',
-			value: function stripFile(url) {
-				return url.substr(0, stripHash(url).lastIndexOf('/') + 1);
+			this._path = path ;
+			try {
+				this.change();
+			}catch(e){
+				this.logger(e,"ERROR");
+				throw e
 			}
+			return this._path;
+		}
 
-			// parsing end URL ex : http://domain.com:port(/path)(?search)(#hash)
-
-		}, {
-			key: 'parseRelativeUrl',
-			value: function parseRelativeUrl(relativeUrl) {
-				//console.log("relative :" + relativeUrl)
-				var prefixed = relativeUrl.charAt(0) !== '/';
-				if (prefixed) {
-					relativeUrl = '/' + relativeUrl;
-				}
-				var resolve = stage.io.urlToOject(relativeUrl);
-				//console.log(resolve)
-				this._path = decodeURIComponent(prefixed && resolve.pathname.charAt(0) === '/' ? resolve.pathname.substring(1) : resolve.pathname);
-				this._search = stage.io.parseKeyValue(resolve.search);
-				this._hash = decodeURIComponent(resolve.hash);
-
-				// make sure path starts with '/';
-				if (typeof this._path !== "undefined" && this._path.charAt(0) != '/') {
-					this._path = '/' + this._path;
-				}
-				//console.log("PATH:" + this._path)
+		search (search){
+			if (typeof search === "undefined"){
+				return this._search ;
 			}
-
-			// parsing begin URL ex : (http)://(domain.com):(port)
-
-		}, {
-			key: 'parseAbsoluteUrl',
-			value: function parseAbsoluteUrl(absoluteUrl) {
-				var resolve = stage.io.urlToOject(absoluteUrl);
-				this._protocol = resolve.protocol.replace(":", "");
-				this._host = resolve.hostname;
-				this._port = parseInt(resolve.port, 10) || DEFAULT_PORTS[this._protocol] || null;
+			this._search = search ;
+			try {
+				this.change();
+			}catch(e){
+				this.logger(e,"ERROR");
+				throw e
 			}
-		}]);
+			return this._search;
 
-		return Location;
-	}(stage.Service);
+			
+		}
+		
+		hash (hash){
+			if (typeof hash === "undefined"){
+				return this._hash ;
+			}
+			this._hash = hash ;
+			try {
+				this.change();
+			}catch(e){
+				this.logger(e,"ERROR");
+				throw e
+			}
+			return this._hash;
+		}	
+
+		state (){
+		
+		}
+
+		replace (value){
+			if (value)
+				return  this.replace = value ;	
+			return this.replace ;
+		}
+
+		encodePath (path) {
+  			var segments = path.split('/');
+      			var i = segments.length;
+
+  			while (i--) {
+    				segments[i] = stage.io.encodeUriSegment(segments[i]);
+  			}
+
+  			return segments.join('/');
+		}
+
+		stripFile (url){
+			return url.substr(0, stripHash(url).lastIndexOf('/') + 1);
+		}
+	
+		// parsing end URL ex : http://domain.com:port(/path)(?search)(#hash)
+		parseRelativeUrl (relativeUrl){
+			//console.log("relative :" + relativeUrl)
+			var prefixed = (relativeUrl.charAt(0) !== '/');
+			if (prefixed) {
+				relativeUrl = '/' + relativeUrl;
+			}
+			var resolve = stage.io.urlToOject(relativeUrl);
+			//console.log(resolve)
+			this._path = decodeURIComponent(prefixed && resolve.pathname.charAt(0) === '/' ?
+				resolve.pathname.substring(1) : resolve.pathname);
+			this._search = stage.io.parseKeyValue(resolve.search);
+			this._hash = decodeURIComponent(resolve.hash);
+
+			// make sure path starts with '/';
+			if (typeof this._path !== "undefined" && this._path.charAt(0) != '/') {
+				this._path = '/' + this._path;
+			}
+			//console.log("PATH:" + this._path)
+		}
+
+		// parsing begin URL ex : (http)://(domain.com):(port)
+		parseAbsoluteUrl (absoluteUrl){
+			var resolve = stage.io.urlToOject(absoluteUrl);
+  			this._protocol = resolve.protocol.replace(":", "");
+  			this._host = resolve.hostname;
+  			this._port = parseInt(resolve.port, 10) || DEFAULT_PORTS[this._protocol] ||null;
+		}
+	};
 
 	/**
  	 * LocationHashbangUrl represents url
@@ -31103,61 +30591,55 @@ module.exports = function (stage) {
  	 * @param {string} appBase application base URL
  	 * @param {string} hashPrefix hashbang prefix
  	*/
-	var LocationHashbangUrl = function (_Location) {
-		_inherits(LocationHashbangUrl, _Location);
+	var LocationHashbangUrl = class LocationHashbangUrl extends  Location  {
 
-		function LocationHashbangUrl(browser, base, kernel, settings) {
-			_classCallCheck(this, LocationHashbangUrl);
-
-			return _possibleConstructorReturn(this, (LocationHashbangUrl.__proto__ || Object.getPrototypeOf(LocationHashbangUrl)).call(this, browser, base, kernel, settings));
+		constructor(browser, base, kernel, settings) {
+			super(browser, base, kernel, settings);
 		}
 
-		_createClass(LocationHashbangUrl, [{
-			key: 'parse',
-			value: function parse(url) {
-				//console.log("URL to parse LocationHashbangUrl  :" + url)
-				//console.log("base : " + this.base)
-				//console.log("beginsWith BASE : "+beginsWith(this.base, url))
-				//console.log("beginsWith PROTO  :"+beginsWith(this.proto, url))
-				var withoutBaseUrl = beginsWith(this.base, url) || beginsWith(this.proto, url);
-				//console.log("withoutBaseUrl : " +withoutBaseUrl)
-				var withoutHashUrl = withoutBaseUrl.charAt(0) == '#' ? beginsWith(this.hashPrefix, withoutBaseUrl) : "";
+		parse (url){
+			//console.log("URL to parse LocationHashbangUrl  :" + url)
+			//console.log("base : " + this.base)
+			//console.log("beginsWith BASE : "+beginsWith(this.base, url))
+			//console.log("beginsWith PROTO  :"+beginsWith(this.proto, url))
+			var withoutBaseUrl = beginsWith(this.base, url) || beginsWith(this.proto, url);
+			//console.log("withoutBaseUrl : " +withoutBaseUrl)
+			var withoutHashUrl = withoutBaseUrl.charAt(0) == '#'
+				? beginsWith(this.hashPrefix, withoutBaseUrl)
+				: "";
 
-				if (typeof withoutHashUrl !== "string") {
-					this.logger('Invalid url ' + url + ', missing hash prefix ' + this.hashPrefix, "ERROR");
-					return null;
-				}
-				//console.log("withoutHashUrl : " +withoutHashUrl)
-				this.parseRelativeUrl(withoutHashUrl);
-				return this.change();
-			}
-		}, {
-			key: 'change',
-			value: function change() {
-				var search = stage.io.toKeyValue(this._search);
-				//console.log(this._search)
-				//var hash = this._hash ? '#' + stage.io.encodeUriSegment(this._hash) : '';
+    			if (typeof withoutHashUrl !== "string") {
+				this.logger('Invalid url '+url+', missing hash prefix ' +this.hashPrefix , "ERROR");
+      				return null; 
+    			}
+			//console.log("withoutHashUrl : " +withoutHashUrl)
+    			this.parseRelativeUrl(withoutHashUrl);
+			return this.change();
+		}
+		
+		change (){
+			var search = stage.io.toKeyValue(this._search);
+			//console.log(this._search)
+			//var hash = this._hash ? '#' + stage.io.encodeUriSegment(this._hash) : '';
 
-				var hash = this._hash ? '#' + this._hash : '';
+			var hash = this._hash ? '#' + this._hash : '';
 
-				//console.log(this._path)
-				this._url = this.encodePath(this._path) + (search ? '?' + search : '') + hash;
-				//console.log(this._url)
-				//var temp = (this._url ? this.hashPrefix + this._url : '').replace("//","/");
-				//this._absUrl = this.base + temp;	
-				//console.log( this.hashPrefix)
-				//console.log( this._url)
-				this._absUrl = this.base + (this._url ? "#" + this._url : '');
-				//console.log("URL :"+ this._url)
-				//console.log("HASH :"+ this._hash)
-				//console.log("ABSURL :"+ this._absUrl)
-				//console.log("PATH :"+ this._path)
-				return this;
-			}
-		}]);
+			//console.log(this._path)
+			this._url = this.encodePath(this._path) + (search ? '?' + search : '') + hash		
+			//console.log(this._url)
+			//var temp = (this._url ? this.hashPrefix + this._url : '').replace("//","/");
+			//this._absUrl = this.base + temp;	
+			//console.log( this.hashPrefix)
+			//console.log( this._url)
+			this._absUrl = this.base + (this._url ? "#" + this._url : '');	
+			//console.log("URL :"+ this._url)
+			//console.log("HASH :"+ this._hash)
+			//console.log("ABSURL :"+ this._absUrl)
+			//console.log("PATH :"+ this._path)
+			return this;
+		}
+	};
 
-		return LocationHashbangUrl;
-	}(Location);
 
 	/**
  	 * LocationHashbangInHtml5Url represents url
@@ -31168,29 +30650,20 @@ module.exports = function (stage) {
  	 * @param {string} appBase application base URL
  	 * @param {string} hashPrefix hashbang prefix
  	*/
-	var LocationHashbangInHtml5Url = function (_LocationHashbangUrl) {
-		_inherits(LocationHashbangInHtml5Url, _LocationHashbangUrl);
+	var LocationHashbangInHtml5Url = class LocationHashbangInHtml5Url extends  LocationHashbangUrl  {
 
-		function LocationHashbangInHtml5Url(browser, base, kernel, settings) {
-			_classCallCheck(this, LocationHashbangInHtml5Url);
-
-			return _possibleConstructorReturn(this, (LocationHashbangInHtml5Url.__proto__ || Object.getPrototypeOf(LocationHashbangInHtml5Url)).call(this, browser, base, kernel, settings));
+		constructor(browser, base, kernel, settings){
+			super(browser, base, kernel, settings);
 		}
 
-		_createClass(LocationHashbangInHtml5Url, [{
-			key: 'parse',
-			value: function parse(url) {
-				return this.change();
-			}
-		}, {
-			key: 'change',
-			value: function change() {
-				return this;
-			}
-		}]);
-
-		return LocationHashbangInHtml5Url;
-	}(LocationHashbangUrl);
+		parse (url){
+			return this.change();
+		}
+		
+		change(){
+			return this;
+		}
+	};
 
 	/**
  	 * LocationHtml5Url represents an url
@@ -31200,77 +30673,71 @@ module.exports = function (stage) {
  	 * @param {string} appBase application base URL
  	 * @param {string} basePrefix url path prefix
  	*/
-	var LocationHtml5Url = function (_Location2) {
-		_inherits(LocationHtml5Url, _Location2);
+	var LocationHtml5Url = class LocationHtml5Url extends Location  {
 
-		function LocationHtml5Url(browser, base, kernel, settings) {
-			_classCallCheck(this, LocationHtml5Url);
-
-			return _possibleConstructorReturn(this, (LocationHtml5Url.__proto__ || Object.getPrototypeOf(LocationHtml5Url)).call(this, browser, base, kernel, settings));
+		constructor (browser, base, kernel, settings) {
+			super(browser, base, kernel, settings);
 		}
 
-		_createClass(LocationHtml5Url, [{
-			key: 'parse',
-			value: function parse(url) {
-				var pathUrl = beginsWith(this.proto, url);
-				if (pathUrl) {
-					this.parseRelativeUrl(pathUrl);
-				}
-				if (!this._path) this._path = "/";
-				return this.change();
+		parse (url){
+			var pathUrl = beginsWith(this.proto, url);
+			if (pathUrl){
+				this.parseRelativeUrl(pathUrl);
 			}
-		}, {
-			key: 'change',
-			value: function change() {
-				var search = stage.io.toKeyValue(this._search);
-				var hash = this._hash ? '#' + stage.io.encodeUriSegment(this._hash) : '';
-				this._url = this.encodePath(this._path) + (search ? '?' + search : '') + hash;
-				this._absUrl = this.proto + this._url.substr(1);
-				return this;
-			}
-		}]);
+			if (! this._path)
+				this._path = "/"
+			return this.change();
+		}
+		
+		change (){
+			var search = stage.io.toKeyValue(this._search);
+			var hash = this._hash ? '#' + stage.io.encodeUriSegment(this._hash) : '';
+			this._url = this.encodePath(this._path) + (search ? '?' + search : '') + hash;
+			this._absUrl = this.proto + this._url.substr(1);
+			return this
+		}
+	};
 
-		return LocationHtml5Url;
-	}(Location);
 
 	/*
  	 *	SERVICE LOCATION
  	 */
 
 	var defaultSettings = {
-		html5Mode: true,
-		hashPrefix: "/"
+		html5Mode:true,
+		hashPrefix:"/"
 	};
 
-	var serverBase = function serverBase(url) {
+	var serverBase = function (url) {
 		return url.substring(0, url.indexOf('/', url.indexOf('//') + 2));
 	};
 
-	var service = function service(kernel, settings) {
-
-		var options = $.extend(defaultSettings, settings);
-
+	var service = function(kernel, settings){
+	
+		var options = $.extend(defaultSettings, settings)
+			
 		var browserService = new browser(kernel, options);
 		kernel.set("browser", browserService);
 		var initialUrl = browserService.url();
-		var baseHref = options.base || "";
-		var mode = null;
-		var base = null;
+		var baseHref = options.base || "" ;
+		var mode = null ;
+		var base = null ;
 
 		if (options.html5Mode) {
 			mode = nativeHistory ? LocationHtml5Url : LocationHashbangInHtml5Url;
 			base = serverBase(initialUrl) + (baseHref || '/');
-		} else {
-			mode = LocationHashbangUrl;
+		}else{
+			mode = LocationHashbangUrl ;
 			base = stripHash(initialUrl);
 		}
-
+		
 		return new mode(browserService, base, kernel, options);
-	};
-
-	stage.location = service;
+	}; 
+	
+	stage.location = service ;
 	return service;
-};
+}
+
 /* WEBPACK VAR INJECTION */}.call(this, __webpack_require__(/*! jquery */ "./node_modules/jquery/dist/jquery.js-exposed")))
 
 /***/ }),
@@ -31282,18 +30749,7 @@ module.exports = function (stage) {
 /*! no static exports found */
 /***/ (function(module, exports, __webpack_require__) {
 
-"use strict";
-/* WEBPACK VAR INJECTION */(function($) {
-
-var _createClass = function () { function defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ("value" in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } } return function (Constructor, protoProps, staticProps) { if (protoProps) defineProperties(Constructor.prototype, protoProps); if (staticProps) defineProperties(Constructor, staticProps); return Constructor; }; }();
-
-function _possibleConstructorReturn(self, call) { if (!self) { throw new ReferenceError("this hasn't been initialised - super() hasn't been called"); } return call && (typeof call === "object" || typeof call === "function") ? call : self; }
-
-function _inherits(subClass, superClass) { if (typeof superClass !== "function" && superClass !== null) { throw new TypeError("Super expression must either be null or a function, not " + typeof superClass); } subClass.prototype = Object.create(superClass && superClass.prototype, { constructor: { value: subClass, enumerable: false, writable: true, configurable: true } }); if (superClass) Object.setPrototypeOf ? Object.setPrototypeOf(subClass, superClass) : subClass.__proto__ = superClass; }
-
-function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError("Cannot call a class as a function"); } }
-
-module.exports = function (stage) {
+/* WEBPACK VAR INJECTION */(function($) {module.exports =  function(stage){
 
 	'use strict';
 
@@ -31303,442 +30759,419 @@ module.exports = function (stage) {
  	 *
  	 */
 
-	var urlParser = function urlParser(container, url, name, template, obj) {
-		var index = url.indexOf("views");
-		if (index < 0) {
-			var text = "URL TEMPLATE BAD PATH :" + url;
-			this.logger(text, "ERROR");
-			throw new Error(text);
-		}
-		var res = url.slice(index + "views".length + 1).split("/");
-		res.pop();
-		if (res.length) {
-			var obj = container;
-			for (var i = 0; i < res.length; i++) {
-				if (obj[res[i]]) {
-					if (i !== res.length - 1) {
-						obj = obj[res[i]];
-					} else {
-						obj[res[i]][name] = template;
-					}
-				} else {
-					if (i !== res.length - 1) {
-						obj[res[i]] = {};
-						obj = obj[res[i]];
-					} else {
-						obj[res[i]] = {};
-						obj[res[i]][name] = template;
-					}
-				}
-			}
-		} else {
-			container[name] = template;
-		}
+	var urlParser = function(container, url, name, template, obj){
+  		var index = url.indexOf("views") ;
+  		if (index < 0 ){
+    			var text = "URL TEMPLATE BAD PATH :" + url ;
+    			this.logger(text ,"ERROR")
+    				throw new Error(text) ;
+  		}
+  		var res = url.slice(index+"views".length+1).split("/");
+  		res.pop();
+  		if (res.length){
+    			var obj = container ;
+    			for (var i = 0; i<res.length;i++){
+      				if ( obj[res[i]] ){
+        				if (i !== res.length-1){	
+        					obj = obj[res[i]] ;
+        				}else{
+          					obj[res[i]][name] = template;
+        				}
+      				}else{
+        				if (i !== res.length-1){
+        					obj[res[i]] = {};	
+        					obj = obj[res[i]] ;
+        				}else{
+          					obj[res[i]] = {};
+          					obj[res[i]][name] = template;
+        				}
+      				}
+    			}
+  		}else{
+    			container[name] = template ;
+  		}
 	};
 
 	var regI18n = new RegExp("^(.*)\.(.._..)\.(.*)$");
 
-	var modelModule = function () {
-		function modelModule(config) {
-			_classCallCheck(this, modelModule);
+	var modelModule = class modelModule {
 
+		constructor(config){
 			this.rootName = "module";
-			var documentXml = this.parser(config);
+			var documentXml = this.parser(config);		
 			//this.name = this.config.name["@short"];
 			this.name = documentXml.module['@id'];
 		}
 
-		_createClass(modelModule, [{
-			key: "parser",
-			value: function parser(ele) {
-				switch (stage.typeOf(ele)) {
-					case "document":
-						var res = stage.xml.parseXml(ele);
-						break;
-					case "object":
-						res = ele;
-						break;
+		parser (ele){
+			switch ( stage.typeOf(ele) ){
+				case "document" :
+					var res  = stage.xml.parseXml(ele) ; 
+					break;
+				case "object" :	
+					res = ele ;
+					break;
+			}
+			if ( !  res[ this.rootName ]){
+				throw new Error ("BAD MODULE CONFIG ");
+			}
+			this.config = res[ this.rootName ] ; 
+			return res;
+		}
+
+		registerScript ( src){
+			this.autoloader.load( src, (error, transport) => {
+				if (error){
+					this.logger(error, "ERROR");
+ 			       		return ;
 				}
-				if (!res[this.rootName]) {
-					throw new Error("BAD MODULE CONFIG ");
+				this.logger("LOAD SCRIPT : "+src ,"DEBUG");
+			});
+		}
+
+		registerStyle ( src){
+			this.autoloader.load( src, (error, transport) => {
+				if (error){
+					this.logger(error, "ERROR");
+ 			       		return ;
 				}
-				this.config = res[this.rootName];
-				return res;
-			}
-		}, {
-			key: "registerScript",
-			value: function registerScript(src) {
-				var _this = this;
+				this.logger("LOAD STYLE : "+src ,"DEBUG");
+			});
+		}
 
-				this.autoloader.load(src, function (error, transport) {
-					if (error) {
-						_this.logger(error, "ERROR");
-						return;
-					}
-					_this.logger("LOAD SCRIPT : " + src, "DEBUG");
-				});
+		cacheFont ( src){
+			$.ajax({
+				async: false,
+			cache: true,
+			url: src,
+			beforeSend:  ( xhr ) =>  {
+				xhr.overrideMimeType("application/octet-stream");
+			},
+			success: () => {
+				this.logger("LOAD FONT : " + src, "DEBUG");
+			},
+			error: (e) => {
+				console.log(e);
+				this.logger(src + " : " + message, "ERROR");
 			}
-		}, {
-			key: "registerStyle",
-			value: function registerStyle(src) {
-				var _this2 = this;
+			});
+		}
 
-				this.autoloader.load(src, function (error, transport) {
-					if (error) {
-						_this2.logger(error, "ERROR");
-						return;
-					}
-					_this2.logger("LOAD STYLE : " + src, "DEBUG");
-				});
-			}
-		}, {
-			key: "cacheFont",
-			value: function cacheFont(src) {
-				var _this3 = this;
-
-				$.ajax({
+		registerTemplate (name, src, type){
+			//console.log("NAME :" + name)
+			switch(type){
+				case "application/twig":
+					//var obj = urlParser.call(this, this.templates, src, name);
+					this.twig({
+						id: this.name+":"+name,
+					href: src,
 					async: false,
-					cache: true,
-					url: src,
-					beforeSend: function beforeSend(xhr) {
-						xhr.overrideMimeType("application/octet-stream");
+					//debug:true,
+					load:(template) => {
+						urlParser.call(this, this.templates, src, name , template )
+						this.logger("LOAD TEMPLATE : "+name +" ==>"+src ,"DEBUG");
+					//console.log(this.templates)
+					//obj[name] = template;
+					//console.log(template.extend)
+					//this.templateEngine
 					},
-					success: function success() {
-						_this3.logger("LOAD FONT : " + src, "DEBUG");
-					},
-					error: function error(e) {
-						console.log(e);
-						_this3.logger(src + " : " + message, "ERROR");
+					error:(xrh, status, message) => {
+						this.logger("TEMPLATE :" + src + " : "+ message, "ERROR")
 					}
-				});
+					});
+					break;
+				case "text/html":
+					break;
+				case "application/xml":
+				case "text/xml":
+					break;
+				case "template":
+					var obj = urlParser.call(this, this.templates, src.url, name, src);
+					//obj[name] = src;
+					this.logger("LOAD IMPORT TEMPLATE : "+name +" ==>"+src.url ,"DEBUG");
+					break;
+				default :
+					this.registerTemplate( name, src, "application/twig" );
+					break
 			}
-		}, {
-			key: "registerTemplate",
-			value: function registerTemplate(name, src, type) {
-				var _this4 = this;
+		}
 
-				//console.log("NAME :" + name)
-				switch (type) {
-					case "application/twig":
-						//var obj = urlParser.call(this, this.templates, src, name);
-						this.twig({
-							id: this.name + ":" + name,
-							href: src,
-							async: false,
-							//debug:true,
-							load: function load(template) {
-								urlParser.call(_this4, _this4.templates, src, name, template);
-								_this4.logger("LOAD TEMPLATE : " + name + " ==>" + src, "DEBUG");
-								//console.log(this.templates)
-								//obj[name] = template;
-								//console.log(template.extend)
-								//this.templateEngine
-							},
-							error: function error(xrh, status, message) {
-								_this4.logger("TEMPLATE :" + src + " : " + message, "ERROR");
-							}
-						});
-						break;
-					case "text/html":
-						break;
-					case "application/xml":
-					case "text/xml":
-						break;
-					case "template":
-						var obj = urlParser.call(this, this.templates, src.url, name, src);
-						//obj[name] = src;
-						this.logger("LOAD IMPORT TEMPLATE : " + name + " ==>" + src.url, "DEBUG");
-						break;
-					default:
-						this.registerTemplate(name, src, "application/twig");
-						break;
-				}
-			}
-		}, {
-			key: "registerView",
-			value: function registerView(name, src, type) {
-				var _this5 = this;
-
-				switch (type) {
-					case "text/javascript":
-					case "application/javascript":
-						this.autoloader.load(src, function (error, transport) {
-							if (error) {
-								_this5.logger(error, "ERROR");
-								return;
-							}
-							//this.views[name] = new ;
-							var Class = stage.views[name];
-							_this5.views[name] = new Class(_this5.container, _this5);
-							_this5.logger("LOAD VIEW : " + src, "DEBUG");
-						});
-						break;
-					default:
-				}
-			}
-		}, {
-			key: "registerController",
-			value: function registerController(name, src) {
-				var _this6 = this;
-
-				this.autoloader.load(src, function (error, transport) {
-					if (error) {
-						_this6.logger(error, "ERROR");
-						throw error;
-					}
-					try {
-						var Class = stage.controllers[name];
-						_this6.controllers[name] = new Class(name, _this6.container, _this6);
-						_this6.logger("LOAD CONTROLLER : " + name + " ==>" + src, "DEBUG");
-					} catch (e) {
-						throw e;
-					}
-				});
-			}
-		}, {
-			key: "initialiseRest",
-			value: function initialiseRest(name, url, optionsGlobal) {
-				var rest = this.kernel.restService;
-				var ele = rest.addApi(name, url, optionsGlobal);
-				this.kernel.set(name, ele);
-			}
-		}, {
-			key: "registerTranslation",
-			value: function registerTranslation(src, type) {
-				var _this7 = this;
-
-				var service = this.get("i18n");
-				if (!service) {
-					this.logger("SERVICE I18N not loaded abort load Translation : " + src, "WARNING");
-					return;
-				}
-				$.ajax({
-					url: src,
-					async: false,
-					success: function success(data, status, xhr) {
-						var name = stage.basename(src);
-						_this7.logger("LOAD TRANSLATION " + type + " : " + name + " URL = " + src, "DEBUG");
-						var res = regI18n.exec(name);
-						if (!res) {
-							_this7.logger("SERVICE I18N  abort load Translation : " + src + " Bad File name format", "WARNING");
-							return;
+		registerView (name, src, type){
+			switch(type){
+				case "text/javascript":
+				case "application/javascript":
+					this.autoloader.load( src, (error, transport) => {
+						if (error){
+							this.logger(error, "ERROR");
+							return ;
 						}
-						var domain = res[1];
-						var locale = res[2];
-						service.registerI18n(name, locale, domain, data);
-					},
-					dataType: type || "json",
-					error: function error(xhr, status, err) {
-						_this7.logger(err, "ERROR");
-					}
-				});
+						//this.views[name] = new ;
+						var Class = stage.views[name];
+						this.views[name] = new Class(this.container, this);
+						this.logger("LOAD VIEW : "+src ,"DEBUG");
+					});
+					break;
+				default:
 			}
-		}, {
-			key: "reader",
-			value: function reader() {
-				var root = this.config;
-				for (var node in this.config) {
-					switch (node) {
-						case "content":
-							break;
-						case "controllers":
+		}
 
-							var controllers = root[node].controller;
-							if (controllers) {
-								var tab = stage.typeOf(controllers) === "object" ? [controllers] : controllers;
-								for (var i = 0; i < tab.length; i++) {
-									var name = tab[i]["@name"];
-									var src = tab[i]["@src"];
-									this.registerController(name, src);
-								}
-							}
+		registerController (name, src){
+			this.autoloader.load( src, (error, transport) => {
+				if (error){
+					this.logger(error, "ERROR")
+					throw error;
+				}
+				try {
+					var Class = stage.controllers[name]; 
+					this.controllers[name] = new Class(name, this.container, this);
+					this.logger("LOAD CONTROLLER : "+name +" ==>"+src ,"DEBUG");
+				}catch(e){
+					throw e ;
+				}
+			});
+		}
 
-							break;
-						case "views":
-							var views = root[node].view;
-							if (views) {
-								var tab = stage.typeOf(views) === "object" ? [views] : views;
-								for (var i = 0; i < tab.length; i++) {
-									var name = tab[i]["@name"];
-									var src = tab[i]["@src"];
-									var type = tab[i]["@type"];
-									this.registerView(name, src, type);
-								}
-							}
+		initialiseRest (name, url, optionsGlobal){
+			var rest = this.kernel.restService ;
+			var ele = rest.addApi(name, url, optionsGlobal);
+			this.kernel.set(name, ele);
+		}
 
-							break;
-						case "modules":
-							var modules = root[node].module;
-							if (modules) {
-								var tab = stage.typeOf(modules) === "object" ? [modules] : modules;
-								for (var i = 0; i < tab.length; i++) {
-									//var name = tab[i]["@name"];
-									var url = tab[i]["@href"];
-									if (!this.isDomReady) {
-										this.kernel.listen(this, "onBoot", function (url) {
-											this.kernel.loadModule(url, {
-												async: false
-											});
-										}.bind(this, url));
-									} else {
-										this.kernel.loadModule(url);
-									}
-								}
-							}
-
-							break;
-						case "templates":
-							var templates = root[node].template;
-							if (templates) {
-								var tab = stage.typeOf(templates) === "object" ? [templates] : templates;
-								for (var i = 0; i < tab.length; i++) {
-									var name = tab[i]["@name"];
-
-									var src = tab[i]["@src"];
-									var type = tab[i]["@type"];
-									if (!name) {
-										name = this.getTemplateName(src);
-									}
-									this.registerTemplate(name, src, type);
-								}
-							}
-
-							break;
-						case "styles":
-							var styles = root[node].style;
-							if (styles) {
-								var tab = stage.typeOf(styles) === "object" ? [styles] : styles;
-								for (var i = 0; i < tab.length; i++) {
-									var src = tab[i]["@src"];
-									this.registerStyle(src);
-								}
-							}
-
-							break;
-						case "scripts":
-							var scripts = root[node].script;
-							if (scripts) {
-								var tab = stage.typeOf(scripts) === "object" ? [scripts] : scripts;
-								for (var i = 0; i < tab.length; i++) {
-									var src = tab[i]["@src"];
-									this.registerScript(src);
-								}
-							}
-
-							break;
-						case "fonts":
-							var fonts = root[node].font;
-							if (fonts) {
-								var tab = stage.typeOf(fonts) === "object" ? [fonts] : fonts;
-								for (var i = 0; i < tab.length; i++) {
-									var src = tab[i]["@src"];
-									this.cacheFont(src);
-								}
-							}
-
-							break;
-						case "translations":
-							var translations = root[node].translation;
-							if (translations) {
-								var tab = stage.typeOf(translations) === "object" ? [translations] : translations;
-								for (var i = 0; i < tab.length; i++) {
-									var src = tab[i]["@src"];
-									var type = tab[i]["@type"];
-									this.registerTranslation(src, type);
-								}
-							}
-
-							break;
-						case "icon":
-							this.icon = root[node]["@src"];
-							break;
-						/*case "name" :
-        console.log(root[node])
-        this.name = root[node]["@short"];
-        break;*/
-						case "preference":
-							break;
-						case "author":
-							var author = root[node];
-							this.author = author["#text"];
-							this.emailAuthor = author["@email"];
-							this.authorLink = author["@href"];
-							break;
-						case "description":
-							this.description = root[node];
-							break;
-						case "api":
-							//console.log(root[node]);
-							for (var ele in root[node]) {
-								var mvc = root[node][ele];
-								var tab = stage.typeOf(mvc) === "object" ? [mvc] : mvc;
-								for (var i = 0; i < tab.length; i++) {
-									if (ele === "rest") {
-										if (this.kernel.restService) this.initialiseRest(tab[i]["@name"], tab[i]["@url"]);else this.logger("Api " + ele + " SERVICE REST NOT FOUND", "ERROR");
-									} else {
-										this.logger("Api " + ele + " not exist for modules", "ERROR");
-									}
-								}
-							}
-							break;
-							break;
-						case "routes":
-							var routes = root[node].route;
-							switch (stage.typeOf(routes)) {
-								case "array":
-									for (var i = 0; i < routes.length; i++) {
-										var id = routes[i]["@id"];
-										var path = routes[i]["@path"];
-										var defaultParam = {};
-										switch (stage.typeOf(routes[i]["default"])) {
-											case "array":
-												for (var j = 0; j < routes[i]["default"].length; j++) {
-													defaultParam[routes[i]["default"][j]["@key"]] = routes[i]["default"][j]["#text"];
-													//console.log(defaultParam)
-												}
-												break;
-											case "object":
-												if (routes[i]["default"]["@key"]) defaultParam[routes[i]["default"]["@key"]] = routes[i]["default"]["#text"];
-												break;
-										}
-										this.routes[id] = this.router.createRoute(id, path, defaultParam);
-									}
-									break;
-								case "object":
-									for (var route in routes) {
-										switch (route) {
-											case "@id":
-												var id = routes[route];
-												break;
-											case "@path":
-												var path = routes[route];
-												break;
-											case "default":
-												var defaultParam = {};
-												switch (stage.typeOf(routes[route])) {
-													case "array":
-														for (var j = 0; j < routes[route].length; j++) {
-															defaultParam[routes[route][j]["@key"]] = routes[route][j]["#text"];
-														}
-														break;
-													case "object":
-														defaultParam[routes[route]["@key"]] = routes[route]["#text"];
-														break;
-												}
-												break;
-										}
-									}
-									this.routes[id] = this.router.createRoute(id, path, defaultParam);
-									break;
-							}
-							break;
+		registerTranslation (src, type){
+			var service = this.get("i18n");
+			if (! service){
+				this.logger("SERVICE I18N not loaded abort load Translation : "+src,"WARNING");
+				return ;
+			}
+			$.ajax({
+				url:src,
+				async:false,
+				success:(data, status, xhr) => {
+					var name = stage.basename(src) ;
+					this.logger("LOAD TRANSLATION "+ type +" : "+name +" URL = "+src ,"DEBUG");
+					var res = regI18n.exec(name);	
+					if ( ! res ){
+						this.logger("SERVICE I18N  abort load Translation : "+src+ " Bad File name format","WARNING");
+						return;
 					}
+					var domain = res[1];
+					var locale = res[2];
+					service.registerI18n(name, locale, domain, data);
+				},
+				dataType: type || "json",
+				error:(xhr, status, err) => {
+					this.logger(err, "ERROR")
+				}	
+			});
+		}
+
+		reader (){
+			var root = this.config;
+			for (var node in this.config){
+				switch ( node ){
+					case "content" :
+						break;
+					case "controllers":
+
+						var controllers = root[node].controller;
+						if(controllers){
+							var tab = stage.typeOf(controllers) === "object" ? [controllers] : controllers ;
+							for (var i = 0 ; i < tab.length ; i++){
+								var name = tab[i]["@name"];
+								var src = tab[i]["@src"];
+								this.registerController(name, src)
+							}
+						}
+
+						break;
+					case "views":
+						var views = root[node].view;
+						if(views){
+							var tab = stage.typeOf(views) === "object" ? [views] : views ;
+							for (var i = 0 ; i < tab.length ; i++){
+								var name = tab[i]["@name"];
+								var src = tab[i]["@src"];
+								var type = tab[i]["@type"];
+								this.registerView(name, src, type);
+							}
+						}
+
+						break;
+					case "modules":
+						var modules = root[node].module;
+						if(modules){
+							var tab = stage.typeOf(modules) === "object" ? [modules] : modules ;
+							for (var i = 0 ; i < tab.length ; i++){
+								//var name = tab[i]["@name"];
+								var url = tab[i]["@href"];
+								if ( ! this.isDomReady){
+									this.kernel.listen(this,"onBoot",function(url){
+										this.kernel.loadModule(url, {
+											async:false
+										});
+									}.bind(this, url))
+								}else{
+									this.kernel.loadModule(url);
+								}
+							}
+						}
+
+						break;
+					case "templates":
+						var templates = root[node].template;
+						if(templates){
+							var tab = stage.typeOf(templates) === "object" ? [templates] : templates ;
+							for (var i = 0 ; i < tab.length ; i++){
+								var name = tab[i]["@name"];
+
+								var src = tab[i]["@src"];
+								var type = tab[i]["@type"];
+								if ( ! name){
+									name = this.getTemplateName(src)	
+								}
+								this.registerTemplate(name, src, type);
+							}
+						}
+
+						break;
+					case "styles":
+						var styles = root[node].style;
+						if(styles){
+							var tab = stage.typeOf(styles) === "object" ? [styles] : styles ;
+							for (var i = 0 ; i < tab.length ; i++){
+								var src = tab[i]["@src"];
+								this.registerStyle(src);
+							}
+						}
+
+						break;
+					case "scripts":
+						var scripts = root[node].script;
+						if(scripts){
+							var tab = stage.typeOf(scripts) === "object" ? [scripts] : scripts ;
+							for (var i = 0 ; i < tab.length ; i++){
+								var src = tab[i]["@src"];
+								this.registerScript(src);
+							}
+						}
+
+						break;
+					case "fonts":
+						var fonts = root[node].font;
+						if(fonts){
+							var tab = stage.typeOf(fonts) === "object" ? [fonts] : fonts ;
+							for (var i = 0 ; i < tab.length ; i++){
+								var src = tab[i]["@src"];
+								this.cacheFont(src);
+							}
+						}
+
+						break;
+					case "translations":
+						var translations = root[node].translation;
+						if(translations){
+							var tab = stage.typeOf(translations) === "object" ? [translations] : translations ;
+							for (var i = 0 ; i < tab.length ; i++){
+								var src = tab[i]["@src"];
+								var type = tab[i]["@type"];
+								this.registerTranslation(src, type );
+							}
+						}
+
+						break;
+					case "icon" :
+						this.icon = root[node]["@src"];
+						break;
+						/*case "name" :
+						  console.log(root[node])
+						  this.name = root[node]["@short"];
+						  break;*/
+					case "preference":
+						break;
+					case "author":
+						var author = root[node];
+						this.author = author["#text"];
+						this.emailAuthor = author["@email"];
+						this.authorLink = author["@href"];
+						break;
+					case "description":
+						this.description = root[node];
+						break;
+					case "api":
+						//console.log(root[node]);
+						for(var ele in root[node]){
+							var mvc = root[node][ele];
+							var tab = stage.typeOf(mvc) === "object" ? [mvc] : mvc;
+							for(var i = 0; i < tab.length; i++){
+								if(ele === "rest"){
+									if( this.kernel.restService )
+										this.initialiseRest(tab[i]["@name"], tab[i]["@url"]);
+									else
+										this.logger("Api " + ele + " SERVICE REST NOT FOUND" ,"ERROR")
+								} else {
+									this.logger("Api " + ele + " not exist for modules" ,"ERROR");
+								}
+							}
+						}
+						break;
+						break;
+					case "routes":
+						var routes = root[node].route;
+						switch(stage.typeOf( routes)){
+							case "array":
+								for (var i = 0 ;i<routes.length; i++){
+									var id = routes[i]["@id"];
+									var path = routes[i]["@path"];
+									var defaultParam = {};
+									switch(stage.typeOf( routes[i]["default"])){
+										case "array":
+											for (var j=0 ;j<routes[i]["default"].length;j++){
+												defaultParam[routes[i]["default"][j]["@key"]] =  routes[i]["default"][j]["#text"];
+												//console.log(defaultParam)
+											}
+											break;
+										case "object":
+											if (routes[i]["default"]["@key"])
+												defaultParam[routes[i]["default"]["@key"]] = routes[i]["default"]["#text"];
+											break;
+									}
+									this.routes[id] = this.router.createRoute(id, path, defaultParam);	
+
+								}
+								break;
+							case "object":
+								for (var route in routes){
+									switch (route){
+										case "@id":
+											var id = routes[route];
+											break;
+										case "@path":
+											var path = routes[route];
+											break;
+										case "default":
+											var defaultParam = {};
+											switch(stage.typeOf( routes[route] )){
+												case "array":
+													for (var j=0 ;j<routes[route].length;j++){
+														defaultParam[routes[route][j]["@key"]] =  routes[route][j]["#text"];
+													}
+													break;
+												case "object":
+													defaultParam[routes[route]["@key"]] = routes[route]["#text"]
+														break;
+											}
+											break;
+									}
+								}
+								this.routes[id] = this.router.createRoute(id, path, defaultParam);
+								break
+						}
+						break;
 				}
 			}
-		}]);
+		}
+	};
 
-		return modelModule;
-	}();
 
 	/*
  	*
@@ -31747,185 +31180,161 @@ module.exports = function (stage) {
  	*/
 	var regPattern = /(.*)Module:(.*):(.*)$/;
 
-	var Module = function (_modelModule) {
-		_inherits(Module, _modelModule);
+	var Module = class Module extends  modelModule  {
 
-		function Module(kernel, config, settings) {
-			_classCallCheck(this, Module);
-
-			var _this8 = _possibleConstructorReturn(this, (Module.__proto__ || Object.getPrototypeOf(Module)).call(this, config));
-
-			_this8.kernel = kernel;
-			_this8.container = kernel.container;
-			_this8.syslog = _this8.get("syslog");
-			_this8.logger("REGISTER MODULE " + _this8.name, "DEBUG");
-			_this8.autoloader = new stage.autoload(_this8, {
-				transport: "script"
+		constructor(kernel, config, settings){
+			super(config);
+			this.kernel = kernel;
+			this.container = kernel.container;
+			this.syslog = this.get("syslog");
+			this.logger("REGISTER MODULE "+this.name, "DEBUG");
+			this.autoloader = new stage.autoload(this, {
+				transport:"script"
 			});
-			_this8.views = {};
-			_this8.controllers = {};
-			_this8.templates = {};
-			_this8.routes = {};
+			this.views = {};
+			this.controllers = {};
+			this.templates = {};
+			this.routes = {};
 
-			_this8.twig = _this8.get("twig");
+			this.twig = this.get("twig");
 
-			_this8.setParameters("module." + _this8.name, _this8.config);
-			_this8.set(_this8.name, _this8);
-			_this8.boot(settings);
-			return _this8;
+			this.setParameters("module."+this.name, this.config);
+			this.set(this.name, this);
+			this.boot(settings);
 		}
 
-		_createClass(Module, [{
-			key: "listen",
-			value: function listen() {
-				return this.notificationsCenter.listen.apply(this.notificationsCenter, arguments);
-			}
-		}, {
-			key: "fire",
-			value: function fire(event) {
-				this.logger(event + " : " + this.name, "DEBUG", "EVENT MODULE");
+		listen (){
+			return this.notificationsCenter.listen.apply(this.notificationsCenter, arguments);
+		}
+
+		fire (event){
+			this.logger(event+" : "+ this.name , "DEBUG", "EVENT MODULE")
 				return this.notificationsCenter.fire.apply(this.notificationsCenter, arguments);
-			}
-		}, {
-			key: "logger",
-			value: function logger(pci, severity, msgid, msg) {
-				if (!msgid) msgid = "MODULE  " + this.name;
-				return this.syslog.logger(pci, severity, msgid, msg);
-			}
+		}
 
-			/**
-   		*	@method get
-   		*	@param {String} name of service
-          		*/
+		logger (pci, severity, msgid,  msg){
+			if (! msgid) msgid = "MODULE  "+this.name;
+			return this.syslog.logger(pci, severity, msgid,  msg);	
+		}
 
-		}, {
-			key: "get",
-			value: function get(name) {
-				return this.container.get(name);
-			}
+		/**
+	 		*	@method get
+	 		*	@param {String} name of service
+         		*/
+		get (name){
+			return this.container.get(name);
+		}
 
-			/**
-   		*	@method set
-   		*	@param {String} name of service
-   		*	@param {Object} instance of service
-          		*/
+		/**
+	 		*	@method set
+	 		*	@param {String} name of service
+	 		*	@param {Object} instance of service
+         		*/
+		set (name, obj){
+			return this.container.set(name, obj);
+		}
 
-		}, {
-			key: "set",
-			value: function set(name, obj) {
-				return this.container.set(name, obj);
-			}
-		}, {
-			key: "setParameters",
-			value: function setParameters(name, value) {
-				return this.container.setParameters(name, value);
-			}
-		}, {
-			key: "getParameters",
-			value: function getParameters(name) {
-				return this.container.getParameters(name);
-			}
-		}, {
-			key: "getController",
-			value: function getController(name) {
-				return this.controllers[name];
-			}
-		}, {
-			key: "getTemplate",
-			value: function getTemplate(name) {
-				return this.templates[name];
-			}
-		}, {
-			key: "getTemplateName",
-			value: function getTemplateName(url) {
-				var name = stage.basename(url);
-				var index = name.indexOf(".");
-				if (index < 0) return url;
-				return name.slice(0, name.indexOf("."));
-			}
-		}, {
-			key: "getTemplatePattern",
-			value: function getTemplatePattern(pattern) {
-				var res = regPattern.exec(pattern);
-				if (!res) {
-					var txt = "IN PATTERN :" + pattern + " BAD FORMAT ";
-					this.logger(txt, "ERROR");
+		setParameters (name, value){
+			return this.container.setParameters(name, value);	
+		}
+
+		getParameters (name){
+			return this.container.getParameters(name);	
+		}
+
+		getController (name){
+			return this.controllers[name];
+		}
+
+		getTemplate (name){
+			return this.templates[name];
+		}
+
+		getTemplateName (url){
+			var name = stage.basename(url);
+			var index = name.indexOf(".");
+			if (index < 0)
+				return url;
+			return name.slice(0, name.indexOf(".") );
+		}
+
+		getTemplatePattern (pattern){
+			var res  = regPattern.exec(pattern);
+			if ( ! res ){
+				var txt = "IN PATTERN :" + pattern +" BAD FORMAT " ;
+				this.logger(txt,"ERROR")
 					throw new Error(txt);
-				}
-				var moduleName = res[1];
-				var pathName = res[2];
-				var templateName = res[3];
-				var module = this.kernel.getModule(moduleName);
-				if (!module) {
-					var txt = "IN PATTERN :" + pattern + " MODULE :" + moduleName + " not defined";
-					this.logger(txt, "ERROR");
+			}
+			var moduleName = res[1];
+			var pathName = res[2];
+			var templateName = res[3];	
+			var module = this.kernel.getModule(moduleName);
+			if ( ! module ){
+				var txt = "IN PATTERN :" + pattern +" MODULE :"+ moduleName +" not defined" ;
+				this.logger(txt,"ERROR")
 					throw new Error(txt);
-				}
-				var obj = module.templates;
-				if (pathName !== "") {
-					var tab = pathName.split("/");
-					for (var i = 0; i < tab.length; i++) {
-						if (tab[i]) {
-							if (tab[i] in obj) {
-								obj = obj[tab[i]];
-							} else {
-								var txt = "IN PATTERN :" + pattern + " pathName :" + pathName + " not defined";
-								this.logger(txt, "ERROR");
+			}
+			var obj = module.templates ;
+			if (pathName !== ""){
+				var tab = pathName.split("/");
+				for (var i = 0 ; i<tab.length ; i++){
+					if (tab[i]){
+						if (tab[i] in obj){
+							obj = obj[tab[i]];
+						}else{
+							var txt = "IN PATTERN :" + pattern +" pathName :"+ pathName +" not defined" ;
+							this.logger(txt,"ERROR")
 								throw new Error(txt);
-							}
 						}
 					}
 				}
-				if (templateName !== "") {
-					var name = this.getTemplateName(templateName);
-					if (obj[name]) {
-						return obj[name];
-					} else {
-						var txt = "IN PATTERN :" + pattern + " MODULE :" + moduleName + "  template : " + templateName + " not defined";
-						this.logger(txt, "ERROR");
-						throw new Error(txt);
-					}
-				} else {
-					if (obj["index"]) {
-						return obj["index"];
-					} else {
-						var txt = "IN PATTERN :" + pattern + " MODULE :" + moduleName + " default template not defined";
-						this.logger(txt, "ERROR");
-						throw new Error(txt);
-					}
+			}
+			if (templateName !== "" ){
+				var name = this.getTemplateName(templateName);
+				if (obj[name]){
+					return obj[name];
+				}else{
+					var txt = "IN PATTERN :" + pattern +" MODULE :"+ moduleName +"  template : "+ templateName +" not defined" ;
+					this.logger(txt,"ERROR")
+						throw new Error(txt);	
+				}
+			}else{
+				if (obj["index"]){
+					return obj["index"];
+				}else{
+					var txt = "IN PATTERN :" + pattern +" MODULE :"+ moduleName +" default template not defined" ;
+					this.logger(txt,"ERROR")
+						throw new Error(txt);	
 				}
 			}
-		}, {
-			key: "getView",
-			value: function getView(name) {
-				return this.views[name];
+		}
+
+		getView (name){
+			return this.views[name];
+		}
+
+		boot (settings){
+			this.logger("BOOT "+ this.name , "DEBUG");
+			this.container = this.kernel.container.enterScope(this.name);
+			this.notificationsCenter = stage.notificationsCenter.create(settings,this);
+			this.set("notificationsCenter", this.notificationsCenter);
+			this.router = this.kernel.router ;
+
+			try {
+				this.fire("onBoot", this);	
+				this.reader();
+				this.fire("onReady",this);
+			}catch (e){
+				this.logger("MODULE : "+ this.name +"  "+e, "ERROR");
+				throw e;
 			}
-		}, {
-			key: "boot",
-			value: function boot(settings) {
-				this.logger("BOOT " + this.name, "DEBUG");
-				this.container = this.kernel.container.enterScope(this.name);
-				this.notificationsCenter = stage.notificationsCenter.create(settings, this);
-				this.set("notificationsCenter", this.notificationsCenter);
-				this.router = this.kernel.router;
+		}
+	};
 
-				try {
-					this.fire("onBoot", this);
-					this.reader();
-					this.fire("onReady", this);
-				} catch (e) {
-					this.logger("MODULE : " + this.name + "  " + e, "ERROR");
-					throw e;
-				}
-			}
-		}]);
-
-		return Module;
-	}(modelModule);
-
-	stage.Module = Module;
-	return Module;
+	stage.Module = Module; 
+	return Module ;
 };
+
 /* WEBPACK VAR INJECTION */}.call(this, __webpack_require__(/*! jquery */ "./node_modules/jquery/dist/jquery.js-exposed")))
 
 /***/ }),
@@ -31937,89 +31346,70 @@ module.exports = function (stage) {
 /*! no static exports found */
 /***/ (function(module, exports, __webpack_require__) {
 
-"use strict";
+const  Twig = __webpack_require__(/*! twig */ "./node_modules/twig/twig.js");
 
-
-var _createClass = function () { function defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ("value" in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } } return function (Constructor, protoProps, staticProps) { if (protoProps) defineProperties(Constructor.prototype, protoProps); if (staticProps) defineProperties(Constructor, staticProps); return Constructor; }; }();
-
-function _possibleConstructorReturn(self, call) { if (!self) { throw new ReferenceError("this hasn't been initialised - super() hasn't been called"); } return call && (typeof call === "object" || typeof call === "function") ? call : self; }
-
-function _inherits(subClass, superClass) { if (typeof superClass !== "function" && superClass !== null) { throw new TypeError("Super expression must either be null or a function, not " + typeof superClass); } subClass.prototype = Object.create(superClass && superClass.prototype, { constructor: { value: subClass, enumerable: false, writable: true, configurable: true } }); if (superClass) Object.setPrototypeOf ? Object.setPrototypeOf(subClass, superClass) : subClass.__proto__ = superClass; }
-
-function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError("Cannot call a class as a function"); } }
-
-var Twig = __webpack_require__(/*! twig */ "./node_modules/twig/twig.js");
-
-module.exports = function (stage) {
+module.exports =  function(stage){
 
 	'use strict';
-
+			
 	/*
  	 *
  	 *	ROUTE
  	 *
  	 */
 
-	var decode = function decode(str) {
+	var decode = function(str) {
 		try {
 			return decodeURIComponent(str);
-		} catch (err) {
+		} catch(err) {
 			return str;
 		}
 	};
-	var Route = function () {
-		function Route(id, path, defaultParams) {
-			_classCallCheck(this, Route);
+	var Route = class Route {
 
-			this.id = id;
+		constructor(id, path, defaultParams){
+			this.id = id ;
 			this.path = path;
-			this.template = null;
-			this.controller = null;
-			this.defaults = defaultParams;
+			this.template = null;	
+			this.controller =null;
+			this.defaults =  defaultParams;
 			this.variables = [];
 			this.pattern = this.compile();
+		};
+
+		compile (){
+			var pattern = this.path.replace(/(\/)?(\.)?\{([^}]+)\}(?:\(([^)]*)\))?(\?)?/g, (match, slash, dot, key, capture, opt, offset) =>  {
+				var incl = (this.path[match.length+offset] || '/') === '/';
+				this.variables.push(key);
+				return (incl ? '(?:' : '')+(slash || '')+(incl ? '' : '(?:')+(dot || '')+'('+(capture || '[^/]+')+'))'+(opt || '');
+			});
+			pattern = pattern.replace(/([\/.])/g, '\\$1').replace(/\*/g, '(.+)');
+			this.pattern = new RegExp('^'+pattern+'[\\/]?$', 'i');
+			return this.pattern ;	
 		}
 
-		_createClass(Route, [{
-			key: 'compile',
-			value: function compile() {
-				var _this = this;
-
-				var pattern = this.path.replace(/(\/)?(\.)?\{([^}]+)\}(?:\(([^)]*)\))?(\?)?/g, function (match, slash, dot, key, capture, opt, offset) {
-					var incl = (_this.path[match.length + offset] || '/') === '/';
-					_this.variables.push(key);
-					return (incl ? '(?:' : '') + (slash || '') + (incl ? '' : '(?:') + (dot || '') + '(' + (capture || '[^/]+') + '))' + (opt || '');
-				});
-				pattern = pattern.replace(/([\/.])/g, '\\$1').replace(/\*/g, '(.+)');
-				this.pattern = new RegExp('^' + pattern + '[\\/]?$', 'i');
-				return this.pattern;
+		match (url){
+			var res = url.match(this.pattern);
+			//console.log(res)
+			if (!res) {
+				return res;
 			}
-		}, {
-			key: 'match',
-			value: function match(url) {
-				var res = url.match(this.pattern);
-				//console.log(res)
-				if (!res) {
-					return res;
-				}
-				var map = [];
-				var tab = res.slice(1);
-				for (var i = 0; i < tab.length; i++) {
-					var k = this.variables[i] || 'wildcard';
-					var param = tab[i] && decode(tab[i]);
-					//var index = map.push( map[k] ? [].concat(map[k]).concat(param) : param );
-					var index = map.push(param);
-					map[k] = map[index - 1];
-				}
-				if (map && map.wildcard) {
-					map['*'] = map.wildcard;
-				}
-				return map;
-			}
-		}]);
+			var map = [];
+			var tab = res.slice(1) ;
+			for (var i = 0 ; i<tab.length; i++){
+				var k = this.variables[i] || 'wildcard';
+				var param = tab[i] && decode(tab[i]);
+				//var index = map.push( map[k] ? [].concat(map[k]).concat(param) : param );
+				var index = map.push( param )
+				map[k] = map[index-1] ;
 
-		return Route;
-	}();
+			}
+			if ( map && map.wildcard) {
+				map['*'] = map.wildcard;
+			}
+			return map;
+		}
+	};
 
 	/*
  	 *
@@ -32027,338 +31417,315 @@ module.exports = function (stage) {
  	 *
  	 */
 	var regModuleName = /^(.*)Module[\.js]{0,3}$/;
-	var Resolver = function () {
-		function Resolver(container) {
-			_classCallCheck(this, Resolver);
+	var Resolver = class Resolver {
 
+		constructor(container){
 			this.container = container;
 			this.resolve = false;
 			this.kernel = this.container.get("kernel");
 			this.defaultAction = null;
 			this.defaultView = null;
 			this.variables = new Array();
-			this.router = this.container.get("router");
-			this.browser = this.container.get("browser");
+			this.router = this.container.get("router")
+			this.browser = this.container.get("browser")
 			//this.notificationsCenter = this.container.get("notificationsCenter") ;
+		
 		}
 
-		_createClass(Resolver, [{
-			key: 'match',
-			value: function match(route, url) {
-				var match = route.match(url);
-				if (match) {
-					this.variables = match;
-					this.url = url;
-					this.route = route;
-					this.parsePathernController(route.defaults.controller);
-				}
-				return match;
+		match (route, url){
+			var match = route.match(url); 
+			if ( match ){
+				this.variables = match;
+				this.url = url;
+				this.route = route;
+				this.parsePathernController(route.defaults.controller)
+			}		
+			return match;
+		}
+
+
+		getModuleName (str){
+			var ret = regModuleName.exec(str);
+			if (ret){
+				return  ret[1] ;
+			}else{
+				throw "BAD MODULE PATTERN ";
 			}
-		}, {
-			key: 'getModuleName',
-			value: function getModuleName(str) {
-				var ret = regModuleName.exec(str);
-				if (ret) {
-					return ret[1];
-				} else {
-					throw "BAD MODULE PATTERN ";
-				}
+		}
+
+		getController (name){
+			return this.module.controllers[name+"Controller"];
+		}
+
+		getAction (name){
+			var ele = name+"Action" ;
+			if ( ele in this.controller ){
+				return this.controller[ele]
 			}
-		}, {
-			key: 'getController',
-			value: function getController(name) {
-				return this.module.controllers[name + "Controller"];
+			return null;
+		}
+
+		getDefaultView (controller, action){
+			var res = this.module.name+"Module"+":"+controller+":"+action+".html.twig";
+			return res ; 
+		}
+
+		parsePathernController (pattern){
+			if (typeof pattern !== "string"){
+				throw new Error("Resolver : pattern : "+pattern +" MUST be a string");	
 			}
-		}, {
-			key: 'getAction',
-			value: function getAction(name) {
-				var ele = name + "Action";
-				if (ele in this.controller) {
-					return this.controller[ele];
-				}
-				return null;
+			this.route = this.router.getRouteByPattern(pattern);
+			var tab = pattern.split(":")
+			try {
+				this.module = this.kernel.getModule( this.getModuleName(tab[0]) );
+			}catch(e){
+				throw new Error("Resolver pattern error module :  " + pattern + " : " +e );
 			}
-		}, {
-			key: 'getDefaultView',
-			value: function getDefaultView(controller, action) {
-				var res = this.module.name + "Module" + ":" + controller + ":" + action + ".html.twig";
-				return res;
-			}
-		}, {
-			key: 'parsePathernController',
-			value: function parsePathernController(pattern) {
-				if (typeof pattern !== "string") {
-					throw new Error("Resolver : pattern : " + pattern + " MUST be a string");
-				}
-				this.route = this.router.getRouteByPattern(pattern);
-				var tab = pattern.split(":");
-				try {
-					this.module = this.kernel.getModule(this.getModuleName(tab[0]));
-				} catch (e) {
-					throw new Error("Resolver pattern error module :  " + pattern + " : " + e);
-				}
-				if (this.module) {
-					this.controller = this.getController(tab[1]);
-					if (this.controller) {
-						if (tab[2]) {
-							this.action = this.getAction(tab[2]);
-							if (!this.action) {
-								throw new Error("Resolver :In CONTROLLER: " + tab[1] + " ACTION  :" + tab[2] + " not exist");
-							}
-						} else {
-							this.action = null;
+			if ( this.module ){
+				this.controller = this.getController(tab[1]);
+				if ( this.controller ){
+					if (tab[2]){
+						this.action = this.getAction(tab[2]);
+						if (! this.action ){
+							throw new Error("Resolver :In CONTROLLER: "+ tab[1] +" ACTION  :"+tab[2] + " not exist");
 						}
-					} else {
-						throw new Error("Resolver :controller not exist :" + tab[1]);
+					}else{
+						this.action = null;	
 					}
-					this.defaultView = this.getDefaultView(tab[1], tab[2]);
-					this.resolve = true;
-				} else {
-					//this.logger("Resolver : not exist :"+tab[0] , "ERROR")
-					throw new Error("Resolver : module not exist :" + tab[0]);
+				}else{
+					throw new Error("Resolver :controller not exist :"+tab[1] );
 				}
+				this.defaultView = this.getDefaultView(tab[1], tab[2] );
+				this.resolve = true;
+			}else{
+				//this.logger("Resolver : not exist :"+tab[0] , "ERROR")
+				throw new Error("Resolver : module not exist :"+tab[0] );
 			}
-		}, {
-			key: 'callController',
-			value: function callController(arg) {
-				try {
-					var ret = this.action.apply(this.controller, arg || []);
-				} catch (e) {
-					this.controller.logger.call(this.controller, e, "ERROR");
-					throw e;
-				}
-				return ret;
+		}
+		
+		callController (arg){
+			try{
+				var ret = this.action.apply(this.controller, arg || [])	
+			}catch(e){
+				this.controller.logger.call(this.controller, e, "ERROR");	
+				throw e;
 			}
-		}]);
-
-		return Resolver;
-	}();
-
-	/*
-  *	ROUTER
-  */
-
-	var cacheState = function cacheState() {
-		var cacheState = window.history.state === undefined ? null : window.history.state;
-		return cacheState;
+			return ret;
+		}
 	};
 
-	var nativeHistory = !!(window.history && window.history.pushState);
+	/*
+	 *	ROUTER
+	 */
+
+	var cacheState = function(){
+		var cacheState = window.history.state === undefined ? null : window.history.state;	
+		return cacheState ;
+	}
+
+	var nativeHistory = !!(window.history && window.history.pushState );
 	var regSerch = /(.*)\?.*$/;
 
-	var service = function (_stage$Service) {
-		_inherits(service, _stage$Service);
+	var service = class service  extends stage.Service {
 
-		function service(kernel, container) {
-			_classCallCheck(this, service);
+		constructor(kernel, container){
 
+			super("ROUTER", container );
 			//this.kernel = kernel ;
 			//this.container = container ;
 			//this.notificationsCenter = this.container.get("notificationsCenter");
 			//this.syslog = kernel.syslog ;	
-			var _this2 = _possibleConstructorReturn(this, (service.__proto__ || Object.getPrototypeOf(service)).call(this, "ROUTER", container));
-
-			_this2.routes = {};
-			_this2.routePattern = {};
-			_this2.location = _this2.get("location");
-			_this2.browser = _this2.get("browser");
-			_this2.logger("INITIALIZE ROUTER SERVICE", "DEBUG");
+			this.routes = {};
+			this.routePattern = {};
+			this.location = this.get("location");
+			this.browser = this.get("browser");
+			this.logger("INITIALIZE ROUTER SERVICE", "DEBUG");
 
 			/*
-    	* Extend Twig js	
-    	*/
-			Twig.extendFunction("path", function (name, variables, host) {
+ 		 	* Extend Twig js	
+ 		 	*/
+			Twig.extendFunction("path", (name, variables, host) => {
 				try {
-					if (host) {
-						return _this2.generateUrl.call(_this2, name, variables, host);
-					} else {
-						var generatedPath = _this2.generateUrl.call(_this2, name, variables, host);
-						return generatedPath ? "#" + generatedPath : "";
+					if (host){
+						return  this.generateUrl.call(this, name, variables, host);	
+					}else{
+						var generatedPath = this.generateUrl.call(this, name, variables, host);
+						return generatedPath?"#"+generatedPath:"";
 					}
-				} catch (e) {
-					_this2.logger(e.error);
-					throw e.error;
+				}catch(e){
+					this.logger(e.error)
+					throw e.error
 				}
 			});
 
-			_this2.notificationsCenter.listen(_this2, "onUrlChange", function (url, lastUrl, absUrl, cache) {
-				try {
-					var res = _this2.resolve(url);
-					if (!res.resolve) {
-						_this2.forward("appModule:app:404");
-						return;
+			this.notificationsCenter.listen(this,"onUrlChange" , (url, lastUrl, absUrl ,cache) => {
+				try{
+					var res = this.resolve(url);
+					if(! res.resolve ){
+						this.forward("appModule:app:404");
+						return ;
 					}
-					var last = _this2.resolveRoute(lastUrl);
-					if (last) {
-						_this2.notificationsCenter.fire("onRouteChange", { id: res.route.id, route: res.route, args: res.variables }, { id: last.route.id, route: last.route, args: last.variables });
+					var last = this.resolveRoute(lastUrl) 
+					if (last){
+						this.notificationsCenter.fire("onRouteChange",{id:res.route.id, route:res.route, args:res.variables} ,{id:last.route.id, route:last.route, args:last.variables});
 					}
-				} catch (e) {
-					_this2.logger(e, "ERROR");
+				}catch (e){
+					this.logger(e, "ERROR");
 				}
 			});
-			return _this2;
+		}
+		
+		createRoute (id, path, defaultParams){
+			if (id in this.routes ){
+				this.logger("CREATE ROUTE : "+ id + "Already exist ", "ERROR");	
+			}
+			var route  = new Route(id, path, defaultParams);
+			this.routes[id] = route;
+			this.routePattern[this.routes[id].defaults.controller] = {
+				route:this.routes[id],
+ 		        	path:path	
+			}
+			this.logger("CREATE ROUTE : "+ id, "DEBUG");
+			return route ;
 		}
 
-		_createClass(service, [{
-			key: 'createRoute',
-			value: function createRoute(id, path, defaultParams) {
-				if (id in this.routes) {
-					this.logger("CREATE ROUTE : " + id + "Already exist ", "ERROR");
+		getRoute (name){
+			if (this.routes[name])
+				return this.routes[name];
+			return null;
+		}
+
+		resolveRoute (url){
+			var resolver = new Resolver(this.container);
+			var res = [];
+			for (var routes in this.routes){
+				var route = this.routes[routes];
+				try {
+					res = resolver.match(route, url);
+					if (res){
+						return resolver ; 
+					}
+				}catch(e){
+					continue ;
 				}
-				var route = new Route(id, path, defaultParams);
-				this.routes[id] = route;
-				this.routePattern[this.routes[id].defaults.controller] = {
-					route: this.routes[id],
-					path: path
-				};
-				this.logger("CREATE ROUTE : " + id, "DEBUG");
+			}
+			return null;
+		}
+		
+		resolve (url){
+			//console.log("RESOLVE " +url)
+			//console.log(regSerch.exec(url) );
+			var test = regSerch.exec(url) ;
+			if ( test )
+				url = test[1] ;
+			var resolver = new Resolver(this.container);
+			var res = [];
+			for (var routes in this.routes){
+				var route = this.routes[routes];
+				try {
+					res = resolver.match(route, url);
+					if (res){
+						this.notificationsCenter.fire("onBeforeAction", url, resolver );
+						var ret = resolver.callController( res)
+						this.notificationsCenter.fire("onAfterAction", url, resolver, ret );
+						break;
+					}
+				}catch(e){
+					this.logger("RESOLVE URL : "+ url + " " + e,"ERROR")
+					this.forward("appModule:app:500", [e]);
+				}
+			}
+			return resolver;
+		}
+
+		getRouteByPattern (pattern, args){
+			//console.log(pattern)
+			//console.log(this.routePattern)
+			if (pattern in this.routePattern){
+				//console.log("FIND")
+				var route = this.routePattern[pattern].route ;
 				return route;
 			}
-		}, {
-			key: 'getRoute',
-			value: function getRoute(name) {
-				if (this.routes[name]) return this.routes[name];
-				return null;
-			}
-		}, {
-			key: 'resolveRoute',
-			value: function resolveRoute(url) {
-				var resolver = new Resolver(this.container);
-				var res = [];
-				for (var routes in this.routes) {
-					var route = this.routes[routes];
-					try {
-						res = resolver.match(route, url);
-						if (res) {
-							return resolver;
-						}
-					} catch (e) {
-						continue;
-					}
-				}
-				return null;
-			}
-		}, {
-			key: 'resolve',
-			value: function resolve(url) {
-				//console.log("RESOLVE " +url)
-				//console.log(regSerch.exec(url) );
-				var test = regSerch.exec(url);
-				if (test) url = test[1];
-				var resolver = new Resolver(this.container);
-				var res = [];
-				for (var routes in this.routes) {
-					var route = this.routes[routes];
-					try {
-						res = resolver.match(route, url);
-						if (res) {
-							this.notificationsCenter.fire("onBeforeAction", url, resolver);
-							var ret = resolver.callController(res);
-							this.notificationsCenter.fire("onAfterAction", url, resolver, ret);
-							break;
-						}
-					} catch (e) {
-						this.logger("RESOLVE URL : " + url + " " + e, "ERROR");
-						this.forward("appModule:app:500", [e]);
-					}
-				}
-				return resolver;
-			}
-		}, {
-			key: 'getRouteByPattern',
-			value: function getRouteByPattern(pattern, args) {
-				//console.log(pattern)
-				//console.log(this.routePattern)
-				if (pattern in this.routePattern) {
-					//console.log("FIND")
-					var route = this.routePattern[pattern].route;
-					return route;
-				}
 				//console.log("NOT FIND")
-				return null;
-			}
-		}, {
-			key: 'resolvePattern',
-			value: function resolvePattern(pattern) {
-				var resolver = new Resolver(this.container);
-				var route = resolver.parsePathernController(pattern);
-				return resolver;
-			}
-		}, {
-			key: 'forward',
-			value: function forward(pattern, args) {
-				var resolver = this.resolvePattern(pattern);
-				if (resolver.resolve) {
-					try {
-						if (resolver.route) {
-							this.logger("FORWARD PATTERN : " + pattern + "  FIND ROUTE ==> REDIRECT ", "DEBUG");
-							this.redirect(resolver.route.path);
-							//this.location.url(resolver.route.path);
-							//this.logger("FORWARD PATTERN : "+ pattern + " find ROUTE : "+resolver.route.path +" redirect to URL :" + this.location.absUrl(),"DEBUG")
-							//this.browser.url(this.location.absUrl(), true);
-						} else {
-							this.logger("FORWARD PATTERN : " + pattern + "  NO ROUTE FIND  ==> CALL CONTROLLER", "DEBUG");
-							var ret = resolver.callController(args);
-						}
-					} catch (e) {
-						this.logger("FORWARD " + pattern + " CALL CONTROLER  " + resolver.controller.name + " : " + e, "ERROR");
-						this.forward("appModule:app:500", [e]);
+			return null;
+		};
+
+		resolvePattern (pattern){
+			var resolver = new Resolver(this.container);	
+			var route = resolver.parsePathernController(pattern);
+			return resolver;
+		};
+
+		forward (pattern, args){
+			var resolver = this.resolvePattern(pattern);
+			if (resolver.resolve){
+				try {
+					if (resolver.route){
+						this.logger("FORWARD PATTERN : "+ pattern + "  FIND ROUTE ==> REDIRECT ","DEBUG")
+						this.redirect(resolver.route.path);
+						//this.location.url(resolver.route.path);
+						//this.logger("FORWARD PATTERN : "+ pattern + " find ROUTE : "+resolver.route.path +" redirect to URL :" + this.location.absUrl(),"DEBUG")
+						//this.browser.url(this.location.absUrl(), true);
+					}else{
+						this.logger("FORWARD PATTERN : "+ pattern + "  NO ROUTE FIND  ==> CALL CONTROLLER"  , "DEBUG")
+						var ret = resolver.callController(args);	
 					}
-				} else {
-					this.logger("Router Can't resolve : " + pattern, "ERROR");
+				}catch(e){
+					this.logger("FORWARD "+ pattern +" CALL CONTROLER  "+ resolver.controller.name +" : "+e,"ERROR")
+					this.forward("appModule:app:500", [e]);
 				}
-				return false;
+			}else{
+				this.logger("Router Can't resolve : "+pattern ,"ERROR");
 			}
-		}, {
-			key: 'redirect',
-			value: function redirect(url) {
-				this.location.url(url);
-				this.logger("REDIRECT URL : " + url + " BROWSER  URL :" + this.location.absUrl(), "DEBUG");
-				this.browser.url(this.location.absUrl(), true);
+			return false;	
+		};
+		
+		redirect (url){
+			this.location.url(url);
+			this.logger("REDIRECT URL : "+ url  +" BROWSER  URL :" + this.location.absUrl(),"DEBUG")
+			this.browser.url(this.location.absUrl() , true);
+		};
+			
+		generateUrl (name, variables, host){
+			var route =  this.getRoute(name) ;
+			if (! route ){
+				this.logger("no route to host  :"+ name, "WARNING")
+				//throw {error:"no route to host  "+ name};
+				return null ; 
 			}
-		}, {
-			key: 'generateUrl',
-			value: function generateUrl(name, variables, host) {
-				var route = this.getRoute(name);
-				if (!route) {
-					this.logger("no route to host  :" + name, "WARNING");
-					//throw {error:"no route to host  "+ name};
+			var path = route.path;
+			if ( route.variables.length ){
+				if (! variables  ){
+					var txt = "";
+					for (var i= 0 ; i < route.variables.length ;i++ ){
+						txt += "{"+route.variables[i]+"} ";
+					}
+					this.logger("router generate path route '"+ name + "' must have variable "+ txt, "ERROR")
 					return null;
 				}
-				var path = route.path;
-				if (route.variables.length) {
-					if (!variables) {
-						var txt = "";
-						for (var i = 0; i < route.variables.length; i++) {
-							txt += "{" + route.variables[i] + "} ";
-						}
-						this.logger("router generate path route '" + name + "' must have variable " + txt, "ERROR");
+				for (var ele in variables ){
+					if (ele === "_keys") continue ;
+					var index = route.variables.indexOf(ele);
+					if ( index >= 0 ){
+						path = path.replace("{"+ele+"}",  variables[ele]);
+					}else{
+						this.logger("router generate path route '"+ name + "' don't  have variable "+ ele, "WARNING")
 						return null;
-					}
-					for (var ele in variables) {
-						if (ele === "_keys") continue;
-						var index = route.variables.indexOf(ele);
-						if (index >= 0) {
-							path = path.replace("{" + ele + "}", variables[ele]);
-						} else {
-							this.logger("router generate path route '" + name + "' don't  have variable " + ele, "WARNING");
-							return null;
-						}
-					}
-				}
-				if (host) {
-					return host + "#" + path;
-				}
-				return path;
+					}	
+				}	
 			}
-		}]);
+			if (host){
+				return host+"#"+path ;
+			}
+			return path ;
+		}
+	};
 
-		return service;
-	}(stage.Service);
+	stage.router = service ;
+	return service ; 
 
-	stage.router = service;
-	return service;
 };
+
 
 /***/ }),
 
@@ -32367,214 +31734,180 @@ module.exports = function (stage) {
   !*** ./src/kernel/service.es6 ***!
   \********************************/
 /*! no static exports found */
-/***/ (function(module, exports, __webpack_require__) {
+/***/ (function(module, exports) {
 
-"use strict";
-
-
-var _createClass = function () { function defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ("value" in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } } return function (Constructor, protoProps, staticProps) { if (protoProps) defineProperties(Constructor.prototype, protoProps); if (staticProps) defineProperties(Constructor, staticProps); return Constructor; }; }();
-
-function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError("Cannot call a class as a function"); } }
-
-module.exports = function (stage) {
+module.exports =  function(stage){
 
 	'use strict';
 
 	var settingsSyslog = {
 		//rateLimit:100,
 		//burstLimit:10,
-		moduleName: "SERVICE ",
-		defaultSeverity: "INFO"
+		moduleName:"SERVICE ",
+		defaultSeverity:"INFO"
 	};
 
-	var defaultOptions = {};
+	var defaultOptions = {
+	};
 
-	var Service = function () {
-		function Service(name, container, notificationsCenter, options) {
-			_classCallCheck(this, Service);
 
-			if (name) {
-				this.name = name;
+	const Service = class Service {
+	
+		constructor(name, container, notificationsCenter, options ){
+
+			if (name){
+				this.name = name ;
 			}
-			options = stage.extend({}, defaultOptions, options);
+			options = stage.extend( {}, defaultOptions, options) ;
 
-			if (container instanceof stage.Container) {
-				this.container = container;
-			} else {
-				if (container) {
-					throw new Error("Service stage container not valid must be instance of stage.Container");
+			if ( container instanceof stage.Container  ){
+				this.container = container ;
+			}else{
+				if ( container ){
+					throw new Error ("Service stage container not valid must be instance of stage.Container");
 				}
-				this.container = new stage.Container();
+				this.container = new stage.Container(); 
 				this.container.set("container", this.container);
 			}
 			this.kernel = this.container.get("kernel");
 			this.syslog = this.container.get("syslog");
-			if (!this.syslog) {
-				this.settingsSyslog = stage.extend({}, settingsSyslog, {
-					moduleName: this.name
-				}, options.syslog || {});
-				this.syslog = new stage.syslog(this.settingsSyslog);
+			if ( ! this.syslog ){
+				this.settingsSyslog = stage.extend({}, settingsSyslog , {
+					moduleName: this.name	
+				},options.syslog || {} );
+				this.syslog = new stage.syslog( this.settingsSyslog );	
 				this.set("syslog", this.syslog);
-			} else {
-				this.settingsSyslog = this.syslog.settings;
+			}else{
+				this.settingsSyslog = this.syslog.settings ;	
 			}
-			if (notificationsCenter instanceof stage.notificationsCenter.notification) {
-				this.notificationsCenter = notificationsCenter;
-			} else {
-				if (notificationsCenter) {
-					throw new Error("Service stage notificationsCenter not valid must be instance of stage.notificationsCenter.notification");
+			if ( notificationsCenter instanceof stage.notificationsCenter.notification ){
+				this.notificationsCenter = notificationsCenter ;
+			}else{
+				if ( notificationsCenter ){
+					throw new Error ("Service stage notificationsCenter not valid must be instance of stage.notificationsCenter.notification");
 				}
 				this.notificationsCenter = this.container.get("notificationsCenter");
-				if (!this.notificationsCenter) {
+				if ( ! this.notificationsCenter ){
 					this.notificationsCenter = stage.notificationsCenter.create(options, this);
-					if (!this.kernel) {
+					if (! this.kernel ){
 						this.set("notificationsCenter", this.notificationsCenter);
-					} else {
-						if (this.kernel.container !== this.container) {
+					}else{
+						if ( this.kernel.container !== this.container ){
 							this.set("notificationsCenter", this.notificationsCenter);
 						}
 					}
 				}
+			}	
+		}
+
+		getName (){
+			return this.name;
+		}
+
+		clean(){
+			this.settingsSyslog = null ;
+			delete this.settingsSyslog ;
+			this.syslog = null  ;
+			delete this.syslog ;
+			this.removeAllListeners();
+			this.notificationsCenter = null ;
+			delete this.notificationsCenter ;
+			this.container = null ;
+			delete this.container ;
+			this.kernel = null ;
+			delete this.kernel ;
+		}
+	
+		logger(pci, severity, msgid,  msg){
+			try {
+				if (! msgid) { msgid = "SERVICE " + this.name + " "; }
+				return this.syslog.logger(pci, severity, msgid,  msg);	
+			}catch(e){
+				console.log(pci);
 			}
 		}
 
-		_createClass(Service, [{
-			key: "getName",
-			value: function getName() {
-				return this.name;
+		/**
+	 	*	@method fire
+	 	*	@param {String} event name 
+	 	*	@param {Arguments} ... arguments to inject  
+         	*/
+		fire (){
+			//this.logger(ev, "DEBUG", "EVENT KERNEL")
+			return this.notificationsCenter.fire.apply(this.notificationsCenter, arguments);
+		}
+
+		/**
+	 	*	@method listen
+	 	*	@param {Oject} context
+	 	*	@param {String} eventName
+	 	*	@param {Function} listener
+         	*/
+		listen (){
+			return this.notificationsCenter.listen.apply(this.notificationsCenter, arguments);
+		}
+
+		/**
+	 	*	@method removeListener
+	 	*	@param {Oject} eventName 
+	 	*	@param {String} listener
+         	*/
+		removeListener (){
+			return this.notificationsCenter.unListen.apply(this.notificationsCenter, arguments);
+		}
+		
+		unListen (){
+			return this.notificationsCenter.unListen.apply(this.notificationsCenter, arguments);
+		}
+
+
+		/**
+	 	*	@method removeAllListeners
+         	*/
+		removeAllListeners (){
+			return this.notificationsCenter.clearNotifications.apply(this.notificationsCenter, arguments);
+		}
+
+		/**
+	 	 *	@method get
+	 	 *	@param {String} name of service
+         	 */
+		get (name){
+			if (this.container){
+				return this.container.get(name);
 			}
-		}, {
-			key: "clean",
-			value: function clean() {
-				this.settingsSyslog = null;
-				delete this.settingsSyslog;
-				this.syslog = null;
-				delete this.syslog;
-				this.removeAllListeners();
-				this.notificationsCenter = null;
-				delete this.notificationsCenter;
-				this.container = null;
-				delete this.container;
-				this.kernel = null;
-				delete this.kernel;
+			return null;
+		}
+
+		/**
+	 	*	@method set
+	 	*	@param {String} name of service
+	 	*	@param {Object} instance of service
+         	*/
+		set (name, obj){
+			if (this.container){
+				return this.container.set(name, obj);
 			}
-		}, {
-			key: "logger",
-			value: function logger(pci, severity, msgid, msg) {
-				try {
-					if (!msgid) {
-						msgid = "SERVICE " + this.name + " ";
-					}
-					return this.syslog.logger(pci, severity, msgid, msg);
-				} catch (e) {
-					console.log(pci);
-				}
-			}
+			return null;
+		}
 
-			/**
-   	*	@method fire
-   	*	@param {String} event name 
-   	*	@param {Arguments} ... arguments to inject  
-          	*/
+		getParameters (){
+			return this.container.getParameters.apply(this.container , arguments);
+		}
 
-		}, {
-			key: "fire",
-			value: function fire() {
-				//this.logger(ev, "DEBUG", "EVENT KERNEL")
-				return this.notificationsCenter.fire.apply(this.notificationsCenter, arguments);
-			}
+		setParameters (){
+			return this.container.setParameters.apply(this.container ,arguments);
+		}
 
-			/**
-   	*	@method listen
-   	*	@param {Oject} context
-   	*	@param {String} eventName
-   	*	@param {Function} listener
-          	*/
+		has (){
+			return this.container.has.apply(this.container ,arguments);	
+		}
+	};
 
-		}, {
-			key: "listen",
-			value: function listen() {
-				return this.notificationsCenter.listen.apply(this.notificationsCenter, arguments);
-			}
-
-			/**
-   	*	@method removeListener
-   	*	@param {Oject} eventName 
-   	*	@param {String} listener
-          	*/
-
-		}, {
-			key: "removeListener",
-			value: function removeListener() {
-				return this.notificationsCenter.unListen.apply(this.notificationsCenter, arguments);
-			}
-		}, {
-			key: "unListen",
-			value: function unListen() {
-				return this.notificationsCenter.unListen.apply(this.notificationsCenter, arguments);
-			}
-
-			/**
-   	*	@method removeAllListeners
-          	*/
-
-		}, {
-			key: "removeAllListeners",
-			value: function removeAllListeners() {
-				return this.notificationsCenter.clearNotifications.apply(this.notificationsCenter, arguments);
-			}
-
-			/**
-   	 *	@method get
-   	 *	@param {String} name of service
-          	 */
-
-		}, {
-			key: "get",
-			value: function get(name) {
-				if (this.container) {
-					return this.container.get(name);
-				}
-				return null;
-			}
-
-			/**
-   	*	@method set
-   	*	@param {String} name of service
-   	*	@param {Object} instance of service
-          	*/
-
-		}, {
-			key: "set",
-			value: function set(name, obj) {
-				if (this.container) {
-					return this.container.set(name, obj);
-				}
-				return null;
-			}
-		}, {
-			key: "getParameters",
-			value: function getParameters() {
-				return this.container.getParameters.apply(this.container, arguments);
-			}
-		}, {
-			key: "setParameters",
-			value: function setParameters() {
-				return this.container.setParameters.apply(this.container, arguments);
-			}
-		}, {
-			key: "has",
-			value: function has() {
-				return this.container.has.apply(this.container, arguments);
-			}
-		}]);
-
-		return Service;
-	}();
-
-	stage.Service = Service;
-	return Service;
+	stage.Service = Service;	
+	return Service ;
 };
+
 
 /***/ }),
 
@@ -32585,148 +31918,130 @@ module.exports = function (stage) {
 /*! no static exports found */
 /***/ (function(module, exports, __webpack_require__) {
 
-"use strict";
-
-
-var _createClass = function () { function defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ("value" in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } } return function (Constructor, protoProps, staticProps) { if (protoProps) defineProperties(Constructor.prototype, protoProps); if (staticProps) defineProperties(Constructor, staticProps); return Constructor; }; }();
-
-function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError("Cannot call a class as a function"); } }
-
-function _possibleConstructorReturn(self, call) { if (!self) { throw new ReferenceError("this hasn't been initialised - super() hasn't been called"); } return call && (typeof call === "object" || typeof call === "function") ? call : self; }
-
-function _inherits(subClass, superClass) { if (typeof superClass !== "function" && superClass !== null) { throw new TypeError("Super expression must either be null or a function, not " + typeof superClass); } subClass.prototype = Object.create(superClass && superClass.prototype, { constructor: { value: subClass, enumerable: false, writable: true, configurable: true } }); if (superClass) Object.setPrototypeOf ? Object.setPrototypeOf(subClass, superClass) : subClass.__proto__ = superClass; }
-
 var Twig = __webpack_require__(/*! twig */ "./node_modules/twig/twig.js");
 
-module.exports = function (stage) {
+module.exports =  function(stage){
 
 	'use strict';
 
+
 	var translate = {};
 
+
 	var translateDispo = {
-		fr_FR: "français",
-		en_EN: "english"
+		fr_FR:"français",
+		en_EN:"english"
 	};
 
 	var regNavLang = /(..)-?.*/;
 
-	var service = function (_stage$Service) {
-		_inherits(service, _stage$Service);
 
-		function service(kernel, container) {
-			_classCallCheck(this, service);
+	var service = class service extends stage.Service {
 
-			var _this = _possibleConstructorReturn(this, (service.__proto__ || Object.getPrototypeOf(service)).call(this, "I18N", container, container.get("notificationsCenter")));
+		constructor(kernel, container){
 
-			_this.logger("INITIALIZE I18N SERVICE", "DEBUG");
+			super("I18N", container, container.get("notificationsCenter"));
 
-			_this.container.setParameters("translate", translate);
-			_this.defaultDomain = _this.trans_default_domain();
-			var locale = navigator.language || navigator.userLanguage;
+			this.logger("INITIALIZE I18N SERVICE", "DEBUG");
+
+			this.container.setParameters("translate", translate);
+			this.defaultDomain = this.trans_default_domain();
+			var locale = navigator.language || navigator.userLanguage ;
 			var res = regNavLang.exec(locale);
-			if (res) {
-				_this.defaultLocale = res[1] + "_" + locale.toUpperCase();
-			} else {
-				_this.defaultLocale = "fr_FR";
+			if (res){
+                                this.defaultLocale = res[1]+"_"+locale.toUpperCase();
+			}else{
+				this.defaultLocale = "fr_FR";	
 			}
 
-			translate[_this.defaultLocale] = {};
+                        translate[this.defaultLocale] = {};
 
-			_this.listen(_this, "onBoot", function () {
-				_this.boot();
-			});
-			return _this;
+			this.listen(this, "onBoot",() => {
+				this.boot();
+			})	
 		}
 
-		_createClass(service, [{
-			key: "boot",
-			value: function boot() {
-				//GET APP locale
-				if (this.kernel.modules.app && this.container.getParameters("module.app")) {
-					this.defaultLocale = this.container.getParameters("module.app").locale || this.defaultLocale;
-				}
-
-				if (!translate[this.defaultLocale]) {
-					translate[this.defaultLocale] = {};
-				}
-
-				this.logger("DEFAULT LOCALE APPLICATION ==> " + this.defaultLocale, "DEBUG");
-				if (Twig) {
-					Twig.extendFunction("getLangs", this.getLangs.bind(this));
-					Twig.extendFunction("trans_default_domain", this.trans_default_domain.bind(this));
-					Twig.extendFilter("trans", this.translation.bind(this));
-					Twig.extendFunction("trans", this.translation.bind(this));
-					Twig.extendFilter("getLangs", this.getLangs.bind(this));
-				}
-			}
-		}, {
-			key: "getLangs",
-			value: function getLangs(locale, data) {
-				var obj = [];
-				for (var ele in translateDispo) {
-					obj.push({
-						name: translateDispo[ele],
-						value: ele
-					});
-				}
-				return obj;
-			}
-		}, {
-			key: "registerI18n",
-			value: function registerI18n(name, locale, domain, data) {
-				if (locale) {
-					if (!translate[locale]) translate[locale] = stage.extend(true, {}, translate[this.defaultLocale]);
-				}
-				if (domain) {
-					if (!translate[locale][domain]) {
-						translate[locale][domain] = stage.extend(true, {}, translate[this.defaultLocale][domain]);
-					}
-					stage.extend(true, translate[locale][domain], data);
-				} else {
-					stage.extend(true, translate[locale], data);
-				}
-			}
-		}, {
-			key: "trans_default_domain",
-			value: function trans_default_domain(domain) {
-				if (!domain) {
-					return this.defaultDomain = "messages";
-				}
-				return this.defaultDomain = domain;
+		
+		boot (){
+			//GET APP locale
+			if ( this.kernel.modules.app &&  this.container.getParameters("module.app") ){
+				this.defaultLocale = this.container.getParameters("module.app").locale || this.defaultLocale;
 			}
 
-			/*
-    	*
-    	*
-    	*
-    	*
-    	*/
+			if  ( ! translate[this.defaultLocale]){
+				translate[this.defaultLocale] = {};
+			}
 
-		}, {
-			key: "translation",
-			value: function translation(value, args) {
+			this.logger("DEFAULT LOCALE APPLICATION ==> " + this.defaultLocale ,"DEBUG");
+			if (Twig){
+				Twig.extendFunction("getLangs", this.getLangs.bind(this));
+				Twig.extendFunction("trans_default_domain", this.trans_default_domain.bind(this));
+				Twig.extendFilter("trans", this.translation.bind(this));
+				Twig.extendFunction("trans", this.translation.bind(this));
+				Twig.extendFilter("getLangs", this.getLangs.bind(this));
+			}
+		}
 
-				var defaulDomain = args && args[1] ? args[1] : this.defaultDomain;
-				var str = this.container.getParameters("translate." + this.defaultLocale + "." + defaulDomain + "." + value) || value;
-				if (args) {
-					if (args[0]) {
-						for (var ele in args[0]) {
-							str = str.replace(ele, args[0][ele]);
-						}
+		getLangs (locale, data){
+			var obj = [];
+			for ( var ele in translateDispo){
+				obj.push({
+					name:translateDispo[ele],
+					value:ele
+				});	
+			}
+			return obj;
+		}
+
+
+		registerI18n (name, locale, domain, data){
+			if ( locale ){
+				if( !translate[locale] )
+					translate[locale] = stage.extend(true, {}, translate[this.defaultLocale]);	
+			}
+			if ( domain ){
+				if( !translate[locale][domain] ){
+					translate[locale][domain] = stage.extend(true, {}, translate[this.defaultLocale][domain]);
+				}
+				stage.extend(true, translate[locale][domain], data);		
+			}else{
+				stage.extend(true, translate[locale], data);	
+			} 
+		}
+
+		trans_default_domain (domain){
+			if ( ! domain ){
+				return this.defaultDomain = "messages" ; 
+			}
+			return this.defaultDomain = domain ;
+		}
+
+		/*
+ 	 	*
+ 	 	*
+ 	 	*
+ 	 	*
+ 	 	*/
+		translation (value, args){
+			
+			var defaulDomain = ( args && args[1] ) ? args[1] : this.defaultDomain ;
+			var str = this.container.getParameters("translate."+this.defaultLocale+"."+defaulDomain+"."+value) || value;
+			if (args){
+				if (args[0]){
+					for (var ele in args[0]){
+						str = str.replace(ele, args[0][ele]);
 					}
 				}
-				return str;
 			}
-		}]);
+			return str;
+		}
+	};
 
-		return service;
-	}(stage.Service);
-
-	stage.i18n = service;
+	stage.i18n = service ;
 
 	return service;
 };
+
 
 /***/ }),
 
@@ -32735,29 +32050,21 @@ module.exports = function (stage) {
   !*** ./src/media/media.es6 ***!
   \*****************************/
 /*! no static exports found */
-/***/ (function(module, exports, __webpack_require__) {
-
-"use strict";
-
-
-var _createClass = function () { function defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ("value" in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } } return function (Constructor, protoProps, staticProps) { if (protoProps) defineProperties(Constructor.prototype, protoProps); if (staticProps) defineProperties(Constructor, staticProps); return Constructor; }; }();
-
-function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError("Cannot call a class as a function"); } }
+/***/ (function(module, exports) {
 
 module.exports = function (stage) {
 
   'use strict';
 
   // UDPATER
+  let mediaStream = null;
+  let getMediaStream = null;
 
-  var mediaStream = null;
-  var getMediaStream = null;
-
-  var updaterMedia = function () {
+  const updaterMedia = function () {
     // MediaStream	API
     try {
       if (stage.browser.Webkit) {
-        getMediaStream = function getMediaStream(stream) {
+        getMediaStream = function (stream) {
           return URL.createObjectURL(stream);
         };
         mediaStream = webkitMediaStream;
@@ -32775,7 +32082,7 @@ module.exports = function (stage) {
       }
       if (stage.browser.Gecko) {
 
-        getMediaStream = function getMediaStream(stream) {
+        getMediaStream = function (stream) {
           return window.URL.createObjectURL(stream);
         };
         mediaStream = MediaStream;
@@ -32792,7 +32099,7 @@ module.exports = function (stage) {
         return true;
       }
       if (stage.browser.Opera) {
-        getMediaStream = function getMediaStream(stream) {
+        getMediaStream = function (stream) {
           return stream;
         };
         if (!MediaStream.prototype.getVideoTracks) {
@@ -32817,15 +32124,14 @@ module.exports = function (stage) {
    *	MEDIA STREAM
    *
    */
-  var defaultSettingsStream = {
+  const defaultSettingsStream = {
     audio: true,
     video: true
   };
 
-  var MediaStream = function () {
-    function mediaStream(mediaElement, settings) {
-      _classCallCheck(this, mediaStream);
+  const MediaStream = class mediaStream {
 
+    constructor(mediaElement, settings) {
       this.settings = stage.extend({}, defaultSettingsStream, settings);
       this.notificationsCenter = stage.notificationsCenter.create(this.settings, this);
       this.urlStream = null;
@@ -32834,92 +32140,82 @@ module.exports = function (stage) {
       this.getMediaStream = getMediaStream;
     }
 
-    _createClass(mediaStream, [{
-      key: "getUserMedia",
-      value: function getUserMedia(settings, success, error) {
-        var _this = this;
+    getUserMedia(settings, success, error) {
 
-        if (settings) {
-          this.settings = stage.extend({}, defaultSettingsStream, settings);
-          this.notificationsCenter.settingsToListen(settings);
-        }
-        return navigator.getUserMedia({
+      if (settings) {
+        this.settings = stage.extend({}, defaultSettingsStream, settings);
+        this.notificationsCenter.settingsToListen(settings);
+      }
+      return navigator.getUserMedia({
           video: this.settings.video,
           audio: this.settings.audio
-        }, function (stream) {
-          _this.setStream(stream);
+        },
+        (stream) => {
+          this.setStream(stream);
           if (success) {
-            success(_this);
+            success(this);
           }
-          _this.notificationsCenter.fire("onSucces", stream, _this);
-        }, function (e) {
+          this.notificationsCenter.fire("onSucces", stream, this);
+        },
+        (e) => {
           if (error) {
             error(e);
           }
-          _this.notificationsCenter.listen(_this, "onError");
-        });
-      }
-    }, {
-      key: "setStream",
-      value: function setStream(stream) {
-        this.stream = stream;
-        this.urlStream = this.getMediaStream(stream);
-        this.videotracks = this.getVideoTracks();
-        this.audiotracks = this.getAudioTracks();
-        return stream;
-      }
-    }, {
-      key: "stop",
-      value: function stop() {
-        if (this.stream) {
-          this.stream.stop();
+          this.notificationsCenter.listen(this, "onError");
         }
-      }
-    }, {
-      key: "attachMediaStream",
-      value: function attachMediaStream(element) {
-        this.mediaElement = element;
-        this.mediaElement.srcObject = this.stream;
-        //element.mozSrcObject = this.stream;
-        this.mediaElement.play();
-      }
-    }, {
-      key: "reattachMediaStream",
-      value: function reattachMediaStream(stream) {
-        this.stream = stream;
-        this.attachMediaStream(this.mediaElement);
-      }
-    }, {
-      key: "getVideoTracks",
-      value: function getVideoTracks() {
-        return this.stream.getVideoTracks();
-      }
-    }, {
-      key: "getAudioTracks",
-      value: function getAudioTracks() {
-        return this.stream.getAudioTracks();
-      }
+      );
+    }
 
-      /*startRecording (stream){
-      	var mediaStreamSource = this.audioContext.createMediaStreamSource(stream);
-      	console.log(mediaStreamSource);
-      	mediaStreamSource.connect(this.audioContext.destination);
-      	this.recorder = new Recorder(mediaStreamSource);
+    setStream(stream) {
+      this.stream = stream;
+      this.urlStream = this.getMediaStream(stream);
+      this.videotracks = this.getVideoTracks();
+      this.audiotracks = this.getAudioTracks();
+      return stream;
+    }
+
+    stop() {
+      if (this.stream) {
+        this.stream.stop();
       }
-      stopRecording (){
-      	this.recorder.stop();
-      	this.recorder.exportWAV((stream) => {
-      		this.recordSource = window.URL.createObjectURL(stream);
-      	});
-      }*/
+    }
 
-    }]);
+    attachMediaStream(element) {
+      this.mediaElement = element;
+      this.mediaElement.srcObject = this.stream;
+      //element.mozSrcObject = this.stream;
+      this.mediaElement.play();
+    }
 
-    return mediaStream;
-  }();
+    reattachMediaStream(stream) {
+      this.stream = stream;
+      this.attachMediaStream(this.mediaElement);
+    }
+
+    getVideoTracks() {
+      return this.stream.getVideoTracks();
+    }
+
+    getAudioTracks() {
+      return this.stream.getAudioTracks();
+    }
+
+    /*startRecording (stream){
+    	var mediaStreamSource = this.audioContext.createMediaStreamSource(stream);
+    	console.log(mediaStreamSource);
+    	mediaStreamSource.connect(this.audioContext.destination);
+    	this.recorder = new Recorder(mediaStreamSource);
+    }
+    stopRecording (){
+    	this.recorder.stop();
+    	this.recorder.exportWAV((stream) => {
+    		this.recordSource = window.URL.createObjectURL(stream);
+    	});
+    }*/
+  };
 
   stage.extend(stage.media, {
-    mediaStream: MediaStream
+    mediaStream: MediaStream,
   });
 
   return stage.media;
@@ -32932,22 +32228,15 @@ module.exports = function (stage) {
   !*** ./src/media/webAudio/webaudio.es6 ***!
   \*****************************************/
 /*! no static exports found */
-/***/ (function(module, exports, __webpack_require__) {
-
-"use strict";
-
-
-var _createClass = function () { function defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ("value" in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } } return function (Constructor, protoProps, staticProps) { if (protoProps) defineProperties(Constructor.prototype, protoProps); if (staticProps) defineProperties(Constructor, staticProps); return Constructor; }; }();
-
-function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError("Cannot call a class as a function"); } }
+/***/ (function(module, exports) {
 
 module.exports = function (stage) {
 
   'use strict';
 
-  var audioContext = null;
+  let audioContext = null;
 
-  var webAudioApi = function () {
+  const webAudioApi = function () {
     audioContext = window.AudioContext || window.webkitAudioContext;
     if (audioContext) {
       return true;
@@ -32962,11 +32251,11 @@ module.exports = function (stage) {
    *
    *
    */
-  var mixSettings = {};
+  const mixSettings = {};
 
-  var mediaMix = function () {
-    function mediaMix(settings) {
-      _classCallCheck(this, mediaMix);
+  const mediaMix = class mediaMix {
+
+    constructor(settings) {
 
       this.audioBus = {};
       this.nbBus = 0;
@@ -32990,174 +32279,147 @@ module.exports = function (stage) {
       this.connect(this.audioContext.destination);
     }
 
-    _createClass(mediaMix, [{
-      key: "listen",
-      value: function listen() {
-        return this.eventsManager.listen.apply(this.eventsManager, arguments);
-      }
-    }, {
-      key: "unListen",
-      value: function unListen() {
-        return this.eventsManager.unListen.apply(this.eventsManager, arguments);
-      }
-    }, {
-      key: "fire",
-      value: function fire() {
-        return this.eventsManager.fire.apply(this.eventsManager, arguments);
-      }
-    }, {
-      key: "createAudioBus",
-      value: function createAudioBus(name, settings) {
-        var bus = null;
-        try {
-          bus = new audioBus(name, this, settings);
-        } catch (e) {
-          throw e;
-        }
-        this.audioBus[name] = bus;
-        this.nbBus++;
-        bus.listen(this, "onCreateTrack", function (track, bus) {
-          this.fire("onCreateTrack", track, bus, this);
-        });
-        bus.listen(this, "onRemoveTrack", function (track, bus) {
-          this.fire("onRemoveTrack", track, bus, this);
-        });
-        return bus;
-      }
-    }, {
-      key: "removeAudioBus",
-      value: function removeAudioBus(bus) {
-        var ele = null;
-        switch (true) {
-          case bus instanceof audioBus:
+    listen() {
+      return this.eventsManager.listen.apply(this.eventsManager, arguments);
+    }
 
-            break;
-          case typeof track === "number":
-          case typeof track === "string":
+    unListen() {
+      return this.eventsManager.unListen.apply(this.eventsManager, arguments);
+    }
 
-            break;
-        }
-        if (!ele) {
-          throw new Error("remove bus : this bus doesn't exist in  mixer  ");
-        }
-        return true;
-      }
-    }, {
-      key: "connect",
-      value: function connect(audioNode) {
-        this.destination = audioNode;
-        var ret = this.masterBus.connect(audioNode);
-        this.fire("onConnect", audioNode, this);
-        return ret;
-      }
-    }, {
-      key: "disconnect",
-      value: function disconnect() {
-        this.masterBus.disconnect();
-        this.destination = null;
-        this.fire("onDisconnect", this);
-      }
-    }, {
-      key: "setGain",
-      value: function setGain(value) {
-        this.masterBus.setGain(value);
-        return this;
-      }
-    }, {
-      key: "getGain",
-      value: function getGain() {
-        return this.masterBus.getGain();
-      }
-    }, {
-      key: "mute",
-      value: function mute() {
-        this.masterBus.mute();
-        this.muted = this.masterBus.muted;
-        return this;
-      }
-    }, {
-      key: "unmute",
-      value: function unmute() {
-        this.masterBus.unmute();
-        this.muted = this.masterBus.muted;
-        return this;
-      }
-    }, {
-      key: "createTrack",
-      value: function createTrack(media, settings) {
-        return this.masterBus.createTrack(media, settings);
-      }
-    }, {
-      key: "removeTrack",
-      value: function removeTrack(track) {
-        return this.masterBus.removeTrack(track);
-      }
-    }, {
-      key: "playTracks",
-      value: function playTracks(time, loop) {
-        for (var i = 0; i < this.tracks.length; i++) {
-          this.tracks[i].play(time, loop);
-        }
-      }
-    }, {
-      key: "createGain",
-      value: function createGain() {
-        return this.audioContext.createGain();
-      }
-    }, {
-      key: "createPanner",
-      value: function createPanner() {
-        return this.audioContext.createPanner();
-      }
-    }, {
-      key: "createStereoPanner",
-      value: function createStereoPanner() {
-        return this.audioContext.createStereoPanner();
-      }
-    }, {
-      key: "createFilter",
-      value: function createFilter() {
-        return this.audioContext.createBiquadFilter();
-      }
-    }, {
-      key: "createAnalyser",
-      value: function createAnalyser() {
-        return this.audioContext.createAnalyser();
-      }
-    }, {
-      key: "createChannelSplitter",
-      value: function createChannelSplitter(nbChannel) {
-        return this.audioContext.createChannelSplitter(nbChannel);
-      }
-    }, {
-      key: "createChannelMerger",
-      value: function createChannelMerger(nbChannel) {
-        return this.audioContext.createChannelMerger(nbChannel);
-      }
-    }, {
-      key: "createOscillator",
-      value: function createOscillator() {
-        return this.audioContext.createOscillator();
-      }
-    }]);
+    fire() {
+      return this.eventsManager.fire.apply(this.eventsManager, arguments);
+    }
 
-    return mediaMix;
-  }();
+    createAudioBus(name, settings) {
+      let bus = null;
+      try {
+        bus = new audioBus(name, this, settings);
+      } catch (e) {
+        throw e;
+      }
+      this.audioBus[name] = bus;
+      this.nbBus++;
+      bus.listen(this, "onCreateTrack", function (track, bus) {
+        this.fire("onCreateTrack", track, bus, this);
+      });
+      bus.listen(this, "onRemoveTrack", function (track, bus) {
+        this.fire("onRemoveTrack", track, bus, this);
+      });
+      return bus;
+    }
+
+    removeAudioBus(bus) {
+      var ele = null;
+      switch (true) {
+      case bus instanceof audioBus:
+
+        break;
+      case typeof track === "number":
+      case typeof track === "string":
+
+        break;
+      }
+      if (!ele) {
+        throw new Error("remove bus : this bus doesn't exist in  mixer  ");
+      }
+      return true;
+    }
+
+    connect(audioNode) {
+      this.destination = audioNode;
+      var ret = this.masterBus.connect(audioNode);
+      this.fire("onConnect", audioNode, this);
+      return ret;
+    }
+
+    disconnect() {
+      this.masterBus.disconnect();
+      this.destination = null;
+      this.fire("onDisconnect", this);
+    }
+
+    setGain(value) {
+      this.masterBus.setGain(value);
+      return this;
+    }
+
+    getGain() {
+      return this.masterBus.getGain();
+    }
+
+    mute() {
+      this.masterBus.mute();
+      this.muted = this.masterBus.muted;
+      return this;
+    }
+
+    unmute() {
+      this.masterBus.unmute();
+      this.muted = this.masterBus.muted;
+      return this;
+    }
+
+    createTrack(media, settings) {
+      return this.masterBus.createTrack(media, settings);
+    }
+
+    removeTrack(track) {
+      return this.masterBus.removeTrack(track);
+    }
+
+    playTracks(time, loop) {
+      for (var i = 0; i < this.tracks.length; i++) {
+        this.tracks[i].play(time, loop);
+      }
+    }
+
+    createGain() {
+      return this.audioContext.createGain();
+    }
+
+    createPanner() {
+      return this.audioContext.createPanner();
+    }
+
+    createStereoPanner() {
+      return this.audioContext.createStereoPanner();
+    }
+
+    createFilter() {
+      return this.audioContext.createBiquadFilter();
+    }
+
+    createAnalyser() {
+      return this.audioContext.createAnalyser();
+    }
+
+    createChannelSplitter(nbChannel) {
+      return this.audioContext.createChannelSplitter(nbChannel);
+    }
+
+    createChannelMerger(nbChannel) {
+      return this.audioContext.createChannelMerger(nbChannel);
+    }
+
+    createOscillator() {
+      return this.audioContext.createOscillator();
+    }
+  };
 
   /*
    *
    *	CLASS AUDIOBUS
    *
    */
-  var defaultAudioBusSettings = {
+  const defaultAudioBusSettings = {
     panner: false,
     analyser: false
   };
 
-  var audioBus = function () {
-    function audioBus(name, mixer, settings) {
-      _classCallCheck(this, audioBus);
+  const audioBus = class audioBus {
 
+    constructor(name, mixer, settings) {
       this.name = name;
       this.mixer = mixer;
       this.settings = stage.extend({}, defaultAudioBusSettings, settings);
@@ -33173,205 +32435,181 @@ module.exports = function (stage) {
       this.createNodes();
     }
 
-    _createClass(audioBus, [{
-      key: "listen",
-      value: function listen() {
-        return this.eventsManager.listen.apply(this.eventsManager, arguments);
-      }
-    }, {
-      key: "unListen",
-      value: function unListen() {
-        return this.eventsManager.unListen.apply(this.eventsManager, arguments);
-      }
-    }, {
-      key: "fire",
-      value: function fire() {
-        return this.eventsManager.fire.apply(this.eventsManager, arguments);
-      }
-    }, {
-      key: "createNodes",
-      value: function createNodes() {
-        // mute
-        this.audioNodes.mute = this.createGain();
-        this.in = this.audioNodes.mute;
+    listen() {
+      return this.eventsManager.listen.apply(this.eventsManager, arguments);
+    }
 
-        // gain
-        this.audioNodes.gain = this.createGain();
-        this.in.connect(this.audioNodes.gain);
-        this.out = this.audioNodes.gain;
+    unListen() {
+      return this.eventsManager.unListen.apply(this.eventsManager, arguments);
+    }
 
-        // analyseur stéreo
-        if (this.settings.analyser) {
-          this.audioNodes.splitter = this.createChannelSplitter(2);
-          this.out.connect(this.audioNodes.splitter);
-          this.audioNodes.analyserLeft = this.createAnalyser();
-          this.audioNodes.analyserLeft.smoothingTimeConstant = 0.85;
-          this.audioNodes.splitter.connect(this.audioNodes.analyserLeft, 0, 0);
+    fire() {
+      return this.eventsManager.fire.apply(this.eventsManager, arguments);
+    }
 
-          this.audioNodes.analyserRight = this.createAnalyser();
-          this.audioNodes.analyserRight.smoothingTimeConstant = 0.85;
-          this.audioNodes.splitter.connect(this.audioNodes.analyserRight, 1, 0);
-        }
+    createNodes() {
+      // mute
+      this.audioNodes.mute = this.createGain();
+      this.in = this.audioNodes.mute;
 
-        // panoramique
-        if (this.settings.panner) {
-          this.audioNodes.panner = this.createStereoPanner();
-          this.out.connect(this.audioNodes.panner);
-          this.out = this.audioNodes.panner;
-        }
-      }
-    }, {
-      key: "connect",
-      value: function connect(audioNode) {
-        this.destination = audioNode;
-        this.out.connect(audioNode);
-        this.fire("onConnect", audioNode, this);
-      }
-    }, {
-      key: "disconnect",
-      value: function disconnect() {
-        if (this.destination) {
-          this.out.disconnect(this.destination);
-          this.destination = null;
-          this.fire("onDisconnect", this);
-        }
-      }
-    }, {
-      key: "setGain",
-      value: function setGain(value) {
-        //this.audioNodes.gain.gain.value = value;
-        this.audioNodes.gain.gain.setValueAtTime(value, this.audioContext.currentTime + 1);
-        this.fire("onSetGain", value);
-        return this;
-      }
-    }, {
-      key: "getGain",
-      value: function getGain() {
-        return this.audioNodes.gain.gain.value;
-      }
-    }, {
-      key: "mute",
-      value: function mute() {
-        //this.audioNodes.mute.gain.value = 0;
-        this.audioNodes.mute.gain.setValueAtTime(0, this.audioContext.currentTime + 1);
+      // gain
+      this.audioNodes.gain = this.createGain();
+      this.in.connect(this.audioNodes.gain);
+      this.out = this.audioNodes.gain;
 
-        this.muted = true;
-        this.fire("onMute", this);
-        return this;
+      // analyseur stéreo
+      if (this.settings.analyser) {
+        this.audioNodes.splitter = this.createChannelSplitter(2);
+        this.out.connect(this.audioNodes.splitter);
+        this.audioNodes.analyserLeft = this.createAnalyser();
+        this.audioNodes.analyserLeft.smoothingTimeConstant = 0.85;
+        this.audioNodes.splitter.connect(this.audioNodes.analyserLeft, 0, 0);
+
+        this.audioNodes.analyserRight = this.createAnalyser();
+        this.audioNodes.analyserRight.smoothingTimeConstant = 0.85;
+        this.audioNodes.splitter.connect(this.audioNodes.analyserRight, 1, 0);
       }
-    }, {
-      key: "unmute",
-      value: function unmute() {
-        //this.audioNodes.mute.gain.value = 1;
-        this.audioNodes.mute.gain.setValueAtTime(1, this.audioContext.currentTime + 1);
-        this.muted = false;
-        this.fire("onUnMute", this);
-        return this;
+
+      // panoramique
+      if (this.settings.panner) {
+        this.audioNodes.panner = this.createStereoPanner();
+        this.out.connect(this.audioNodes.panner);
+        this.out = this.audioNodes.panner;
       }
-    }, {
-      key: "createGain",
-      value: function createGain() {
-        return this.audioContext.createGain();
+    }
+
+    connect(audioNode) {
+      this.destination = audioNode;
+      this.out.connect(audioNode);
+      this.fire("onConnect", audioNode, this);
+    }
+
+    disconnect() {
+      if (this.destination) {
+        this.out.disconnect(this.destination);
+        this.destination = null;
+        this.fire("onDisconnect", this);
       }
-    }, {
-      key: "createPanner",
-      value: function createPanner() {
-        return this.audioContext.createPanner();
-      }
-    }, {
-      key: "createStereoPanner",
-      value: function createStereoPanner() {
-        return this.audioContext.createStereoPanner();
-      }
-    }, {
-      key: "createFilter",
-      value: function createFilter() {
-        return this.audioContext.createBiquadFilter();
-      }
-    }, {
-      key: "createAnalyser",
-      value: function createAnalyser() {
-        return this.audioContext.createAnalyser();
-      }
-    }, {
-      key: "createChannelSplitter",
-      value: function createChannelSplitter(nbChannel) {
-        return this.audioContext.createChannelSplitter(nbChannel);
-      }
-    }, {
-      key: "createChannelMerger",
-      value: function createChannelMerger(nbChannel) {
-        return this.audioContext.createChannelMerger(nbChannel);
-      }
-    }, {
-      key: "createOscillator",
-      value: function createOscillator() {
-        return this.audioContext.createOscillator();
-      }
-    }, {
-      key: "createMediaStreamDestination",
-      value: function createMediaStreamDestination() {
-        var destination = this.audioContext.createMediaStreamDestination();
-        this.disconnect();
-        this.connect(destination);
-        return destination;
-      }
-    }, {
-      key: "createTrack",
-      value: function createTrack(media, settings) {
-        var track = new Track(media, this, settings);
-        this.tracks.push(track);
-        this.nbTracks++;
-        this.fire("onCreateTrack", track, this);
-        return track;
-      }
-    }, {
-      key: "removeTrack",
-      value: function removeTrack(track) {
-        var ele = null;
-        var name = null;
-        switch (true) {
-          case track instanceof Track:
-            for (var i = 0; i < this.tracks.length; i++) {
-              if (this.tracks[i] === track) {
-                name = track.name;
-                track.pause();
-                track.disconnect();
-                // remove from tab
-                ele = this.tracks.splice(i, 1);
-                this.nbTracks--;
-                this.fire("onRemoveTrack", ele[0], this);
-                delete ele[0];
-                break;
-              }
-            }
+    }
+
+    setGain(value) {
+      //this.audioNodes.gain.gain.value = value;
+      this.audioNodes.gain.gain.setValueAtTime(value, this.audioContext.currentTime + 1);
+      this.fire("onSetGain", value);
+      return this;
+    }
+
+    getGain() {
+      return this.audioNodes.gain.gain.value;
+    }
+
+    mute() {
+      //this.audioNodes.mute.gain.value = 0;
+      this.audioNodes.mute.gain.setValueAtTime(0, this.audioContext.currentTime + 1);
+
+      this.muted = true;
+      this.fire("onMute", this);
+      return this;
+    }
+
+    unmute() {
+      //this.audioNodes.mute.gain.value = 1;
+      this.audioNodes.mute.gain.setValueAtTime(1, this.audioContext.currentTime + 1);
+      this.muted = false;
+      this.fire("onUnMute", this);
+      return this;
+    }
+
+    createGain() {
+      return this.audioContext.createGain();
+    }
+
+    createPanner() {
+      return this.audioContext.createPanner();
+    }
+
+    createStereoPanner() {
+      return this.audioContext.createStereoPanner();
+    }
+
+    createFilter() {
+      return this.audioContext.createBiquadFilter();
+    }
+
+    createAnalyser() {
+      return this.audioContext.createAnalyser();
+    }
+
+    createChannelSplitter(nbChannel) {
+      return this.audioContext.createChannelSplitter(nbChannel);
+    }
+
+    createChannelMerger(nbChannel) {
+      return this.audioContext.createChannelMerger(nbChannel);
+    }
+
+    createOscillator() {
+      return this.audioContext.createOscillator();
+    }
+
+    createMediaStreamDestination() {
+      var destination = this.audioContext.createMediaStreamDestination();
+      this.disconnect();
+      this.connect(destination);
+      return destination;
+    }
+
+    createTrack(media, settings) {
+      var track = new Track(media, this, settings);
+      this.tracks.push(track);
+      this.nbTracks++;
+      this.fire("onCreateTrack", track, this);
+      return track;
+    }
+
+    removeTrack(track) {
+      let ele = null;
+      let name = null;
+      switch (true) {
+      case track instanceof Track:
+        for (let i = 0; i < this.tracks.length; i++) {
+          if (this.tracks[i] === track) {
+            name = track.name;
+            track.pause();
+            track.disconnect();
+            // remove from tab
+            ele = this.tracks.splice(i, 1);
+            this.nbTracks--;
+            this.fire("onRemoveTrack", ele[0], this);
+            delete ele[0];
             break;
-          case typeof track === "number":
-          case typeof track === "string":
-            name = track;
-            for (var _i = 0; _i < this.tracks.length; _i++) {
-              if (this.tracks[_i].name === name) {
-                this.tracks[_i].pause();
-                this.tracks[_i].disconnect();
-                // remove from tab
-                ele = this.tracks.splice(_i, 1);
-                this.nbTracks--;
-                this.fire("onRemoveTrack", ele[0], this);
-                delete ele[0];
-                break;
-              }
-            }
+          }
+        }
+        break;
+      case typeof track === "number":
+      case typeof track === "string":
+        name = track;
+        for (let i = 0; i < this.tracks.length; i++) {
+          if (this.tracks[i].name === name) {
+            this.tracks[i].pause();
+            this.tracks[i].disconnect();
+            // remove from tab
+            ele = this.tracks.splice(i, 1);
+            this.nbTracks--;
+            this.fire("onRemoveTrack", ele[0], this);
+            delete ele[0];
             break;
+          }
         }
-        if (!ele) {
-          throw new Error("this track doesn't exist in  bus : " + this.name);
-        }
-        return true;
+        break;
       }
-    }]);
+      if (!ele) {
+        throw new Error("this track doesn't exist in  bus : " + this.name);
+      }
+      return true;
+    }
+  };
 
-    return audioBus;
-  }();
 
   /*
    *
@@ -33379,20 +32617,17 @@ module.exports = function (stage) {
    *
    *
    */
-  var trackSettings = {
+  const trackSettings = {
     gain: true,
     panner: true,
     filter: false,
     analyser: false,
-    connect: true
+    connect: true,
   };
 
-  var Track = function () {
-    function Track(media, bus, settings) {
-      var _this = this;
+  const Track = class Track {
 
-      _classCallCheck(this, Track);
-
+    constructor(media, bus, settings) {
       this.media = media;
       this.bus = bus;
       this.settings = stage.extend({}, trackSettings, settings);
@@ -33425,307 +32660,283 @@ module.exports = function (stage) {
         this.bus.mixer.fire('onReadyTrack', this.bus, this);
       });
 
-      var type = stage.typeOf(media);
-      var error = null;
+      let type = stage.typeOf(media);
+      let error = null;
       switch (type) {
-        case "object":
-          switch (true) {
-            case media instanceof stage.media.mediaStream:
-              this.mediaType = "stream";
-              this.buffer = media.stream;
-              this.url = stage.io.urlToOject(media.urlStream);
-              this.ready = true;
-              this.fire("onReady", this);
-              break;
-            case media instanceof AudioNode:
-              this.mediaType = "audioNode";
-              this.buffer = media;
-              this.ready = true;
-              this.fire("onReady", this);
-              break;
-            default:
-              error = new Error("media type not allowed ");
-              this.fire("onError", error);
-              throw error;
-          }
+      case "object":
+        switch (true) {
+        case media instanceof stage.media.mediaStream:
+          this.mediaType = "stream";
+          this.buffer = media.stream;
+          this.url = stage.io.urlToOject(media.urlStream);
+          this.ready = true;
+          this.fire("onReady", this);
           break;
-        case "element":
-          this.mediaType = "element";
-          /*this.media.onloadstart = () => {
-          	console.log("loadstart");
-          }
-          this.media.onloadeddata = () => {
-          	console.log("onloadeddata");
-          }*/
-          this.media.oncanplay = function () {
-            _this.connectSource(_this.media);
-            _this.ready = true;
-            _this.fire("onReady", _this);
-          };
-          break;
-        case "string":
-          this.url = stage.io.urlToOject(media);
-          this.load(media);
+        case media instanceof AudioNode:
+          this.mediaType = "audioNode";
+          this.buffer = media;
+          this.ready = true;
+          this.fire("onReady", this);
           break;
         default:
-          error = new Error("Track media type error");
+          error = new Error("media type not allowed ");
           this.fire("onError", error);
           throw error;
+        }
+        break;
+      case "element":
+        this.mediaType = "element";
+        /*this.media.onloadstart = () => {
+        	console.log("loadstart");
+        }
+        this.media.onloadeddata = () => {
+        	console.log("onloadeddata");
+        }*/
+        this.media.oncanplay = () => {
+          this.connectSource(this.media);
+          this.ready = true;
+          this.fire("onReady", this);
+        };
+        break;
+      case "string":
+        this.url = stage.io.urlToOject(media);
+        this.load(media);
+        break;
+      default:
+        error = new Error("Track media type error");
+        this.fire("onError", error);
+        throw error;
       }
     }
 
-    _createClass(Track, [{
-      key: "generateId",
-      value: function generateId() {
-        return parseInt(Math.random() * 1000000000, 10);
-      }
-    }, {
-      key: "setName",
-      value: function setName(name) {
-        this.name = name;
-      }
-    }, {
-      key: "listen",
-      value: function listen() {
-        return this.eventsManager.listen.apply(this.eventsManager, arguments);
-      }
-    }, {
-      key: "unListen",
-      value: function unListen() {
-        return this.eventsManager.unListen.apply(this.eventsManager, arguments);
-      }
-    }, {
-      key: "fire",
-      value: function fire() {
-        return this.eventsManager.fire.apply(this.eventsManager, arguments);
-      }
-    }, {
-      key: "createNodes",
-      value: function createNodes() {
+    generateId() {
+      return parseInt(Math.random() * 1000000000, 10);
+    }
 
-        this.audioNodes.mute = this.bus.createGain();
-        this.in = this.audioNodes.mute;
-        this.out = this.audioNodes.mute;
+    setName(name) {
+      this.name = name;
+    }
 
-        if (this.settings.gain) {
-          this.audioNodes.gain = this.bus.createGain();
-          this.out.connect(this.audioNodes.gain);
-          this.out = this.audioNodes.gain;
-        }
-        if (this.settings.filter) {
-          this.audioNodes.filter = this.bus.createFilter();
-          this.out.connect(this.audioNodes.filter);
-          this.out = this.audioNodes.filter;
-        }
+    listen() {
+      return this.eventsManager.listen.apply(this.eventsManager, arguments);
+    }
 
-        if (this.settings.panner) {
-          this.audioNodes.panner = this.bus.createStereoPanner();
-          this.out.connect(this.audioNodes.panner);
-          this.out = this.audioNodes.panner;
+    unListen() {
+      return this.eventsManager.unListen.apply(this.eventsManager, arguments);
+    }
+
+    fire() {
+      return this.eventsManager.fire.apply(this.eventsManager, arguments);
+    }
+
+    createNodes() {
+
+      this.audioNodes.mute = this.bus.createGain();
+      this.in = this.audioNodes.mute;
+      this.out = this.audioNodes.mute;
+
+      if (this.settings.gain) {
+        this.audioNodes.gain = this.bus.createGain();
+        this.out.connect(this.audioNodes.gain);
+        this.out = this.audioNodes.gain;
+      }
+      if (this.settings.filter) {
+        this.audioNodes.filter = this.bus.createFilter();
+        this.out.connect(this.audioNodes.filter);
+        this.out = this.audioNodes.filter;
+      }
+
+      if (this.settings.panner) {
+        this.audioNodes.panner = this.bus.createStereoPanner();
+        this.out.connect(this.audioNodes.panner);
+        this.out = this.audioNodes.panner;
+      }
+      if (this.settings.analyser) {
+        this.audioNodes.analyser = this.bus.createAnalyser();
+        this.audioNodes.analyser.smoothingTimeConstant = 0.85;
+        this.out.connect(this.audioNodes.analyser);
+      }
+    }
+
+    setGain(value) {
+      //this.audioNodes.gain.gain.value = value;
+      this.audioNodes.gain.gain.setValueAtTime(value, this.context.currentTime + 1);
+      this.fire("onSetGain", value);
+      return this;
+    }
+
+    getGain() {
+      return this.audioNodes.gain.gain.value;
+    }
+
+    mute() {
+      //this.audioNodes.mute.gain.value = 0;
+      this.audioNodes.mute.gain.setValueAtTime(0, this.context.currentTime + 1);
+      this.muted = true;
+      this.fire("onMute", this);
+      return this;
+    }
+
+    unmute() {
+      //this.audioNodes.mute.gain.value = 1;
+      this.audioNodes.mute.gain.setValueAtTime(1, this.context.currentTime + 1);
+      this.muted = false;
+      this.fire("onUnMute", this);
+      return this;
+    }
+
+    pause(when) {
+      switch (this.mediaType) {
+      case "element":
+        this.media.pause();
+        this.fire("onPause", this);
+        break;
+      default:
+        if (this.source) {
+          if (this.source.node && this.source.playbackState === this.source.node.PLAYING_STATE) {
+            this.source.node.stop(when || 0);
+          }
+          this.disconnectSource();
+          this.fire("onPause", this);
         }
-        if (this.settings.analyser) {
-          this.audioNodes.analyser = this.bus.createAnalyser();
-          this.audioNodes.analyser.smoothingTimeConstant = 0.85;
-          this.out.connect(this.audioNodes.analyser);
-        }
       }
-    }, {
-      key: "setGain",
-      value: function setGain(value) {
-        //this.audioNodes.gain.gain.value = value;
-        this.audioNodes.gain.gain.setValueAtTime(value, this.context.currentTime + 1);
-        this.fire("onSetGain", value);
-        return this;
-      }
-    }, {
-      key: "getGain",
-      value: function getGain() {
-        return this.audioNodes.gain.gain.value;
-      }
-    }, {
-      key: "mute",
-      value: function mute() {
-        //this.audioNodes.mute.gain.value = 0;
-        this.audioNodes.mute.gain.setValueAtTime(0, this.context.currentTime + 1);
-        this.muted = true;
-        this.fire("onMute", this);
-        return this;
-      }
-    }, {
-      key: "unmute",
-      value: function unmute() {
-        //this.audioNodes.mute.gain.value = 1;
-        this.audioNodes.mute.gain.setValueAtTime(1, this.context.currentTime + 1);
-        this.muted = false;
-        this.fire("onUnMute", this);
-        return this;
-      }
-    }, {
-      key: "pause",
-      value: function pause(when) {
-        switch (this.mediaType) {
-          case "element":
-            this.media.pause();
-            this.fire("onPause", this);
-            break;
-          default:
-            if (this.source) {
-              if (this.source.node && this.source.playbackState === this.source.node.PLAYING_STATE) {
-                this.source.node.stop(when || 0);
-              }
-              this.disconnectSource();
-              this.fire("onPause", this);
-            }
-        }
-        return this;
-      }
-    }, {
-      key: "play",
-      value: function play(time, loop) {
-        switch (this.mediaType) {
-          case "element":
-            this.media.play();
-            this.fire("onPlay", this);
-            break;
-          default:
-            this.pause().connectSource();
-            if (loop) {
-              this.source.loop = true;
-            }
-            if (this.source.noteOn) {
-              this.source.noteOn(this.context.currentTime, time);
-            }
-            if (this.source.start) {
-              this.source.start(this.context.currentTime, time);
-            }
-        }
+      return this;
+    }
+
+    play(time, loop) {
+      switch (this.mediaType) {
+      case "element":
+        this.media.play();
         this.fire("onPlay", this);
-        return this;
-      }
-    }, {
-      key: "connectSource",
-      value: function connectSource() {
-        this.source = this.createSource();
-        this.source.connect(this.in);
-      }
-    }, {
-      key: "disconnectSource",
-      value: function disconnectSource() {
-        this.source.disconnect(this.in);
-        this.source = null;
-        this.fire("onDisconnectSource", this);
-      }
-    }, {
-      key: "connect",
-      value: function connect(audioNode) {
-        this.destination = audioNode;
-        this.out.connect(audioNode);
-        this.fire("onConnect", audioNode, this);
-      }
-    }, {
-      key: "disconnect",
-      value: function disconnect() {
-        this.out.disconnect(this.destination);
-        this.destination = null;
-        this.fire("onDisconnect", this);
-      }
-    }, {
-      key: "createSource",
-      value: function createSource(buffer) {
-        var _this2 = this;
-
-        //console.log(arguments);
-        var source = null;
-        switch (this.mediaType) {
-          case "audioNode":
-            source = buffer || this.buffer;
-            break;
-          case "video":
-          case "audio":
-            source = this.context.createBufferSource();
-            source.buffer = buffer || this.buffer;
-            break;
-          case "decode":
-            this.rawBuffer = buffer;
-            this.urlStream = URL.createObjectURL(new Blob([this.rawBuffer]));
-            this.context.decodeAudioData(buffer, function (decoded) {
-              _this2.buffer = decoded;
-              _this2.ready = true;
-              _this2.fire("onReady", _this2);
-            }, function (error) {
-              _this2.eventsManager.fire("onError", _this2, error);
-              // only on error attempt to sync on frame boundary
-              //if(this.syncStream()) this.createSource(type, buffer);
-            });
-            break;
-          case "stream":
-            source = this.context.createMediaStreamSource(buffer || this.buffer);
-            break;
-          case "element":
-            source = this.context.createMediaElementSource(this.media);
-            break;
+        break;
+      default:
+        this.pause().connectSource();
+        if (loop) {
+          this.source.loop = true;
         }
-        return source;
+        if (this.source.noteOn) {
+          this.source.noteOn(this.context.currentTime, time);
+        }
+        if (this.source.start) {
+          this.source.start(this.context.currentTime, time);
+        }
       }
-    }, {
-      key: "syncStream",
-      value: function syncStream() {
-        var buf8 = new Uint8Array(this.buffer);
-        Uint8Array.prototype.indexOf = Array.prototype.indexOf;
-        var i = this.sync,
-            b = buf8;
-        while (1) {
-          this.retry++;
-          //nodeGain
-          i = b.indexOf(0xFF, i);
-          if (i === -1 || b[i + 1] & 0xE0 === 0xE0) {
-            break;
+      this.fire("onPlay", this);
+      return this;
+    }
+
+    connectSource() {
+      this.source = this.createSource();
+      this.source.connect(this.in);
+    }
+
+    disconnectSource() {
+      this.source.disconnect(this.in);
+      this.source = null;
+      this.fire("onDisconnectSource", this);
+    }
+
+    connect(audioNode) {
+      this.destination = audioNode;
+      this.out.connect(audioNode);
+      this.fire("onConnect", audioNode, this);
+    }
+
+    disconnect() {
+      this.out.disconnect(this.destination);
+      this.destination = null;
+      this.fire("onDisconnect", this);
+    }
+
+    createSource(buffer) {
+      //console.log(arguments);
+      let source = null;
+      switch (this.mediaType) {
+      case "audioNode":
+        source = buffer ||  this.buffer;
+        break;
+      case "video":
+      case "audio":
+        source = this.context.createBufferSource();
+        source.buffer = buffer ||  this.buffer;
+        break;
+      case "decode":
+        this.rawBuffer = buffer;
+        this.urlStream = URL.createObjectURL(new Blob([this.rawBuffer]));
+        this.context.decodeAudioData(buffer,
+          (decoded) => {
+            this.buffer = decoded;
+            this.ready = true;
+            this.fire("onReady", this);
+          },
+          (error) => {
+            this.eventsManager.fire("onError", this, error);
+            // only on error attempt to sync on frame boundary
+            //if(this.syncStream()) this.createSource(type, buffer);
           }
-          i++;
-        }
-        if (i !== -1) {
-          var tmp = this.buffer.slice(i); //carefull there it returns copy
-          delete this.buffer;
-          this.buffer = null;
-          this.buffer = tmp;
-          this.sync = i;
-          return true;
-        }
-        return false;
+        );
+        break;
+      case "stream":
+        source = this.context.createMediaStreamSource(buffer ||  this.buffer);
+        break;
+      case "element":
+        source = this.context.createMediaElementSource(this.media);
+        break;
       }
-    }, {
-      key: "load",
-      value: function load(url) {
-        var _this3 = this;
+      return source;
+    }
 
-        this.transport = new XMLHttpRequest();
-        this.transport.open("GET", url, true);
-        this.transport.responseType = "arraybuffer";
-        this.transport.onload = function () {
-          // Asynchronously decode the audio file data in request.response
-          _this3.mediaType = "decode";
-          _this3.createSource(_this3.transport.response);
-          _this3.contentType = _this3.transport.getResponseHeader("content-type").split(";")[0];
-          switch (_this3.contentType) {
-            case /audio\/.*/.test(_this3.contentType) ? _this3.contentType : null:
-              _this3.mediaType = "audio";
-              break;
-            case /video\/.*/.test(_this3.contentType) ? _this3.contentType : null:
-              _this3.mediaType = "video";
-              break;
-          }
-        };
-
-        this.transport.onerror = function () {
-          console.error('BufferLoader: XHR error');
-        };
-
-        this.transport.send();
+    syncStream() {
+      var buf8 = new Uint8Array(this.buffer);
+      Uint8Array.prototype.indexOf = Array.prototype.indexOf;
+      var i = this.sync,
+        b = buf8;
+      while (1) {
+        this.retry++;
+        //nodeGain
+        i = b.indexOf(0xFF, i);
+        if (i === -1 || (b[i + 1] & 0xE0 === 0xE0)) {
+          break;
+        }
+        i++;
       }
-    }]);
+      if (i !== -1) {
+        var tmp = this.buffer.slice(i); //carefull there it returns copy
+        delete(this.buffer);
+        this.buffer = null;
+        this.buffer = tmp;
+        this.sync = i;
+        return true;
+      }
+      return false;
+    }
 
-    return Track;
-  }();
+    load(url) {
+      this.transport = new XMLHttpRequest();
+      this.transport.open("GET", url, true);
+      this.transport.responseType = "arraybuffer";
+      this.transport.onload = () => {
+        // Asynchronously decode the audio file data in request.response
+        this.mediaType = "decode";
+        this.createSource(this.transport.response);
+        this.contentType = this.transport.getResponseHeader("content-type").split(";")[0];
+        switch (this.contentType) {
+        case (/audio\/.*/.test(this.contentType) ? this.contentType : null):
+          this.mediaType = "audio";
+          break;
+        case (/video\/.*/.test(this.contentType) ? this.contentType : null):
+          this.mediaType = "video";
+          break;
+        }
+      };
+
+      this.transport.onerror = () => {
+        console.error('BufferLoader: XHR error');
+      };
+
+      this.transport.send();
+    }
+  };
 
   stage.extend(stage.media, {
     webAudioApi: webAudioApi,
@@ -33749,44 +32960,36 @@ module.exports = function (stage) {
 "use strict";
 
 
-var _createClass = function () { function defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ("value" in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } } return function (Constructor, protoProps, staticProps) { if (protoProps) defineProperties(Constructor.prototype, protoProps); if (staticProps) defineProperties(Constructor, staticProps); return Constructor; }; }();
-
-function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError("Cannot call a class as a function"); } }
-
-function _possibleConstructorReturn(self, call) { if (!self) { throw new ReferenceError("this hasn't been initialised - super() hasn't been called"); } return call && (typeof call === "object" || typeof call === "function") ? call : self; }
-
-function _inherits(subClass, superClass) { if (typeof superClass !== "function" && superClass !== null) { throw new TypeError("Super expression must either be null or a function, not " + typeof superClass); } subClass.prototype = Object.create(superClass && superClass.prototype, { constructor: { value: subClass, enumerable: false, writable: true, configurable: true } }); if (superClass) Object.setPrototypeOf ? Object.setPrototypeOf(subClass, superClass) : subClass.__proto__ = superClass; }
-
 module.exports = function (stage) {
 
   // CALLBACK SDP PARSER
-  var parseSdp = function parseSdp(description) {
+  const parseSdp = function (description) {
     var sdpLines = description.sdp.split('\r\n');
     var newline = "";
     // Search for m line.
     for (var i = 0; i < sdpLines.length; i++) {
       var line = sdpLines[i];
       switch (description.type) {
-        case "offer":
-          /*if (line.search('a=crypto') !== -1) {
-            console.log("PARSE SDP DELETE CRYPTO ");
-            continue ;
-          }*/
-          /*if (line.search('a=setup:actpass') !== -1) {
-            console.log("PARSE SDP REPLACE setup :  actpass by active  ");
-            line = line.replace("a=setup:actpass", "a=setup:active")
-          }*/
-          break;
-        case "answer":
-          /*if (line.search('a=crypto') !== -1) {
-            console.log("PARSE SDP DELETE CRYPTO ");
-            continue ;
-          }*/
-          /*if (line.search('a=setup:actpass') !== -1) {
-            console.log("PARSE SDP REPLACE setup :  actpass by active  ");
-            line = line.replace("a=setup:actpass", "a=setup:active")
-          }*/
-          break;
+      case "offer":
+        /*if (line.search('a=crypto') !== -1) {
+          console.log("PARSE SDP DELETE CRYPTO ");
+          continue ;
+        }*/
+        /*if (line.search('a=setup:actpass') !== -1) {
+          console.log("PARSE SDP REPLACE setup :  actpass by active  ");
+          line = line.replace("a=setup:actpass", "a=setup:active")
+        }*/
+        break;
+      case "answer":
+        /*if (line.search('a=crypto') !== -1) {
+          console.log("PARSE SDP DELETE CRYPTO ");
+          continue ;
+        }*/
+        /*if (line.search('a=setup:actpass') !== -1) {
+          console.log("PARSE SDP REPLACE setup :  actpass by active  ");
+          line = line.replace("a=setup:actpass", "a=setup:active")
+        }*/
+        break;
       }
       if (i === sdpLines.length - 1) {
         newline += line;
@@ -33803,60 +33006,55 @@ module.exports = function (stage) {
    *  CLASS TRANSACTION WEBRTC
    *
    */
-  var Transaction = function (_stage$Service) {
-    _inherits(Transaction, _stage$Service);
-
-    function Transaction(webrtc, from, to, dialog, settings) {
-      _classCallCheck(this, Transaction);
-
-      var _this = _possibleConstructorReturn(this, (Transaction.__proto__ || Object.getPrototypeOf(Transaction)).call(this, "WEBRTC TRANSACTION", webrtc.container, stage.notificationsCenter.create(settings || {})));
-
-      _this.webrtc = webrtc;
+  const Transaction = class Transaction extends stage.Service {
+    constructor(webrtc, from, to, dialog, settings) {
+      super("WEBRTC TRANSACTION", webrtc.container, stage.notificationsCenter.create(settings || {}));
+      this.webrtc = webrtc;
       //this.notificationsCenter = stage.notificationsCenter.create(settings || {}, this);
-      _this.dialog = dialog || null;
-      _this.error = null;
-      if (_this.dialog) {
-        _this.callId = _this.dialog.callId;
+      this.dialog = dialog ||  null;
+      this.error = null;
+      if (this.dialog) {
+        this.callId = this.dialog.callId;
       }
-      _this.protocol = webrtc.protocol;
-      _this.from = from;
+      this.protocol = webrtc.protocol;
+      this.from = from;
       try {
         if (to instanceof stage.media.userMedia) {
-          _this.to = to;
+          this.to = to;
         } else {
-          _this.to = new stage.media.userMedia(to, settings);
+          this.to = new stage.media.userMedia(to, settings);
         }
       } catch (e) {
         throw e;
       }
-      _this.asyncCandidates = _this.webrtc.settings.asyncCandidates;
+      this.asyncCandidates = this.webrtc.settings.asyncCandidates;
 
-      _this.logger("CREATE TRANSATION WEBRTC", "DEBUG");
-      _this.RTCPeerConnection = _this.createPeerConnection();
-      _this.RTCPeerConnection.addStream(_this.from.stream);
+      this.logger("CREATE TRANSATION WEBRTC", "DEBUG");
+      this.RTCPeerConnection = this.createPeerConnection();
+      this.RTCPeerConnection.addStream(this.from.stream);
 
       // MANAGE DTMF
-      _this.dtmfSender = null;
-      if (_this.webrtc.settings.dtmf) {
+      this.dtmfSender = null;
+      if (this.webrtc.settings.dtmf) {
         try {
-          _this.initDtmfSender(_this.from.stream);
-          _this.webrtc.listen(_this, "onKeyPress", _this.sendDtmf);
+          this.initDtmfSender(this.from.stream);
+          this.webrtc.listen(this, "onKeyPress", this.sendDtmf);
           // FIXME TRY TO RECEIVE DTMF RTP-EVENT
           /*this.webrtc.listen(this, "onRemoteStream",function(event, mediaStream, transaction){
             this.logger( "DTMF setRemoteStream", "DEBUG")
             this.initDtmfReceiver( this.from.stream );
           });*/
         } catch (e) {
-          _this.webrtc.logger(e, "ERROR");
+          this.webrtc.logger(e, "ERROR");
           throw e;
         }
       }
 
       // MANAGE CANDIDATES
-      _this.candidates = [];
-      _this.listen(_this, "onIcecandidate", function (transaction, candidates, peerConnection) {
+      this.candidates = [];
+      this.listen(this, "onIcecandidate", function (transaction, candidates, peerConnection) {
         //console.log(" onIcecandidate : " + peerConnection.localDescription.type )
-        var to = null;
+        let to = null;
         if (this.asyncCandidates && this.candidates.length) {
           //console.log( message.dailog)
           to = this.dialog.to.replace("<sip:", "").replace(">", "");
@@ -33879,295 +33077,283 @@ module.exports = function (stage) {
           }
           if (peerConnection.localDescription.type === "answer") {
             this.sessionDescription = peerConnection.localDescription;
-            if (this.sessionDescription && !this.error) {
+            if (this.sessionDescription && !(this.error)) {
               this.fire("onCreateAnwser", this.to, this.sessionDescription, this, this.dialog);
             }
           }
         }
       });
 
-      _this.listen(_this, "onCreateAnwser", function (to, sessionDescription, webrtcTransaction, diag) {
+      this.listen(this, "onCreateAnwser", function (to, sessionDescription, webrtcTransaction, diag) {
         var response = this.dialog.currentTransaction.createResponse(200, "OK", this.sessionDescription.sdp, "application/sdp");
         response.send();
       });
-      return _this;
     }
 
-    _createClass(Transaction, [{
-      key: 'createPeerConnection',
-      value: function createPeerConnection() {
-        var _this2 = this;
+    createPeerConnection() {
+      try {
+        // CREATE PeerConnection
+        //this.logger(this.webrtc.settings.optional, "DEBUG");
+        console.log(this.webrtc.settings.optional)
+        this.RTCPeerConnection = new RTCPeerConnection(this.webrtc.settings.optional);
 
+        // MANAGE EVENT CANDIDATES
+        this.RTCPeerConnection.onicecandidate = (event) => {
+          // FIX firefox fire many time onicecandidate  iceGatheringState === complete
+          let old = this.iceGatheringState;
+          if (event.target) {
+            this.iceGatheringState = event.target.iceGatheringState || this.RTCPeerConnection.iceGatheringState;
+          } else {
+            this.iceGatheringState = this.RTCPeerConnection.iceGatheringState;
+          }
+          let type = this.RTCPeerConnection.localDescription.type;
+          //console.log(this.iceGatheringState)
+          //console.log(type)
+          if (type === "offer" && this.iceGatheringState === 'complete' && old !== "complete") {
+            //console.log("PASSS CANDIDATE")
+            this.fire("onIcecandidate", this, this.candidates, this.RTCPeerConnection);
+          } else if (event && event.candidate === null) {
+            // candidates null !!!
+          } else {
+            this.logger("WEBRTC : ADD CANDIDATE", "DEBUG");
+            if (event.candidate) {
+              this.candidates.push(event.candidate);
+            }
+            if (type === "answer") {
+              this.fire("onIcecandidate", this, this.candidates, this.RTCPeerConnection);
+              this.RTCPeerConnection.onicecandidate = null;
+            }
+          }
+        };
+
+        // MANAGE STREAM
+        this.RTCPeerConnection.onaddstream = (event) => {
+          //console.log(event)
+          this.setRemoteStream(event);
+          this.logger("WEBRTC : ADD STREAM ", "DEBUG");
+        };
+        return this.RTCPeerConnection;
+      } catch (e) {
+        this.logger(e, "ERROR");
+        this.webrtc.fire("onError", this, e);
+      }
+    }
+
+    // FIXME TRY TO RECEIVE DTMF RTP-EVENT
+    /*initDtmfReceiver (mediaStream){
+      console.log(this.RTCPeerConnection)
+      if ( ! this.RTCPeerConnection.createDTMFSender ) {
+        throw new Error(" RTCPeerConnection method createDTMFSender() !!!! which is not support by this browser");
+      }
+        if (mediaStream !== null) {
         try {
-          // CREATE PeerConnection
-          //this.logger(this.webrtc.settings.optional, "DEBUG");
-          console.log(this.webrtc.settings.optional);
-          this.RTCPeerConnection = new RTCPeerConnection(this.webrtc.settings.optional);
+          var remoteAudioTrack = mediaStream.getAudioTracks()[0];
+          var dtmfSender = this.RTCPeerConnection.createDTMFSender(remoteAudioTrack);
+          dtmfSender.ontonechange = (tone) => {
+            this.logger("dtmfOnToneChange", "DEBUG") ;
+            this.webrtc.fire("dtmfOnToneChange", tone , this);
+          };
+        }catch(e){
+          throw e ;
+        }
 
-          // MANAGE EVENT CANDIDATES
-          this.RTCPeerConnection.onicecandidate = function (event) {
-            // FIX firefox fire many time onicecandidate  iceGatheringState === complete
-            var old = _this2.iceGatheringState;
-            if (event.target) {
-              _this2.iceGatheringState = event.target.iceGatheringState || _this2.RTCPeerConnection.iceGatheringState;
-            } else {
-              _this2.iceGatheringState = _this2.RTCPeerConnection.iceGatheringState;
-            }
-            var type = _this2.RTCPeerConnection.localDescription.type;
-            //console.log(this.iceGatheringState)
-            //console.log(type)
-            if (type === "offer" && _this2.iceGatheringState === 'complete' && old !== "complete") {
-              //console.log("PASSS CANDIDATE")
-              _this2.fire("onIcecandidate", _this2, _this2.candidates, _this2.RTCPeerConnection);
-            } else if (event && event.candidate === null) {
-              // candidates null !!!
-            } else {
-              _this2.logger("WEBRTC : ADD CANDIDATE", "DEBUG");
-              if (event.candidate) {
-                _this2.candidates.push(event.candidate);
-              }
-              if (type === "answer") {
-                _this2.fire("onIcecandidate", _this2, _this2.candidates, _this2.RTCPeerConnection);
-                _this2.RTCPeerConnection.onicecandidate = null;
-              }
-            }
+        } else {
+        throw new Error( 'No local stream to create DTMF Sender', 500)
+        }
+    }*/
+
+    initDtmfSender(mediaStream) {
+
+      switch (this.webrtc.settings.dtmf) {
+      case "SIP-INFO":
+        var func = function () {};
+        func.prototype.insertDTMF = (key, duration, gap) => {
+          var description = "Signal=" + key + "\nDuration=" + duration;
+          var type = "application/dtmf-relay";
+          this.dialog.info(description, type);
+        };
+        this.dtmfSender = new func();
+        break;
+      case "RTP-EVENT":
+        if (!this.RTCPeerConnection.createDTMFSender) {
+          throw new Error(" RTCPeerConnection method createDTMFSender() !!!! which is not support by this browser", 500);
+        }
+        if (mediaStream !== null) {
+          var localAudioTrack = mediaStream.getAudioTracks()[0];
+          this.dtmfSender = this.RTCPeerConnection.createDTMFSender(localAudioTrack);
+          this.dtmfSender.ontonechange = (tone) => {
+            this.webrtc.fire("dtmfOnToneChange", tone, this);
           };
 
-          // MANAGE STREAM
-          this.RTCPeerConnection.onaddstream = function (event) {
-            //console.log(event)
-            _this2.setRemoteStream(event);
-            _this2.logger("WEBRTC : ADD STREAM ", "DEBUG");
-          };
-          return this.RTCPeerConnection;
-        } catch (e) {
-          this.logger(e, "ERROR");
-          this.webrtc.fire("onError", this, e);
+        } else {
+          throw new Error('No local stream to create DTMF Sender', 500);
         }
+        break;
       }
+    }
 
-      // FIXME TRY TO RECEIVE DTMF RTP-EVENT
-      /*initDtmfReceiver (mediaStream){
-        console.log(this.RTCPeerConnection)
-        if ( ! this.RTCPeerConnection.createDTMFSender ) {
-          throw new Error(" RTCPeerConnection method createDTMFSender() !!!! which is not support by this browser");
-        }
-          if (mediaStream !== null) {
+    sendDtmf(code, key, event) {
+      if (this.dialog.status !== this.dialog.statusCode.ESTABLISHED) {
+        return;
+      }
+      if (this.dtmfSender) {
+        var duration = 500;
+        var gap = 50;
+        this.logger('DTMF SEND ' + key + '  duration :  ' + duration + ' gap :  ' + gap, "DEBUG");
+        return this.dtmfSender.insertDTMF(key, duration, gap);
+      }
+      throw new Error(" DTMF SENDER not ready");
+    }
+
+    createOffer() {
+      return this.RTCPeerConnection.createOffer((sessionDescription) => {
           try {
-            var remoteAudioTrack = mediaStream.getAudioTracks()[0];
-            var dtmfSender = this.RTCPeerConnection.createDTMFSender(remoteAudioTrack);
-            dtmfSender.ontonechange = (tone) => {
-              this.logger("dtmfOnToneChange", "DEBUG") ;
-              this.webrtc.fire("dtmfOnToneChange", tone , this);
-            };
-          }catch(e){
-            throw e ;
-          }
-           } else {
-          throw new Error( 'No local stream to create DTMF Sender', 500)
-          }
-      }*/
-
-    }, {
-      key: 'initDtmfSender',
-      value: function initDtmfSender(mediaStream) {
-        var _this3 = this;
-
-        switch (this.webrtc.settings.dtmf) {
-          case "SIP-INFO":
-            var func = function func() {};
-            func.prototype.insertDTMF = function (key, duration, gap) {
-              var description = "Signal=" + key + "\nDuration=" + duration;
-              var type = "application/dtmf-relay";
-              _this3.dialog.info(description, type);
-            };
-            this.dtmfSender = new func();
-            break;
-          case "RTP-EVENT":
-            if (!this.RTCPeerConnection.createDTMFSender) {
-              throw new Error(" RTCPeerConnection method createDTMFSender() !!!! which is not support by this browser", 500);
-            }
-            if (mediaStream !== null) {
-              var localAudioTrack = mediaStream.getAudioTracks()[0];
-              this.dtmfSender = this.RTCPeerConnection.createDTMFSender(localAudioTrack);
-              this.dtmfSender.ontonechange = function (tone) {
-                _this3.webrtc.fire("dtmfOnToneChange", tone, _this3);
-              };
-            } else {
-              throw new Error('No local stream to create DTMF Sender', 500);
-            }
-            break;
-        }
-      }
-    }, {
-      key: 'sendDtmf',
-      value: function sendDtmf(code, key, event) {
-        if (this.dialog.status !== this.dialog.statusCode.ESTABLISHED) {
-          return;
-        }
-        if (this.dtmfSender) {
-          var duration = 500;
-          var gap = 50;
-          this.logger('DTMF SEND ' + key + '  duration :  ' + duration + ' gap :  ' + gap, "DEBUG");
-          return this.dtmfSender.insertDTMF(key, duration, gap);
-        }
-        throw new Error(" DTMF SENDER not ready");
-      }
-    }, {
-      key: 'createOffer',
-      value: function createOffer() {
-        var _this4 = this;
-
-        return this.RTCPeerConnection.createOffer(function (sessionDescription) {
-          try {
-            _this4.sessionDescription = parseSdp.call(_this4, sessionDescription);
-            _this4.from.setDescription(_this4.RTCPeerConnection.setLocalDescription(_this4.sessionDescription, function () {
-              // ASYNC CANDIDATES
-              if (_this4.asyncCandidates) {
-                // INVITE
-                _this4.dialog = _this4.webrtc.protocol.invite(_this4.to.name, _this4.sessionDescription);
-                _this4.callId = _this4.dialog.callId;
-                _this4.webrtc.fire("onInvite", _this4, _this4.to, _this4.sessionDescription);
-              } else {
-                // SYNC CANDIDATES
-                /*this.webrtc.listen(this, "onIcecandidate" , function(transaction, candidates, peerConnection){
-                  if ( peerConnection.localDescription.type == "offer" ){
-                    this.sessionDescription = parseSdp.call(this, peerConnection.localDescription ) ;
-                    if ( this.dialog ){
-                      var to = this.dialog.to.replace("<sip:", "").replace(">","") ;
-                      this.dialog.invite(to, this.sessionDescription);
-                    }else{
-                      this.dialog = this.webrtc.protocol.invite(this.to.name, this.sessionDescription);
-                      this.webrtc.fire("onInvite", this, this.to.name, this.sessionDescription );
-                      this.callId = this.dialog.callId ;
+            this.sessionDescription = parseSdp.call(this, sessionDescription);
+            this.from.setDescription(this.RTCPeerConnection.setLocalDescription(this.sessionDescription, () => {
+                // ASYNC CANDIDATES
+                if (this.asyncCandidates) {
+                  // INVITE
+                  this.dialog = this.webrtc.protocol.invite(this.to.name, this.sessionDescription);
+                  this.callId = this.dialog.callId;
+                  this.webrtc.fire("onInvite", this, this.to, this.sessionDescription);
+                } else {
+                  // SYNC CANDIDATES
+                  /*this.webrtc.listen(this, "onIcecandidate" , function(transaction, candidates, peerConnection){
+                    if ( peerConnection.localDescription.type == "offer" ){
+                      this.sessionDescription = parseSdp.call(this, peerConnection.localDescription ) ;
+                      if ( this.dialog ){
+                        var to = this.dialog.to.replace("<sip:", "").replace(">","") ;
+                        this.dialog.invite(to, this.sessionDescription);
+                      }else{
+                        this.dialog = this.webrtc.protocol.invite(this.to.name, this.sessionDescription);
+                        this.webrtc.fire("onInvite", this, this.to.name, this.sessionDescription );
+                        this.callId = this.dialog.callId ;
+                      }
                     }
-                  }
-                })*/
-              }
-            }, function (error) {
-              _this4.error = error;
-              _this4.webrtc.fire("onError", _this4, error);
-            }));
+                  })*/
+                }
+              },
+              (error) => {
+                this.error = error;
+                this.webrtc.fire("onError", this, error);
+              }));
           } catch (e) {
             throw e;
           }
-        }, function (error) {
-          _this4.webrtc.fire("onError", _this4, error);
-        }, this.from.settings.constraintsOffer);
-      }
-    }, {
-      key: 'setRemoteStream',
-      value: function setRemoteStream(event) {
-        if (event) {
-          //console.log(event.stream.getVideoTracks());
-          this.to.createMediaStream(null, null);
-          this.to.mediaStream.setStream(event.stream);
-          var type = this.RTCPeerConnection.remoteDescription.type;
-          if (event.type === "video" || event.type === "addstream") {
-            this.webrtc.notificationsCenter.fire("onRemoteStream", type, event, this.to.mediaStream, this);
-          }
+        },
+        (error) => {
+          this.webrtc.fire("onError", this, error);
+        },
+        this.from.settings.constraintsOffer);
+    }
+
+    setRemoteStream(event) {
+      if (event) {
+        //console.log(event.stream.getVideoTracks());
+        this.to.createMediaStream(null, null);
+        this.to.mediaStream.setStream(event.stream);
+        var type = this.RTCPeerConnection.remoteDescription.type;
+        if (event.type === "video" ||  event.type === "addstream") {
+          this.webrtc.notificationsCenter.fire("onRemoteStream", type, event, this.to.mediaStream, this);
         }
-        return this.to.createMediaStream;
       }
-    }, {
-      key: 'setRemoteDescription',
-      value: function setRemoteDescription(type, user, description, dialog) {
-        var _this5 = this;
+      return this.to.createMediaStream;
+    }
 
-        //console.log("setRemoteDescription")
-        this.currentTransaction = dialog.currentTransaction;
-        var desc = {
-          type: type,
-          sdp: description
-        };
-        //console.log( desc );
-        var remoteDesc = parseSdp.call(this, desc);
-        var ClassDesc = new RTCSessionDescription(remoteDesc);
+    setRemoteDescription(type, user, description, dialog) {
+      //console.log("setRemoteDescription")
+      this.currentTransaction = dialog.currentTransaction;
+      let desc = {
+        type: type,
+        sdp: description
+      };
+      //console.log( desc );
+      let remoteDesc = parseSdp.call(this, desc);
+      let ClassDesc = new RTCSessionDescription(remoteDesc);
 
-        this.remoteDescription = this.RTCPeerConnection.setRemoteDescription(ClassDesc, function () {
-          if (_this5.RTCPeerConnection.remoteDescription.type === "offer") {
+      this.remoteDescription = this.RTCPeerConnection.setRemoteDescription(
+        ClassDesc,
+        () => {
+          if (this.RTCPeerConnection.remoteDescription.type === "offer") {
             //console.log("WEBRTC : onRemoteDescription ");
             //this.doAnswer(dialog);
-            _this5.webrtc.fire("onOffer", _this5.webrtc, _this5);
-            _this5.webrtc.fire("onRemoteDescription", _this5.from, _this5, _this5.to);
+            this.webrtc.fire("onOffer", this.webrtc, this);
+            this.webrtc.fire("onRemoteDescription", this.from, this, this.to);
           } else {
-            _this5.webrtc.fire("onOffHook", _this5, dialog);
+            this.webrtc.fire("onOffHook", this, dialog);
           }
-        }, function (error) {
-          _this5.error = error;
-          _this5.webrtc.fire("onError", _this5, error);
-        });
-        return this.remoteDescription;
-      }
-    }, {
-      key: 'doAnswer',
-      value: function doAnswer(dialog) {
-        var _this6 = this;
+        },
+        (error) => {
+          this.error = error;
+          this.webrtc.fire("onError", this, error);
+        }
+      );
+      return this.remoteDescription;
+    }
 
-        return this.RTCPeerConnection.createAnswer(function (sessionDescription) {
-          _this6.from.setDescription(sessionDescription);
-          _this6.RTCPeerConnection.setLocalDescription(sessionDescription, function () {
-            _this6.sessionDescription = sessionDescription;
-            if (_this6.asyncCandidates) {
-              _this6.fire("onCreateAnwser", _this6.to, _this6.sessionDescription, _this6, dialog);
-            }
-            _this6.webrtc.fire("onOffHook", _this6, dialog);
-          }, function (error) {
-            _this6.error = error;
-            _this6.webrtc.fire("onError", _this6, error);
-          });
+    doAnswer(dialog) {
+      return this.RTCPeerConnection.createAnswer(
+        (sessionDescription) => {
+          this.from.setDescription(sessionDescription);
+          this.RTCPeerConnection.setLocalDescription(sessionDescription, () => {
+              this.sessionDescription = sessionDescription;
+              if (this.asyncCandidates) {
+                this.fire("onCreateAnwser", this.to, this.sessionDescription, this, dialog);
+              }
+              this.webrtc.fire("onOffHook", this, dialog);
+            },
+            (error) => {
+              this.error = error;
+              this.webrtc.fire("onError", this, error);
+            });
         },
         // error
-        function (e) {
-          _this6.error = e;
-          _this6.webrtc.fire("onError", _this6, e);
-        }, this.from.settings.constraints);
-      }
-    }, {
-      key: 'bye',
-      value: function bye() {
-        if (this.dialog) {
-          this.dialog.bye();
-        }
-      }
-    }, {
-      key: 'cancel',
-      value: function cancel() {
-        if (this.currentTransaction) {
-          this.currentTransaction.cancel();
-        }
-        this.webrtc.closeTransaction(this, this.to.name);
-      }
-    }, {
-      key: 'decline',
-      value: function decline() {
-        if (this.currentTransaction) {
-          this.currentTransaction.decline();
-        }
-        this.webrtc.closeTransaction(this, this.to.name);
-      }
-    }, {
-      key: 'close',
-      value: function close() {
-        this.logger("WEBRTC CLOSE TRANSACTION  : " + this.callId, "DEBUG");
-        if (this.RTCPeerConnection) {
-          this.RTCPeerConnection.close();
-        } else {
-          this.logger("WEBRTC  TRANSACTION ALREADY CLOSED : " + this.callId, "WARNING");
-        }
-        this.webrtc.unListen("onKeyPress", this.sendDtmf);
-        delete this.RTCPeerConnection;
-        return this;
-      }
-    }]);
+        (e) => {
+          this.error = e;
+          this.webrtc.fire("onError", this, e);
+        },
+        this.from.settings.constraints
+      );
+    }
 
-    return Transaction;
-  }(stage.Service);
+    bye() {
+      if (this.dialog) {
+        this.dialog.bye();
+      }
+    }
+
+    cancel() {
+      if (this.currentTransaction) {
+        this.currentTransaction.cancel();
+      }
+      this.webrtc.closeTransaction(this, this.to.name);
+    }
+
+    decline() {
+      if (this.currentTransaction) {
+        this.currentTransaction.decline();
+      }
+      this.webrtc.closeTransaction(this, this.to.name);
+    }
+
+    close() {
+      this.logger("WEBRTC CLOSE TRANSACTION  : " + this.callId, "DEBUG");
+      if (this.RTCPeerConnection) {
+        this.RTCPeerConnection.close();
+      } else {
+        this.logger("WEBRTC  TRANSACTION ALREADY CLOSED : " + this.callId, "WARNING");
+      }
+      this.webrtc.unListen("onKeyPress", this.sendDtmf);
+      delete this.RTCPeerConnection;
+      return this;
+    }
+  };
 
   stage.extend(stage.media, {
     webrtcTransaction: Transaction
   });
   return Transaction;
+
 };
 
 /***/ }),
@@ -34181,11 +33367,6 @@ module.exports = function (stage) {
 
 "use strict";
 
-
-var _createClass = function () { function defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ("value" in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } } return function (Constructor, protoProps, staticProps) { if (protoProps) defineProperties(Constructor.prototype, protoProps); if (staticProps) defineProperties(Constructor, staticProps); return Constructor; }; }();
-
-function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError("Cannot call a class as a function"); } }
-
 module.exports = function (stage) {
 
   /*
@@ -34193,7 +33374,7 @@ module.exports = function (stage) {
    *  CLASS USER
    *
    */
-  var userSettings = {
+  const userSettings = {
     constraintsOffer: {
       mandatory: {
         'OfferToReceiveAudio': true,
@@ -34204,10 +33385,9 @@ module.exports = function (stage) {
     displayName: ""
   };
 
-  var User = function () {
-    function User(userName, settings) {
-      _classCallCheck(this, User);
+  const User = class User {
 
+    constructor(userName, settings) {
       this.name = userName;
 
       this.settings = stage.extend(true, {}, userSettings, settings);
@@ -34218,28 +33398,23 @@ module.exports = function (stage) {
       this.video = this.settings.constraintsOffer.mandatory.OfferToReceiveVideo;
       this.mediaStream = null;
       this.description = "";
+
     }
 
-    _createClass(User, [{
-      key: 'createMediaStream',
-      value: function createMediaStream(succesCallback, errorMedia) {
-        this.mediaStream = new stage.media.mediaStream(null, {
-          audio: this.audio,
-          video: this.video,
-          onSucces: succesCallback,
-          onError: errorMedia
-        });
-        return this.mediaStream;
-      }
-    }, {
-      key: 'setDescription',
-      value: function setDescription(desc) {
-        this.description = desc;
-      }
-    }]);
+    createMediaStream(succesCallback, errorMedia) {
+      this.mediaStream = new stage.media.mediaStream(null, {
+        audio: this.audio,
+        video: this.video,
+        onSucces: succesCallback,
+        onError: errorMedia
+      });
+      return this.mediaStream;
+    }
 
-    return User;
-  }();
+    setDescription(desc) {
+      this.description = desc;
+    }
+  };
 
   stage.extend(stage.media, {
     userMedia: User
@@ -34258,15 +33433,6 @@ module.exports = function (stage) {
 
 "use strict";
 
-
-var _createClass = function () { function defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ("value" in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } } return function (Constructor, protoProps, staticProps) { if (protoProps) defineProperties(Constructor.prototype, protoProps); if (staticProps) defineProperties(Constructor, staticProps); return Constructor; }; }();
-
-function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError("Cannot call a class as a function"); } }
-
-function _possibleConstructorReturn(self, call) { if (!self) { throw new ReferenceError("this hasn't been initialised - super() hasn't been called"); } return call && (typeof call === "object" || typeof call === "function") ? call : self; }
-
-function _inherits(subClass, superClass) { if (typeof superClass !== "function" && superClass !== null) { throw new TypeError("Super expression must either be null or a function, not " + typeof superClass); } subClass.prototype = Object.create(superClass && superClass.prototype, { constructor: { value: subClass, enumerable: false, writable: true, configurable: true } }); if (superClass) Object.setPrototypeOf ? Object.setPrototypeOf(subClass, superClass) : subClass.__proto__ = superClass; }
-
 module.exports = function (stage) {
 
   /*
@@ -34274,7 +33440,7 @@ module.exports = function (stage) {
    *  CLASS WEBRTC
    *
    */
-  var defaultSettings = {
+  const defaultSettings = {
     audio: true,
     video: true,
     protocol: "SIP",
@@ -34286,7 +33452,7 @@ module.exports = function (stage) {
      * TURN  => { iceServers: [{ url: "turn:webrtc%40live.com@numb.viagenie.ca", credential: ""}] }
      */
     iceServers: [],
-
+     
     optional: stage.browser.Gecko ? {
       'DtlsSrtpKeyAgreement': 'true'
     } : {
@@ -34296,438 +33462,412 @@ module.exports = function (stage) {
     asyncCandidates: false
   };
 
-  var WebRtc = function (_stage$Service) {
-    _inherits(WebRtc, _stage$Service);
 
-    function WebRtc(server, transport, settings) {
-      _classCallCheck(this, WebRtc);
+  const WebRtc = class WebRtc extends stage.Service {
 
-      var _this = _possibleConstructorReturn(this, (WebRtc.__proto__ || Object.getPrototypeOf(WebRtc)).call(this, "WEBRTC", null, null, settings));
+    constructor(server, transport, settings) {
 
-      _this.settings = stage.extend(true, {}, defaultSettings, settings);
-      _this.settings.optional.iceServers = _this.settings.iceServers;
-      _this.protocol = null;
-      _this.socketState = "close";
-      _this.transactions = {};
+      super("WEBRTC", null, null, settings);
+      this.settings = stage.extend(true, {}, defaultSettings, settings);
+      this.settings.optional.iceServers = this.settings.iceServers;
+      this.protocol = null;
+      this.socketState = "close";
+      this.transactions = {};
       //this.users = {};
-      _this.transport = _this.connect(transport);
-      if (_this.transport && _this.transport.publicAddress) {
-        _this.publicAddress = _this.transport.publicAddress;
+      this.transport = this.connect(transport);
+      if (this.transport && this.transport.publicAddress) {
+        this.publicAddress = this.transport.publicAddress;
         //this.publicAddress = server;
         //this.publicAddress = this.transport.domain;
       }
-      _this.server = server;
-      _this.init();
-      return _this;
+      this.server = server;
+      this.init();
     }
 
-    _createClass(WebRtc, [{
-      key: "init",
-      value: function init() {
-        delete this.protocol;
-        this.protocol = null;
+    init() {
+      delete this.protocol;
+      this.protocol = null;
 
-        // EVENTS WEBRTC
-        this.listen(this, "onInvite", function (transaction, userTo, description) {
-          this.transactions[transaction.callId] = transaction;
+      // EVENTS WEBRTC
+      this.listen(this, "onInvite", function (transaction, userTo, description) {
+        this.transactions[transaction.callId] = transaction;
+      });
+
+      this.listen(this, "onOffer", function (webrtc, transaction) {
+        this.transactions[transaction.callId] = transaction;
+      });
+
+      this.listen(this, "onAccept", function (webrtc, transac) {
+        transac.doAnswer(transac.dialog);
+        //transac.setRemoteDescription("offer", transac.to, transac.to.description, transac.dialog);
+      });
+
+      this.listen(this, "onDeclineOffer", function (webrtc, transac) {
+
+        var ret = transac.dialog.currentTransaction.createResponse(
+          603,
+          "Declined"
+        );
+        ret.send();
+
+        /*var ret = message.transaction.createResponse(
+          603,
+          "Declined"
+        );
+        ret.send();*/
+        this.closeTransaction(transac);
+      });
+
+      // MANAGE PROTOCOL
+      switch (this.settings.protocol) {
+      case "SIP":
+        this.protocol = new stage.io.protocols.sip(this.server, this.transport, {
+          portServer: this.settings.sipPort,
+          transport: this.settings.sipTransport,
         });
 
-        this.listen(this, "onOffer", function (webrtc, transaction) {
-          this.transactions[transaction.callId] = transaction;
-        });
-
-        this.listen(this, "onAccept", function (webrtc, transac) {
-          transac.doAnswer(transac.dialog);
-          //transac.setRemoteDescription("offer", transac.to, transac.to.description, transac.dialog);
-        });
-
-        this.listen(this, "onDeclineOffer", function (webrtc, transac) {
-
-          var ret = transac.dialog.currentTransaction.createResponse(603, "Declined");
-          ret.send();
-
-          /*var ret = message.transaction.createResponse(
-            603,
-            "Declined"
-          );
-          ret.send();*/
-          this.closeTransaction(transac);
-        });
-
-        // MANAGE PROTOCOL
-        switch (this.settings.protocol) {
-          case "SIP":
-            this.protocol = new stage.io.protocols.sip(this.server, this.transport, {
-              portServer: this.settings.sipPort,
-              transport: this.settings.sipTransport
+        this.protocol.listen(this, "onRegister", function (sip, message) {
+          switch (message.code) {
+          case 200:
+            this.user.createMediaStream((stream) => {
+              this.user.stream = stream;
+              this.notificationsCenter.fire("onMediaSucces", this.user.mediaStream, this.user);
+            }, (e) => {
+              this.notificationsCenter.fire("onError", this, e);
             });
-
-            this.protocol.listen(this, "onRegister", function (sip, message) {
-              var _this2 = this;
-
-              switch (message.code) {
-                case 200:
-                  this.user.createMediaStream(function (stream) {
-                    _this2.user.stream = stream;
-                    _this2.notificationsCenter.fire("onMediaSucces", _this2.user.mediaStream, _this2.user);
-                  }, function (e) {
-                    _this2.notificationsCenter.fire("onError", _this2, e);
-                  });
-                  this.notificationsCenter.fire("onRegister", this.user, this);
-                  break;
-                default:
-                  this.notificationsCenter.fire("onError", this.protocol, message);
-                  break;
-              }
-            });
-
-            this.protocol.listen(this, "onUnRegister", function (sip, message) {
-              this.fire("onUnRegister", sip, message);
-            });
-
-            this.protocol.listen(this, "onRinging", function (sip, message) {
-              var transaction = this.transactions[message.callId];
-              if (transaction) {
-                this.notificationsCenter.fire("onRinging", message.toName, transaction);
-              }
-            });
-
-            this.protocol.listen(this, "onTrying", function (sip, message) {
-              var transaction = this.transactions[message.callId];
-              if (transaction) {
-                this.notificationsCenter.fire("onTrying", message.toName, transaction);
-              }
-            });
-
-            this.protocol.listen(this, "onInfo", function (message) {
-              var transaction = this.transactions[message.callId];
-              //console.log(message);
-              if (message.contentType === "application/dtmf-relay") {
-                this.fire("onDtmf", message.body.dtmf, transaction);
-              }
-            });
-
-            this.protocol.listen(this, "onCancel", function (message) {
-              var transaction = this.transactions[message.callId];
-              if (transaction) {
-                this.notificationsCenter.fire("onCancel", message.body.body, transaction);
-                this.closeTransaction(transaction, message.fromName);
-              }
-            });
-
-            this.protocol.listen(this, "onInvite", function (message, dialog) {
-              var _this3 = this;
-
-              var res = null;
-              var transac = null;
-              switch (message.header["Content-Type"]) {
-                case "application/sdp":
-                  if (message.rawBody) {
-
-                    if (dialog.status === dialog.statusCode.INITIAL) {
-
-                      // TODO MANAGE MULTI CALL
-                      res = message.transaction.createResponse(100, "trying");
-                      res.send();
-
-                      // transaction WEBRTC
-                      try {
-                        transac = this.createTransaction(message.fromName, dialog, {
-                          displayName: message.fromNameDisplay || ""
-                        });
-                        transac.to.setDescription(message.rawBody);
-                      } catch (e) {
-                        res = message.transaction.createResponse(500, e.message || e);
-                        res.send();
-                        return;
-                      }
-
-                      res = message.transaction.createResponse(180, "Ringing");
-                      res.send();
-
-                      try {
-                        transac.setRemoteDescription("offer", transac.to, transac.to.description, transac.dialog);
-                      } catch (e) {
-                        res = message.transaction.createResponse(500, e.message || e);
-                        res.send();
-                      }
-
-                      return;
-                    }
-                    if (dialog.status === dialog.statusCode.ESTABLISHED) {
-                      // HOLD THE LINE
-                      message.transaction.decline();
-                    }
-                  }
-                  break;
-                case "ice/candidate":
-                  if (message.rawBody) {
-                    var transaction = this.transactions[message.callId];
-                    var ret = null;
-                    if (!transaction) {
-                      ret = message.transaction.createResponse(500, "no transaction ");
-                      ret.send();
-                      return;
-                    }
-                    res = JSON.parse(message.rawBody);
-                    ret = message.transaction.createResponse(100, "trying");
-                    ret.send();
-
-                    var _loop = function _loop(i) {
-                      candidate = new RTCIceCandidate(res[i]);
-
-                      transaction.RTCPeerConnection.addIceCandidate(candidate, function () {
-                        _this3.logger("WEBRTC remote CANDIDATES   " + res[i].candidate, "DEBUG");
-                      }, function (e) {
-                        console.log(e);
-                        _this3.logger("WEBRTC Error CANDIDATES " + res[i].candidate, "ERROR");
-                      });
-                    };
-
-                    for (var i = 0; i < res.length; i++) {
-                      var candidate;
-
-                      _loop(i);
-                    }
-                    if (transaction.candidates.length) {
-                      ret = message.transaction.createResponse(200, "OK", JSON.stringify(transaction.candidates), "ice/candidate");
-                      ret.send();
-                      transaction.candidates = [];
-                    } else {
-                      ret = message.transaction.createResponse(200, "OK");
-                      ret.send();
-                      //transaction.candidates= [];
-                      /*this.listen(this, "onIcecandidate" , function(transaction, candidates, peerConnection){
-                        var ret = message.transaction.createResponse(200, "OK", JSON.stringify(transaction.candidates), "ice/candidate");
-                        ret.send();
-                        transaction.candidates= [];
-                      });*/
-                    }
-                  }
-                  break;
-                default:
-                  this.notificationsCenter.fire("onError", this.protocol, message);
-
-              }
-            });
-
-            this.protocol.listen(this, "onTimeout", function (sip, message) {
-              this.notificationsCenter.fire("onTimeout", message.method, 408, message);
-              var transac = this.transactions[message.callId];
-              if (transac) {
-                this.closeTransaction(transac, transac.to.name);
-              }
-            });
-
-            this.protocol.listen(this, "onDecline", function (message) {
-              if (message.callId in this.transactions) {
-                var transac = this.transactions[message.callId];
-                this.fire("onDecline", this, transac);
-                this.closeTransaction(transac);
-              }
-            });
-
-            this.protocol.listen(this, "onError", function (Class, message) {
-              this.notificationsCenter.fire("onError", Class, message);
-              var transac = this.transactions[message.callId];
-              if (transac) {
-                this.closeTransaction(transac, transac.to.name);
-              }
-            });
-
-            this.protocol.listen(this, "onQuit", function (protocol) {
-              this.close();
-            });
-
-            this.protocol.listen(this, "onInitCall", function (to, dialog, transaction) {
-              if (dialog.callId in this.transactions) {
-                var transac = this.transactions[dialog.callId];
-                transac.currentTransaction = transaction;
-                this.notificationsCenter.fire("onInitCall", transac);
-              }
-            });
-
-            this.protocol.listen(this, "onBye", function (message) {
-              var transac = null;
-              var name = null;
-              if (message.callId in this.transactions) {
-                transac = this.transactions[message.callId];
-                name = message.fromName;
-              }
-              if (transac) {
-                this.notificationsCenter.fire("onOnHook", transac, message);
-                this.closeTransaction(transac, name);
-              } else {
-                // WHEN USER LOCAL STOP REGISTRATION
-                if (message.fromName === this.user.name) {
-                  this.close();
-                }
-              }
-            });
-
-            this.protocol.listen(this, "onCall", function (message) {
-              var _this4 = this;
-
-              var transac = this.transactions[message.callId];
-              if (message.toNameDisplay) {
-                transac.to.displayName = message.toNameDisplay;
-              }
-              //var from = this.users[message.toName];
-              if (message.dialog.status === message.dialog.statusCode.EARLY && message.header["Content-Type"] === "application/sdp") {
-                this.notificationsCenter.fire("onAnwer", message);
-                transac.to.setDescription(message.rawBody);
-                transac.setRemoteDescription("answer", transac.to, message.rawBody, message.dialog);
-                /*if ( this.settings.asyncCandidates && transac.candidates.length){
-                  //console.log( message.dailog)
-                  message.dialog.invite(message.to, JSON.stringify(transac.candidates), "ice/candidate")
-                }*/
-                //this.notificationsCenter.fire( "onOffHook", transac , message );
-              } else {}
-              if (message.header["Content-Type"] === "ice/candidate") {
-                if (transac.candidates.length) {
-                  var res = JSON.parse(message.rawBody);
-
-                  var _loop2 = function _loop2(i) {
-                    candidate = new RTCIceCandidate(res[i]);
-
-                    transac.RTCPeerConnection.addIceCandidate(candidate, function () {
-                      //console.log("Succes Candidate")
-                      _this4.logger("WEBRTC ADD remote CANDIDATES :  " + res[i].candidate);
-                    }, function (e) {
-                      console.log(e);
-                      _this4.logger("WEBRTC Error CANDIDATES " + res[i].candidate, "ERROR");
-                    });
-                  };
-
-                  for (var i = 0; i < res.length; i++) {
-                    var candidate;
-
-                    _loop2(i);
-                  }
-                }
-              }
-            });
-
-            this.protocol.listen(this, "onMessage", function (message) {
-              this.fire("onMessage", message);
-            });
-
-            this.protocol.listen(this, "onSend", function (message) {
-              this.fire("onSend", message);
-            });
-
-            this.listen(this, "onError", function (Class, error) {
-              switch (true) {
-                case Class instanceof WebRtc:
-                  break;
-                case Class instanceof stage.media.webrtcTransaction:
-                  //console.log(Class.currentTransaction )
-                  if (Class.currentTransaction) {
-                    var response = Class.currentTransaction.createResponse(500, error.message || error);
-                    response.send();
-                  }
-                  this.closeTransaction(Class, Class.to.name);
-                  break;
-                case Class instanceof Error:
-                  break;
-              }
-            });
+            this.notificationsCenter.fire("onRegister", this.user, this);
             break;
           default:
-            throw new Error("WEBRTC Protocol not found ");
-        }
-      }
-    }, {
-      key: "connect",
-      value: function connect(transport) {
-        //console.log(transport instanceof stage.realtime  )
-        if (transport) {
-          transport.listen(this, "onConnect", function () {
-            this.socketState = "open";
-          });
-          transport.listen(this, "onClose", function () {
-            this.socketState = "close";
-          });
-          return transport;
-        }
-      }
-    }, {
-      key: "createTransaction",
-      value: function createTransaction(userTo, dialog, settings) {
-        try {
-          var transaction = new stage.media.webrtcTransaction(this, this.user, userTo, dialog, settings);
-          return transaction;
-        } catch (e) {
-          this.fire("onError", this, e);
-          throw e;
-        }
-      }
-    }, {
-      key: "unRegister",
-      value: function unRegister() {
-        //console.log( "WEBRTC unregister")
-        this.close();
-        if (this.protocol) {
-          this.protocol.unregister();
-        }
-      }
-    }, {
-      key: "register",
-      value: function register(userName, password, settings) {
-        this.user = new stage.media.userMedia(userName, settings);
-        this.protocol.register(userName, password, settings);
-      }
-    }, {
-      key: "createOffer",
-      value: function createOffer(userTo) {
-        var to = new stage.media.userMedia(userTo);
-        //this.users[userTo] = to ;
-        var transac = this.createTransaction(to);
-        transac.createOffer();
-        return transac;
-      }
-    }, {
-      key: "acceptOffer",
-      value: function acceptOffer(transaction) {
-        this.fire("onAccept", this, transaction);
-        return transaction;
-      }
-    }, {
-      key: "declineOffer",
-      value: function declineOffer(transaction) {
-        this.fire("onDeclineOffer", this, transaction);
-        return transaction;
-      }
-    }, {
-      key: "closeTransaction",
-      value: function closeTransaction(transation, name) {
-        if (transation) {
-          transation.close();
-          delete this.transactions[transation.callId];
-          //delete this.users[name];
-        }
-      }
-    }, {
-      key: "close",
-      value: function close() {
-        this.fire("onQuit", this);
-        for (var trans in this.transactions) {
-          try {
-            this.transactions[trans].bye();
-            this.transactions[trans].close();
-          } catch (e) {}
-          delete this.transactions[trans];
-        }
-      }
-    }, {
-      key: "quit",
-      value: function quit() {
-        this.protocol.bye();
-      }
-    }]);
+            this.notificationsCenter.fire("onError", this.protocol, message);
+            break;
+          }
+        });
 
-    return WebRtc;
-  }(stage.Service);
+        this.protocol.listen(this, "onUnRegister", function (sip, message) {
+          this.fire("onUnRegister", sip, message);
+        });
+
+        this.protocol.listen(this, "onRinging", function (sip, message) {
+          var transaction = this.transactions[message.callId];
+          if (transaction) {
+            this.notificationsCenter.fire("onRinging", message.toName, transaction);
+          }
+        });
+
+        this.protocol.listen(this, "onTrying", function (sip, message) {
+          var transaction = this.transactions[message.callId];
+          if (transaction) {
+            this.notificationsCenter.fire("onTrying", message.toName, transaction);
+          }
+        });
+
+        this.protocol.listen(this, "onInfo", function (message) {
+          var transaction = this.transactions[message.callId];
+          //console.log(message);
+          if (message.contentType === "application/dtmf-relay") {
+            this.fire("onDtmf", message.body.dtmf, transaction);
+          }
+        });
+
+        this.protocol.listen(this, "onCancel", function (message) {
+          var transaction = this.transactions[message.callId];
+          if (transaction) {
+            this.notificationsCenter.fire("onCancel", message.body.body, transaction);
+            this.closeTransaction(transaction, message.fromName);
+          }
+        });
+
+        this.protocol.listen(this, "onInvite", function (message, dialog) {
+          let res = null;
+          let transac = null;
+          switch (message.header["Content-Type"]) {
+          case "application/sdp":
+            if (message.rawBody) {
+
+              if (dialog.status === dialog.statusCode.INITIAL) {
+
+                // TODO MANAGE MULTI CALL
+                res = message.transaction.createResponse(100, "trying");
+                res.send();
+
+                // transaction WEBRTC
+                try {
+                  transac = this.createTransaction(message.fromName, dialog, {
+                    displayName: message.fromNameDisplay || ""
+                  });
+                  transac.to.setDescription(message.rawBody);
+                } catch (e) {
+                  res = message.transaction.createResponse(500, e.message || e);
+                  res.send();
+                  return;
+                }
+
+                res = message.transaction.createResponse(180, "Ringing");
+                res.send();
+
+                try {
+                  transac.setRemoteDescription("offer", transac.to, transac.to.description, transac.dialog);
+                } catch (e) {
+                  res = message.transaction.createResponse(500, e.message || e);
+                  res.send();
+                }
+
+                return;
+              }
+              if (dialog.status === dialog.statusCode.ESTABLISHED) {
+                // HOLD THE LINE
+                message.transaction.decline();
+              }
+            }
+            break;
+          case "ice/candidate":
+            if (message.rawBody) {
+              var transaction = this.transactions[message.callId];
+              let ret = null;
+              if (!transaction) {
+                ret = message.transaction.createResponse(500, "no transaction ");
+                ret.send();
+                return;
+              }
+              res = JSON.parse(message.rawBody);
+              ret = message.transaction.createResponse(100, "trying");
+              ret.send();
+              for (let i = 0; i < res.length; i++) {
+                var candidate = new RTCIceCandidate(res[i]);
+                transaction.RTCPeerConnection.addIceCandidate(candidate,
+                  () => {
+                    this.logger("WEBRTC remote CANDIDATES   " + res[i].candidate, "DEBUG");
+                  },
+                  (e) => {
+                    console.log(e);
+                    this.logger("WEBRTC Error CANDIDATES " + res[i].candidate, "ERROR");
+                  }
+                );
+              }
+              if (transaction.candidates.length) {
+                ret = message.transaction.createResponse(200, "OK", JSON.stringify(transaction.candidates), "ice/candidate");
+                ret.send();
+                transaction.candidates = [];
+              } else {
+                ret = message.transaction.createResponse(200, "OK");
+                ret.send();
+                //transaction.candidates= [];
+                /*this.listen(this, "onIcecandidate" , function(transaction, candidates, peerConnection){
+                  var ret = message.transaction.createResponse(200, "OK", JSON.stringify(transaction.candidates), "ice/candidate");
+                  ret.send();
+                  transaction.candidates= [];
+                });*/
+              }
+            }
+            break;
+          default:
+            this.notificationsCenter.fire("onError", this.protocol, message);
+
+          }
+        });
+
+        this.protocol.listen(this, "onTimeout", function (sip, message) {
+          this.notificationsCenter.fire("onTimeout", message.method, 408, message);
+          var transac = this.transactions[message.callId];
+          if (transac) {
+            this.closeTransaction(transac, transac.to.name);
+          }
+        });
+
+        this.protocol.listen(this, "onDecline", function (message) {
+          if (message.callId in this.transactions) {
+            var transac = this.transactions[message.callId];
+            this.fire("onDecline", this, transac);
+            this.closeTransaction(transac);
+          }
+        });
+
+        this.protocol.listen(this, "onError", function (Class, message) {
+          this.notificationsCenter.fire("onError", Class, message);
+          var transac = this.transactions[message.callId];
+          if (transac) {
+            this.closeTransaction(transac, transac.to.name);
+          }
+        });
+
+        this.protocol.listen(this, "onQuit", function (protocol) {
+          this.close();
+        });
+
+        this.protocol.listen(this, "onInitCall", function (to, dialog, transaction) {
+          if (dialog.callId in this.transactions) {
+            var transac = this.transactions[dialog.callId];
+            transac.currentTransaction = transaction;
+            this.notificationsCenter.fire("onInitCall", transac);
+          }
+        });
+
+        this.protocol.listen(this, "onBye", function (message) {
+          let transac = null;
+          let name = null;
+          if (message.callId in this.transactions) {
+            transac = this.transactions[message.callId];
+            name = message.fromName;
+          }
+          if (transac) {
+            this.notificationsCenter.fire("onOnHook", transac, message);
+            this.closeTransaction(transac, name);
+          } else {
+            // WHEN USER LOCAL STOP REGISTRATION
+            if (message.fromName === this.user.name) {
+              this.close();
+            }
+          }
+        });
+
+        this.protocol.listen(this, "onCall", function (message) {
+          var transac = this.transactions[message.callId];
+          if (message.toNameDisplay) {
+            transac.to.displayName = message.toNameDisplay;
+          }
+          //var from = this.users[message.toName];
+          if (message.dialog.status === message.dialog.statusCode.EARLY && message.header["Content-Type"] === "application/sdp") {
+            this.notificationsCenter.fire("onAnwer", message);
+            transac.to.setDescription(message.rawBody);
+            transac.setRemoteDescription("answer", transac.to, message.rawBody, message.dialog);
+            /*if ( this.settings.asyncCandidates && transac.candidates.length){
+              //console.log( message.dailog)
+              message.dialog.invite(message.to, JSON.stringify(transac.candidates), "ice/candidate")
+            }*/
+            //this.notificationsCenter.fire( "onOffHook", transac , message );
+          } else {
+
+          }
+          if (message.header["Content-Type"] === "ice/candidate") {
+            if (transac.candidates.length) {
+              var res = JSON.parse(message.rawBody);
+              for (let i = 0; i < res.length; i++) {
+                var candidate = new RTCIceCandidate(res[i]);
+                transac.RTCPeerConnection.addIceCandidate(candidate,
+                  () => {
+                    //console.log("Succes Candidate")
+                    this.logger("WEBRTC ADD remote CANDIDATES :  " + res[i].candidate);
+                  },
+                  (e) => {
+                    console.log(e);
+                    this.logger("WEBRTC Error CANDIDATES " + res[i].candidate, "ERROR");
+                  }
+                );
+              }
+            }
+          }
+        });
+
+        this.protocol.listen(this, "onMessage", function (message) {
+          this.fire("onMessage", message);
+        });
+
+        this.protocol.listen(this, "onSend", function (message) {
+          this.fire("onSend", message);
+        });
+
+        this.listen(this, "onError", function (Class, error) {
+          switch (true) {
+          case (Class instanceof WebRtc):
+            break;
+          case (Class instanceof stage.media.webrtcTransaction):
+            //console.log(Class.currentTransaction )
+            if (Class.currentTransaction) {
+              var response = Class.currentTransaction.createResponse(500, error.message || error);
+              response.send();
+            }
+            this.closeTransaction(Class, Class.to.name);
+            break;
+          case (Class instanceof Error):
+            break;
+          }
+        });
+        break;
+      default:
+        throw new Error("WEBRTC Protocol not found ");
+      }
+    }
+
+    connect(transport) {
+      //console.log(transport instanceof stage.realtime  )
+      if (transport) {
+        transport.listen(this, "onConnect", function () {
+          this.socketState = "open";
+        });
+        transport.listen(this, "onClose", function () {
+          this.socketState = "close";
+        });
+        return transport;
+      }
+    }
+
+    createTransaction(userTo, dialog, settings) {
+      try {
+        let transaction = new stage.media.webrtcTransaction(this, this.user, userTo, dialog, settings);
+        return transaction;
+      } catch (e) {
+        this.fire("onError", this, e);
+        throw e;
+      }
+    }
+
+    unRegister() {
+      //console.log( "WEBRTC unregister")
+      this.close();
+      if (this.protocol) {
+        this.protocol.unregister();
+      }
+    }
+
+    register(userName, password, settings) {
+      this.user = new stage.media.userMedia(userName, settings);
+      this.protocol.register(userName, password, settings);
+    }
+
+
+    createOffer(userTo) {
+      var to = new stage.media.userMedia(userTo);
+      //this.users[userTo] = to ;
+      var transac = this.createTransaction(to);
+      transac.createOffer();
+      return transac;
+    }
+
+    acceptOffer(transaction) {
+      this.fire("onAccept", this, transaction);
+      return transaction;
+    }
+
+    declineOffer(transaction) {
+      this.fire("onDeclineOffer", this, transaction);
+      return transaction;
+    }
+
+    closeTransaction(transation, name) {
+      if (transation) {
+        transation.close();
+        delete this.transactions[transation.callId];
+        //delete this.users[name];
+      }
+    }
+
+    close() {
+      this.fire("onQuit", this);
+      for (var trans in this.transactions) {
+        try {
+          this.transactions[trans].bye();
+          this.transactions[trans].close();
+        } catch (e) {
+
+        }
+        delete this.transactions[trans];
+      }
+    }
+
+    quit() {
+      this.protocol.bye();
+    }
+  };
 
   stage.media.webrtc = WebRtc;
   return WebRtc;
@@ -34740,27 +33880,21 @@ module.exports = function (stage) {
   !*** ./src/structs/hash/hash.es6 ***!
   \***********************************/
 /*! no static exports found */
-/***/ (function(module, exports, __webpack_require__) {
+/***/ (function(module, exports) {
 
-"use strict";
-
-
-var _createClass = function () { function defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ("value" in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } } return function (Constructor, protoProps, staticProps) { if (protoProps) defineProperties(Constructor.prototype, protoProps); if (staticProps) defineProperties(Constructor, staticProps); return Constructor; }; }();
-
-function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError("Cannot call a class as a function"); } }
-
-module.exports = function (stage) {
+module.exports =  function(stage){
 
 	'use strict';
 
-	var ea = function () {
-		if (stage.browser.Ie) {
-			return function (callback) {
+
+	var ea = function(){
+		if (stage.browser.Ie){
+			return function(callback){
 				var iterator = 0;
 				for (var key in this.data) {
 					//if ( ! Array.prototype[key] ){
-					if (this.data.hasOwnProperty(key)) {
-						var value = this.data[key];
+					if ( this.data.hasOwnProperty(key) ){
+						var value = this.data[key]; 
 						var pair = [key, value];
 						pair.key = key;
 						pair.value = value;
@@ -34768,143 +33902,128 @@ module.exports = function (stage) {
 					}
 					iterator++;
 				}
-			};
-		} else {
-			return function (callback) {
+			}
+		}else{
+			return function(callback){
 				var iterator = 0;
 				for (var key in this.data) {
-					var value = this.data[key];
+					var value = this.data[key]; 
 					var pair = [key, value];
 					pair.key = key;
 					pair.value = value;
 					callback(pair, iterator);
 					iterator++;
 				}
-			};
+			}
 		}
 	}();
 
-	var struct = function () {
-		function struct(data) {
-			_classCallCheck(this, struct);
 
-			this.data = stage.typeOf(data) === "object" ? stage.extend(true, {}, data) : {};
+	
+	var struct = class struct {
+
+		constructor(data){
+			this.data = stage.typeOf(data) === "object" ? stage.extend(true, {}, data) : {} ;
 		}
 
-		_createClass(struct, [{
-			key: "get",
-			value: function get(key) {
-				if (key === null || key === undefined) {
-					return this.data;
-				}
-				if (key in this.data) {
-					return this.data[key];
-				}
-				return false;
+
+		get (key){
+			if ((key === null) || (key === undefined)){
+				return this.data;
 			}
-		}, {
-			key: "set",
-			value: function set(key, value) {
-				if (key !== null || key !== undefined) {
-					return this.data[key] = value;
-				}
-				return false;
+			if ( (key in this.data)){
+				return this.data[key];
 			}
-		}, {
-			key: "unset",
-			value: function unset(key) {
-				if (key in this.data) {
-					delete this.data[key];
-					return true;
-				}
-				return false;
+			return false;
+		}
+
+		set (key, value){
+			if ((key !== null) || (key !== undefined)){
+				return this.data[key] = value;
 			}
-		}, {
-			key: "hasKey",
-			value: function hasKey(key) {
-				if (key in this.data) {
-					return true;
-				}
-				return false;
+			return false;
+		}
+
+		unset (key){
+			if (key in this.data){
+				delete this.data[key];
+				return true
 			}
-		}, {
-			key: "clear",
-			value: function clear() {
-				this.data = {};
+			return false;
+		}
+
+		hasKey (key){
+			if (key in this.data){
 				return true;
 			}
-		}, {
-			key: "clone",
-			value: function clone() {
-				return stage.extend(true, {}, this.data);
-			}
+			return false;
+		}
 
-			//TODO
+		clear (){
+			this.data = {};
+			return true;
+		}
+		
+		clone (){
+			return stage.extend(true, {}, this.data);
+		}
 
-		}, {
-			key: "inspect",
-			value: function inspect() {}
+		//TODO
+		inspect (){
+			
+		}
 
-			//TODO
+		//TODO
+		keys (){
+		}
 
-		}, {
-			key: "keys",
-			value: function keys() {}
+		//TODO
+		values (){
+		}
 
-			//TODO
+		each (){
+			return ea.apply(this, arguments);	
+		}
 
-		}, {
-			key: "values",
-			value: function values() {}
-		}, {
-			key: "each",
-			value: function each() {
-				return ea.apply(this, arguments);
-			}
-		}, {
-			key: "clone",
-			value: function clone() {
-				return new struct(this.data);
-			}
-		}, {
-			key: "toObject",
-			value: function toObject(key) {
-				return stage.extend(true, {}, this.data);
-			}
-		}, {
-			key: "merge",
-			value: function merge(hash) {
-				this.data = stage.extend(true, {}, this.data, hash);
-			}
-		}, {
-			key: "toJson",
-			value: function toJson(key) {
-				if (key) return stage.json.stringify(this.get(key));
-				return stage.json.stringify(this.data);
-			}
+		clone (){
+			return  new struct(this.data);
+		}
 
-			//TODO
+		toObject (key){
+			return stage.extend(true, {}, this.data) ;
+		}
 
-		}, {
-			key: "toQueryString",
-			value: function toQueryString() {}
-		}]);
 
-		return struct;
-	}();
+		merge (hash){
+			this.data = stage.extend(true, {}, this.data, hash) ;
+		}
+
+		toJson (key){
+			if (key)
+				return stage.json.stringify(this.get(key));
+			return stage.json.stringify(this.data);
+		}
+
+		//TODO
+		toQueryString (){
+
+		}
+
+	};
 
 	var obj = {
-		struct: struct,
-		local: {
-			createHash: function createHash(data) {
+		struct:struct,
+		local:{
+			createHash:function(data){
 				return new struct(data);
 			}
 		}
 	};
 
-	stage.structs.hash = obj;
+	stage.structs.hash = obj ;
 	return obj;
 };
+
 
 /***/ }),
 
@@ -34913,28 +34032,23 @@ module.exports = function (stage) {
   !*** ./src/structs/queue/queue.es6 ***!
   \*************************************/
 /*! no static exports found */
-/***/ (function(module, exports, __webpack_require__) {
+/***/ (function(module, exports) {
 
-"use strict";
-
-
-var _createClass = function () { function defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ("value" in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } } return function (Constructor, protoProps, staticProps) { if (protoProps) defineProperties(Constructor.prototype, protoProps); if (staticProps) defineProperties(Constructor, staticProps); return Constructor; }; }();
-
-function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError("Cannot call a class as a function"); } }
-
-module.exports = function (stage) {
+module.exports =  function(stage){
 
 	'use strict';
 
+
 	var defaultSettings = {
-		type: "FIFO",
-		active: true
+		type:"FIFO",	
+		active:true
 	};
 
+
 	var codeError = {
-		empty: 0,
-		notFound: 1,
-		stopped: 2
+		empty:0,
+		notFound:1,
+		stopped:2
 	};
 
 	/*
@@ -34959,144 +34073,127 @@ module.exports = function (stage) {
  	*
  	*
  	*/
-	var struct = function () {
-		function struct(localSettings) {
-			_classCallCheck(this, struct);
+	var struct = class struct {
 
+		constructor(localSettings){
 			// Manage settings
-			this.settings = stage.extend(true, {}, defaultSettings, localSettings);
+			this.settings = stage.extend( true, {}, defaultSettings, localSettings);
 			this.data = [];
-			this.error = null;
+			this.error= null;
 			this.eventsQueue = stage.createEventsManager();
 		}
 
-		_createClass(struct, [{
-			key: "listen",
-			value: function listen(context, eventName, callback) {
-				return this.eventsQueue.listen(context, eventName, callback);
-			}
-
-			// TODO LIFO
-
-		}, {
-			key: "enqueue",
-			value: function enqueue(value) {
-				if (this.settings.active) {
-					var ret = this.data.push(value);
-					this.eventsQueue.fireEvent("onQueued", this);
-					return ret;
-				} else {
-					this.error = new Error("QUEUE is stoped");
-					this.eventsQueue.fireEvent("onError", this, this.error, codeError.stopped);
-					return null;
-				}
-			}
-		}, {
-			key: "remove",
-			value: function remove(data) {
-				if (this.isEmpty()) {
-					this.error = new Error("QUEUE is empty");
-					this.eventsQueue.fireEvent("onError", this, this.error, codeError.empty);
-					return null;
-				}
-				if (stage.array.contain(this.data, data)) return stage.array.remove(this.data, data);
-				this.error = new Error(data + " Not found");
-				this.eventsQueue.fireEvent("onError", this, this.error, codeError.notFound);
+		listen (context, eventName, callback){
+			return this.eventsQueue.listen(context, eventName, callback);
+		}
+		
+		// TODO LIFO
+		enqueue (value){
+			if (this.settings.active){
+				var ret = this.data.push(value);
+				this.eventsQueue.fireEvent("onQueued",this);
+				return ret;
+			}else{
+				this.error = new Error("QUEUE is stoped");
+				this.eventsQueue.fireEvent("onError",this, this.error, codeError.stopped);
 				return null;
 			}
-
-			// TODO LIFO
-
-		}, {
-			key: "dequeue",
-			value: function dequeue() {
-				if (this.settings.active) {
-					if (this.isEmpty()) {
-						this.error = new Error("QUEUE is empty");
-						this.eventsQueue.fireEvent("onError", this, this.error, codeError.empty);
-						return null;
-					}
-					var value = this.data[0];
-					stage.array.removeIndexOf(this.data, 0);
-					this.eventsQueue.fireEvent("onDeQueued", this);
-					return value;
-				} else {
-					this.error = new Error("QUEUE is stoped");
-					this.eventsQueue.fireEvent("onError", this, this.error, codeError.stopped);
-					return null;
-				}
+		}
+		
+		
+		remove (data){
+			if (this.isEmpty()) {
+				this.error = new Error("QUEUE is empty")
+				this.eventsQueue.fireEvent("onError",this, this.error, codeError.empty);
+				return null;
 			}
-		}, {
-			key: "peek",
-			value: function peek(data) {
+			if (stage.array.contain(this.data, data) )
+				return stage.array.remove(this.data, data)
+			this.error = new Error(data+" Not found");
+			this.eventsQueue.fireEvent("onError",this, this.error, codeError.notFound);
+			return null;
+		}
+
+		// TODO LIFO
+		dequeue (){
+			if (this.settings.active){
 				if (this.isEmpty()) {
+					this.error = new Error("QUEUE is empty")
+					this.eventsQueue.fireEvent("onError",this, this.error, codeError.empty);
 					return null;
 				}
-				return this.data[0];
+				var value = this.data[0];
+				stage.array.removeIndexOf(this.data,0);
+				this.eventsQueue.fireEvent("onDeQueued",this);
+				return value;
+			}else{
+				this.error = new Error("QUEUE is stoped")
+				this.eventsQueue.fireEvent("onError",this, this.error, codeError.stopped);
+				return null;
 			}
-		}, {
-			key: "purge",
-			value: function purge() {
-				this.data.length = 0;
-			}
-		}, {
-			key: "isEmpty",
-			value: function isEmpty() {
-				return this.data.length === 0;
-			}
-		}, {
-			key: "count",
-			value: function count() {
-				return this.data.length;
-			}
-		}, {
-			key: "getQueue",
-			value: function getQueue() {
-				return this.data;
-			}
-		}, {
-			key: "start",
-			value: function start() {
-				this.settings.active = true;
-			}
-		}, {
-			key: "stop",
-			value: function stop() {
-				this.settings.active = false;
-			}
-		}, {
-			key: "run",
-			value: function run(callback) {
-				if (this.settings.active) {
-					this.eventsQueue.fireEvent("onRunStart", this);
-					stage.each(this.data, callback);
-					this.eventsQueue.fireEvent("onRunFinish", this);
-				} else {
-					this.error = new Error("QUEUE is stoped");
-					this.eventsQueue.fireEvent("onError", this, this.error, codeError.stopped);
-					return null;
-				}
-			}
-		}]);
+		}
 
-		return struct;
-	}();
+		peek (data){
+			if (this.isEmpty()) {
+				return null;
+			}
+			return this.data[0];
+		}
 
-	var createStruct = function createStruct(localSettings) {
-		var Structs = new struct(localSettings);
-		Structs.eventsQueue.settingsToListen(localSettings);
-		if (Structs.error) {
+		purge (){
+			this.data.length = 0;
+		}
+
+		isEmpty (){
+			return this.data.length === 0;
+		}
+
+		count (){
+			return this.data.length;
+		}
+
+		getQueue () {
+			return this.data;
+		}
+
+		start () {
+			this.settings.active = true;
+		}
+
+		stop (){
+			this.settings.active = false;
+		}
+
+		run (callback) {
+			if (this.settings.active){
+				this.eventsQueue.fireEvent("onRunStart",this);
+				stage.each(this.data,callback)
+				this.eventsQueue.fireEvent("onRunFinish",this);
+			}else{
+				this.error = new Error("QUEUE is stoped")
+				this.eventsQueue.fireEvent("onError",this, this.error, codeError.stopped);
+				return null;
+			}
+		}
+	};
+
+
+
+	var createStruct = function(localSettings){
+		var Structs = new struct(localSettings);	
+		Structs.eventsQueue.settingsToListen(localSettings)	
+		if(Structs.error){			
 			Structs.eventsQueue.fireEvent("onError", Structs, Structs.error);
 			return Structs;
-		}
+		}	
 		return Structs;
 	};
 
 	var obj = {
-		struct: struct,
-		local: {
-			createQueue: function createQueue(localSettings) {
-				if (!localSettings) {
+		struct:struct,
+		local:{
+			createQueue:function(localSettings){
+				if (! localSettings){
 					localSettings = {};
 				}
 				return createStruct(localSettings);
@@ -35104,9 +34201,11 @@ module.exports = function (stage) {
 		}
 	};
 
-	stage.structs.queues = obj;
+	stage.structs.queues = obj ;
 	return obj;
+
 };
+
 
 /***/ }),
 
@@ -35115,20 +34214,7 @@ module.exports = function (stage) {
   !*** ./src/syslog/syslog.es6 ***!
   \*******************************/
 /*! no static exports found */
-/***/ (function(module, exports, __webpack_require__) {
-
-"use strict";
-
-
-var _get = function get(object, property, receiver) { if (object === null) object = Function.prototype; var desc = Object.getOwnPropertyDescriptor(object, property); if (desc === undefined) { var parent = Object.getPrototypeOf(object); if (parent === null) { return undefined; } else { return get(parent, property, receiver); } } else if ("value" in desc) { return desc.value; } else { var getter = desc.get; if (getter === undefined) { return undefined; } return getter.call(receiver); } };
-
-var _createClass = function () { function defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ("value" in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } } return function (Constructor, protoProps, staticProps) { if (protoProps) defineProperties(Constructor.prototype, protoProps); if (staticProps) defineProperties(Constructor, staticProps); return Constructor; }; }();
-
-function _possibleConstructorReturn(self, call) { if (!self) { throw new ReferenceError("this hasn't been initialised - super() hasn't been called"); } return call && (typeof call === "object" || typeof call === "function") ? call : self; }
-
-function _inherits(subClass, superClass) { if (typeof superClass !== "function" && superClass !== null) { throw new TypeError("Super expression must either be null or a function, not " + typeof superClass); } subClass.prototype = Object.create(superClass && superClass.prototype, { constructor: { value: subClass, enumerable: false, writable: true, configurable: true } }); if (superClass) Object.setPrototypeOf ? Object.setPrototypeOf(subClass, superClass) : subClass.__proto__ = superClass; }
-
-function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError("Cannot call a class as a function"); } }
+/***/ (function(module, exports) {
 
 /*
  *
@@ -35151,7 +34237,6 @@ module.exports = function (stage) {
    *
    * </pre>
    */
-
   var defaultSettings = {
     moduleName: "SYSLOG",
     maxStack: 100,
@@ -35175,7 +34260,16 @@ module.exports = function (stage) {
    *    DEBUG       = 7
    * </pre>
    */
-  var sysLogSeverity = ["EMERGENCY", "ALERT", "CRITIC", "ERROR", "WARNING", "NOTICE", "INFO", "DEBUG"];
+  var sysLogSeverity = [
+    "EMERGENCY",
+    "ALERT",
+    "CRITIC",
+    "ERROR",
+    "WARNING",
+    "NOTICE",
+    "INFO",
+    "DEBUG"
+  ];
   sysLogSeverity["EMERGENCY"] = 0;
   sysLogSeverity["ALERT"] = 1;
   sysLogSeverity["CRITIC"] = 2;
@@ -35193,10 +34287,8 @@ module.exports = function (stage) {
    * @return {PDU}
    */
   var guid = 0;
-  var PDU = function () {
-    function PDU(pci, severity, moduleName, msgid, msg, date) {
-      _classCallCheck(this, PDU);
-
+  var PDU = class PDU {
+    constructor(pci, severity, moduleName, msgid, msg, date) {
       /* timeStamp @type Date*/
       this.timeStamp = new Date(date).getTime() || new Date().getTime();
       /* uid */
@@ -35225,186 +34317,187 @@ module.exports = function (stage) {
      * @method getDate
      * @return {String} a date in string format .
      */
+    getDate() {
+      return new Date(this.timeStamp).toTimeString();
+    }
 
+    /**
+     * get a string representating the PDU protocole
+     * @method toString
+     * @return {String}  .
+     */
+    toString() {
+      return "TimeStamp:" + this.getDate() +
+        "  Log:" + this.payload +
+        "  ModuleName:" + this.moduleName +
+        "  SeverityName:" + this.severityName +
+        "  MessageID:" + this.msgid +
+        "  UID:" + this.uid +
+        "  Message:" + this.msg;
+    }
 
-    _createClass(PDU, [{
-      key: "getDate",
-      value: function getDate() {
-        return new Date(this.timeStamp).toTimeString();
-      }
-
-      /**
-       * get a string representating the PDU protocole
-       * @method toString
-       * @return {String}  .
-       */
-
-    }, {
-      key: "toString",
-      value: function toString() {
-        return "TimeStamp:" + this.getDate() + "  Log:" + this.payload + "  ModuleName:" + this.moduleName + "  SeverityName:" + this.severityName + "  MessageID:" + this.msgid + "  UID:" + this.uid + "  Message:" + this.msg;
-      }
-    }, {
-      key: "parseJson",
-      value: function parseJson(str) {
-        var json = null;
-        try {
-          json = JSON.parse(str);
-          for (var ele in json) {
-            if (ele in this) {
-              this[ele] = json[ele];
-            }
+    parseJson(str) {
+      var json = null;
+      try {
+        json = JSON.parse(str);
+        for (var ele in json) {
+          if (ele in this) {
+            this[ele] = json[ele];
           }
-        } catch (e) {
-          throw e;
         }
-        return json;
+      } catch (e) {
+        throw e;
       }
-    }]);
-
-    return PDU;
-  }();
-
-  var operators = {
-    "<": function _(ele1, ele2) {
-      return ele1 < ele2;
-    },
-    ">": function _(ele1, ele2) {
-      return ele1 > ele2;
-    },
-    "<=": function _(ele1, ele2) {
-      return ele1 <= ele2;
-    },
-    ">=": function _(ele1, ele2) {
-      return ele1 >= ele2;
-    },
-    "==": function _(ele1, ele2) {
-      return ele1 === ele2;
-    },
-    "!=": function _(ele1, ele2) {
-      return ele1 !== ele2;
-    },
-    "RegExp": function RegExp(ele1, ele2) {
-      return ele2.test(ele1);
+      return json;
     }
   };
 
+  var operators = {
+    "<": function (ele1, ele2) {
+      return ele1 < ele2
+    },
+    ">": function (ele1, ele2) {
+      return ele1 > ele2
+    },
+    "<=": function (ele1, ele2) {
+      return ele1 <= ele2
+    },
+    ">=": function (ele1, ele2) {
+      return ele1 >= ele2
+    },
+    "==": function (ele1, ele2) {
+      return ele1 === ele2
+    },
+    "!=": function (ele1, ele2) {
+      return ele1 !== ele2
+    },
+    "RegExp": function (ele1, ele2) {
+      return (ele2.test(ele1))
+    }
+  }
+
   var conditionsObj = {
-    severity: function severity(pdu, condition) {
+    severity: function (pdu, condition) {
       if (condition.operator !== "==") {
         //console.log(pdu.severity);
         //console.log(condition.data)
-        return operators[condition.operator](pdu.severity, condition.data);
+        return operators[condition.operator](pdu.severity, condition.data)
       } else {
         for (var sev in condition.data) {
-          if (sev === pdu.severityName) return true;
+          if (sev === pdu.severityName)
+            return true
         }
       }
-      return false;
+      return false
     },
-    msgid: function msgid(pdu, condition) {
+    msgid: function (pdu, condition) {
       if (condition.operator !== "==") {
-        return operators[condition.operator](pdu.msgid, condition.data);
+        return operators[condition.operator](pdu.msgid, condition.data)
       } else {
         for (var sev in condition.data) {
-          if (sev === pdu.msgid) return true;
+          if (sev === pdu.msgid)
+            return true
         }
       }
-      return false;
+      return false
     },
-    date: function date(pdu, condition) {
-      return operators[condition.operator](pdu.timeStamp, condition.data);
+    date: function (pdu, condition) {
+      return operators[condition.operator](pdu.timeStamp, condition.data)
     }
-  };
+  }
 
   var logicCondition = {
-    "&&": function _(myConditions, pdu) {
-      var res = null;
+    "&&": function (myConditions, pdu) {
+      var res = null
       for (var ele in myConditions) {
-        var res = conditionsObj[ele](pdu, myConditions[ele]);
+        var res = conditionsObj[ele](pdu, myConditions[ele])
         //console.log("condition :" +ele +"  "+res)
         if (!res) {
           break;
         }
       }
-      return res;
+      return res
     },
-    "||": function _(myConditions, pdu) {
-      var res = null;
+    "||": function (myConditions, pdu) {
+      var res = null
       for (var ele in myConditions) {
-        var res = conditionsObj[ele](pdu, myConditions[ele]);
+        var res = conditionsObj[ele](pdu, myConditions[ele])
         if (res) {
           break;
         }
       }
-      return res;
+      return res
     }
-  };
+  }
 
-  var checkFormatSeverity = function checkFormatSeverity(ele) {
+  var checkFormatSeverity = function (ele) {
     var res = false;
     switch (stage.typeOf(ele)) {
-      case "string":
-        res = ele.split(/,| /);
-        break;
-      case "number":
+    case "string":
+      res = ele.split(/,| /);
+      break;
+    case "number":
+      res = ele;
+      break;
+    default:
+      throw new Error("checkFormatSeverity bad format " + stage.typeOf(ele) + " : " + ele);
+    }
+    return res;
+  }
+
+  var checkFormatDate = function (ele) {
+    var res = false;
+    switch (stage.typeOf(ele)) {
+    case "date":
+      res = ele.getTime();
+      break;
+    case "string":
+      res = new Date(ele);
+      break;
+    default:
+      throw new Error("checkFormatDate bad format " + stage.typeOf(ele) + " : " + ele);
+    }
+    return res;
+  }
+
+  var checkFormatMsgId = function (ele) {
+    var res = false;
+    switch (stage.typeOf(ele)) {
+    case "string":
+      res = ele.split(/,| /);
+      break;
+    case "number":
+      res = ele;
+      break;
+    case "object":
+      if (ele instanceof RegExp) {
         res = ele;
-        break;
-      default:
-        throw new Error("checkFormatSeverity bad format " + stage.typeOf(ele) + " : " + ele);
+      }
+      break;
+    default:
+      throw new Error("checkFormatMsgId bad format " + stage.typeOf(ele) + " : " + ele);
     }
     return res;
-  };
 
-  var checkFormatDate = function checkFormatDate(ele) {
-    var res = false;
-    switch (stage.typeOf(ele)) {
-      case "date":
-        res = ele.getTime();
-        break;
-      case "string":
-        res = new Date(ele);
-        break;
-      default:
-        throw new Error("checkFormatDate bad format " + stage.typeOf(ele) + " : " + ele);
-    }
-    return res;
-  };
+  }
 
-  var checkFormatMsgId = function checkFormatMsgId(ele) {
-    var res = false;
-    switch (stage.typeOf(ele)) {
-      case "string":
-        res = ele.split(/,| /);
-        break;
-      case "number":
-        res = ele;
-        break;
-      case "object":
-        if (ele instanceof RegExp) {
-          res = ele;
-        }
-        break;
-      default:
-        throw new Error("checkFormatMsgId bad format " + stage.typeOf(ele) + " : " + ele);
-    }
-    return res;
-  };
-
-  var severityToString = function severityToString(severity) {
+  var severityToString = function (severity) {
     var myint = parseInt(severity, 10);
     if (!isNaN(myint)) {
       var ele = sysLogSeverity[myint];
     } else {
       var ele = severity;
     }
-    if (ele in sysLogSeverity) return ele;
+    if (ele in sysLogSeverity)
+      return ele;
     return false;
   };
 
-  var sanitizeConditions = function sanitizeConditions(settingsCondition) {
+
+  var sanitizeConditions = function (settingsCondition) {
     var res = true;
-    if (stage.typeOf(settingsCondition) !== "object") return false;
+    if (stage.typeOf(settingsCondition) !== "object")
+      return false;
     for (var ele in settingsCondition) {
       if (!ele in conditionsObj) {
         return false;
@@ -35416,60 +34509,63 @@ module.exports = function (stage) {
       }
       if (condi.data) {
         switch (ele) {
-          case "severity":
-            if (condi.operator) {
-              res = checkFormatSeverity(condi.data);
-              if (res !== false) {
-                condi.data = sysLogSeverity[severityToString(res[0])];
-              } else {
-                return false;
-              }
-            } else {
-              condi.operator = "==";
-              res = checkFormatSeverity(condi.data);
-              if (res !== false) {
-                condi.data = {};
-                if (stage.typeOf(res) === "array") {
-                  for (var i = 0; i < res.length; i++) {
-                    var mySeverity = severityToString(res[i]);
-                    if (mySeverity) {
-                      condi.data[mySeverity] = sysLogSeverity[mySeverity];
-                    } else {
-                      return false;
-                    }
-                  }
-                } else {
-                  return false;
-                }
-              } else {
-                return false;
-              }
-            }
-            break;
-          case "msgid":
-            if (!condi.operator) {
-              condi.operator = "==";
-            }
-            res = checkFormatMsgId(condi.data);
+        case "severity":
+          if (condi.operator) {
+            res = checkFormatSeverity(condi.data);
             if (res !== false) {
+              condi.data = sysLogSeverity[severityToString(res[0])];
+            } else {
+              return false
+            }
+          } else {
+            condi.operator = "==";
+            res = checkFormatSeverity(condi.data);
+            if (res !== false) {
+              condi.data = {};
               if (stage.typeOf(res) === "array") {
-                condi.data = {};
                 for (var i = 0; i < res.length; i++) {
-                  condi.data[res[i]] = "||";
+                  var mySeverity = severityToString(res[i]);
+                  if (mySeverity) {
+                    condi.data[mySeverity] = sysLogSeverity[mySeverity];
+                  } else {
+                    return false;
+                  }
                 }
               } else {
-                condi.data = res;
+                return false;
               }
             } else {
-              return false;
+              return false
             }
-            break;
-          case "date":
-            res = checkFormatDate(condi.data);
-            if (res) condi.data = res;else return false;
-            break;
-          default:
+          }
+          break;
+        case "msgid":
+          if (!condi.operator) {
+            condi.operator = "==";
+          }
+          res = checkFormatMsgId(condi.data);
+          if (res !== false) {
+            if (stage.typeOf(res) === "array") {
+              condi.data = {};
+              for (var i = 0; i < res.length; i++) {
+                condi.data[res[i]] = "||";
+              }
+            } else {
+              condi.data = res;
+            }
+          } else {
+            return false
+          }
+          break;
+        case "date":
+          res = checkFormatDate(condi.data);
+          if (res)
+            condi.data = res;
+          else
             return false;
+          break;
+        default:
+          return false;
         }
       } else {
         return false;
@@ -35479,22 +34575,32 @@ module.exports = function (stage) {
     //console.log(settingsCondition);
   };
 
-  var translateSeverity = function translateSeverity(severity) {
+
+  var translateSeverity = function (severity) {
     if (severity in sysLogSeverity) {
-      if (typeof severity === 'number') var myseverity = sysLogSeverity[sysLogSeverity[severity]];else var myseverity = sysLogSeverity[severity];
+      if (typeof severity === 'number')
+        var myseverity = sysLogSeverity[sysLogSeverity[severity]]
+      else
+        var myseverity = sysLogSeverity[severity];
     } else {
-      if (!severity) return null;else throw new Error("not stage syslog severity :" + severity);
+      if (!severity)
+        return null;
+      else
+        throw new Error("not stage syslog severity :" + severity);
     }
     return myseverity;
   };
 
-  var createPDU = function createPDU(payload, severity, moduleName, msgid, msg) {
+  var createPDU = function (payload, severity, moduleName, msgid, msg) {
     if (!severity) {
       var myseverity = sysLogSeverity[this.settings.defaultSeverity];
     } else {
       var myseverity = severity;
     }
-    return new PDU(payload, myseverity, moduleName, msgid, msg);
+    return new PDU(payload, myseverity,
+      moduleName,
+      msgid,
+      msg);
   };
 
   /**
@@ -35551,296 +34657,279 @@ module.exports = function (stage) {
    *    @param {Object} settings The settings to extend.
    *    @return syslog
    */
-  var syslog = function (_stage$notificationsC) {
-    _inherits(syslog, _stage$notificationsC);
+  var syslog = class syslog extends stage.notificationsCenter.notification {
 
-    function syslog(settings) {
-      _classCallCheck(this, syslog);
+    constructor(settings) {
 
+      super(settings);
       /**
        * extended settings
        * @property settings
        * @type Object
        * @see defaultSettings
        */
-      var _this = _possibleConstructorReturn(this, (syslog.__proto__ || Object.getPrototypeOf(syslog)).call(this, settings));
-
-      _this.settings = stage.extend({}, defaultSettings, settings);
+      this.settings = stage.extend({}, defaultSettings, settings);
       /**
        * ring buffer structure container instances of PDU
        * @property ringStack
        * @type Array
        */
-      _this.ringStack = new Array();
+      this.ringStack = new Array();
       /**
        * Ratelimit  Management log printed
        * @property burstPrinted
        * @type Number
        */
-      _this.burstPrinted = 0;
+      this.burstPrinted = 0;
       /**
        * Ratelimit  Management log dropped
        * @property missed
        * @type Number
        */
-      _this.missed = 0;
+      this.missed = 0;
       /**
        * Management log invalid
        * @property invalid
        * @type Number
        */
-      _this.invalid = 0;
+      this.invalid = 0;
 
       /**
        * Counter log valid
        * @property valid
        * @type Number
        */
-      _this.valid = 0;
+      this.valid = 0;
       /**
        * Ratelimit  Management begin of burst
        * @property start
        * @private
        * @type Number
        */
-      _this.start = 0;
+      this.start = 0;
 
-      _this.fire = _this.settings.async ? _get(syslog.prototype.__proto__ || Object.getPrototypeOf(syslog.prototype), "fireAsync", _this) : _get(syslog.prototype.__proto__ || Object.getPrototypeOf(syslog.prototype), "fire", _this);
-      return _this;
+      this.fire = this.settings.async ? super.fireAsync : super.fire;
     }
 
-    _createClass(syslog, [{
-      key: "pushStack",
-      value: function pushStack(pdu) {
-        if (this.ringStack.length === this.settings.maxStack) {
-          this.ringStack.shift();
-        }
-        var index = this.ringStack.push(pdu);
-        //console.log(this);
-        this.valid++;
-        return index;
+    pushStack(pdu) {
+      if (this.ringStack.length === this.settings.maxStack) {
+        this.ringStack.shift();
       }
+      var index = this.ringStack.push(pdu);
+      //console.log(this);
+      this.valid++;
+      return index;
+    }
 
-      /**
-       * logger message
-       * @method logger
-       * @param {void} payload payload for log. protocole controle information
-       * @param {Number || String} severity severity syslog like.
-       * @param {String} msgid informations for message. example(Name of function for debug)
-       * @param {String} msg  message to add in log. example (I18N)
-       */
-
-    }, {
-      key: "logger",
-      value: function logger(payload, severity, msgid, msg) {
-        if (this.settings.rateLimit) {
-          var now = new Date().getTime();
-          this.start = this.start || now;
-          if (now > this.start + this.settings.rateLimit) {
-            this.burstPrinted = 0;
-            this.missed = 0;
-            this.start = 0;
-          }
-          if (this.settings.burstLimit && this.settings.burstLimit > this.burstPrinted) {
-            try {
-              if (payload instanceof PDU) {
-                var pdu = payload;
-              } else {
-                var pdu = createPDU.call(this, payload, severity, this.settings.moduleName, msgid, msg);
-              }
-            } catch (e) {
-              console.error(e);
-              this.invalid++;
-              return "INVALID";
-            }
-            this.pushStack(pdu);
-            this.fire("onLog", pdu);
-            this.burstPrinted++;
-            return "ACCEPTED";
-          }
-          this.missed++;
-          return "DROPPED";
-        } else {
+    /**
+     * logger message
+     * @method logger
+     * @param {void} payload payload for log. protocole controle information
+     * @param {Number || String} severity severity syslog like.
+     * @param {String} msgid informations for message. example(Name of function for debug)
+     * @param {String} msg  message to add in log. example (I18N)
+     */
+    logger(payload, severity, msgid, msg) {
+      if (this.settings.rateLimit) {
+        var now = new Date().getTime();
+        this.start = this.start || now;
+        if (now > this.start + this.settings.rateLimit) {
+          this.burstPrinted = 0;
+          this.missed = 0;
+          this.start = 0;
+        }
+        if (this.settings.burstLimit && this.settings.burstLimit > this.burstPrinted) {
           try {
             if (payload instanceof PDU) {
-              var pdu = payload;
+              var pdu = payload
             } else {
               var pdu = createPDU.call(this, payload, severity, this.settings.moduleName, msgid, msg);
             }
           } catch (e) {
             console.error(e);
             this.invalid++;
-            return "INVALID";
+            return "INVALID"
           }
           this.pushStack(pdu);
           this.fire("onLog", pdu);
+          this.burstPrinted++;
           return "ACCEPTED";
         }
-      }
-
-      /**
-       * Clear stack of logs
-       *
-       * @method clearLogStack
-       *
-       *
-       *
-       */
-
-    }, {
-      key: "clearLogStack",
-      value: function clearLogStack() {
-        this.ringStack.length = 0;
-      }
-
-      /**
-       * get hitory of stack
-       * @method getLogStack
-       * @param {Number} start .
-       * @param {Number} end .
-       * @return {array} new array between start end
-       * @return {PDU} pdu
-       */
-
-    }, {
-      key: "getLogStack",
-      value: function getLogStack(start, end, contition) {
-        if (contition) {
-          var stack = this.getLogs(contition);
-        } else {
-          var stack = this.ringStack;
-        }
-        if (arguments.length === 0) return stack[stack.length - 1];
-        if (!end) return stack.slice(start);
-        if (start === end) return stack[stack.length - start - 1];
-        return stack.slice(start, end);
-      }
-
-      /**
-       * get logs with conditions
-       * @method getLogs
-       * @param {Object} conditions .
-       * @return {array} new array with matches conditions
-       */
-
-    }, {
-      key: "getLogs",
-      value: function getLogs(conditions, stack) {
-        var myStack = stack || this.ringStack;
-        if (conditions.checkConditions && conditions.checkConditions in logicCondition) {
-          var myFuncCondition = logicCondition[conditions.checkConditions];
-          delete conditions.checkConditions;
-        } else {
-          var myFuncCondition = logicCondition[this.settings.checkConditions];
-        }
-        var tab = [];
+        this.missed++;
+        return "DROPPED";
+      } else {
         try {
-          var Conditions = sanitizeConditions(conditions);
-        } catch (e) {
-          throw new Error("registreNotification conditions format error: " + e);
-        }
-        if (Conditions) {
-          for (var i = 0; i < myStack.length; i++) {
-            var res = myFuncCondition(Conditions, myStack[i]);
-            if (res) tab.push(myStack[i]);
+          if (payload instanceof PDU) {
+            var pdu = payload;
+          } else {
+            var pdu = createPDU.call(this, payload, severity, this.settings.moduleName, msgid, msg);
           }
-        }
-        return tab;
-      }
-
-      /**
-       * take the stack and build a JSON string
-       * @method logToJson
-       * @return {String} string in JSON format
-       */
-
-    }, {
-      key: "logToJson",
-      value: function logToJson(conditions) {
-        if (conditions) var stack = this.getLogs(conditions);else var stack = this.ringStack;
-        return JSON.stringify(stack);
-      }
-
-      /**
-       * load the stack as JSON string
-       * @method loadStack
-       * @param {Object} json or string stack serialize
-       * @param {boolean} fire conditions events  .
-       * @param {function} callback before fire conditions events
-       * @return {String}
-       */
-
-    }, {
-      key: "loadStack",
-      value: function loadStack(stack, doEvent, beforeConditions) {
-        if (!stack) throw new Error("syslog loadStack : not stack in arguments ");
-        switch (stage.typeOf(stack)) {
-          case "string":
-            try {
-              //console.log(stack);
-              var st = JSON.parse(stack);
-              return arguments.callee.call(this, st, doEvent);
-            } catch (e) {
-              throw e;
-            }
-            break;
-          case "array":
-          case "object":
-            try {
-              for (var i = 0; i < stack.length; i++) {
-                var pdu = new PDU(stack[i].payload, stack[i].severity, stack[i].moduleName || this.settings.moduleName, stack[i].msgid, stack[i].msg, stack[i].timeStamp);
-                this.pushStack(pdu);
-
-                if (doEvent) {
-                  if (beforeConditions && typeof beforeConditions === "function") beforeConditions.call(this, pdu, stack[i]);
-                  this.fire("onLog", pdu);
-                }
-              }
-            } catch (e) {
-              throw e;
-            }
-            break;
-          default:
-            throw new Error("syslog loadStack : bad stack in arguments type");
-        };
-        return st || stack;
-      }
-
-      /**
-       *
-       *    @method  listenWithConditions
-       *
-       */
-
-    }, {
-      key: "listenWithConditions",
-      value: function listenWithConditions(context, conditions, callback) {
-        if (conditions.checkConditions && conditions.checkConditions in logicCondition) {
-          var myFuncCondition = logicCondition[conditions.checkConditions];
-          delete conditions.checkConditions;
-        } else {
-          var myFuncCondition = logicCondition[this.settings.checkConditions];
-        }
-        try {
-          var Conditions = sanitizeConditions(conditions);
         } catch (e) {
-          throw new Error("registreNotification conditions format error: " + e);
+          console.error(e);
+          this.invalid++;
+          return "INVALID";
         }
-        if (Conditions) {
-          var func = function func(pdu) {
-            var res = myFuncCondition(Conditions, pdu);
-            if (res) {
-              callback.apply(context || this, arguments);
-            }
-          };
-          _get(syslog.prototype.__proto__ || Object.getPrototypeOf(syslog.prototype), "listen", this).call(this, this, "onLog", func);
-          return func;
+        this.pushStack(pdu);
+        this.fire("onLog", pdu);
+        return "ACCEPTED";
+      }
+    }
+
+    /**
+     * Clear stack of logs
+     *
+     * @method clearLogStack
+     *
+     *
+     *
+     */
+    clearLogStack() {
+      this.ringStack.length = 0;
+    }
+
+    /**
+     * get hitory of stack
+     * @method getLogStack
+     * @param {Number} start .
+     * @param {Number} end .
+     * @return {array} new array between start end
+     * @return {PDU} pdu
+     */
+    getLogStack(start, end, contition) {
+      if (contition) {
+        var stack = this.getLogs(contition);
+      } else {
+        var stack = this.ringStack;
+      }
+      if (arguments.length === 0)
+        return stack[stack.length - 1];
+      if (!end)
+        return stack.slice(start);
+      if (start === end)
+        return stack[stack.length - start - 1];
+      return stack.slice(start, end);
+    }
+
+
+    /**
+     * get logs with conditions
+     * @method getLogs
+     * @param {Object} conditions .
+     * @return {array} new array with matches conditions
+     */
+    getLogs(conditions, stack) {
+      var myStack = stack || this.ringStack;
+      if (conditions.checkConditions && conditions.checkConditions in logicCondition) {
+        var myFuncCondition = logicCondition[conditions.checkConditions];
+        delete conditions.checkConditions;
+      } else {
+        var myFuncCondition = logicCondition[this.settings.checkConditions];
+      }
+      var tab = [];
+      try {
+        var Conditions = sanitizeConditions(conditions);
+      } catch (e) {
+        throw new Error("registreNotification conditions format error: " + e);
+      }
+      if (Conditions) {
+        for (var i = 0; i < myStack.length; i++) {
+          var res = myFuncCondition(Conditions, myStack[i])
+          if (res)
+            tab.push(myStack[i]);
         }
       }
-    }]);
+      return tab;
+    }
 
-    return syslog;
-  }(stage.notificationsCenter.notification);
+
+    /**
+     * take the stack and build a JSON string
+     * @method logToJson
+     * @return {String} string in JSON format
+     */
+    logToJson(conditions) {
+      if (conditions)
+        var stack = this.getLogs(conditions)
+      else
+        var stack = this.ringStack
+      return JSON.stringify(stack);
+    }
+
+    /**
+     * load the stack as JSON string
+     * @method loadStack
+     * @param {Object} json or string stack serialize
+     * @param {boolean} fire conditions events  .
+     * @param {function} callback before fire conditions events
+     * @return {String}
+     */
+    loadStack(stack, doEvent, beforeConditions) {
+      if (!stack)
+        throw new Error("syslog loadStack : not stack in arguments ")
+      switch (stage.typeOf(stack)) {
+      case "string":
+        try {
+          //console.log(stack);
+          var st = JSON.parse(stack);
+          return arguments.callee.call(this, st, doEvent);
+        } catch (e) {
+          throw e;
+        }
+        break;
+      case "array":
+      case "object":
+        try {
+          for (var i = 0; i < stack.length; i++) {
+            var pdu = new PDU(stack[i].payload, stack[i].severity, stack[i].moduleName || this.settings.moduleName, stack[i].msgid, stack[i].msg, stack[i].timeStamp)
+            this.pushStack(pdu);
+
+            if (doEvent) {
+              if (beforeConditions && typeof beforeConditions === "function")
+                beforeConditions.call(this, pdu, stack[i]);
+              this.fire("onLog", pdu);
+            }
+          }
+        } catch (e) {
+          throw e;
+        }
+        break;
+      default:
+        throw new Error("syslog loadStack : bad stack in arguments type")
+      };
+      return st || stack;
+    }
+
+
+    /**
+     *
+     *    @method  listenWithConditions
+     *
+     */
+    listenWithConditions(context, conditions, callback) {
+      if (conditions.checkConditions && conditions.checkConditions in logicCondition) {
+        var myFuncCondition = logicCondition[conditions.checkConditions];
+        delete conditions.checkConditions;
+      } else {
+        var myFuncCondition = logicCondition[this.settings.checkConditions];
+      }
+      try {
+        var Conditions = sanitizeConditions(conditions);
+      } catch (e) {
+        throw new Error("registreNotification conditions format error: " + e);
+      }
+      if (Conditions) {
+        var func = function (pdu) {
+          var res = myFuncCondition(Conditions, pdu);
+          if (res) {
+            callback.apply(context || this, arguments)
+          }
+        };
+        super.listen(this, "onLog", func);
+        return func;
+      }
+    }
+
+  }
   stage.syslog = syslog;
   stage.PDU = PDU;
   return syslog;
@@ -35853,10 +34942,7 @@ module.exports = function (stage) {
   !*** ./src/tools/xml.js ***!
   \**************************/
 /*! no static exports found */
-/***/ (function(module, exports, __webpack_require__) {
-
-"use strict";
-
+/***/ (function(module, exports) {
 
 /*
  *
@@ -35868,7 +34954,7 @@ module.exports = function (stage) {
  *
  */
 
-module.exports = function (stage) {
+module.exports = function(stage){
 
 	/**
    	* \brief changes the given string to XML doc.
@@ -35876,86 +34962,90 @@ module.exports = function (stage) {
    	* \param string an XML string
    	* \return  the document  node root
    	*/
-	var stringToDocumentXML = function () {
+  	var stringToDocumentXML = function(){
 
-		if (!document.implementation.createDocument) {
-			return function (str) {
+		if ( ! document.implementation.createDocument){
+			return function(str){
 				var doc = createDocument();
-				doc.async = "false";
+				doc.async="false";
 				doc.loadXML(str);
 				return doc;
-			};
-		}
-
-		return function (str) {
-			try {
-				var oDomDoc = new DOMParser().parseFromString(str, 'application/xml');
-			} catch (e) {
-				throw Error('xml function stringToDocumentXML : ' + e);
 			}
+		}
+		
+		return function(str){
+    			try{
+				var oDomDoc = (new DOMParser()).parseFromString(str, 'application/xml');
+      			}catch(e){
+				throw Error('xml function stringToDocumentXML : '+e);
+      			}
 			return oDomDoc;
-		};
-	}();
-
-	var getDocumentRoot = function getDocumentRoot(doc) {
+		}
+  	}();
+  	
+  	var getDocumentRoot = function(doc){ 
 		var type = stage.typeOf(doc);
-		if (type === "document") {
-			return doc.documentElement || doc.childNodes[0];
+		if ( type === "document" ){
+			return (doc.documentElement || doc.childNodes[0]);		
 		}
-		if (type === "element") {
-			var myDoc = doc.ownerDocument;
-			return myDoc.documentElement || myDoc.childNodes[0];
+		if ( type === "element" ){
+			var myDoc = doc.ownerDocument ;
+			return (myDoc.documentElement || myDoc.childNodes[0]);
 		}
-	};
+  	};
+
+
+
+
 
 	//parseXML
-	var parseXml = function parseXml(xml) {
-		switch (stage.typeOf(xml)) {
+	var parseXml = function( xml ){
+		switch (stage.typeOf(xml)){
 			case "string":
 				var root = getDocumentRoot(stringToDocumentXML(xml));
-				break;
+			break;
 			case "document":
 				var root = getDocumentRoot(xml);
-				break;
+			break;
 			case "element":
 				var root = xml;
-				break;
+			break;
 			default:
 				throw new Error("parseXml  bad type arguments");
-
+		
 		}
-		return parseDOM(root);
+		return parseDOM( root );
 	};
 
 	var __force_array = null;
-	var parseDOM = function parseDOM(root) {
-		if (!root) return null;
+	var parseDOM = function(root){
+		if ( ! root ) return null;
 		var force_array = null;
 		__force_array = {};
-		if (force_array) {
-			for (var i = 0; i < force_array.length; i++) {
-				__force_array[force_array[i]] = 1;
-			}
-		}
+        	if ( force_array ) {
+            		for( var i=0; i<force_array.length; i++ ) {
+                		__force_array[force_array[i]] = 1;
+            		}
+        	}
 
-		var json = parseNode(root); // parse root node
-		if (__force_array[root.nodeName]) {
-			json = [json];
-		}
-		if (root.nodeType != 11) {
-			// DOCUMENT_FRAGMENT_NODE
-			var tmp = {};
-			tmp[root.nodeName] = json; // root nodeName
-			json = tmp;
-		}
-		return json;
+        	var json = parseNode( root );   // parse root node
+        	if ( __force_array[root.nodeName] ) {
+            		json = [ json ];
+        	}
+        	if ( root.nodeType != 11 ) {            // DOCUMENT_FRAGMENT_NODE
+            		var tmp = {};
+            		tmp[root.nodeName] = json;          // root nodeName
+            		json = tmp;
+        	}
+        	return json;
 	};
 
-	var attr_prefix = "@";
+
+	var attr_prefix ="@";
 	var name_space = ":";
-	var parseNode = function parseNode(node) {
-		if (!node) return null;
-		switch (node.nodeType) {
+	var parseNode = function(node){
+		if ( ! node ) return null;
+		switch( node.nodeType ){
 			// COMMENT_NODE
 			case 7:
 				return null;
@@ -35963,86 +35053,85 @@ module.exports = function (stage) {
 			case 3:
 			// CDATA_SECTION_NODE
 			case 4:
-				if (node.nodeValue.match(/[^\x00-\x20]/)) return node.nodeValue;
+				if ( node.nodeValue.match( /[^\x00-\x20]/ ) )
+					return node.nodeValue;
 				return null;
-				break;
+			break;		
 		}
 		var ret = null;
-		var data = {};
+		var data = {};	
 
 		// parse Attributes 
-		if (node.attributes && node.attributes.length) {
+		if ( node.attributes && node.attributes.length ){
 			ret = {};
-			for (var i = 0; i < node.attributes.length; i++) {
+			for ( var i=0; i<node.attributes.length; i++ ) {
 				var key = node.attributes[i].nodeName;
-				if (typeof key !== "string") continue;
-				var val = node.attributes[i].value || node.attributes[i].nodeValue;
-				if (!val) continue;
-				key = attr_prefix + key;
-				if (typeof data[key] == "undefined") data[key] = 0;
-				data[key]++;
-				addNode(ret, key, data[key], val);
+                		if ( typeof(key) !== "string" ) continue;
+                		var val =  node.attributes[i].value || node.attributes[i].nodeValue;
+                		if ( ! val ) continue;
+                		key = attr_prefix + key;
+                		if ( typeof(data[key]) == "undefined" ) data[key] = 0;
+                		data[key] ++;
+				addNode( ret, key, data[key], val );
 			}
 			//console.log(data)
 		}
 
-		if (node.childNodes && node.childNodes.length) {
-			var textonly = true;
-			if (ret) textonly = false; // some attributes exists
-			for (var i = 0; i < node.childNodes.length && textonly; i++) {
-				var ntype = node.childNodes[i].nodeType;
-				if (ntype == 3 || ntype == 4) continue;
-				textonly = false;
-			}
-			if (textonly) {
-				if (!ret) ret = "";
-				for (var i = 0; i < node.childNodes.length; i++) {
-					ret += node.childNodes[i].nodeValue;
-				}
-			} else {
-				if (!ret) ret = {};
-				for (var i = 0; i < node.childNodes.length; i++) {
-					var key = node.childNodes[i].nodeName;
-					if (typeof key !== "string") continue;
-					var val = parseNode(node.childNodes[i]);
-					if (!val) continue;
-					if (typeof data[key] === "undefined") data[key] = 0;
-					data[key]++;
-					addNode(ret, key, data[key], val);
-				}
-			}
-		}
+		if ( node.childNodes && node.childNodes.length ) {
+            		var textonly = true;
+            		if ( ret ) textonly = false;        // some attributes exists
+            		for ( var i=0; i<node.childNodes.length && textonly; i++ ) {
+                		var ntype = node.childNodes[i].nodeType;
+                		if ( ntype == 3 || ntype == 4 ) continue;
+                		textonly = false;
+            		}
+            		if ( textonly ) {
+                		if ( ! ret ) ret = "";
+                		for ( var i=0; i<node.childNodes.length; i++ ) {
+                    			ret += node.childNodes[i].nodeValue;
+                		}
+            		} else {
+                		if ( ! ret ) ret = {};
+                		for ( var i=0; i<node.childNodes.length; i++ ) {
+                    			var key = node.childNodes[i].nodeName;
+                    			if ( typeof(key) !== "string" ) continue;
+                    			var val = parseNode( node.childNodes[i] );
+                    			if ( ! val ) continue;
+                    			if ( typeof(data[key]) === "undefined" ) data[key] = 0;
+                    			data[key] ++;
+                    			addNode( ret, key, data[key], val );
+                		}
+            		}
+        	}
 		return ret;
 	};
 
-	var addNode = function addNode(hash, key, cnts, val) {
-		key = removeColon(key);
-		if (__force_array && __force_array[key]) {
-			if (cnts == 1) hash[key] = [];
-			hash[key][hash[key].length] = val; // push
-		} else if (cnts == 1) {
-			// 1st sibling
-			hash[key] = val;
-		} else if (cnts == 2) {
-			// 2nd sibling
-			hash[key] = [hash[key], val];
-		} else {
-			// 3rd sibling and more
-			hash[key][hash[key].length] = val;
-		}
+	var addNode = function ( hash, key, cnts, val ) {
+        	key = removeColon(key);
+        	if ( __force_array && __force_array[key] ) {
+            		if ( cnts == 1 ) hash[key] = [];
+            		hash[key][hash[key].length] = val;      // push
+        	} else if ( cnts == 1 ) {                   // 1st sibling
+            		hash[key] = val;
+        	} else if ( cnts == 2 ) {                   // 2nd sibling
+            		hash[key] = [ hash[key], val ];
+        	} else {                                    // 3rd sibling and more
+            		hash[key][hash[key].length] = val;
+        	}
+	};
+	
+	var removeColon = function(name){
+		return name ? (name.replace(':',name_space)): name;
 	};
 
-	var removeColon = function removeColon(name) {
-		return name ? name.replace(':', name_space) : name;
-	};
-
-	return stage.xml = {
-		parseXml: parseXml,
+	return stage.xml =  {
+		parseXml:parseXml,
 		//parseNode:parseDOM,
-		stringToDocumentXML: stringToDocumentXML
-		//getDocumentRoot :getDocumentRoot
-	};
+	  	stringToDocumentXML : stringToDocumentXML ,
+	  	//getDocumentRoot :getDocumentRoot
+	}
 };
+
 
 /***/ }),
 

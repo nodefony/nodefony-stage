@@ -24180,7 +24180,7 @@ module.exports = {
 /*! exports provided: name, version, description, browser, main, scripts, keywords, repository, bugs, license, licenses, dependencies, devDependencies, author, readmeFilename, contributors, default */
 /***/ (function(module) {
 
-module.exports = {"name":"nodefony-stage","version":"0.1.2","description":"Client Side Nodefony web developpement","browser":"dist/stage6.js","main":"src/core.js","scripts":{"build-dev":"WEBPACK_ENV=dev webpack --verbose","build-prod":"WEBPACK_ENV=prod webpack --verbose","start":"npm start --prefix ./demo/nodefony"},"keywords":["javascript","webpack","nodefony","webrtc","sip","opensip","kamailio","webaudio"],"repository":{"type":"git","url":"git@github.com:nodefony/nodefony-stage.git"},"bugs":{"url":"https://github.com/nodefony/nodefony-stage/issues"},"license":"CECILL-B","licenses":[{"type":"CECILL-B","url":"http://www.cecill.info/licences/Licence_CeCILL-B_V1-en.html"}],"dependencies":{"ascii-table":"0.0.9","asciify":"1.3.5","babel-core":"6.26.0","babel-preset-env":"1.6.1","jquery":"^3.3.1","opn":"^5.2.0","shortid":"2.2.8","twig":"1.10.5","uglifyjs-webpack-plugin":"^1.2.2","webpack-cli":"^2.0.9","webrtc-adapter":"^6.1.1"},"devDependencies":{"assets-webpack-plugin":"3.5.1","babel-loader":"^7.1.3","babel-plugin-transform-runtime":"6.23.0","babel-polyfill":"6.26.0","babel-preset-es2015":"6.24.1","babel-register":"6.26.0","chai":"4.1.2","css-loader":"^0.28.10","exports-loader":"^0.7.0","expose-loader":"0.7.4","file-loader":"^1.1.10","imports-loader":"^0.8.0","jshint":"2.9.5","jshint-loader":"0.8.4","json-loader":"^0.5.7","mocha":"^5.0.1","node-sass":"4.7.2","raw-loader":"0.5.1","sass-loader":"6.0.6","should":"^13.2.1","sinon":"^4.4.2","sinon-chai":"2.14.0","to-string-loader":"1.1.5","tokenizer":"1.1.2","uglify-es":"^3.3.9","url-loader":"0.6.2","webpack":"^4.0.1","webpack-dev-server":"^3.1.0","webpack-merge":"^4.1.2"},"author":"cci <christophe.camensuli@gmail.com>","readmeFilename":"README.md","contributors":[{}]};
+module.exports = {"name":"nodefony-stage","version":"0.1.4","description":"Client Side Nodefony web developpement","browser":"dist/stage6.js","main":"src/core.js","scripts":{"build-dev":"WEBPACK_ENV=dev webpack --verbose","build-prod":"WEBPACK_ENV=prod webpack --verbose","start":"npm start --prefix ./demo/nodefony"},"keywords":["javascript","webpack","nodefony","webrtc","sip","opensip","kamailio","webaudio"],"repository":{"type":"git","url":"git@github.com:nodefony/nodefony-stage.git"},"bugs":{"url":"https://github.com/nodefony/nodefony-stage/issues"},"license":"CECILL-B","licenses":[{"type":"CECILL-B","url":"http://www.cecill.info/licences/Licence_CeCILL-B_V1-en.html"}],"dependencies":{"ascii-table":"0.0.9","asciify":"1.3.5","babel-core":"6.26.0","babel-preset-env":"1.6.1","jquery":"^3.3.1","opn":"^5.2.0","shortid":"2.2.8","twig":"1.10.5","uglifyjs-webpack-plugin":"^1.2.2","webpack-cli":"^2.0.9","webrtc-adapter":"^6.1.1"},"devDependencies":{"assets-webpack-plugin":"3.5.1","babel-loader":"^7.1.3","babel-plugin-transform-runtime":"6.23.0","babel-polyfill":"6.26.0","babel-preset-es2015":"6.24.1","babel-register":"6.26.0","chai":"4.1.2","css-loader":"^0.28.10","exports-loader":"^0.7.0","expose-loader":"0.7.4","file-loader":"^1.1.10","imports-loader":"^0.8.0","jshint":"2.9.5","jshint-loader":"0.8.4","json-loader":"^0.5.7","mocha":"^5.0.1","node-sass":"4.7.2","raw-loader":"0.5.1","sass-loader":"6.0.6","should":"^13.2.1","sinon":"^4.4.2","sinon-chai":"2.14.0","to-string-loader":"1.1.5","tokenizer":"1.1.2","uglify-es":"^3.3.9","url-loader":"0.6.2","webpack":"^4.0.1","webpack-dev-server":"^3.1.0","webpack-merge":"^4.1.2"},"author":"cci <christophe.camensuli@gmail.com>","readmeFilename":"README.md","contributors":[{}]};
 
 /***/ }),
 
@@ -24502,12 +24502,12 @@ var _typeof = typeof Symbol === "function" && typeof Symbol.iterator === "symbol
 
 function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError("Cannot call a class as a function"); } }
 
-var config = __webpack_require__(/*! ../../package.json */ "./package.json");
 module.exports = function () {
 
+  //const config = require("../../package.json");
   'use strict';
 
-  var version = config.version;
+  var version = __webpack_require__(/*! ../../package.json */ "./package.json").version;
 
   // Traf indexOf IE8
   var arrayProto = Array.prototype;

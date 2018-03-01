@@ -10,7 +10,8 @@
  *
  */
 require('jquery');
-const stage = require("../../../../../../../../src/core.js");
+//const stage = require("../../../../../../../../src/core.js");
+const stage = require("nodefony-stage");
 require("../css/demo.css");
 
 module.exports = function () {

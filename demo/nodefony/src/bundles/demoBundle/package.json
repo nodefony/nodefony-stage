@@ -10,7 +10,9 @@
      "javascript"
     ],
     "repository": {},
-    "dependencies": {},
+    "dependencies": {
+      
+    },
     "devDependencies": {},
     "license": "CECILL-B",
     "readmeFilename": "README.md",

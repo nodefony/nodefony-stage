@@ -1,6 +1,6 @@
 {
   "name": "nodefony-stage",
-  "version": "0.1.3",
+  "version": "0.1.4",
   "description": "Client Side Nodefony web developpement",
   "browser": "dist/stage6.js",
   "main": "src/core.js",

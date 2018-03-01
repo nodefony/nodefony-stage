@@ -16,6 +16,19 @@ module.exports = function () {
     output: {
       filename: 'stage.js',
     },
+    module: {
+      rules: [{
+        // BABEL TRANSCODE
+        test: new RegExp("\.es6$|\.js$"),
+        exclude: new RegExp("node_modules"),
+        use: [{
+          loader: 'babel-loader',
+          options: {
+            presets: ['env']
+          }
+        }]
+      }]
+    }
   }), webpackMerge(commonConfig({
     env: ENV
   }), {
