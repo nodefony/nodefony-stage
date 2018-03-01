@@ -9,7 +9,7 @@ module.exports = function () {
 
   const indexOf = function () {
     if (arrayProto.indexOf) {
-      return;
+      return arrayProto.indexOf;
     }
     arrayProto.indexOf = function (value, startIndex) {
       var index = (startIndex) === null ? 0 : (startIndex < 0 ? Math.max(0, this.length + startIndex) : startIndex);
@@ -20,6 +20,7 @@ module.exports = function () {
       }
       return -1;
     };
+    return arrayProto.indexOf;
   }();
 
   const typeOf = function (value) {
@@ -133,11 +134,11 @@ module.exports = function () {
   const useragent = navigator.userAgent.toLowerCase();
 
   /**
-   *	stage class
-   *	The class is a **`stage client side `** .
-   *	@class stage
-   *	@constructor
-   *	@module library
+   *  stage class
+   *  The class is a **`stage client side `** .
+   *  @class stage
+   *  @constructor
+   *  @module library
    *
    */
   const Stage = class Stage {

@@ -9,17 +9,11 @@ const commonConfig = require('./webpack.common.js'); // the settings that are co
 
 const UglifyJSPlugin = require('uglifyjs-webpack-plugin');
 
-const transcode = {
-  loader: "babel-loader", // or "babel" because webpack adds the '-loader' automatically
-  options: {
-    presets: ['env'],
-  }
-};
-
 const plugins = [
   new UglifyJSPlugin({
+    sourceMap: true,
     uglifyOptions: {
-      warnings: true,
+      warnings: false,
       compress: true
     },
     parallel: true
@@ -31,27 +25,16 @@ module.exports = function () {
   return [webpackMerge(commonConfig({
     env: ENV
   }), {
+    mode: 'production',
     output: {
       filename: 'stage.min.js',
-    },
-    module: {
-      rules: [{
-        // BABEL TRANSCODE
-        test: new RegExp("\.es6$|\.js$"),
-        exclude: new RegExp("node_modules"),
-        use: [{
-          loader: 'babel-loader',
-          options: {
-            presets: ['env']
-          }
-        }]
-      }]
     },
     plugins: plugins
 
   }), webpackMerge(commonConfig({
     env: ENV
   }), {
+    mode: 'production',
     output: {
       filename: 'stage6.min.js',
     },

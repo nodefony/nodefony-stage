@@ -8,8 +8,6 @@
     "curly":		true,
     "loopfunc":		true,
     "multistr":		true,
-    "emitErrors":	false,
-    "failOnHint":	false,
     "globals": {
       "module":		true,
       "$":		true,

@@ -48,7 +48,17 @@ module.exports = function () {
      * See: http://webpack.github.io/docs/configuration.html#module
      */
     module: {
-      rules: [
+      rules: [{
+          // BABEL TRANSCODE
+          test: new RegExp("\.es6$|\.js$"),
+          exclude: new RegExp("node_modules"),
+          use: [{
+            loader: 'babel-loader',
+            options: {
+              presets: ['env']
+            }
+          }]
+        },
         /*
          *	JQUERY EXPOSE BROWSER CONTEXT
          *
@@ -60,15 +70,7 @@ module.exports = function () {
           test: /jquery\..*\.js/,
           loader: "imports?$=jquery,jQuery=jquery,this=>window"
         },
-        /*
-         * Json loader support for *.json files.
-         *
-         * See: https://github.com/webpack/json-loader
-         */
-        {
-          test: /\.json$/,
-          use: 'json-loader'
-        },
+
         /*
          * to string and css loader support for *.css files
          * Returns file content as string
