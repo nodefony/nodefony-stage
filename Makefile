@@ -31,6 +31,7 @@ all:
 
 install:
 	npm install
+	$(MAKE)
 	$(MAKE) build -C ./demo/nodefony
 
 build:

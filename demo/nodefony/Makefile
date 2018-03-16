@@ -159,7 +159,7 @@ framework:
 	@echo "#######################################" ;
 	@echo "";
 
-	@if [ -e .git ] ; then \
+	@if [ -e .gitmodules ] ; then \
 		git submodule sync ; \
 		git submodule update --init --recursive ; \
 	fi
@@ -178,6 +178,9 @@ framework:
 	fi
 	@if [ ! -d bin ] ; then  \
 		mkdir bin ;\
+	fi
+	@if [ ! -d app/Resources/databases ] ; then  \
+		mkdir -p app/Resources/databases ;\
 	fi
 	@if [ ! -d web ] ; then  \
 		mkdir web ;\
@@ -214,10 +217,16 @@ framework:
 		echo " copy robots.txt " ;\
 		cp app/Resources/public/robots.txt web/ ;\
 	fi
+	@if [ ! -d app/Resources/databases ] ; then  \
+		mkdir app/Resources/databases ;\
+	fi
 
 sequelize:
 	./nodefony Sequelize:generate:entities
 	./nodefony Sequelize:fixtures:load
+
+mongoose:
+	./nodefony mongo:fixtures:load
 
 clean:
 	@if [ -e  node_modules ] ; then \

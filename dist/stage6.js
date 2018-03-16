@@ -12819,9 +12819,9 @@ SDPUtils.writeCandidate = function(candidate) {
     sdp.push('tcptype');
     sdp.push(candidate.tcpType);
   }
-  if (candidate.ufrag) {
+  if (candidate.usernameFragment || candidate.ufrag) {
     sdp.push('ufrag');
-    sdp.push(candidate.ufrag);
+    sdp.push(candidate.usernameFragment || candidate.ufrag);
   }
   return 'candidate:' + sdp.join(' ');
 };
@@ -22696,12 +22696,16 @@ module.exports = function(window) {
     return {
       name: {
         PermissionDeniedError: 'NotAllowedError',
-        InvalidStateError: 'NotReadableError',
+        PermissionDismissedError: 'NotAllowedError',
+        InvalidStateError: 'NotAllowedError',
         DevicesNotFoundError: 'NotFoundError',
         ConstraintNotSatisfiedError: 'OverconstrainedError',
         TrackStartError: 'NotReadableError',
-        MediaDeviceFailedDueToShutdown: 'NotReadableError',
-        MediaDeviceKillSwitchOn: 'NotReadableError'
+        MediaDeviceFailedDueToShutdown: 'NotAllowedError',
+        MediaDeviceKillSwitchOn: 'NotAllowedError',
+        TabCaptureError: 'AbortError',
+        ScreenCaptureError: 'AbortError',
+        DeviceCaptureError: 'AbortError'
       }[e.name] || e.name,
       message: e.message,
       constraint: e.constraintName,
@@ -22827,8 +22831,8 @@ module.exports = {
   shimRTCIceCandidate: function(window) {
     // foundation is arbitrarily chosen as an indicator for full support for
     // https://w3c.github.io/webrtc-pc/#rtcicecandidate-interface
-    if (window.RTCIceCandidate && 'foundation' in
-        window.RTCIceCandidate.prototype) {
+    if (!window.RTCIceCandidate || (window.RTCIceCandidate && 'foundation' in
+        window.RTCIceCandidate.prototype)) {
       return;
     }
 
@@ -22841,23 +22845,27 @@ module.exports = {
         args.candidate = args.candidate.substr(2);
       }
 
-      // Augment the native candidate with the parsed fields.
-      var nativeCandidate = new NativeRTCIceCandidate(args);
-      var parsedCandidate = SDPUtils.parseCandidate(args.candidate);
-      var augmentedCandidate = Object.assign(nativeCandidate,
-          parsedCandidate);
+      if (args.candidate && args.candidate.length) {
+        // Augment the native candidate with the parsed fields.
+        var nativeCandidate = new NativeRTCIceCandidate(args);
+        var parsedCandidate = SDPUtils.parseCandidate(args.candidate);
+        var augmentedCandidate = Object.assign(nativeCandidate,
+            parsedCandidate);
 
-      // Add a serializer that does not serialize the extra attributes.
-      augmentedCandidate.toJSON = function() {
-        return {
-          candidate: augmentedCandidate.candidate,
-          sdpMid: augmentedCandidate.sdpMid,
-          sdpMLineIndex: augmentedCandidate.sdpMLineIndex,
-          usernameFragment: augmentedCandidate.usernameFragment,
+        // Add a serializer that does not serialize the extra attributes.
+        augmentedCandidate.toJSON = function() {
+          return {
+            candidate: augmentedCandidate.candidate,
+            sdpMid: augmentedCandidate.sdpMid,
+            sdpMLineIndex: augmentedCandidate.sdpMLineIndex,
+            usernameFragment: augmentedCandidate.usernameFragment,
+          };
         };
-      };
-      return augmentedCandidate;
+        return augmentedCandidate;
+      }
+      return new NativeRTCIceCandidate(args);
     };
+    window.RTCIceCandidate.prototype = NativeRTCIceCandidate.prototype;
 
     // Hook up the augmented candidate in onicecandidate and
     // addEventListener('icecandidate', ...)
@@ -23057,6 +23065,10 @@ module.exports = {
   },
 
   shimSendThrowTypeError: function(window) {
+    if (!window.RTCPeerConnection) {
+      return;
+    }
+
     // Note: Although Firefox >= 57 has a native implementation, the maximum
     //       message size can be reset for all data channels at a later stage.
     //       See: https://bugzilla.mozilla.org/show_bug.cgi?id=1426831
@@ -23115,16 +23127,11 @@ module.exports = {
     var browserDetails = utils.detectBrowser(window);
 
     if (window.RTCIceGatherer) {
-      // ORTC defines an RTCIceCandidate object but no constructor.
-      // Not implemented in Edge.
       if (!window.RTCIceCandidate) {
         window.RTCIceCandidate = function(args) {
           return args;
         };
       }
-      // ORTC does not have a session description object but
-      // other browsers (i.e. Chrome) that will support both PC and ORTC
-      // in the future might have this defined already.
       if (!window.RTCSessionDescription) {
         window.RTCSessionDescription = function(args) {
           return args;
@@ -23162,6 +23169,11 @@ module.exports = {
           return this._dtmf;
         }
       });
+    }
+    // Edge currently only implements the RTCDtmfSender, not the
+    // RTCDTMFSender alias. See http://draft.ortc.org/#rtcdtmfsender2*
+    if (window.RTCDtmfSender && !window.RTCDTMFSender) {
+      window.RTCDTMFSender = window.RTCDtmfSender;
     }
 
     window.RTCPeerConnection =
@@ -24156,7 +24168,7 @@ module.exports = {
       result.browser = 'edge';
       result.version = extractVersion(navigator.userAgent,
           /Edge\/(\d+).(\d+)$/, 2);
-    } else if (navigator.mediaDevices &&
+    } else if (window.RTCPeerConnection &&
         navigator.userAgent.match(/AppleWebKit\/(\d+)\./)) { // Safari.
       result.browser = 'safari';
       result.version = extractVersion(navigator.userAgent,
@@ -24180,7 +24192,7 @@ module.exports = {
 /*! exports provided: name, version, description, browser, main, scripts, keywords, repository, bugs, license, licenses, dependencies, devDependencies, author, readmeFilename, contributors, default */
 /***/ (function(module) {
 
-module.exports = {"name":"nodefony-stage","version":"0.1.4","description":"Client Side Nodefony web developpement","browser":"dist/stage6.js","main":"src/core.js","scripts":{"build-dev":"WEBPACK_ENV=dev webpack --verbose","build-prod":"WEBPACK_ENV=prod webpack --verbose","start":"npm start --prefix ./demo/nodefony"},"keywords":["javascript","webpack","nodefony","webrtc","sip","opensip","kamailio","webaudio"],"repository":{"type":"git","url":"git@github.com:nodefony/nodefony-stage.git"},"bugs":{"url":"https://github.com/nodefony/nodefony-stage/issues"},"license":"CECILL-B","licenses":[{"type":"CECILL-B","url":"http://www.cecill.info/licences/Licence_CeCILL-B_V1-en.html"}],"dependencies":{"ascii-table":"0.0.9","asciify":"1.3.5","babel-core":"6.26.0","babel-preset-env":"1.6.1","jquery":"^3.3.1","opn":"^5.2.0","shortid":"2.2.8","twig":"1.10.5","uglifyjs-webpack-plugin":"^1.2.2","webpack-cli":"^2.0.9","webrtc-adapter":"^6.1.1"},"devDependencies":{"assets-webpack-plugin":"3.5.1","babel-loader":"^7.1.3","babel-plugin-transform-runtime":"6.23.0","babel-polyfill":"6.26.0","babel-preset-es2015":"6.24.1","babel-register":"6.26.0","chai":"4.1.2","css-loader":"^0.28.10","exports-loader":"^0.7.0","expose-loader":"0.7.4","file-loader":"^1.1.10","imports-loader":"^0.8.0","jshint":"2.9.5","jshint-loader":"0.8.4","json-loader":"^0.5.7","mocha":"^5.0.1","node-sass":"4.7.2","raw-loader":"0.5.1","sass-loader":"6.0.6","should":"^13.2.1","sinon":"^4.4.2","sinon-chai":"2.14.0","to-string-loader":"1.1.5","tokenizer":"1.1.2","uglify-es":"^3.3.9","url-loader":"0.6.2","webpack":"^4.0.1","webpack-dev-server":"^3.1.0","webpack-merge":"^4.1.2"},"author":"cci <christophe.camensuli@gmail.com>","readmeFilename":"README.md","contributors":[{}]};
+module.exports = {"name":"nodefony-stage","version":"0.1.5","description":"Client Side Nodefony web developpement","browser":"dist/stage6.js","main":"src/core.js","scripts":{"build-dev":"WEBPACK_ENV=dev webpack --verbose","build-prod":"WEBPACK_ENV=prod webpack --verbose","start":"npm start --prefix ./demo/nodefony"},"keywords":["javascript","webpack","nodefony","webrtc","sip","opensip","kamailio","webaudio"],"repository":{"type":"git","url":"git@github.com:nodefony/nodefony-stage.git"},"bugs":{"url":"https://github.com/nodefony/nodefony-stage/issues"},"license":"CECILL-B","licenses":[{"type":"CECILL-B","url":"http://www.cecill.info/licences/Licence_CeCILL-B_V1-en.html"}],"dependencies":{"ascii-table":"0.0.9","asciify":"1.3.5","babel-core":"6.26.0","babel-preset-env":"1.6.1","jquery":"^3.3.1","opn":"^5.3.0","shortid":"2.2.8","twig":"1.10.5","uglifyjs-webpack-plugin":"^1.2.3","webpack-cli":"^2.0.12","webrtc-adapter":"^6.1.4"},"devDependencies":{"assets-webpack-plugin":"3.5.1","babel-loader":"^7.1.4","babel-plugin-transform-runtime":"6.23.0","babel-polyfill":"6.26.0","babel-preset-es2015":"6.24.1","babel-register":"6.26.0","chai":"4.1.2","css-loader":"^0.28.11","exports-loader":"^0.7.0","expose-loader":"^0.7.5","file-loader":"^1.1.11","imports-loader":"^0.8.0","jshint":"2.9.5","jshint-loader":"0.8.4","json-loader":"^0.5.7","mocha":"^5.0.4","node-sass":"^4.7.2","raw-loader":"0.5.1","sass-loader":"^6.0.7","should":"^13.2.1","sinon":"^4.4.6","sinon-chai":"^3.0.0","to-string-loader":"1.1.5","tokenizer":"1.1.2","uglify-es":"^3.3.9","url-loader":"^1.0.1","webpack":"^4.1.1","webpack-dev-server":"^3.1.1","webpack-merge":"^4.1.2"},"author":"cci <christophe.camensuli@gmail.com>","readmeFilename":"README.md","contributors":[{}]};
 
 /***/ }),
 
@@ -24406,7 +24418,7 @@ module.exports = function (stage) {
               break;
             }
           } catch (e) {
-            console.log(e)
+            console.log(e);
             throw new Error(e);
           }
         }
@@ -24445,7 +24457,7 @@ module.exports = function (stage) {
         return this.clearNotifications();
       }
     }
-  }
+  };
 
   stage.notificationsCenter = {
     notification: Notification,
@@ -26828,6 +26840,7 @@ module.exports = function (stage) {
       this.qop = null;
       this.algorithm = null;
       this.entity_body = null;
+      this.timeout = null;
     }
 
     register(message, type) {
@@ -26873,6 +26886,7 @@ module.exports = function (stage) {
       var request = transac.createRequest(this.dialog.body, this.dialog.bodyType);
       request.header.response = this.lineResponse;
       request.send();
+      this.dialog.sip.createDialogTimeout(this.dialog);
       return transac;
 
     }
@@ -27604,15 +27618,11 @@ module.exports = function (stage) {
       if (method instanceof Message) {
         this.hydrate(method);
       } else {
-
         this.method = method;
-
         this.callId = this.generateCallId();
         this.status = this.statusCode.INITIAL;
-
         this.to = null;
         this.tagTo = null;
-
       }
       //this.contact = this.sip.generateContact( null, null, true) ;
       this.contact = this.sip.contact;
@@ -27728,7 +27738,6 @@ module.exports = function (stage) {
       let request = trans.createRequest();
       request.send();
       return trans;
-
     }
 
     unregister() {
@@ -27742,7 +27751,7 @@ module.exports = function (stage) {
       return trans;
     }
 
-    ack(message) {
+    ack( /*message*/ ) {
       if (!this["request-uri"]) {
         this["request-uri"] = this.sip["request-uri"];
       }
@@ -27832,12 +27841,14 @@ module.exports = function (stage) {
       if (id) {
         if (this.transactions[id]) {
           this.transactions[id].clear();
+          delete this.transactions[id];
         } else {
           throw new Error("TRANSACTION not found :" + id);
         }
       } else {
         for (let transac in this.transactions) {
           this.transactions[transac].clear();
+          delete this.transactions[transac];
         }
       }
     }
@@ -28056,6 +28067,9 @@ module.exports = function (stage) {
     switch (message.method) {
     case "REGISTER":
       this.rport = message.header.Via[0].rport;
+      if (message.dialog) {
+        this.clearDialogTimeout(message.dialog);
+      }
       if (this.rport) {
         this["request-uri"] = "sip:" + this.userName + "@" + this.publicAddress + ":" + this.rport + ";transport=" + this.transportType;
       }
@@ -28124,7 +28138,6 @@ module.exports = function (stage) {
         this.registerInterval = setInterval(() => {
           this.authenticateRegister.register(message);
           this.notificationsCenter.fire("onRenew", this, this.authenticateRegister, message);
-          //this.register(this.userName, this.settings.password);
         }, expires);
         break;
       default:
@@ -28138,7 +28151,9 @@ module.exports = function (stage) {
       break;
     case "INVITE":
       //this.rport = message.rport || this.rport;
-
+      if (message.dialog) {
+        this.clearDialogTimeout(message.dialog);
+      }
       switch (message.type) {
       case "REQUEST":
         if (message.dialog.status === message.dialog.statusCode.INITIAL) {
@@ -28303,8 +28318,6 @@ module.exports = function (stage) {
 
       super("SIP", null, null, settings);
       this.settings = stage.extend({}, defaultSettings, settings);
-      //this.settings.url = stage.io.urlToOject(url)
-      //this.notificationsCenter = stage.notificationsCenter.create(this.settings, this);
       this.dialogs = {};
       this.version = this.settings.version;
 
@@ -28317,6 +28330,7 @@ module.exports = function (stage) {
 
       // REGISTER
       this.registerInterval = null;
+      this.registerTimeout = {};
       this.registered = null;
       this.diagRegister = null;
 
@@ -28465,12 +28479,17 @@ module.exports = function (stage) {
       if (this.registerInterval) {
         clearInterval(this.registerInterval);
       }
+      if (this.registerTimeout) {
+        this.clearDialogTimeout();
+        delete this.registerTimeout;
+      }
       //TODO
       //clean all setinterval
       for (var dia in this.dialogs) {
         //this.dialogs[dia].unregister();
         this.dialogs[dia].clear();
       }
+      this.notificationsCenter.clearNotifications();
     }
 
     quit(message) {
@@ -28490,11 +28509,35 @@ module.exports = function (stage) {
       return dialog;
     }
 
+    createDialogTimeout(dialog) {
+      if (dialog) {
+        this.registerTimeout[dialog.callId] = setTimeout(() => {
+          let error = new Error(" DIALOG ID : " + dialog.callId + " TIMEOUT : " + dialog.method + "  no response ");
+          this.logger(error, "ERROR");
+          this.fire("onError", this, error);
+        }, this.settings.expires);
+      }
+    }
+    clearDialogTimeout(dialog) {
+      if (dialog) {
+        if (this.registerTimeout[dialog.callId]) {
+          clearTimeout(this.registerTimeout[dialog.callId]);
+          delete this.registerTimeout[dialog.callId];
+        }
+      } else {
+        for (let ele in this.registerTimeout) {
+          clearTimeout(this.registerTimeout[ele]);
+          delete this.registerTimeout[ele];
+        }
+      }
+    }
+
     register(userName, password, settings) {
       this.logger("TRY TO REGISTER SIP : " + userName + password, "DEBUG");
       this.contact = this.generateContact(userName, password, false, settings);
       this.diagRegister = this.createDialog("REGISTER");
       this.diagRegister.register();
+      this.createDialogTimeout(this.diagRegister);
       return this.diagRegister;
     }
 
@@ -29166,7 +29209,12 @@ module.exports = function (stage) {
     }
 
     connect(url, settings) {
-      this.socket = new WebSocket(url, settings.protocol);
+      try {
+        this.socket = new WebSocket(url, settings.protocol);
+      } catch (e) {
+        this.fire("onError", e);
+        throw e;
+      }
       this.socket.onmessage = this.listen(this, "onMessage");
       this.socket.onerror = this.listen(this, "onError");
       this.socket.onopen = this.listen(this, "onConnect");
@@ -32086,12 +32134,12 @@ module.exports = function (stage) {
           return window.URL.createObjectURL(stream);
         };
         mediaStream = MediaStream;
-        if (!MediaStream.prototype.getVideoTracks) {
+        if (MediaStream && !MediaStream.prototype.getVideoTracks) {
           MediaStream.prototype.getVideoTracks = function () {
             return [];
           };
         }
-        if (!MediaStream.prototype.getAudioTracks) {
+        if (MediaStream && !MediaStream.prototype.getAudioTracks) {
           MediaStream.prototype.getAudioTracks = function () {
             return [];
           };
@@ -32181,10 +32229,15 @@ module.exports = function (stage) {
     }
 
     attachMediaStream(element) {
-      this.mediaElement = element;
+      this.mediaElement = element || this.mediaElement;
       this.mediaElement.srcObject = this.stream;
-      //element.mozSrcObject = this.stream;
       this.mediaElement.play();
+      /*this.mediaElement.onloadedmetadata = (e) => {
+        if (e) {
+          this.notificationsCenter.fire("onError", e);
+        }
+        this.mediaElement.play();
+      };*/
     }
 
     reattachMediaStream(stream) {
@@ -33093,8 +33146,8 @@ module.exports = function (stage) {
     createPeerConnection() {
       try {
         // CREATE PeerConnection
-        //this.logger(this.webrtc.settings.optional, "DEBUG");
-        console.log(this.webrtc.settings.optional)
+        this.logger(this.webrtc.settings.optional, "DEBUG");
+        //console.log(this.webrtc.settings.optional)
         this.RTCPeerConnection = new RTCPeerConnection(this.webrtc.settings.optional);
 
         // MANAGE EVENT CANDIDATES
@@ -33343,9 +33396,46 @@ module.exports = function (stage) {
       } else {
         this.logger("WEBRTC  TRANSACTION ALREADY CLOSED : " + this.callId, "WARNING");
       }
-      this.webrtc.unListen("onKeyPress", this.sendDtmf);
-      delete this.RTCPeerConnection;
+      if (this.webrtc) {
+        this.webrtc.unListen("onKeyPress", this.sendDtmf);
+      }
+      this.clear();
       return this;
+    }
+
+    clear() {
+      if (this.RTCPeerConnection) {
+        this.RTCPeerConnection = null;
+        delete this.RTCPeerConnection;
+      }
+      if (this.webrtc) {
+        this.webrtc = null;
+        delete this.webrtc;
+      }
+      if (this.currentTransaction) {
+        this.currentTransaction = null;
+        delete this.currentTransaction;
+      }
+      if (this.candidates) {
+        this.candidates = null;
+        delete this.candidates;
+      }
+      if (this.dialog) {
+        this.dialog = null;
+        delete this.dialog;
+      }
+      if (this.from) {
+        this.from = null;
+        delete this.from;
+      }
+      if (this.to) {
+        this.to = null;
+        delete this.to;
+      }
+      if (this.error) {
+        this.error = null;
+        delete this.error;
+      }
     }
   };
 
@@ -33691,6 +33781,7 @@ module.exports = function (stage) {
         });
 
         this.protocol.listen(this, "onQuit", function (protocol) {
+          this.fire("onQuit", this);
           this.close();
         });
 
@@ -33812,11 +33903,11 @@ module.exports = function (stage) {
     }
 
     unRegister() {
-      //console.log( "WEBRTC unregister")
-      this.close();
       if (this.protocol) {
         this.protocol.unregister();
       }
+      //console.log( "WEBRTC unregister")
+      this.close();
     }
 
     register(userName, password, settings) {
@@ -33852,13 +33943,27 @@ module.exports = function (stage) {
     }
 
     close() {
-      this.fire("onQuit", this);
-      for (var trans in this.transactions) {
+      this.fire("onClose", this);
+      this.clean();
+    }
+
+    clean() {
+      this.cleanTransactions();
+      if (this.protocol) {
+        this.protocol.clear();
+        this.protocol = null;
+        delete this.protocol;
+      }
+      this.notificationsCenter.clearNotifications();
+    }
+
+    cleanTransactions() {
+      for (let trans in this.transactions) {
         try {
           this.transactions[trans].bye();
           this.transactions[trans].close();
         } catch (e) {
-
+          this.logger(e, "ERROR");
         }
         delete this.transactions[trans];
       }

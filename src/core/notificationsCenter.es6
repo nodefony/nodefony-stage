@@ -108,7 +108,7 @@ module.exports = function (stage) {
               break;
             }
           } catch (e) {
-            console.log(e)
+            console.log(e);
             throw new Error(e);
           }
         }
@@ -147,7 +147,7 @@ module.exports = function (stage) {
         return this.clearNotifications();
       }
     }
-  }
+  };
 
   stage.notificationsCenter = {
     notification: Notification,

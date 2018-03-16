@@ -133,8 +133,8 @@ module.exports = function (stage) {
     createPeerConnection() {
       try {
         // CREATE PeerConnection
-        //this.logger(this.webrtc.settings.optional, "DEBUG");
-        console.log(this.webrtc.settings.optional)
+        this.logger(this.webrtc.settings.optional, "DEBUG");
+        //console.log(this.webrtc.settings.optional)
         this.RTCPeerConnection = new RTCPeerConnection(this.webrtc.settings.optional);
 
         // MANAGE EVENT CANDIDATES
@@ -383,9 +383,46 @@ module.exports = function (stage) {
       } else {
         this.logger("WEBRTC  TRANSACTION ALREADY CLOSED : " + this.callId, "WARNING");
       }
-      this.webrtc.unListen("onKeyPress", this.sendDtmf);
-      delete this.RTCPeerConnection;
+      if (this.webrtc) {
+        this.webrtc.unListen("onKeyPress", this.sendDtmf);
+      }
+      this.clear();
       return this;
+    }
+
+    clear() {
+      if (this.RTCPeerConnection) {
+        this.RTCPeerConnection = null;
+        delete this.RTCPeerConnection;
+      }
+      if (this.webrtc) {
+        this.webrtc = null;
+        delete this.webrtc;
+      }
+      if (this.currentTransaction) {
+        this.currentTransaction = null;
+        delete this.currentTransaction;
+      }
+      if (this.candidates) {
+        this.candidates = null;
+        delete this.candidates;
+      }
+      if (this.dialog) {
+        this.dialog = null;
+        delete this.dialog;
+      }
+      if (this.from) {
+        this.from = null;
+        delete this.from;
+      }
+      if (this.to) {
+        this.to = null;
+        delete this.to;
+      }
+      if (this.error) {
+        this.error = null;
+        delete this.error;
+      }
     }
   };
 

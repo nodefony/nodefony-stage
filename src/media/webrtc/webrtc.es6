@@ -257,6 +257,7 @@ module.exports = function (stage) {
         });
 
         this.protocol.listen(this, "onQuit", function (protocol) {
+          this.fire("onQuit", this);
           this.close();
         });
 
@@ -378,11 +379,11 @@ module.exports = function (stage) {
     }
 
     unRegister() {
-      //console.log( "WEBRTC unregister")
-      this.close();
       if (this.protocol) {
         this.protocol.unregister();
       }
+      //console.log( "WEBRTC unregister")
+      this.close();
     }
 
     register(userName, password, settings) {
@@ -418,13 +419,27 @@ module.exports = function (stage) {
     }
 
     close() {
-      this.fire("onQuit", this);
-      for (var trans in this.transactions) {
+      this.fire("onClose", this);
+      this.clean();
+    }
+
+    clean() {
+      this.cleanTransactions();
+      if (this.protocol) {
+        this.protocol.clear();
+        this.protocol = null;
+        delete this.protocol;
+      }
+      this.notificationsCenter.clearNotifications();
+    }
+
+    cleanTransactions() {
+      for (let trans in this.transactions) {
         try {
           this.transactions[trans].bye();
           this.transactions[trans].close();
         } catch (e) {
-
+          this.logger(e, "ERROR");
         }
         delete this.transactions[trans];
       }

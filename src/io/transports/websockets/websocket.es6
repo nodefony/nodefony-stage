@@ -16,7 +16,12 @@ module.exports = function (stage) {
     }
 
     connect(url, settings) {
-      this.socket = new WebSocket(url, settings.protocol);
+      try {
+        this.socket = new WebSocket(url, settings.protocol);
+      } catch (e) {
+        this.fire("onError", e);
+        throw e;
+      }
       this.socket.onmessage = this.listen(this, "onMessage");
       this.socket.onerror = this.listen(this, "onError");
       this.socket.onopen = this.listen(this, "onConnect");

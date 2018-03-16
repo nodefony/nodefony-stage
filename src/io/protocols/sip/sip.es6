@@ -96,6 +96,7 @@ module.exports = function (stage) {
       this.qop = null;
       this.algorithm = null;
       this.entity_body = null;
+      this.timeout = null;
     }
 
     register(message, type) {
@@ -141,6 +142,7 @@ module.exports = function (stage) {
       var request = transac.createRequest(this.dialog.body, this.dialog.bodyType);
       request.header.response = this.lineResponse;
       request.send();
+      this.dialog.sip.createDialogTimeout(this.dialog);
       return transac;
 
     }
@@ -872,15 +874,11 @@ module.exports = function (stage) {
       if (method instanceof Message) {
         this.hydrate(method);
       } else {
-
         this.method = method;
-
         this.callId = this.generateCallId();
         this.status = this.statusCode.INITIAL;
-
         this.to = null;
         this.tagTo = null;
-
       }
       //this.contact = this.sip.generateContact( null, null, true) ;
       this.contact = this.sip.contact;
@@ -996,7 +994,6 @@ module.exports = function (stage) {
       let request = trans.createRequest();
       request.send();
       return trans;
-
     }
 
     unregister() {
@@ -1010,7 +1007,7 @@ module.exports = function (stage) {
       return trans;
     }
 
-    ack(message) {
+    ack( /*message*/ ) {
       if (!this["request-uri"]) {
         this["request-uri"] = this.sip["request-uri"];
       }
@@ -1100,12 +1097,14 @@ module.exports = function (stage) {
       if (id) {
         if (this.transactions[id]) {
           this.transactions[id].clear();
+          delete this.transactions[id];
         } else {
           throw new Error("TRANSACTION not found :" + id);
         }
       } else {
         for (let transac in this.transactions) {
           this.transactions[transac].clear();
+          delete this.transactions[transac];
         }
       }
     }
@@ -1324,6 +1323,9 @@ module.exports = function (stage) {
     switch (message.method) {
     case "REGISTER":
       this.rport = message.header.Via[0].rport;
+      if (message.dialog) {
+        this.clearDialogTimeout(message.dialog);
+      }
       if (this.rport) {
         this["request-uri"] = "sip:" + this.userName + "@" + this.publicAddress + ":" + this.rport + ";transport=" + this.transportType;
       }
@@ -1392,7 +1394,6 @@ module.exports = function (stage) {
         this.registerInterval = setInterval(() => {
           this.authenticateRegister.register(message);
           this.notificationsCenter.fire("onRenew", this, this.authenticateRegister, message);
-          //this.register(this.userName, this.settings.password);
         }, expires);
         break;
       default:
@@ -1406,7 +1407,9 @@ module.exports = function (stage) {
       break;
     case "INVITE":
       //this.rport = message.rport || this.rport;
-
+      if (message.dialog) {
+        this.clearDialogTimeout(message.dialog);
+      }
       switch (message.type) {
       case "REQUEST":
         if (message.dialog.status === message.dialog.statusCode.INITIAL) {
@@ -1571,8 +1574,6 @@ module.exports = function (stage) {
 
       super("SIP", null, null, settings);
       this.settings = stage.extend({}, defaultSettings, settings);
-      //this.settings.url = stage.io.urlToOject(url)
-      //this.notificationsCenter = stage.notificationsCenter.create(this.settings, this);
       this.dialogs = {};
       this.version = this.settings.version;
 
@@ -1585,6 +1586,7 @@ module.exports = function (stage) {
 
       // REGISTER
       this.registerInterval = null;
+      this.registerTimeout = {};
       this.registered = null;
       this.diagRegister = null;
 
@@ -1733,12 +1735,17 @@ module.exports = function (stage) {
       if (this.registerInterval) {
         clearInterval(this.registerInterval);
       }
+      if (this.registerTimeout) {
+        this.clearDialogTimeout();
+        delete this.registerTimeout;
+      }
       //TODO
       //clean all setinterval
       for (var dia in this.dialogs) {
         //this.dialogs[dia].unregister();
         this.dialogs[dia].clear();
       }
+      this.notificationsCenter.clearNotifications();
     }
 
     quit(message) {
@@ -1758,11 +1765,35 @@ module.exports = function (stage) {
       return dialog;
     }
 
+    createDialogTimeout(dialog) {
+      if (dialog) {
+        this.registerTimeout[dialog.callId] = setTimeout(() => {
+          let error = new Error(" DIALOG ID : " + dialog.callId + " TIMEOUT : " + dialog.method + "  no response ");
+          this.logger(error, "ERROR");
+          this.fire("onError", this, error);
+        }, this.settings.expires);
+      }
+    }
+    clearDialogTimeout(dialog) {
+      if (dialog) {
+        if (this.registerTimeout[dialog.callId]) {
+          clearTimeout(this.registerTimeout[dialog.callId]);
+          delete this.registerTimeout[dialog.callId];
+        }
+      } else {
+        for (let ele in this.registerTimeout) {
+          clearTimeout(this.registerTimeout[ele]);
+          delete this.registerTimeout[ele];
+        }
+      }
+    }
+
     register(userName, password, settings) {
       this.logger("TRY TO REGISTER SIP : " + userName + password, "DEBUG");
       this.contact = this.generateContact(userName, password, false, settings);
       this.diagRegister = this.createDialog("REGISTER");
       this.diagRegister.register();
+      this.createDialogTimeout(this.diagRegister);
       return this.diagRegister;
     }
 

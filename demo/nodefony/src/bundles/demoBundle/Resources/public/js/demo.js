@@ -10,8 +10,8 @@
  *
  */
 require('jquery');
-//const stage = require("../../../../../../../../src/core.js");
-const stage = require("nodefony-stage");
+const stage = require("../../../../../../../../src/core.js");
+//const stage = require("nodefony-stage");
 require("../css/demo.css");
 
 module.exports = function () {
@@ -26,7 +26,15 @@ module.exports = function () {
   const demo = class demo {
 
     constructor() {
-      console.log(stage.version);
+
+      $(document).ready(() => {
+        let md = new stage.media.mediaStream($("#myvideo").get(0));
+        md.getUserMedia({}, (media) => {
+          media.attachMediaStream();
+          //media.getVideoTracks();
+        });
+
+      });
     }
   };
 

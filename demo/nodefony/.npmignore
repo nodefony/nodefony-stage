@@ -7,17 +7,12 @@
 # macos
 .DS_Store
 
+*.[oa]
+
 # Eclipse file
 /.project
 /.settings
 /nbproject/private/
-
-npm-debug.log
-yarn-error.log
-
-old/**
-**/assets/**
-**/tests/**
 
 .git
 .github
@@ -29,3 +24,23 @@ old/**
 .gitmodules
 .bithoundrc
 .grenrc.json
+
+
+*.db
+
+npm-debug.log
+yarn-error.log
+
+#**/assets/**
+**/tests/**
+
+
+/Makefile
+/node_modules
+/config
+/app
+/tmp
+/web
+/src/bundles
+/docker
+/tools

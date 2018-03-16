@@ -24,7 +24,22 @@ Nodefony-stage use webpack to build :
 
 $ git clone https://github.com/nodefony/nodefony-stage.git
 
+# BUILD ALL (with nodefony demo)
 $ make install
+
+# BUILD library dev and prod
+$ npm install
 $ make
+
+# BUILD library dev
+$ npm install
+$ make build-dev
+
+# BUILD library prod
+$ npm install
+$ make build
+
+# SEE DEMO
+$ make demo
 
 ```

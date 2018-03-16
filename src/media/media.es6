@@ -32,12 +32,12 @@ module.exports = function (stage) {
           return window.URL.createObjectURL(stream);
         };
         mediaStream = MediaStream;
-        if (!MediaStream.prototype.getVideoTracks) {
+        if (MediaStream && !MediaStream.prototype.getVideoTracks) {
           MediaStream.prototype.getVideoTracks = function () {
             return [];
           };
         }
-        if (!MediaStream.prototype.getAudioTracks) {
+        if (MediaStream && !MediaStream.prototype.getAudioTracks) {
           MediaStream.prototype.getAudioTracks = function () {
             return [];
           };
@@ -127,10 +127,15 @@ module.exports = function (stage) {
     }
 
     attachMediaStream(element) {
-      this.mediaElement = element;
+      this.mediaElement = element || this.mediaElement;
       this.mediaElement.srcObject = this.stream;
-      //element.mozSrcObject = this.stream;
       this.mediaElement.play();
+      /*this.mediaElement.onloadedmetadata = (e) => {
+        if (e) {
+          this.notificationsCenter.fire("onError", e);
+        }
+        this.mediaElement.play();
+      };*/
     }
 
     reattachMediaStream(stream) {

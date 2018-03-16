@@ -11,9 +11,10 @@ Nodefony is not an exhaustive port of symfony !
 
 Nodefony features :
 - Servers  ([http(s)](https://nodejs.org/dist/latest-v8.x/docs/api/https.html), [websocket(s)](https://github.com/theturtle32/WebSocket-Node), statics, sockjs)
+- [HTTP2](https://nodejs.org/api/http2.html)  http2 ready node module provides an implementation of the HTTP/2 (push server ready).
 - Dynamics routing
-- ORM ([Sequelize](http://docs.sequelizejs.com/))
-- Simple Databases connection (mongo, redis ...)
+- ORM ([Sequelize](http://docs.sequelizejs.com/), [mongoose](http://mongoosejs.com/index.html))
+- Simple Databases connection (mongo, ...)
 - MVC templating ([Twig](https://github.com/twigjs/twig.js))
 - HMR hot module Replacement  (auto-reload controller views routing in developement mode)
 - Notion of real-time context in Action Controller (websocket).
@@ -21,7 +22,7 @@ Nodefony features :
 - Services Containers, Dependency Injection (Design Patterns)
 - Sessions Manager (ORM, memcached)
 - Authentication Manager (Digest, Basic, oAuth, Local, ldap)
-- Firewall ( Web Application Firewall WAF )
+- Firewall ( Application Level )
 - Cross-Origin Resource Sharing ([CORS](https://www.w3.org/TR/cors/))
 - Production Management ([PM2](https://github.com/Unitech/pm2/))
 - RealTime API ([Bayeux Protocol](http://autogrowsystems.github.io/faye-go/))
@@ -38,12 +39,9 @@ Nodefony assimilates into the ecosystem of node.js with services like :
 
 Nodefony 3  adds the following features :
 - [Angular](https://github.com/angular/angular-cli) Bundle Generator ( Now an Angular Project can be merge into a Nodefony Bundle )
-- New cli Management (Command Line Interface)
-- ~~[React](https://github.com/facebookincubator/create-react-app) Bundle Generator ( Soon an React Project can be merge into a Nodefony Bundle )~~
+- [React](https://github.com/facebookincubator/create-react-app) Bundle Generator ( Now an React Project can be merge into a Nodefony Bundle )
 - [SockJS](https://github.com/sockjs) Server ( Like WDS 'Webpack Dev Server' and HMR management )
-
 - ~~[Electron](https://github.com/nodefony/nodefony-electron) Experimental Nodefony Electron  ( Now an Electron Context can be use in Nodefony Project  )~~
-- ~~[HTTP2](https://nodejs.org/dist/latest-v9.x/docs/api/http2.html) Soon Server HTTP2 ( Integration of the HTTP/2 protocol )~~
 
 Now in this version  3 Beta,  Nodefony is evolved to a stable version without major fundamental changes.
 
@@ -157,6 +155,7 @@ system:
   locale                        : "en_en"
 
   servers:
+    protocol                    : "2.0"             #  2.0 || 1.1
     http                        : true
     https	                : true
     ws			        : true
@@ -290,7 +289,7 @@ $ ./nodefony -d dev
 $ <ctrl-c>
 ```
 
-#### Now helleBundle is auto-insert in framework with watcher active and auto-config Webpack Module bundler
+#### Now helloBundle is auto-insert in framework with watcher active and auto-config Webpack Module bundler
 
 ### watchers :
 
@@ -365,63 +364,55 @@ module.exports = webpackMerge({
   },
   externals: {},
   resolve: {},
-  module: {
-    rules: [{
-      // BABEL TRANSCODE
-      test: new RegExp("\.es6$"),
-      exclude: new RegExp("node_modules"),
-      use: [{
-        loader: 'babel-loader',
-        options: {
-          presets: ['env']
-        }
-      }]
-    }, {
-      // CSS EXTRACT
-      test: new RegExp("\.css$"),
-      use: ExtractTextPluginCss.extract({
-        use: 'css-loader'
-      })
-    }, {
-      // SASS
-      test: new RegExp(".scss$"),
-      use: [{
-        loader: 'style-loader'
-      }, {
-        loader: 'css-loader'
-      }, {
-        loader: 'sass-loader'
-      }]
-    }, {
-      test: new RegExp("\.less$"),
-      use: ExtractTextPluginCss.extract({
-        use: [
-          "raw-loader",
-          {
-            loader: 'less-loader',
-            options: {
-              //strictMath: true,
-              //noIeCompat: true
-            }
-          }
-        ]
-      })
-    }, {
-      // FONTS
-      test: new RegExp("\.(eot|woff2?|svg|ttf)([\?]?.*)$"),
-      use: 'file-loader?name=[name].[ext]&publicPath=/' + bundleName + '&outputPath=/assets/fonts/',
-    }, {
-      // IMAGES
-      test: new RegExp("\.(jpg|png|gif)$"),
-      use: 'file-loader?name=[name].[ext]&publicPath=/' + bundleName + '&outputPath=/assets/images/'
-    }]
-  },
-  plugins: [
-    new ExtractTextPluginCss({
-      filename: "./assets/css/[name].css",
-    })
-  ]
-}, config);
+  module: {...}
+});  
+```
+
+### Example controller  : ./src/bundles/helloBundle/controller/defaultController.js
+```js
+module.exports = class defaultController extends nodefony.controller {
+  constructor (container, context){
+    super(container, context);
+  }
+  indexAction() {
+    try {
+      return this.render("helloBundle::index.html.twig", {
+        name: "helloBundle"
+      });
+    } catch (e) {
+      throw e;
+    }
+  }
+};
+```
+
+### Example view  (twig) : ./src/bundles/helloBundle/Resources/views/index.html.twig
+```twig
+{% extends '/app/Resources/views/base.html.twig' %}
+
+{% block title %}Welcome {{name}}! {% endblock %}
+
+{% block stylesheets %}
+  {{ parent() }}
+  <!-- WEBPACK BUNDLE -->
+  <link rel='stylesheet' href='{{CDN("stylesheet")}}/helloBundle/assets/css/hello.css' />
+{% endblock %}
+
+{% block body %}
+      <img class='displayed' src='{{CDN("image")}}/frameworkBundle/images/nodefony-logo-white.png'>
+      <h1 class='success'>
+        <a href='{{url('documentation')}}'>
+          <strong style='font-size:45px'>NODEFONY</strong>
+        </a>
+        <p>{{trans('welcome')}} {{name}}</p>
+      </h1>
+{% endblock %}
+
+{% block javascripts %}
+  {{ parent() }}
+  <!-- WEBPACK BUNDLE -->
+  <script src='{{CDN("javascript")}}/helloBundle/assets/js/hello.js'></script>
+{% endblock %}
 ```
 
 ### <a name="start_prod"></a>Start Production Mode

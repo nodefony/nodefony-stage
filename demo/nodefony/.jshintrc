@@ -37,6 +37,9 @@
       "describe":	true,
       "twig": true,
       "shell":true,
-      "clc":true
+      "clc":true,
+      "document":true,
+      "$":true,
+      "window":true
     }
 }
