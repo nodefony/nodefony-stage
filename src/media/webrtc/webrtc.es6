@@ -420,7 +420,9 @@ module.exports = function (stage) {
 
     close() {
       this.fire("onClose", this);
-      this.clean();
+      setTimeout(() => {
+        this.clean();
+      }, 2000);
     }
 
     clean() {

@@ -97,6 +97,7 @@ module.exports = function (stage) {
       this.algorithm = null;
       this.entity_body = null;
       this.timeout = null;
+      this.unregisterSended = false;
     }
 
     register(message, type) {
@@ -144,8 +145,24 @@ module.exports = function (stage) {
       request.send();
       this.dialog.sip.createDialogTimeout(this.dialog);
       return transac;
-
     }
+
+    unregister() {
+      this.dialog.expires = 0;
+      this.dialog.contact = "*";
+      let trans = this.dialog.createTransaction(this.dialog.from);
+      this.dialog.to = this.dialog.from;
+      this.dialog.tagTo = null;
+      let request = trans.createRequest();
+      if (this.lineResponse) {
+        request.header.response = this.lineResponse;
+      }
+      this.unregisterSended = true;
+      request.send();
+      return trans;
+    }
+
+
 
     digestMD5(method) {
       var A1 = digest.generateA1(this.userName, this.realm, this.password, this.nonce, this.cnonce);
@@ -871,6 +888,7 @@ module.exports = function (stage) {
       this.expires = this.sip.settings.expires;
       this.tagFrom = this.generateTag();
       this.cseq = this.generateCseq();
+      this.unregisterSended = false;
       if (method instanceof Message) {
         this.hydrate(method);
       } else {
@@ -1004,6 +1022,7 @@ module.exports = function (stage) {
       this.tagTo = null;
       let request = trans.createRequest();
       request.send();
+      this.unregisterSended = true;
       return trans;
     }
 
@@ -1378,10 +1397,16 @@ module.exports = function (stage) {
         if (this.registerInterval) {
           clearInterval(this.registerInterval);
         }
-        if (!message.contact) {
+        if (this.authenticateRegister && this.authenticateRegister.unregisterSended) {
           this.registered = "404";
-          this.clear();
           this.notificationsCenter.fire("onUnRegister", this, message);
+          this.clear();
+          return;
+        }
+        if (message.dialog.unregisterSended) {
+          this.registered = "404";
+          this.notificationsCenter.fire("onUnRegister", this, message);
+          this.clear();
           return;
         }
         if (this.registered === 401 || this.registered === null) {
@@ -1776,9 +1801,10 @@ module.exports = function (stage) {
     }
     clearDialogTimeout(dialog) {
       if (dialog) {
-        if (this.registerTimeout[dialog.callId]) {
-          clearTimeout(this.registerTimeout[dialog.callId]);
-          delete this.registerTimeout[dialog.callId];
+        let id = dialog.callId;
+        if (this.registerTimeout[id]) {
+          clearTimeout(this.registerTimeout[id]);
+          delete this.registerTimeout[id];
         }
       } else {
         for (let ele in this.registerTimeout) {
@@ -1798,7 +1824,10 @@ module.exports = function (stage) {
     }
 
     unregister() {
-      if (this.diagRegister && this.registered) {
+      if (this.authenticateRegister && this.registered === 200) {
+        return this.authenticateRegister.unregister();
+      }
+      if (this.diagRegister && this.registered === 200) {
         return this.diagRegister.unregister();
       }
     }
