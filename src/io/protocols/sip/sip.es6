@@ -1796,7 +1796,7 @@ module.exports = function (stage) {
           let error = new Error(" DIALOG ID : " + dialog.callId + " TIMEOUT : " + dialog.method + "  no response ");
           this.logger(error, "ERROR");
           this.fire("onError", this, error);
-        }, this.settings.expires);
+        }, (parseInt(this.settings.expires, 10) * 900));
       }
     }
     clearDialogTimeout(dialog) {
