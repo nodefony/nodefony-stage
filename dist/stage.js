@@ -46,17 +46,32 @@ return /******/ (function(modules) { // webpackBootstrap
 /******/ 	// define getter function for harmony exports
 /******/ 	__webpack_require__.d = function(exports, name, getter) {
 /******/ 		if(!__webpack_require__.o(exports, name)) {
-/******/ 			Object.defineProperty(exports, name, {
-/******/ 				configurable: false,
-/******/ 				enumerable: true,
-/******/ 				get: getter
-/******/ 			});
+/******/ 			Object.defineProperty(exports, name, { enumerable: true, get: getter });
 /******/ 		}
 /******/ 	};
 /******/
 /******/ 	// define __esModule on exports
 /******/ 	__webpack_require__.r = function(exports) {
+/******/ 		if(typeof Symbol !== 'undefined' && Symbol.toStringTag) {
+/******/ 			Object.defineProperty(exports, Symbol.toStringTag, { value: 'Module' });
+/******/ 		}
 /******/ 		Object.defineProperty(exports, '__esModule', { value: true });
+/******/ 	};
+/******/
+/******/ 	// create a fake namespace object
+/******/ 	// mode & 1: value is a module id, require it
+/******/ 	// mode & 2: merge all properties of value into the ns
+/******/ 	// mode & 4: return value when already ns object
+/******/ 	// mode & 8|1: behave like require
+/******/ 	__webpack_require__.t = function(value, mode) {
+/******/ 		if(mode & 1) value = __webpack_require__(value);
+/******/ 		if(mode & 8) return value;
+/******/ 		if((mode & 4) && typeof value === 'object' && value && value.__esModule) return value;
+/******/ 		var ns = Object.create(null);
+/******/ 		__webpack_require__.r(ns);
+/******/ 		Object.defineProperty(ns, 'default', { enumerable: true, value: value });
+/******/ 		if(mode & 2 && typeof value != 'string') for(var key in value) __webpack_require__.d(ns, key, function(key) { return value[key]; }.bind(null, key));
+/******/ 		return ns;
 /******/ 	};
 /******/
 /******/ 	// getDefaultExport function for compatibility with non-harmony modules
@@ -10481,6 +10496,67 @@ return jQuery;
 
 /***/ }),
 
+/***/ "./node_modules/nanoid/format.js":
+/*!***************************************!*\
+  !*** ./node_modules/nanoid/format.js ***!
+  \***************************************/
+/*! no static exports found */
+/***/ (function(module, exports) {
+
+/**
+ * Secure random string generator with custom alphabet.
+ *
+ * Alphabet must contain 256 symbols or less. Otherwise, the generator
+ * will not be secure.
+ *
+ * @param {generator} random The random bytes generator.
+ * @param {string} alphabet Symbols to be used in new random string.
+ * @param {size} size The number of symbols in new random string.
+ *
+ * @return {string} Random string.
+ *
+ * @example
+ * const format = require('nanoid/format')
+ *
+ * function random (size) {
+ *   const result = []
+ *   for (let i = 0; i < size; i++) {
+ *     result.push(randomByte())
+ *   }
+ *   return result
+ * }
+ *
+ * format(random, "abcdef", 5) //=> "fbaef"
+ *
+ * @name format
+ * @function
+ */
+module.exports = function (random, alphabet, size) {
+  var mask = (2 << Math.log(alphabet.length - 1) / Math.LN2) - 1
+  var step = Math.ceil(1.6 * mask * size / alphabet.length)
+
+  var id = ''
+  while (true) {
+    var bytes = random(step)
+    for (var i = 0; i < step; i++) {
+      var byte = bytes[i] & mask
+      if (alphabet[byte]) {
+        id += alphabet[byte]
+        if (id.length === size) return id
+      }
+    }
+  }
+}
+
+/**
+ * @callback generator
+ * @param {number} bytes The number of bytes to generate.
+ * @return {number[]} Random bytes.
+ */
+
+
+/***/ }),
+
 /***/ "./node_modules/path-browserify/index.js":
 /*!***********************************************!*\
   !*** ./node_modules/path-browserify/index.js ***!
@@ -12893,8 +12969,9 @@ SDPUtils.parseRtpMap = function(line) {
 
   parsed.name = parts[0];
   parsed.clockRate = parseInt(parts[1], 10); // was: clockrate
-  // was: channels
-  parsed.numChannels = parts.length === 3 ? parseInt(parts[2], 10) : 1;
+  parsed.channels = parts.length === 3 ? parseInt(parts[2], 10) : 1;
+  // legacy alias, got renamed back to channels in ORTC.
+  parsed.numChannels = parsed.channels;
   return parsed;
 };
 
@@ -12905,8 +12982,9 @@ SDPUtils.writeRtpMap = function(codec) {
   if (codec.preferredPayloadType !== undefined) {
     pt = codec.preferredPayloadType;
   }
+  var channels = codec.channels || codec.numChannels || 1;
   return 'a=rtpmap:' + pt + ' ' + codec.name + '/' + codec.clockRate +
-      (codec.numChannels !== 1 ? '/' + codec.numChannels : '') + '\r\n';
+      (channels !== 1 ? '/' + channels : '') + '\r\n';
 };
 
 // Parses an a=extmap line (headerextension from RFC 5285). Sample input:
@@ -13151,9 +13229,11 @@ SDPUtils.writeRtpDescription = function(kind, caps) {
   }
   sdp += 'a=rtcp-mux\r\n';
 
-  caps.headerExtensions.forEach(function(extension) {
-    sdp += SDPUtils.writeExtmap(extension);
-  });
+  if (caps.headerExtensions) {
+    caps.headerExtensions.forEach(function(extension) {
+      sdp += SDPUtils.writeExtmap(extension);
+    });
+  }
   // FIXME: write fecMechanisms.
   return sdp;
 };
@@ -13193,10 +13273,10 @@ SDPUtils.parseRtpEncodingParameters = function(mediaSection) {
       var encParam = {
         ssrc: primarySsrc,
         codecPayloadType: parseInt(codec.parameters.apt, 10),
-        rtx: {
-          ssrc: secondarySsrc
-        }
       };
+      if (primarySsrc && secondarySsrc) {
+        encParam.rtx = {ssrc: secondarySsrc};
+      }
       encodingParameters.push(encParam);
       if (hasRed) {
         encParam = JSON.parse(JSON.stringify(encParam));
@@ -13546,7 +13626,12 @@ function lookup(index) {
     return alphabetShuffled[index];
 }
 
+function get () {
+  return alphabet || ORIGINAL;
+}
+
 module.exports = {
+    get: get,
     characters: characters,
     seed: setSeed,
     lookup: lookup,
@@ -13566,7 +13651,7 @@ module.exports = {
 "use strict";
 
 
-var encode = __webpack_require__(/*! ./encode */ "./node_modules/shortid/lib/encode.js");
+var generate = __webpack_require__(/*! ./generate */ "./node_modules/shortid/lib/generate.js");
 var alphabet = __webpack_require__(/*! ./alphabet */ "./node_modules/shortid/lib/alphabet.js");
 
 // Ignore all milliseconds before a certain time to reduce the size of the date entropy without sacrificing uniqueness.
@@ -13589,7 +13674,6 @@ var previousSeconds;
  * Returns string id
  */
 function build(clusterWorkerId) {
-
     var str = '';
 
     var seconds = Math.floor((Date.now() - REDUCE_TIME) * 0.001);
@@ -13601,13 +13685,12 @@ function build(clusterWorkerId) {
         previousSeconds = seconds;
     }
 
-    str = str + encode(alphabet.lookup, version);
-    str = str + encode(alphabet.lookup, clusterWorkerId);
+    str = str + generate(version);
+    str = str + generate(clusterWorkerId);
     if (counter > 0) {
-        str = str + encode(alphabet.lookup, counter);
+        str = str + generate(counter);
     }
-    str = str + encode(alphabet.lookup, seconds);
-
+    str = str + generate(seconds);
     return str;
 }
 
@@ -13616,62 +13699,35 @@ module.exports = build;
 
 /***/ }),
 
-/***/ "./node_modules/shortid/lib/decode.js":
-/*!********************************************!*\
-  !*** ./node_modules/shortid/lib/decode.js ***!
-  \********************************************/
+/***/ "./node_modules/shortid/lib/generate.js":
+/*!**********************************************!*\
+  !*** ./node_modules/shortid/lib/generate.js ***!
+  \**********************************************/
 /*! no static exports found */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
+
 
 var alphabet = __webpack_require__(/*! ./alphabet */ "./node_modules/shortid/lib/alphabet.js");
+var random = __webpack_require__(/*! ./random/random-byte */ "./node_modules/shortid/lib/random/random-byte-browser.js");
+var format = __webpack_require__(/*! nanoid/format */ "./node_modules/nanoid/format.js");
 
-/**
- * Decode the id to get the version and worker
- * Mainly for debugging and testing.
- * @param id - the shortid-generated id.
- */
-function decode(id) {
-    var characters = alphabet.shuffled();
-    return {
-        version: characters.indexOf(id.substr(0, 1)) & 0x0f,
-        worker: characters.indexOf(id.substr(1, 1)) & 0x0f
-    };
-}
-
-module.exports = decode;
-
-
-/***/ }),
-
-/***/ "./node_modules/shortid/lib/encode.js":
-/*!********************************************!*\
-  !*** ./node_modules/shortid/lib/encode.js ***!
-  \********************************************/
-/*! no static exports found */
-/***/ (function(module, exports, __webpack_require__) {
-
-"use strict";
-
-
-var randomByte = __webpack_require__(/*! ./random/random-byte */ "./node_modules/shortid/lib/random/random-byte-browser.js");
-
-function encode(lookup, number) {
+function generate(number) {
     var loopCounter = 0;
     var done;
 
     var str = '';
 
     while (!done) {
-        str = str + lookup( ( (number >> (4 * loopCounter)) & 0x0f ) | randomByte() );
+        str = str + format(random, alphabet.get(), 1);
         done = number < (Math.pow(16, loopCounter + 1 ) );
         loopCounter++;
     }
     return str;
 }
 
-module.exports = encode;
+module.exports = generate;
 
 
 /***/ }),
@@ -13687,8 +13743,6 @@ module.exports = encode;
 
 
 var alphabet = __webpack_require__(/*! ./alphabet */ "./node_modules/shortid/lib/alphabet.js");
-var encode = __webpack_require__(/*! ./encode */ "./node_modules/shortid/lib/encode.js");
-var decode = __webpack_require__(/*! ./decode */ "./node_modules/shortid/lib/decode.js");
 var build = __webpack_require__(/*! ./build */ "./node_modules/shortid/lib/build.js");
 var isValid = __webpack_require__(/*! ./is-valid */ "./node_modules/shortid/lib/is-valid.js");
 
@@ -13747,7 +13801,6 @@ module.exports.generate = generate;
 module.exports.seed = seed;
 module.exports.worker = worker;
 module.exports.characters = characters;
-module.exports.decode = decode;
 module.exports.isValid = isValid;
 
 
@@ -13769,14 +13822,10 @@ function isShortId(id) {
         return false;
     }
 
-    var characters = alphabet.characters();
-    var len = id.length;
-    for(var i = 0; i < len;i++) {
-        if (characters.indexOf(id[i]) === -1) {
-            return false;
-        }
-    }
-    return true;
+    var nonAlphabetic = new RegExp('[^' +
+      alphabet.get().replace(/[|\\{}()[\]^$+*?.-]/g, '\\$&') +
+    ']');
+    return !nonAlphabetic.test(id);
 }
 
 module.exports = isShortId;
@@ -13796,13 +13845,20 @@ module.exports = isShortId;
 
 var crypto = typeof window === 'object' && (window.crypto || window.msCrypto); // IE 11 uses window.msCrypto
 
-function randomByte() {
-    if (!crypto || !crypto.getRandomValues) {
-        return Math.floor(Math.random() * 256) & 0x30;
-    }
-    var dest = new Uint8Array(1);
-    crypto.getRandomValues(dest);
-    return dest[0] & 0x30;
+var randomByte;
+
+if (!crypto || !crypto.getRandomValues) {
+    randomByte = function(size) {
+        var bytes = [];
+        for (var i = 0; i < size; i++) {
+            bytes.push(Math.floor(Math.random() * 256));
+        }
+        return bytes;
+    };
+} else {
+    randomByte = function(size) {
+        return crypto.getRandomValues(new Uint8Array(size));
+    };
 }
 
 module.exports = randomByte;
@@ -13869,7909 +13925,16 @@ module.exports = 0;
 /*! no static exports found */
 /***/ (function(module, exports, __webpack_require__) {
 
-/* WEBPACK VAR INJECTION */(function(__dirname) {(function webpackUniversalModuleDefinition(root, factory) {
-	if(true)
-		module.exports = factory((function webpackLoadOptionalExternalModule() { try { return __webpack_require__(/*! fs */ 0); } catch(e) {} }()), __webpack_require__(/*! path */ "./node_modules/path-browserify/index.js"));
-	else {}
-})(this, function(__WEBPACK_EXTERNAL_MODULE_19__, __WEBPACK_EXTERNAL_MODULE_20__) {
-return /******/ (function(modules) { // webpackBootstrap
-/******/ 	// The module cache
-/******/ 	var installedModules = {};
-
-/******/ 	// The require function
-/******/ 	function __webpack_require__(moduleId) {
-
-/******/ 		// Check if module is in cache
-/******/ 		if(installedModules[moduleId])
-/******/ 			return installedModules[moduleId].exports;
-
-/******/ 		// Create a new module (and put it into the cache)
-/******/ 		var module = installedModules[moduleId] = {
-/******/ 			exports: {},
-/******/ 			id: moduleId,
-/******/ 			loaded: false
-/******/ 		};
-
-/******/ 		// Execute the module function
-/******/ 		modules[moduleId].call(module.exports, module, module.exports, __webpack_require__);
-
-/******/ 		// Flag the module as loaded
-/******/ 		module.loaded = true;
-
-/******/ 		// Return the exports of the module
-/******/ 		return module.exports;
-/******/ 	}
-
-
-/******/ 	// expose the modules object (__webpack_modules__)
-/******/ 	__webpack_require__.m = modules;
-
-/******/ 	// expose the module cache
-/******/ 	__webpack_require__.c = installedModules;
-
-/******/ 	// __webpack_public_path__
-/******/ 	__webpack_require__.p = "";
-
-/******/ 	// Load entry module and return exports
-/******/ 	return __webpack_require__(0);
-/******/ })
-/************************************************************************/
-/******/ ([
-/* 0 */
-/***/ (function(module, exports, __webpack_require__) {
-
-	/**
-	 * Twig.js
-	 *
-	 * @copyright 2011-2016 John Roepke and the Twig.js Contributors
-	 * @license   Available under the BSD 2-Clause License
-	 * @link      https://github.com/twigjs/twig.js
-	 */
-
-	var Twig = {
-	    VERSION: '1.11.0'
-	};
-
-	__webpack_require__(1)(Twig);
-	__webpack_require__(2)(Twig);
-	__webpack_require__(3)(Twig);
-	__webpack_require__(5)(Twig);
-	__webpack_require__(6)(Twig);
-	__webpack_require__(7)(Twig);
-	__webpack_require__(17)(Twig);
-	__webpack_require__(18)(Twig);
-	__webpack_require__(21)(Twig);
-	__webpack_require__(22)(Twig);
-	__webpack_require__(23)(Twig);
-	__webpack_require__(24)(Twig);
-	__webpack_require__(25)(Twig);
-	__webpack_require__(26)(Twig);
-	__webpack_require__(27)(Twig);
-
-	module.exports = Twig.exports;
-
-
-/***/ }),
-/* 1 */
-/***/ (function(module, exports) {
-
-	// ## twig.core.js
-	//
-	// This file handles template level tokenizing, compiling and parsing.
-	module.exports = function (Twig) {
-	    "use strict";
-
-	    Twig.trace = false;
-	    Twig.debug = false;
-
-	    // Default caching to true for the improved performance it offers
-	    Twig.cache = true;
-
-	    Twig.noop = function() {};
-
-	    Twig.placeholders = {
-	        parent: "{{|PARENT|}}"
-	    };
-
-	    Twig.hasIndexOf = Array.prototype.hasOwnProperty("indexOf");
-
-	    /**
-	     * Fallback for Array.indexOf for IE8 et al
-	     */
-	    Twig.indexOf = function (arr, searchElement /*, fromIndex */ ) {
-	        if (Twig.hasIndexOf) {
-	            return arr.indexOf(searchElement);
-	        }
-	        if (arr === void 0 || arr === null) {
-	            throw new TypeError();
-	        }
-	        var t = Object(arr);
-	        var len = t.length >>> 0;
-	        if (len === 0) {
-	            return -1;
-	        }
-	        var n = 0;
-	        if (arguments.length > 0) {
-	            n = Number(arguments[1]);
-	            if (n !== n) { // shortcut for verifying if it's NaN
-	                n = 0;
-	            } else if (n !== 0 && n !== Infinity && n !== -Infinity) {
-	                n = (n > 0 || -1) * Math.floor(Math.abs(n));
-	            }
-	        }
-	        if (n >= len) {
-	            // console.log("indexOf not found1 ", JSON.stringify(searchElement), JSON.stringify(arr));
-	            return -1;
-	        }
-	        var k = n >= 0 ? n : Math.max(len - Math.abs(n), 0);
-	        for (; k < len; k++) {
-	            if (k in t && t[k] === searchElement) {
-	                return k;
-	            }
-	        }
-	        if (arr == searchElement) {
-	            return 0;
-	        }
-	        // console.log("indexOf not found2 ", JSON.stringify(searchElement), JSON.stringify(arr));
-
-	        return -1;
-	    }
-
-	    Twig.forEach = function (arr, callback, thisArg) {
-	        if (Array.prototype.forEach ) {
-	            return arr.forEach(callback, thisArg);
-	        }
-
-	        var T, k;
-
-	        if ( arr == null ) {
-	          throw new TypeError( " this is null or not defined" );
-	        }
-
-	        // 1. Let O be the result of calling ToObject passing the |this| value as the argument.
-	        var O = Object(arr);
-
-	        // 2. Let lenValue be the result of calling the Get internal method of O with the argument "length".
-	        // 3. Let len be ToUint32(lenValue).
-	        var len = O.length >>> 0; // Hack to convert O.length to a UInt32
-
-	        // 4. If IsCallable(callback) is false, throw a TypeError exception.
-	        // See: http://es5.github.com/#x9.11
-	        if ( {}.toString.call(callback) != "[object Function]" ) {
-	          throw new TypeError( callback + " is not a function" );
-	        }
-
-	        // 5. If thisArg was supplied, let T be thisArg; else let T be undefined.
-	        if ( thisArg ) {
-	          T = thisArg;
-	        }
-
-	        // 6. Let k be 0
-	        k = 0;
-
-	        // 7. Repeat, while k < len
-	        while( k < len ) {
-
-	          var kValue;
-
-	          // a. Let Pk be ToString(k).
-	          //   This is implicit for LHS operands of the in operator
-	          // b. Let kPresent be the result of calling the HasProperty internal method of O with argument Pk.
-	          //   This step can be combined with c
-	          // c. If kPresent is true, then
-	          if ( k in O ) {
-
-	            // i. Let kValue be the result of calling the Get internal method of O with argument Pk.
-	            kValue = O[ k ];
-
-	            // ii. Call the Call internal method of callback with T as the this value and
-	            // argument list containing kValue, k, and O.
-	            callback.call( T, kValue, k, O );
-	          }
-	          // d. Increase k by 1.
-	          k++;
-	        }
-	        // 8. return undefined
-	    };
-
-	    Twig.merge = function(target, source, onlyChanged) {
-	        Twig.forEach(Object.keys(source), function (key) {
-	            if (onlyChanged && !(key in target)) {
-	                return;
-	            }
-
-	            target[key] = source[key]
-	        });
-
-	        return target;
-	    };
-
-	    /**
-	     * try/catch in a function causes the entire function body to remain unoptimized.
-	     * Use this instead so only ``Twig.attempt` will be left unoptimized.
-	     */
-	    Twig.attempt = function(fn, exceptionHandler) {
-	        try { return fn(); }
-	        catch(ex) { return exceptionHandler(ex); }
-	    }
-
-	    /**
-	     * Exception thrown by twig.js.
-	     */
-	    Twig.Error = function(message, file) {
-	       this.message = message;
-	       this.name = "TwigException";
-	       this.type = "TwigException";
-	       this.file = file;
-	    };
-
-	    /**
-	     * Get the string representation of a Twig error.
-	     */
-	    Twig.Error.prototype.toString = function() {
-	        var output = this.name + ": " + this.message;
-
-	        return output;
-	    };
-
-	    /**
-	     * Wrapper for logging to the console.
-	     */
-	    Twig.log = {
-	        trace: function() {if (Twig.trace && console) {console.log(Array.prototype.slice.call(arguments));}},
-	        debug: function() {if (Twig.debug && console) {console.log(Array.prototype.slice.call(arguments));}}
-	    };
-
-
-	    if (typeof console !== "undefined") {
-	        if (typeof console.error !== "undefined") {
-	            Twig.log.error = function() {
-	                console.error.apply(console, arguments);
-	            }
-	        } else if (typeof console.log !== "undefined") {
-	            Twig.log.error = function() {
-	                console.log.apply(console, arguments);
-	            }
-	        }
-	    } else {
-	        Twig.log.error = function(){};
-	    }
-
-	    /**
-	     * Wrapper for child context objects in Twig.
-	     *
-	     * @param {Object} context Values to initialize the context with.
-	     */
-	    Twig.ChildContext = function(context) {
-	        return Twig.lib.copy(context);
-	    };
-
-	    /**
-	     * Container for methods related to handling high level template tokens
-	     *      (for example: {{ expression }}, {% logic %}, {# comment #}, raw data)
-	     */
-	    Twig.token = {};
-
-	    /**
-	     * Token types.
-	     */
-	    Twig.token.type = {
-	        output:                 'output',
-	        logic:                  'logic',
-	        comment:                'comment',
-	        raw:                    'raw',
-	        output_whitespace_pre:  'output_whitespace_pre',
-	        output_whitespace_post: 'output_whitespace_post',
-	        output_whitespace_both: 'output_whitespace_both',
-	        logic_whitespace_pre:   'logic_whitespace_pre',
-	        logic_whitespace_post:  'logic_whitespace_post',
-	        logic_whitespace_both:  'logic_whitespace_both'
-	    };
-
-	    /**
-	     * Token syntax definitions.
-	     */
-	    Twig.token.definitions = [
-	        {
-	            type: Twig.token.type.raw,
-	            open: '{% raw %}',
-	            close: '{% endraw %}'
-	        },
-	        {
-	            type: Twig.token.type.raw,
-	            open: '{% verbatim %}',
-	            close: '{% endverbatim %}'
-	        },
-	        // *Whitespace type tokens*
-	        //
-	        // These typically take the form `{{- expression -}}` or `{{- expression }}` or `{{ expression -}}`.
-	        {
-	            type: Twig.token.type.output_whitespace_pre,
-	            open: '{{-',
-	            close: '}}'
-	        },
-	        {
-	            type: Twig.token.type.output_whitespace_post,
-	            open: '{{',
-	            close: '-}}'
-	        },
-	        {
-	            type: Twig.token.type.output_whitespace_both,
-	            open: '{{-',
-	            close: '-}}'
-	        },
-	        {
-	            type: Twig.token.type.logic_whitespace_pre,
-	            open: '{%-',
-	            close: '%}'
-	        },
-	        {
-	            type: Twig.token.type.logic_whitespace_post,
-	            open: '{%',
-	            close: '-%}'
-	        },
-	        {
-	            type: Twig.token.type.logic_whitespace_both,
-	            open: '{%-',
-	            close: '-%}'
-	        },
-	        // *Output type tokens*
-	        //
-	        // These typically take the form `{{ expression }}`.
-	        {
-	            type: Twig.token.type.output,
-	            open: '{{',
-	            close: '}}'
-	        },
-	        // *Logic type tokens*
-	        //
-	        // These typically take a form like `{% if expression %}` or `{% endif %}`
-	        {
-	            type: Twig.token.type.logic,
-	            open: '{%',
-	            close: '%}'
-	        },
-	        // *Comment type tokens*
-	        //
-	        // These take the form `{# anything #}`
-	        {
-	            type: Twig.token.type.comment,
-	            open: '{#',
-	            close: '#}'
-	        }
-	    ];
-
-
-	    /**
-	     * What characters start "strings" in token definitions. We need this to ignore token close
-	     * strings inside an expression.
-	     */
-	    Twig.token.strings = ['"', "'"];
-
-	    Twig.token.findStart = function (template) {
-	        var output = {
-	                position: null,
-	                def: null
-	            },
-	            close_position = null,
-	            len = Twig.token.definitions.length,
-	            i,
-	            token_template,
-	            first_key_position,
-	            close_key_position;
-
-	        for (i=0;i<len;i++) {
-	            token_template = Twig.token.definitions[i];
-	            first_key_position = template.indexOf(token_template.open);
-	            close_key_position = template.indexOf(token_template.close);
-
-	            Twig.log.trace("Twig.token.findStart: ", "Searching for ", token_template.open, " found at ", first_key_position);
-
-	            //Special handling for mismatched tokens
-	            if (first_key_position >= 0) {
-	                //This token matches the template
-	                if (token_template.open.length !== token_template.close.length) {
-	                    //This token has mismatched closing and opening tags
-	                    if (close_key_position < 0) {
-	                        //This token's closing tag does not match the template
-	                        continue;
-	                    }
-	                }
-	            }
-	            // Does this token occur before any other types?
-	            if (first_key_position >= 0 && (output.position === null || first_key_position < output.position)) {
-	                output.position = first_key_position;
-	                output.def = token_template;
-	                close_position = close_key_position;
-	            } else if (first_key_position >= 0 && output.position !== null && first_key_position === output.position) {
-	                /*This token exactly matches another token,
-	                greedily match to check if this token has a greater specificity*/
-	                if (token_template.open.length > output.def.open.length) {
-	                    //This token's opening tag is more specific than the previous match
-	                    output.position = first_key_position;
-	                    output.def = token_template;
-	                    close_position = close_key_position;
-	                } else if (token_template.open.length === output.def.open.length) {
-	                    if (token_template.close.length > output.def.close.length) {
-	                        //This token's opening tag is as specific as the previous match,
-	                        //but the closing tag has greater specificity
-	                        if (close_key_position >= 0 && close_key_position < close_position) {
-	                            //This token's closing tag exists in the template,
-	                            //and it occurs sooner than the previous match
-	                            output.position = first_key_position;
-	                            output.def = token_template;
-	                            close_position = close_key_position;
-	                        }
-	                    } else if (close_key_position >= 0 && close_key_position < close_position) {
-	                        //This token's closing tag is not more specific than the previous match,
-	                        //but it occurs sooner than the previous match
-	                        output.position = first_key_position;
-	                        output.def = token_template;
-	                        close_position = close_key_position;
-	                    }
-	                }
-	            }
-	        }
-
-	        // delete output['close_position'];
-
-	        return output;
-	    };
-
-	    Twig.token.findEnd = function (template, token_def, start) {
-	        var end = null,
-	            found = false,
-	            offset = 0,
-
-	            // String position variables
-	            str_pos = null,
-	            str_found = null,
-	            pos = null,
-	            end_offset = null,
-	            this_str_pos = null,
-	            end_str_pos = null,
-
-	            // For loop variables
-	            i,
-	            l;
-
-	        while (!found) {
-	            str_pos = null;
-	            str_found = null;
-	            pos = template.indexOf(token_def.close, offset);
-
-	            if (pos >= 0) {
-	                end = pos;
-	                found = true;
-	            } else {
-	                // throw an exception
-	                throw new Twig.Error("Unable to find closing bracket '" + token_def.close +
-	                                "'" + " opened near template position " + start);
-	            }
-
-	            // Ignore quotes within comments; just look for the next comment close sequence,
-	            // regardless of what comes before it. https://github.com/justjohn/twig.js/issues/95
-	            if (token_def.type === Twig.token.type.comment) {
-	              break;
-	            }
-	            // Ignore quotes within raw tag
-	            // Fixes #283
-	            if (token_def.type === Twig.token.type.raw) {
-	                break;
-	            }
-
-	            l = Twig.token.strings.length;
-	            for (i = 0; i < l; i += 1) {
-	                this_str_pos = template.indexOf(Twig.token.strings[i], offset);
-
-	                if (this_str_pos > 0 && this_str_pos < pos &&
-	                        (str_pos === null || this_str_pos < str_pos)) {
-	                    str_pos = this_str_pos;
-	                    str_found = Twig.token.strings[i];
-	                }
-	            }
-
-	            // We found a string before the end of the token, now find the string's end and set the search offset to it
-	            if (str_pos !== null) {
-	                end_offset = str_pos + 1;
-	                end = null;
-	                found = false;
-	                while (true) {
-	                    end_str_pos = template.indexOf(str_found, end_offset);
-	                    if (end_str_pos < 0) {
-	                        throw "Unclosed string in template";
-	                    }
-	                    // Ignore escaped quotes
-	                    if (template.substr(end_str_pos - 1, 1) !== "\\") {
-	                        offset = end_str_pos + 1;
-	                        break;
-	                    } else {
-	                        end_offset = end_str_pos + 1;
-	                    }
-	                }
-	            }
-	        }
-	        return end;
-	    };
-
-	    /**
-	     * Convert a template into high-level tokens.
-	     */
-	    Twig.tokenize = function (template) {
-	        var tokens = [],
-	            // An offset for reporting errors locations in the template.
-	            error_offset = 0,
-
-	            // The start and type of the first token found in the template.
-	            found_token = null,
-	            // The end position of the matched token.
-	            end = null;
-
-	        while (template.length > 0) {
-	            // Find the first occurance of any token type in the template
-	            found_token = Twig.token.findStart(template);
-
-	            Twig.log.trace("Twig.tokenize: ", "Found token: ", found_token);
-
-	            if (found_token.position !== null) {
-	                // Add a raw type token for anything before the start of the token
-	                if (found_token.position > 0) {
-	                    tokens.push({
-	                        type: Twig.token.type.raw,
-	                        value: template.substring(0, found_token.position)
-	                    });
-	                }
-	                template = template.substr(found_token.position + found_token.def.open.length);
-	                error_offset += found_token.position + found_token.def.open.length;
-
-	                // Find the end of the token
-	                end = Twig.token.findEnd(template, found_token.def, error_offset);
-
-	                Twig.log.trace("Twig.tokenize: ", "Token ends at ", end);
-
-	                tokens.push({
-	                    type:  found_token.def.type,
-	                    value: template.substring(0, end).trim()
-	                });
-
-	                if (template.substr( end + found_token.def.close.length, 1 ) === "\n") {
-	                    switch (found_token.def.type) {
-	                        case "logic_whitespace_pre":
-	                        case "logic_whitespace_post":
-	                        case "logic_whitespace_both":
-	                        case "logic":
-	                            // Newlines directly after logic tokens are ignored
-	                            end += 1;
-	                            break;
-	                    }
-	                }
-
-	                template = template.substr(end + found_token.def.close.length);
-
-	                // Increment the position in the template
-	                error_offset += end + found_token.def.close.length;
-
-	            } else {
-	                // No more tokens -> add the rest of the template as a raw-type token
-	                tokens.push({
-	                    type: Twig.token.type.raw,
-	                    value: template
-	                });
-	                template = '';
-	            }
-	        }
-
-	        return tokens;
-	    };
-
-	    Twig.compile = function (tokens) {
-	        var self = this;
-	        return Twig.attempt(function() {
-
-	            // Output and intermediate stacks
-	            var output = [],
-	                stack = [],
-	                // The tokens between open and close tags
-	                intermediate_output = [],
-
-	                token = null,
-	                logic_token = null,
-	                unclosed_token = null,
-	                // Temporary previous token.
-	                prev_token = null,
-	                // Temporary previous output.
-	                prev_output = null,
-	                // Temporary previous intermediate output.
-	                prev_intermediate_output = null,
-	                // The previous token's template
-	                prev_template = null,
-	                // Token lookahead
-	                next_token = null,
-	                // The output token
-	                tok_output = null,
-
-	                // Logic Token values
-	                type = null,
-	                open = null,
-	                next = null;
-
-	            var compile_output = function(token) {
-	                Twig.expression.compile.call(self, token);
-	                if (stack.length > 0) {
-	                    intermediate_output.push(token);
-	                } else {
-	                    output.push(token);
-	                }
-	            };
-
-	            var compile_logic = function(token) {
-	                // Compile the logic token
-	                logic_token = Twig.logic.compile.call(self, token);
-
-	                type = logic_token.type;
-	                open = Twig.logic.handler[type].open;
-	                next = Twig.logic.handler[type].next;
-
-	                Twig.log.trace("Twig.compile: ", "Compiled logic token to ", logic_token,
-	                                                 " next is: ", next, " open is : ", open);
-
-	                // Not a standalone token, check logic stack to see if this is expected
-	                if (open !== undefined && !open) {
-	                    prev_token = stack.pop();
-	                    prev_template = Twig.logic.handler[prev_token.type];
-
-	                    if (Twig.indexOf(prev_template.next, type) < 0) {
-	                        throw new Error(type + " not expected after a " + prev_token.type);
-	                    }
-
-	                    prev_token.output = prev_token.output || [];
-
-	                    prev_token.output = prev_token.output.concat(intermediate_output);
-	                    intermediate_output = [];
-
-	                    tok_output = {
-	                        type: Twig.token.type.logic,
-	                        token: prev_token
-	                    };
-	                    if (stack.length > 0) {
-	                        intermediate_output.push(tok_output);
-	                    } else {
-	                        output.push(tok_output);
-	                    }
-	                }
-
-	                // This token requires additional tokens to complete the logic structure.
-	                if (next !== undefined && next.length > 0) {
-	                    Twig.log.trace("Twig.compile: ", "Pushing ", logic_token, " to logic stack.");
-
-	                    if (stack.length > 0) {
-	                        // Put any currently held output into the output list of the logic operator
-	                        // currently at the head of the stack before we push a new one on.
-	                        prev_token = stack.pop();
-	                        prev_token.output = prev_token.output || [];
-	                        prev_token.output = prev_token.output.concat(intermediate_output);
-	                        stack.push(prev_token);
-	                        intermediate_output = [];
-	                    }
-
-	                    // Push the new logic token onto the logic stack
-	                    stack.push(logic_token);
-
-	                } else if (open !== undefined && open) {
-	                    tok_output = {
-	                        type: Twig.token.type.logic,
-	                        token: logic_token
-	                    };
-	                    // Standalone token (like {% set ... %}
-	                    if (stack.length > 0) {
-	                        intermediate_output.push(tok_output);
-	                    } else {
-	                        output.push(tok_output);
-	                    }
-	                }
-	            };
-
-	            while (tokens.length > 0) {
-	                token = tokens.shift();
-	                prev_output = output[output.length - 1];
-	                prev_intermediate_output = intermediate_output[intermediate_output.length - 1];
-	                next_token = tokens[0];
-	                Twig.log.trace("Compiling token ", token);
-	                switch (token.type) {
-	                    case Twig.token.type.raw:
-	                        if (stack.length > 0) {
-	                            intermediate_output.push(token);
-	                        } else {
-	                            output.push(token);
-	                        }
-	                        break;
-
-	                    case Twig.token.type.logic:
-	                        compile_logic.call(self, token);
-	                        break;
-
-	                    // Do nothing, comments should be ignored
-	                    case Twig.token.type.comment:
-	                        break;
-
-	                    case Twig.token.type.output:
-	                        compile_output.call(self, token);
-	                        break;
-
-	                    //Kill whitespace ahead and behind this token
-	                    case Twig.token.type.logic_whitespace_pre:
-	                    case Twig.token.type.logic_whitespace_post:
-	                    case Twig.token.type.logic_whitespace_both:
-	                    case Twig.token.type.output_whitespace_pre:
-	                    case Twig.token.type.output_whitespace_post:
-	                    case Twig.token.type.output_whitespace_both:
-	                        if (token.type !== Twig.token.type.output_whitespace_post && token.type !== Twig.token.type.logic_whitespace_post) {
-	                            if (prev_output) {
-	                                //If the previous output is raw, pop it off
-	                                if (prev_output.type === Twig.token.type.raw) {
-	                                    output.pop();
-
-	                                    //If the previous output is not just whitespace, trim it
-	                                    if (prev_output.value.match(/^\s*$/) === null) {
-	                                        prev_output.value = prev_output.value.trim();
-	                                        //Repush the previous output
-	                                        output.push(prev_output);
-	                                    }
-	                                }
-	                            }
-
-	                            if (prev_intermediate_output) {
-	                                //If the previous intermediate output is raw, pop it off
-	                                if (prev_intermediate_output.type === Twig.token.type.raw) {
-	                                    intermediate_output.pop();
-
-	                                    //If the previous output is not just whitespace, trim it
-	                                    if (prev_intermediate_output.value.match(/^\s*$/) === null) {
-	                                        prev_intermediate_output.value = prev_intermediate_output.value.trim();
-	                                        //Repush the previous intermediate output
-	                                        intermediate_output.push(prev_intermediate_output);
-	                                    }
-	                                }
-	                            }
-	                        }
-
-	                        //Compile this token
-	                        switch (token.type) {
-	                            case Twig.token.type.output_whitespace_pre:
-	                            case Twig.token.type.output_whitespace_post:
-	                            case Twig.token.type.output_whitespace_both:
-	                                compile_output.call(self, token);
-	                                break;
-	                            case Twig.token.type.logic_whitespace_pre:
-	                            case Twig.token.type.logic_whitespace_post:
-	                            case Twig.token.type.logic_whitespace_both:
-	                                compile_logic.call(self, token);
-	                                break;
-	                        }
-
-	                        if (token.type !== Twig.token.type.output_whitespace_pre && token.type !== Twig.token.type.logic_whitespace_pre) {
-	                            if (next_token) {
-	                                //If the next token is raw, shift it out
-	                                if (next_token.type === Twig.token.type.raw) {
-	                                    tokens.shift();
-
-	                                    //If the next token is not just whitespace, trim it
-	                                    if (next_token.value.match(/^\s*$/) === null) {
-	                                        next_token.value = next_token.value.trim();
-	                                        //Unshift the next token
-	                                        tokens.unshift(next_token);
-	                                    }
-	                                }
-	                            }
-	                        }
-
-	                        break;
-	                }
-
-	                Twig.log.trace("Twig.compile: ", " Output: ", output,
-	                                                 " Logic Stack: ", stack,
-	                                                 " Pending Output: ", intermediate_output );
-	            }
-
-	            // Verify that there are no logic tokens left in the stack.
-	            if (stack.length > 0) {
-	                unclosed_token = stack.pop();
-	                throw new Error("Unable to find an end tag for " + unclosed_token.type +
-	                                ", expecting one of " + unclosed_token.next);
-	            }
-	            return output;
-	        }, function(ex) {
-	            if (self.options.rethrow) {
-	                if (ex.type == 'TwigException' && !ex.file) {
-	                    ex.file = self.id;
-	                }
-
-	                throw ex
-	            }
-	            else {
-	                Twig.log.error("Error compiling twig template " + self.id + ": ");
-	                if (ex.stack) {
-	                    Twig.log.error(ex.stack);
-	                } else {
-	                    Twig.log.error(ex.toString());
-	                }
-	            }
-	        });
-	    };
-
-	    function handleException(that, ex) {
-	        if (that.options.rethrow) {
-	            if (typeof ex === 'string') {
-	                ex = new Twig.Error(ex)
-	            }
-
-	            if (ex.type == 'TwigException' && !ex.file) {
-	                ex.file = that.id;
-	            }
-
-	            throw ex;
-	        }
-	        else {
-	            Twig.log.error("Error parsing twig template " + that.id + ": ");
-	            if (ex.stack) {
-	                Twig.log.error(ex.stack);
-	            } else {
-	                Twig.log.error(ex.toString());
-	            }
-
-	            if (Twig.debug) {
-	                return ex.toString();
-	            }
-	        }
-	    }
-
-	    /**
-	     * Parse a compiled template.
-	     *
-	     * @param {Array} tokens The compiled tokens.
-	     * @param {Object} context The render context.
-	     *
-	     * @return {string} The parsed template.
-	     */
-	    Twig.parse = function (tokens, context, allow_async) {
-	        var that = this,
-	            output = [],
-
-	            // Store any error that might be thrown by the promise chain.
-	            err = null,
-
-	            // This will be set to is_async if template renders synchronously
-	            is_async = true,
-	            promise = null,
-
-	            // Track logic chains
-	            chain = true;
-
-	        /*
-	         * Extracted into it's own function such that the function
-	         * does not get recreated over and over again in the `forEach`
-	         * loop below. This method can be compiled and optimized
-	         * a single time instead of being recreated on each iteration.
-	         */
-	        function output_push(o) { output.push(o); }
-
-	        function parseTokenLogic(logic) {
-	            if (typeof logic.chain !== 'undefined') {
-	                chain = logic.chain;
-	            }
-	            if (typeof logic.context !== 'undefined') {
-	                context = logic.context;
-	            }
-	            if (typeof logic.output !== 'undefined') {
-	                output.push(logic.output);
-	            }
-	        }
-
-	        promise = Twig.async.forEach(tokens, function parseToken(token) {
-	            Twig.log.debug("Twig.parse: ", "Parsing token: ", token);
-
-	            switch (token.type) {
-	                case Twig.token.type.raw:
-	                    output.push(Twig.filters.raw(token.value));
-	                    break;
-
-	                case Twig.token.type.logic:
-	                    return Twig.logic.parseAsync.call(that, token.token /*logic_token*/, context, chain)
-	                        .then(parseTokenLogic);
-	                    break;
-
-	                case Twig.token.type.comment:
-	                    // Do nothing, comments should be ignored
-	                    break;
-
-	                //Fall through whitespace to output
-	                case Twig.token.type.output_whitespace_pre:
-	                case Twig.token.type.output_whitespace_post:
-	                case Twig.token.type.output_whitespace_both:
-	                case Twig.token.type.output:
-	                    Twig.log.debug("Twig.parse: ", "Output token: ", token.stack);
-	                    // Parse the given expression in the given context
-	                    return Twig.expression.parseAsync.call(that, token.stack, context)
-	                        .then(output_push);
-	            }
-	        })
-	        .then(function() {
-	            output = Twig.output.call(that, output);
-	            is_async = false;
-	            return output;
-	        })
-	        .catch(function(e) {
-	            if (allow_async)
-	                handleException(that, e);
-
-	            err = e;
-	        });
-
-	        // If `allow_async` we will always return a promise since we do not
-	        // know in advance if we are going to run asynchronously or not.
-	        if (allow_async)
-	            return promise;
-
-	        // Handle errors here if we fail synchronously.
-	        if (err !== null)
-	            return handleException(this, err);
-
-	        // If `allow_async` is not true we should not allow the user
-	        // to use asynchronous functions or filters.
-	        if (is_async)
-	            throw new Twig.Error('You are using Twig.js in sync mode in combination with async extensions.');
-
-	        return output;
-	    };
-
-	    /**
-	     * Tokenize and compile a string template.
-	     *
-	     * @param {string} data The template.
-	     *
-	     * @return {Array} The compiled tokens.
-	     */
-	    Twig.prepare = function(data) {
-	        var tokens, raw_tokens;
-
-	        // Tokenize
-	        Twig.log.debug("Twig.prepare: ", "Tokenizing ", data);
-	        raw_tokens = Twig.tokenize.call(this, data);
-
-	        // Compile
-	        Twig.log.debug("Twig.prepare: ", "Compiling ", raw_tokens);
-	        tokens = Twig.compile.call(this, raw_tokens);
-
-	        Twig.log.debug("Twig.prepare: ", "Compiled ", tokens);
-
-	        return tokens;
-	    };
-
-	    /**
-	     * Join the output token's stack and escape it if needed
-	     *
-	     * @param {Array} Output token's stack
-	     *
-	     * @return {string|String} Autoescaped output
-	     */
-	    Twig.output = function(output) {
-	        var autoescape = this.options.autoescape;
-
-	        if (!autoescape) {
-	            return output.join("");
-	        }
-
-	        var strategy = (typeof autoescape == 'string') ? autoescape : 'html';
-	        var i = 0,
-	            len = output.length,
-	            str = '';
-
-	        // [].map would be better but it's not supported by IE8-
-	        var escaped_output = new Array(len);
-	        for (i = 0; i < len; i++) {
-	            str = output[i];
-
-	            if (str && (str.twig_markup !== true && str.twig_markup != strategy)) {
-	                str = Twig.filters.escape(str, [ strategy ]);
-	            }
-
-	            escaped_output[i] = str;
-	        }
-
-	        if (escaped_output.length < 1)
-	            return '';
-
-	        return Twig.Markup(escaped_output.join(""), true);
-	    }
-
-	    // Namespace for template storage and retrieval
-	    Twig.Templates = {
-	        /**
-	         * Registered template loaders - use Twig.Templates.registerLoader to add supported loaders
-	         * @type {Object}
-	         */
-	        loaders: {},
-
-	        /**
-	         * Registered template parsers - use Twig.Templates.registerParser to add supported parsers
-	         * @type {Object}
-	         */
-	        parsers: {},
-
-	        /**
-	         * Cached / loaded templates
-	         * @type {Object}
-	         */
-	        registry: {}
-	    };
-
-	    /**
-	     * Is this id valid for a twig template?
-	     *
-	     * @param {string} id The ID to check.
-	     *
-	     * @throws {Twig.Error} If the ID is invalid or used.
-	     * @return {boolean} True if the ID is valid.
-	     */
-	    Twig.validateId = function(id) {
-	        if (id === "prototype") {
-	            throw new Twig.Error(id + " is not a valid twig identifier");
-	        } else if (Twig.cache && Twig.Templates.registry.hasOwnProperty(id)) {
-	            throw new Twig.Error("There is already a template with the ID " + id);
-	        }
-	        return true;
-	    }
-
-	    /**
-	     * Register a template loader
-	     *
-	     * @example
-	     * Twig.extend(function(Twig) {
-	     *    Twig.Templates.registerLoader('custom_loader', function(location, params, callback, error_callback) {
-	     *        // ... load the template ...
-	     *        params.data = loadedTemplateData;
-	     *        // create and return the template
-	     *        var template = new Twig.Template(params);
-	     *        if (typeof callback === 'function') {
-	     *            callback(template);
-	     *        }
-	     *        return template;
-	     *    });
-	     * });
-	     *
-	     * @param {String} method_name The method this loader is intended for (ajax, fs)
-	     * @param {Function} func The function to execute when loading the template
-	     * @param {Object|undefined} scope Optional scope parameter to bind func to
-	     *
-	     * @throws Twig.Error
-	     *
-	     * @return {void}
-	     */
-	    Twig.Templates.registerLoader = function(method_name, func, scope) {
-	        if (typeof func !== 'function') {
-	            throw new Twig.Error('Unable to add loader for ' + method_name + ': Invalid function reference given.');
-	        }
-	        if (scope) {
-	            func = func.bind(scope);
-	        }
-	        this.loaders[method_name] = func;
-	    };
-
-	    /**
-	     * Remove a registered loader
-	     *
-	     * @param {String} method_name The method name for the loader you wish to remove
-	     *
-	     * @return {void}
-	     */
-	    Twig.Templates.unRegisterLoader = function(method_name) {
-	        if (this.isRegisteredLoader(method_name)) {
-	            delete this.loaders[method_name];
-	        }
-	    };
-
-	    /**
-	     * See if a loader is registered by its method name
-	     *
-	     * @param {String} method_name The name of the loader you are looking for
-	     *
-	     * @return {boolean}
-	     */
-	    Twig.Templates.isRegisteredLoader = function(method_name) {
-	        return this.loaders.hasOwnProperty(method_name);
-	    };
-
-	    /**
-	     * Register a template parser
-	     *
-	     * @example
-	     * Twig.extend(function(Twig) {
-	     *    Twig.Templates.registerParser('custom_parser', function(params) {
-	     *        // this template source can be accessed in params.data
-	     *        var template = params.data
-	     *
-	     *        // ... custom process that modifies the template
-	     *
-	     *        // return the parsed template
-	     *        return template;
-	     *    });
-	     * });
-	     *
-	     * @param {String} method_name The method this parser is intended for (twig, source)
-	     * @param {Function} func The function to execute when parsing the template
-	     * @param {Object|undefined} scope Optional scope parameter to bind func to
-	     *
-	     * @throws Twig.Error
-	     *
-	     * @return {void}
-	     */
-	    Twig.Templates.registerParser = function(method_name, func, scope) {
-	        if (typeof func !== 'function') {
-	            throw new Twig.Error('Unable to add parser for ' + method_name + ': Invalid function regerence given.');
-	        }
-
-	        if (scope) {
-	            func = func.bind(scope);
-	        }
-
-	        this.parsers[method_name] = func;
-	    };
-
-	    /**
-	     * Remove a registered parser
-	     *
-	     * @param {String} method_name The method name for the parser you wish to remove
-	     *
-	     * @return {void}
-	     */
-	    Twig.Templates.unRegisterParser = function(method_name) {
-	        if (this.isRegisteredParser(method_name)) {
-	            delete this.parsers[method_name];
-	        }
-	    };
-
-	    /**
-	     * See if a parser is registered by its method name
-	     *
-	     * @param {String} method_name The name of the parser you are looking for
-	     *
-	     * @return {boolean}
-	     */
-	    Twig.Templates.isRegisteredParser = function(method_name) {
-	        return this.parsers.hasOwnProperty(method_name);
-	    };
-
-	    /**
-	     * Save a template object to the store.
-	     *
-	     * @param {Twig.Template} template   The twig.js template to store.
-	     */
-	    Twig.Templates.save = function(template) {
-	        if (template.id === undefined) {
-	            throw new Twig.Error("Unable to save template with no id");
-	        }
-	        Twig.Templates.registry[template.id] = template;
-	    };
-
-	    /**
-	     * Load a previously saved template from the store.
-	     *
-	     * @param {string} id   The ID of the template to load.
-	     *
-	     * @return {Twig.Template} A twig.js template stored with the provided ID.
-	     */
-	    Twig.Templates.load = function(id) {
-	        if (!Twig.Templates.registry.hasOwnProperty(id)) {
-	            return null;
-	        }
-	        return Twig.Templates.registry[id];
-	    };
-
-	    /**
-	     * Load a template from a remote location using AJAX and saves in with the given ID.
-	     *
-	     * Available parameters:
-	     *
-	     *      async:       Should the HTTP request be performed asynchronously.
-	     *                      Defaults to true.
-	     *      method:      What method should be used to load the template
-	     *                      (fs or ajax)
-	     *      parser:      What method should be used to parse the template
-	     *                      (twig or source)
-	     *      precompiled: Has the template already been compiled.
-	     *
-	     * @param {string} location  The remote URL to load as a template.
-	     * @param {Object} params The template parameters.
-	     * @param {function} callback  A callback triggered when the template finishes loading.
-	     * @param {function} error_callback  A callback triggered if an error occurs loading the template.
-	     *
-	     *
-	     */
-	    Twig.Templates.loadRemote = function(location, params, callback, error_callback) {
-	        var loader,
-	            // Default to the URL so the template is cached.
-	            id = typeof params.id == 'undefined' ? location : params.id,
-	            cached = Twig.Templates.registry[id];
-
-	        // Check for existing template
-	        if (Twig.cache && typeof cached != 'undefined') {
-	            // A template is already saved with the given id.
-	            if (typeof callback === 'function') {
-	                callback(cached);
-	            }
-	            // TODO: if async, return deferred promise
-	            return cached;
-	        }
-
-	        //if the parser name hasn't been set, default it to twig
-	        params.parser = params.parser || 'twig';
-	        params.id = id;
-
-	        // Default to async
-	        if (typeof params.async === 'undefined') {
-	            params.async = true;
-	        }
-
-	        // Assume 'fs' if the loader is not defined
-	        loader = this.loaders[params.method] || this.loaders.fs;
-	        return loader.call(this, location, params, callback, error_callback);
-	    };
-
-	    // Determine object type
-	    function is(type, obj) {
-	        var clas = Object.prototype.toString.call(obj).slice(8, -1);
-	        return obj !== undefined && obj !== null && clas === type;
-	    }
-
-	    /**
-	     * Create a new twig.js template.
-	     *
-	     * Parameters: {
-	     *      data:   The template, either pre-compiled tokens or a string template
-	     *      id:     The name of this template
-	     *      blocks: Any pre-existing block from a child template
-	     * }
-	     *
-	     * @param {Object} params The template parameters.
-	     */
-	    Twig.Template = function ( params ) {
-	        var data = params.data,
-	            id = params.id,
-	            blocks = params.blocks,
-	            macros = params.macros || {},
-	            base = params.base,
-	            path = params.path,
-	            url = params.url,
-	            name = params.name,
-	            method = params.method,
-	            // parser options
-	            options = params.options;
-
-	        // # What is stored in a Twig.Template
-	        //
-	        // The Twig Template hold several chucks of data.
-	        //
-	        //     {
-	        //          id:     The token ID (if any)
-	        //          tokens: The list of tokens that makes up this template.
-	        //          blocks: The list of block this template contains.
-	        //          base:   The base template (if any)
-	        //            options:  {
-	        //                Compiler/parser options
-	        //
-	        //                strict_variables: true/false
-	        //                    Should missing variable/keys emit an error message. If false, they default to null.
-	        //            }
-	        //     }
-	        //
-
-	        this.id     = id;
-	        this.method = method;
-	        this.base   = base;
-	        this.path   = path;
-	        this.url    = url;
-	        this.name   = name;
-	        this.macros = macros;
-	        this.options = options;
-
-	        this.reset(blocks);
-
-	        if (is('String', data)) {
-	            this.tokens = Twig.prepare.call(this, data);
-	        } else {
-	            this.tokens = data;
-	        }
-
-	        if (id !== undefined) {
-	            Twig.Templates.save(this);
-	        }
-	    };
-
-	    Twig.Template.prototype.reset = function(blocks) {
-	        Twig.log.debug("Twig.Template.reset", "Reseting template " + this.id);
-	        this.blocks = {};
-	        this.importedBlocks = [];
-	        this.originalBlockTokens = {};
-	        this.child = {
-	            blocks: blocks || {}
-	        };
-	        this.extend = null;
-	    };
-
-	    Twig.Template.prototype.render = function (context, params, allow_async) {
-	        var that = this;
-
-	        this.context = context || {};
-
-	        // Clear any previous state
-	        this.reset();
-	        if (params && params.blocks) {
-	            this.blocks = params.blocks;
-	        }
-	        if (params && params.macros) {
-	            this.macros = params.macros;
-	        }
-
-	        return Twig.async.potentiallyAsync(this, allow_async, function() {
-	            return Twig.parseAsync.call(this, this.tokens, this.context)
-	            .then(function(output) {
-	                var ext_template,
-	                    url;
-
-	                // Does this template extend another
-	                if (that.extend) {
-
-	                    // check if the template is provided inline
-	                    if ( that.options.allowInlineIncludes ) {
-	                        ext_template = Twig.Templates.load(that.extend);
-	                        if ( ext_template ) {
-	                            ext_template.options = that.options;
-	                        }
-	                    }
-
-	                    // check for the template file via include
-	                    if (!ext_template) {
-	                        url = Twig.path.parsePath(that, that.extend);
-
-	                        ext_template = Twig.Templates.loadRemote(url, {
-	                            method: that.getLoaderMethod(),
-	                            base: that.base,
-	                            async:  false,
-	                            id:     url,
-	                            options: that.options
-	                        });
-	                    }
-
-	                    that.parent = ext_template;
-
-	                    return that.parent.renderAsync(that.context, {
-	                        blocks: that.blocks
-	                    });
-	                }
-
-	                if (!params) {
-	                    return output;
-	                } else if (params.output == 'blocks') {
-	                    return that.blocks;
-	                } else if (params.output == 'macros') {
-	                    return that.macros;
-	                } else {
-	                    return output;
-	                }
-	            });
-	        });
-	    };
-
-	    Twig.Template.prototype.importFile = function(file) {
-	        var url, sub_template;
-	        if (!this.url && this.options.allowInlineIncludes) {
-	            file = this.path ? Twig.path.parsePath(this, file) : file;
-	            sub_template = Twig.Templates.load(file);
-
-	            if (!sub_template) {
-	                sub_template = Twig.Templates.loadRemote(url, {
-	                    id: file,
-	                    method: this.getLoaderMethod(),
-	                    async: false,
-	                    path: file,
-	                    options: this.options
-	                });
-
-	                if (!sub_template) {
-	                    throw new Twig.Error("Unable to find the template " + file);
-	                }
-	            }
-
-	            sub_template.options = this.options;
-
-	            return sub_template;
-	        }
-
-	        url = Twig.path.parsePath(this, file);
-
-	        // Load blocks from an external file
-	        sub_template = Twig.Templates.loadRemote(url, {
-	            method: this.getLoaderMethod(),
-	            base: this.base,
-	            async: false,
-	            options: this.options,
-	            id: url
-	        });
-
-	        return sub_template;
-	    };
-
-	    Twig.Template.prototype.importBlocks = function(file, override) {
-	        var sub_template = this.importFile(file),
-	            context = this.context,
-	            that = this,
-	            key;
-
-	        override = override || false;
-
-	        sub_template.render(context);
-
-	        // Mixin blocks
-	        Twig.forEach(Object.keys(sub_template.blocks), function(key) {
-	            if (override || that.blocks[key] === undefined) {
-	                that.blocks[key] = sub_template.blocks[key];
-	                that.importedBlocks.push(key);
-	            }
-	        });
-	    };
-
-	    Twig.Template.prototype.importMacros = function(file) {
-	        var url = Twig.path.parsePath(this, file);
-
-	        // load remote template
-	        var remoteTemplate = Twig.Templates.loadRemote(url, {
-	            method: this.getLoaderMethod(),
-	            async: false,
-	            id: url
-	        });
-
-	        return remoteTemplate;
-	    };
-
-	    Twig.Template.prototype.getLoaderMethod = function() {
-	        if (this.path) {
-	            return 'fs';
-	        }
-	        if (this.url) {
-	            return 'ajax';
-	        }
-	        return this.method || 'fs';
-	    };
-
-	    Twig.Template.prototype.compile = function(options) {
-	        // compile the template into raw JS
-	        return Twig.compiler.compile(this, options);
-	    };
-
-	    /**
-	     * Create safe output
-	     *
-	     * @param {string} Content safe to output
-	     *
-	     * @return {String} Content wrapped into a String
-	     */
-
-	    Twig.Markup = function(content, strategy) {
-	        if (typeof content !== 'string' || content.length < 1)
-	            return content;
-
-	        var output = new String(content);
-	        output.twig_markup = (typeof strategy == 'undefined') ? true : strategy;
-
-	        return output;
-	    };
-
-	    return Twig;
-
-	};
-
-
-/***/ }),
-/* 2 */
-/***/ (function(module, exports) {
-
-	// ## twig.compiler.js
-	//
-	// This file handles compiling templates into JS
-	module.exports = function (Twig) {
-	    /**
-	     * Namespace for compilation.
-	     */
-	    Twig.compiler = {
-	        module: {}
-	    };
-
-	    // Compile a Twig Template to output.
-	    Twig.compiler.compile = function(template, options) {
-	        // Get tokens
-	        var tokens = JSON.stringify(template.tokens)
-	            , id = template.id
-	            , output;
-
-	        if (options.module) {
-	            if (Twig.compiler.module[options.module] === undefined) {
-	                throw new Twig.Error("Unable to find module type " + options.module);
-	            }
-	            output = Twig.compiler.module[options.module](id, tokens, options.twig);
-	        } else {
-	            output = Twig.compiler.wrap(id, tokens);
-	        }
-	        return output;
-	    };
-
-	    Twig.compiler.module = {
-	        amd: function(id, tokens, pathToTwig) {
-	            return 'define(["' + pathToTwig + '"], function (Twig) {\n\tvar twig, templates;\ntwig = Twig.twig;\ntemplates = ' + Twig.compiler.wrap(id, tokens) + '\n\treturn templates;\n});';
-	        }
-	        , node: function(id, tokens) {
-	            return 'var twig = require("twig").twig;\n'
-	                + 'exports.template = ' + Twig.compiler.wrap(id, tokens)
-	        }
-	        , cjs2: function(id, tokens, pathToTwig) {
-	            return 'module.declare([{ twig: "' + pathToTwig + '" }], function (require, exports, module) {\n'
-	                        + '\tvar twig = require("twig").twig;\n'
-	                        + '\texports.template = ' + Twig.compiler.wrap(id, tokens)
-	                    + '\n});'
-	        }
-	    };
-
-	    Twig.compiler.wrap = function(id, tokens) {
-	        return 'twig({id:"'+id.replace('"', '\\"')+'", data:'+tokens+', precompiled: true});\n';
-	    };
-
-	    return Twig;
-	};
-
-
-/***/ }),
-/* 3 */
-/***/ (function(module, exports, __webpack_require__) {
-
-	// ## twig.expression.js
-	//
-	// This file handles tokenizing, compiling and parsing expressions.
-	module.exports = function (Twig) {
-	    "use strict";
-
-	    function parseParams(thisArg, params, context) {
-	        if (params)
-	            return Twig.expression.parseAsync.call(thisArg, params, context);
-
-	        return Twig.Promise.resolve(false);
-	    }
-
-	    /**
-	     * Namespace for expression handling.
-	     */
-	    Twig.expression = { };
-
-	    __webpack_require__(4)(Twig);
-
-	    /**
-	     * Reserved word that can't be used as variable names.
-	     */
-	    Twig.expression.reservedWords = [
-	        "true", "false", "null", "TRUE", "FALSE", "NULL", "_context", "and", "b-and", "or", "b-or", "b-xor", "in", "not in", "if"
-	    ];
-
-	    /**
-	     * The type of tokens used in expressions.
-	     */
-	    Twig.expression.type = {
-	        comma:      'Twig.expression.type.comma',
-	        operator: {
-	            unary:  'Twig.expression.type.operator.unary',
-	            binary: 'Twig.expression.type.operator.binary'
-	        },
-	        string:     'Twig.expression.type.string',
-	        bool:       'Twig.expression.type.bool',
-	        slice:      'Twig.expression.type.slice',
-	        array: {
-	            start:  'Twig.expression.type.array.start',
-	            end:    'Twig.expression.type.array.end'
-	        },
-	        object: {
-	            start:  'Twig.expression.type.object.start',
-	            end:    'Twig.expression.type.object.end'
-	        },
-	        parameter: {
-	            start:  'Twig.expression.type.parameter.start',
-	            end:    'Twig.expression.type.parameter.end'
-	        },
-	        subexpression: {
-	            start:  'Twig.expression.type.subexpression.start',
-	            end:    'Twig.expression.type.subexpression.end'
-	        },
-	        key: {
-	            period:   'Twig.expression.type.key.period',
-	            brackets: 'Twig.expression.type.key.brackets'
-	        },
-	        filter:     'Twig.expression.type.filter',
-	        _function:  'Twig.expression.type._function',
-	        variable:   'Twig.expression.type.variable',
-	        number:     'Twig.expression.type.number',
-	        _null:     'Twig.expression.type.null',
-	        context:    'Twig.expression.type.context',
-	        test:       'Twig.expression.type.test'
-	    };
-
-	    Twig.expression.set = {
-	        // What can follow an expression (in general)
-	        operations: [
-	            Twig.expression.type.filter,
-	            Twig.expression.type.operator.unary,
-	            Twig.expression.type.operator.binary,
-	            Twig.expression.type.array.end,
-	            Twig.expression.type.object.end,
-	            Twig.expression.type.parameter.end,
-	            Twig.expression.type.subexpression.end,
-	            Twig.expression.type.comma,
-	            Twig.expression.type.test
-	        ],
-	        expressions: [
-	            Twig.expression.type._function,
-	            Twig.expression.type.bool,
-	            Twig.expression.type.string,
-	            Twig.expression.type.variable,
-	            Twig.expression.type.number,
-	            Twig.expression.type._null,
-	            Twig.expression.type.context,
-	            Twig.expression.type.parameter.start,
-	            Twig.expression.type.array.start,
-	            Twig.expression.type.object.start,
-	            Twig.expression.type.subexpression.start,
-	            Twig.expression.type.operator.unary
-	        ]
-	    };
-
-	    // Most expressions allow a '.' or '[' after them, so we provide a convenience set
-	    Twig.expression.set.operations_extended = Twig.expression.set.operations.concat([
-	                    Twig.expression.type.key.period,
-	                    Twig.expression.type.key.brackets,
-	                    Twig.expression.type.slice]);
-
-	    // Some commonly used compile and parse functions.
-	    Twig.expression.fn = {
-	        compile: {
-	            push: function(token, stack, output) {
-	                output.push(token);
-	            },
-	            push_both: function(token, stack, output) {
-	                output.push(token);
-	                stack.push(token);
-	            }
-	        },
-	        parse: {
-	            push: function(token, stack, context) {
-	                stack.push(token);
-	            },
-	            push_value: function(token, stack, context) {
-	                stack.push(token.value);
-	            }
-	        }
-	    };
-
-	    // The regular expressions and compile/parse logic used to match tokens in expressions.
-	    //
-	    // Properties:
-	    //
-	    //      type:  The type of expression this matches
-	    //
-	    //      regex: One or more regular expressions that matche the format of the token.
-	    //
-	    //      next:  Valid tokens that can occur next in the expression.
-	    //
-	    // Functions:
-	    //
-	    //      compile: A function that compiles the raw regular expression match into a token.
-	    //
-	    //      parse:   A function that parses the compiled token into output.
-	    //
-	    Twig.expression.definitions = [
-	        {
-	            type: Twig.expression.type.test,
-	            regex: /^is\s+(not)?\s*([a-zA-Z_][a-zA-Z0-9_]*(\s?as)?)/,
-	            next: Twig.expression.set.operations.concat([Twig.expression.type.parameter.start]),
-	            compile: function(token, stack, output) {
-	                token.filter   = token.match[2];
-	                token.modifier = token.match[1];
-	                delete token.match;
-	                delete token.value;
-	                output.push(token);
-	            },
-	            parse: function(token, stack, context) {
-	                var value = stack.pop();
-
-	                return parseParams(this, token.params, context)
-	                .then(function(params) {
-	                    var result = Twig.test(token.filter, value, params);
-
-	                    if (token.modifier == 'not') {
-	                        stack.push(!result);
-	                    } else {
-	                        stack.push(result);
-	                    }
-	                });
-	            }
-	        },
-	        {
-	            type: Twig.expression.type.comma,
-	            // Match a comma
-	            regex: /^,/,
-	            next: Twig.expression.set.expressions.concat([Twig.expression.type.array.end, Twig.expression.type.object.end]),
-	            compile: function(token, stack, output) {
-	                var i = stack.length - 1,
-	                    stack_token;
-
-	                delete token.match;
-	                delete token.value;
-
-	                // pop tokens off the stack until the start of the object
-	                for(;i >= 0; i--) {
-	                    stack_token = stack.pop();
-	                    if (stack_token.type === Twig.expression.type.object.start
-	                            || stack_token.type === Twig.expression.type.parameter.start
-	                            || stack_token.type === Twig.expression.type.array.start) {
-	                        stack.push(stack_token);
-	                        break;
-	                    }
-	                    output.push(stack_token);
-	                }
-	                output.push(token);
-	            }
-	        },
-	        {
-	            /**
-	             * Match a number (integer or decimal)
-	             */
-	            type: Twig.expression.type.number,
-	            // match a number
-	            regex: /^\-?\d+(\.\d+)?/,
-	            next: Twig.expression.set.operations,
-	            compile: function(token, stack, output) {
-	                token.value = Number(token.value);
-	                output.push(token);
-	            },
-	            parse: Twig.expression.fn.parse.push_value
-	        },
-	        {
-	            type: Twig.expression.type.operator.binary,
-	            // Match any of ?:, +, *, /, -, %, ~, <, <=, >, >=, !=, ==, **, ?, :, and, b-and, or, b-or, b-xor, in, not in
-	            // and, or, in, not in can be followed by a space or parenthesis
-	            regex: /(^\?\:|^(b\-and)|^(b\-or)|^(b\-xor)|^[\+\-~%\?]|^[\:](?!\d\])|^[!=]==?|^[!<>]=?|^\*\*?|^\/\/?|^(and)[\(|\s+]|^(or)[\(|\s+]|^(in)[\(|\s+]|^(not in)[\(|\s+]|^\.\.)/,
-	            next: Twig.expression.set.expressions,
-	            transform: function(match, tokens) {
-	                switch(match[0]) {
-	                    case 'and(':
-	                    case 'or(':
-	                    case 'in(':
-	                    case 'not in(':
-	                        //Strip off the ( if it exists
-	                        tokens[tokens.length - 1].value = match[2];
-	                        return match[0];
-	                        break;
-	                    default:
-	                        return '';
-	                }
-	            },
-	            compile: function(token, stack, output) {
-	                delete token.match;
-
-	                token.value = token.value.trim();
-	                var value = token.value,
-	                    operator = Twig.expression.operator.lookup(value, token);
-
-	                Twig.log.trace("Twig.expression.compile: ", "Operator: ", operator, " from ", value);
-
-	                while (stack.length > 0 &&
-	                       (stack[stack.length-1].type == Twig.expression.type.operator.unary || stack[stack.length-1].type == Twig.expression.type.operator.binary) &&
-	                            (
-	                                (operator.associativity === Twig.expression.operator.leftToRight &&
-	                                 operator.precidence    >= stack[stack.length-1].precidence) ||
-
-	                                (operator.associativity === Twig.expression.operator.rightToLeft &&
-	                                 operator.precidence    >  stack[stack.length-1].precidence)
-	                            )
-	                       ) {
-	                     var temp = stack.pop();
-	                     output.push(temp);
-	                }
-
-	                if (value === ":") {
-	                    // Check if this is a ternary or object key being set
-	                    if (stack[stack.length - 1] && stack[stack.length-1].value === "?") {
-	                        // Continue as normal for a ternary
-	                    } else {
-	                        // This is not a ternary so we push the token to the output where it can be handled
-	                        //   when the assocated object is closed.
-	                        var key_token = output.pop();
-
-	                        if (key_token.type === Twig.expression.type.string ||
-	                                key_token.type === Twig.expression.type.variable) {
-	                            token.key = key_token.value;
-	                        } else if (key_token.type === Twig.expression.type.number) {
-	                            // Convert integer keys into string keys
-	                            token.key = key_token.value.toString();
-	                        } else if (key_token.expression &&
-	                            (key_token.type === Twig.expression.type.parameter.end ||
-	                            key_token.type == Twig.expression.type.subexpression.end)) {
-	                            token.params = key_token.params;
-	                        } else {
-	                            throw new Twig.Error("Unexpected value before ':' of " + key_token.type + " = " + key_token.value);
-	                        }
-
-	                        output.push(token);
-	                        return;
-	                    }
-	                } else {
-	                    stack.push(operator);
-	                }
-	            },
-	            parse: function(token, stack, context) {
-	                if (token.key) {
-	                    // handle ternary ':' operator
-	                    stack.push(token);
-	                } else if (token.params) {
-	                    // handle "{(expression):value}"
-	                    return Twig.expression.parseAsync.call(this, token.params, context)
-	                    .then(function(key) {
-	                        token.key = key;
-	                        stack.push(token);
-
-	                        //If we're in a loop, we might need token.params later, especially in this form of "(expression):value"
-	                        if (!context.loop) {
-	                            delete(token.params);
-	                        }
-	                    });
-	                } else {
-	                    Twig.expression.operator.parse(token.value, stack);
-	                }
-	            }
-	        },
-	        {
-	            type: Twig.expression.type.operator.unary,
-	            // Match any of not
-	            regex: /(^not\s+)/,
-	            next: Twig.expression.set.expressions,
-	            compile: function(token, stack, output) {
-	                delete token.match;
-
-	                token.value = token.value.trim();
-	                var value = token.value,
-	                    operator = Twig.expression.operator.lookup(value, token);
-
-	                Twig.log.trace("Twig.expression.compile: ", "Operator: ", operator, " from ", value);
-
-	                while (stack.length > 0 &&
-	                       (stack[stack.length-1].type == Twig.expression.type.operator.unary || stack[stack.length-1].type == Twig.expression.type.operator.binary) &&
-	                            (
-	                                (operator.associativity === Twig.expression.operator.leftToRight &&
-	                                 operator.precidence    >= stack[stack.length-1].precidence) ||
-
-	                                (operator.associativity === Twig.expression.operator.rightToLeft &&
-	                                 operator.precidence    >  stack[stack.length-1].precidence)
-	                            )
-	                       ) {
-	                     var temp = stack.pop();
-	                     output.push(temp);
-	                }
-
-	                stack.push(operator);
-	            },
-	            parse: function(token, stack, context) {
-	                Twig.expression.operator.parse(token.value, stack);
-	            }
-	        },
-	        {
-	            /**
-	             * Match a string. This is anything between a pair of single or double quotes.
-	             */
-	            type: Twig.expression.type.string,
-	            // See: http://blog.stevenlevithan.com/archives/match-quoted-string
-	            regex: /^(["'])(?:(?=(\\?))\2[\s\S])*?\1/,
-	            next: Twig.expression.set.operations_extended,
-	            compile: function(token, stack, output) {
-	                var value = token.value;
-	                delete token.match
-
-	                // Remove the quotes from the string
-	                if (value.substring(0, 1) === '"') {
-	                    value = value.replace('\\"', '"');
-	                } else {
-	                    value = value.replace("\\'", "'");
-	                }
-	                token.value = value.substring(1, value.length-1).replace( /\\n/g, "\n" ).replace( /\\r/g, "\r" );
-	                Twig.log.trace("Twig.expression.compile: ", "String value: ", token.value);
-	                output.push(token);
-	            },
-	            parse: Twig.expression.fn.parse.push_value
-	        },
-	        {
-	            /**
-	             * Match a subexpression set start.
-	             */
-	            type: Twig.expression.type.subexpression.start,
-	            regex: /^\(/,
-	            next: Twig.expression.set.expressions.concat([Twig.expression.type.subexpression.end]),
-	            compile: function(token, stack, output) {
-	                token.value = '(';
-	                output.push(token);
-	                stack.push(token);
-	            },
-	            parse: Twig.expression.fn.parse.push
-	        },
-	        {
-	            /**
-	             * Match a subexpression set end.
-	             */
-	            type: Twig.expression.type.subexpression.end,
-	            regex: /^\)/,
-	            next: Twig.expression.set.operations_extended,
-	            validate: function(match, tokens) {
-	                // Iterate back through previous tokens to ensure we follow a subexpression start
-	                var i = tokens.length - 1,
-	                    found_subexpression_start = false,
-	                    next_subexpression_start_invalid = false,
-	                    unclosed_parameter_count = 0;
-
-	                while(!found_subexpression_start && i >= 0) {
-	                    var token = tokens[i];
-
-	                    found_subexpression_start = token.type === Twig.expression.type.subexpression.start;
-
-	                    // If we have previously found a subexpression end, then this subexpression start is the start of
-	                    // that subexpression, not the subexpression we are searching for
-	                    if (found_subexpression_start && next_subexpression_start_invalid) {
-	                        next_subexpression_start_invalid = false;
-	                        found_subexpression_start = false;
-	                    }
-
-	                    // Count parameter tokens to ensure we dont return truthy for a parameter opener
-	                    if (token.type === Twig.expression.type.parameter.start) {
-	                        unclosed_parameter_count++;
-	                    } else if (token.type === Twig.expression.type.parameter.end) {
-	                        unclosed_parameter_count--;
-	                    } else if (token.type === Twig.expression.type.subexpression.end) {
-	                        next_subexpression_start_invalid = true;
-	                    }
-
-	                    i--;
-	                }
-
-	                // If we found unclosed parameters, return false
-	                // If we didnt find subexpression start, return false
-	                // Otherwise return true
-
-	                return (found_subexpression_start && (unclosed_parameter_count === 0));
-	            },
-	            compile: function(token, stack, output) {
-	                // This is basically a copy of parameter end compilation
-	                var stack_token,
-	                    end_token = token;
-
-	                stack_token = stack.pop();
-	                while(stack.length > 0 && stack_token.type != Twig.expression.type.subexpression.start) {
-	                    output.push(stack_token);
-	                    stack_token = stack.pop();
-	                }
-
-	                // Move contents of parens into preceding filter
-	                var param_stack = [];
-	                while(token.type !== Twig.expression.type.subexpression.start) {
-	                    // Add token to arguments stack
-	                    param_stack.unshift(token);
-	                    token = output.pop();
-	                }
-
-	                param_stack.unshift(token);
-
-	                var is_expression = false;
-
-	                //If the token at the top of the *stack* is a function token, pop it onto the output queue.
-	                // Get the token preceding the parameters
-	                stack_token = stack[stack.length-1];
-
-	                if (stack_token === undefined ||
-	                    (stack_token.type !== Twig.expression.type._function &&
-	                    stack_token.type !== Twig.expression.type.filter &&
-	                    stack_token.type !== Twig.expression.type.test &&
-	                    stack_token.type !== Twig.expression.type.key.brackets)) {
-
-	                    end_token.expression = true;
-
-	                    // remove start and end token from stack
-	                    param_stack.pop();
-	                    param_stack.shift();
-
-	                    end_token.params = param_stack;
-
-	                    output.push(end_token);
-	                } else {
-	                    // This should never be hit
-	                    end_token.expression = false;
-	                    stack_token.params = param_stack;
-	                }
-	            },
-	            parse: function(token, stack, context) {
-	                var new_array = [],
-	                    array_ended = false,
-	                    value = null;
-
-	                if (token.expression) {
-	                    return Twig.expression.parseAsync.call(this, token.params, context)
-	                    .then(function(value) {
-	                        stack.push(value);
-	                    });
-	                } else {
-	                    throw new Twig.Error("Unexpected subexpression end when token is not marked as an expression");
-	                }
-	            }
-	        },
-	        {
-	            /**
-	             * Match a parameter set start.
-	             */
-	            type: Twig.expression.type.parameter.start,
-	            regex: /^\(/,
-	            next: Twig.expression.set.expressions.concat([Twig.expression.type.parameter.end]),
-	            validate: function(match, tokens) {
-	                var last_token = tokens[tokens.length - 1];
-	                // We can't use the regex to test if we follow a space because expression is trimmed
-	                return last_token && (Twig.indexOf(Twig.expression.reservedWords, last_token.value.trim()) < 0);
-	            },
-	            compile: Twig.expression.fn.compile.push_both,
-	            parse: Twig.expression.fn.parse.push
-	        },
-	        {
-	            /**
-	             * Match a parameter set end.
-	             */
-	            type: Twig.expression.type.parameter.end,
-	            regex: /^\)/,
-	            next: Twig.expression.set.operations_extended,
-	            compile: function(token, stack, output) {
-	                var stack_token,
-	                    end_token = token;
-
-	                stack_token = stack.pop();
-	                while(stack.length > 0 && stack_token.type != Twig.expression.type.parameter.start) {
-	                    output.push(stack_token);
-	                    stack_token = stack.pop();
-	                }
-
-	                // Move contents of parens into preceding filter
-	                var param_stack = [];
-	                while(token.type !== Twig.expression.type.parameter.start) {
-	                    // Add token to arguments stack
-	                    param_stack.unshift(token);
-	                    token = output.pop();
-	                }
-	                param_stack.unshift(token);
-
-	                var is_expression = false;
-
-	                // Get the token preceding the parameters
-	                token = output[output.length-1];
-
-	                if (token === undefined ||
-	                    (token.type !== Twig.expression.type._function &&
-	                    token.type !== Twig.expression.type.filter &&
-	                    token.type !== Twig.expression.type.test &&
-	                    token.type !== Twig.expression.type.key.brackets)) {
-
-	                    end_token.expression = true;
-
-	                    // remove start and end token from stack
-	                    param_stack.pop();
-	                    param_stack.shift();
-
-	                    end_token.params = param_stack;
-
-	                    output.push(end_token);
-
-	                } else {
-	                    end_token.expression = false;
-	                    token.params = param_stack;
-	                }
-	            },
-	            parse: function(token, stack, context) {
-	                var new_array = [],
-	                    array_ended = false,
-	                    value = null;
-
-	                if (token.expression) {
-	                    return Twig.expression.parseAsync.call(this, token.params, context)
-	                    .then(function(value) {
-	                        stack.push(value);
-	                    });
-	                } else {
-
-	                    while (stack.length > 0) {
-	                        value = stack.pop();
-	                        // Push values into the array until the start of the array
-	                        if (value && value.type && value.type == Twig.expression.type.parameter.start) {
-	                            array_ended = true;
-	                            break;
-	                        }
-	                        new_array.unshift(value);
-	                    }
-
-	                    if (!array_ended) {
-	                        throw new Twig.Error("Expected end of parameter set.");
-	                    }
-
-	                    stack.push(new_array);
-	                }
-	            }
-	        },
-	        {
-	            type: Twig.expression.type.slice,
-	            regex: /^\[(\d*\:\d*)\]/,
-	            next: Twig.expression.set.operations_extended,
-	            compile: function(token, stack, output) {
-	                var sliceRange = token.match[1].split(':');
-
-	                //sliceStart can be undefined when we pass parameters to the slice filter later
-	                var sliceStart = (sliceRange[0]) ? parseInt(sliceRange[0]) : undefined;
-	                var sliceEnd = (sliceRange[1]) ? parseInt(sliceRange[1]) : undefined;
-
-	                token.value = 'slice';
-	                token.params = [sliceStart, sliceEnd];
-
-	                //sliceEnd can't be undefined as the slice filter doesn't check for this, but it does check the length
-	                //of the params array, so just shorten it.
-	                if (!sliceEnd) {
-	                    token.params = [sliceStart];
-	                }
-
-	                output.push(token);
-	            },
-	            parse: function(token, stack, context) {
-	                var input = stack.pop(),
-	                    params = token.params;
-
-	                stack.push(Twig.filter.call(this, token.value, input, params));
-	            }
-	        },
-	        {
-	            /**
-	             * Match an array start.
-	             */
-	            type: Twig.expression.type.array.start,
-	            regex: /^\[/,
-	            next: Twig.expression.set.expressions.concat([Twig.expression.type.array.end]),
-	            compile: Twig.expression.fn.compile.push_both,
-	            parse: Twig.expression.fn.parse.push
-	        },
-	        {
-	            /**
-	             * Match an array end.
-	             */
-	            type: Twig.expression.type.array.end,
-	            regex: /^\]/,
-	            next: Twig.expression.set.operations_extended,
-	            compile: function(token, stack, output) {
-	                var i = stack.length - 1,
-	                    stack_token;
-	                // pop tokens off the stack until the start of the object
-	                for(;i >= 0; i--) {
-	                    stack_token = stack.pop();
-	                    if (stack_token.type === Twig.expression.type.array.start) {
-	                        break;
-	                    }
-	                    output.push(stack_token);
-	                }
-	                output.push(token);
-	            },
-	            parse: function(token, stack, context) {
-	                var new_array = [],
-	                    array_ended = false,
-	                    value = null;
-
-	                while (stack.length > 0) {
-	                    value = stack.pop();
-	                    // Push values into the array until the start of the array
-	                    if (value.type && value.type == Twig.expression.type.array.start) {
-	                        array_ended = true;
-	                        break;
-	                    }
-	                    new_array.unshift(value);
-	                }
-	                if (!array_ended) {
-	                    throw new Twig.Error("Expected end of array.");
-	                }
-
-	                stack.push(new_array);
-	            }
-	        },
-	        // Token that represents the start of a hash map '}'
-	        //
-	        // Hash maps take the form:
-	        //    { "key": 'value', "another_key": item }
-	        //
-	        // Keys must be quoted (either single or double) and values can be any expression.
-	        {
-	            type: Twig.expression.type.object.start,
-	            regex: /^\{/,
-	            next: Twig.expression.set.expressions.concat([Twig.expression.type.object.end]),
-	            compile: Twig.expression.fn.compile.push_both,
-	            parse: Twig.expression.fn.parse.push
-	        },
-
-	        // Token that represents the end of a Hash Map '}'
-	        //
-	        // This is where the logic for building the internal
-	        // representation of a hash map is defined.
-	        {
-	            type: Twig.expression.type.object.end,
-	            regex: /^\}/,
-	            next: Twig.expression.set.operations_extended,
-	            compile: function(token, stack, output) {
-	                var i = stack.length-1,
-	                    stack_token;
-
-	                // pop tokens off the stack until the start of the object
-	                for(;i >= 0; i--) {
-	                    stack_token = stack.pop();
-	                    if (stack_token && stack_token.type === Twig.expression.type.object.start) {
-	                        break;
-	                    }
-	                    output.push(stack_token);
-	                }
-	                output.push(token);
-	            },
-	            parse: function(end_token, stack, context) {
-	                var new_object = {},
-	                    object_ended = false,
-	                    token = null,
-	                    token_key = null,
-	                    has_value = false,
-	                    value = null;
-
-	                while (stack.length > 0) {
-	                    token = stack.pop();
-	                    // Push values into the array until the start of the object
-	                    if (token && token.type && token.type === Twig.expression.type.object.start) {
-	                        object_ended = true;
-	                        break;
-	                    }
-	                    if (token && token.type && (token.type === Twig.expression.type.operator.binary || token.type === Twig.expression.type.operator.unary) && token.key) {
-	                        if (!has_value) {
-	                            throw new Twig.Error("Missing value for key '" + token.key + "' in object definition.");
-	                        }
-	                        new_object[token.key] = value;
-
-	                        // Preserve the order that elements are added to the map
-	                        // This is necessary since JavaScript objects don't
-	                        // guarantee the order of keys
-	                        if (new_object._keys === undefined) new_object._keys = [];
-	                        new_object._keys.unshift(token.key);
-
-	                        // reset value check
-	                        value = null;
-	                        has_value = false;
-
-	                    } else {
-	                        has_value = true;
-	                        value = token;
-	                    }
-	                }
-	                if (!object_ended) {
-	                    throw new Twig.Error("Unexpected end of object.");
-	                }
-
-	                stack.push(new_object);
-	            }
-	        },
-
-	        // Token representing a filter
-	        //
-	        // Filters can follow any expression and take the form:
-	        //    expression|filter(optional, args)
-	        //
-	        // Filter parsing is done in the Twig.filters namespace.
-	        {
-	            type: Twig.expression.type.filter,
-	            // match a | then a letter or _, then any number of letters, numbers, _ or -
-	            regex: /^\|\s?([a-zA-Z_][a-zA-Z0-9_\-]*)/,
-	            next: Twig.expression.set.operations_extended.concat([
-	                    Twig.expression.type.parameter.start]),
-	            compile: function(token, stack, output) {
-	                token.value = token.match[1];
-	                output.push(token);
-	            },
-	            parse: function(token, stack, context) {
-	                var that = this,
-	                    input = stack.pop();
-
-	                return parseParams(this, token.params, context)
-	                .then(function(params) {
-	                    return Twig.filter.call(that, token.value, input, params);
-	                })
-	                .then(function(value) {
-	                    stack.push(value);
-	                });
-	            }
-	        },
-	        {
-	            type: Twig.expression.type._function,
-	            // match any letter or _, then any number of letters, numbers, _ or - followed by (
-	            regex: /^([a-zA-Z_][a-zA-Z0-9_]*)\s*\(/,
-	            next: Twig.expression.type.parameter.start,
-	            validate: function(match, tokens) {
-	                // Make sure this function is not a reserved word
-	                return match[1] && (Twig.indexOf(Twig.expression.reservedWords, match[1]) < 0);
-	            },
-	            transform: function(match, tokens) {
-	                return '(';
-	            },
-	            compile: function(token, stack, output) {
-	                var fn = token.match[1];
-	                token.fn = fn;
-	                // cleanup token
-	                delete token.match;
-	                delete token.value;
-
-	                output.push(token);
-	            },
-	            parse: function(token, stack, context) {
-
-	                var that = this,
-	                    fn = token.fn,
-	                    value;
-
-	                return parseParams(this, token.params, context)
-	                .then(function(params) {
-	                    if (Twig.functions[fn]) {
-	                        // Get the function from the built-in functions
-	                        value = Twig.functions[fn].apply(that, params);
-
-	                    } else if (typeof context[fn] == 'function') {
-	                        // Get the function from the user/context defined functions
-	                        value = context[fn].apply(context, params);
-
-	                    } else {
-	                        throw new Twig.Error(fn + ' function does not exist and is not defined in the context');
-	                    }
-
-	                    return value;
-	                })
-	                .then(function(result) {
-	                    stack.push(result);
-	                });
-	            }
-	        },
-
-	        // Token representing a variable.
-	        //
-	        // Variables can contain letters, numbers, underscores and
-	        // dashes, but must start with a letter or underscore.
-	        //
-	        // Variables are retrieved from the render context and take
-	        // the value of 'undefined' if the given variable doesn't
-	        // exist in the context.
-	        {
-	            type: Twig.expression.type.variable,
-	            // match any letter or _, then any number of letters, numbers, _ or -
-	            regex: /^[a-zA-Z_][a-zA-Z0-9_]*/,
-	            next: Twig.expression.set.operations_extended.concat([
-	                    Twig.expression.type.parameter.start]),
-	            compile: Twig.expression.fn.compile.push,
-	            validate: function(match, tokens) {
-	                return (Twig.indexOf(Twig.expression.reservedWords, match[0]) < 0);
-	            },
-	            parse: function(token, stack, context) {
-	                // Get the variable from the context
-	                return Twig.expression.resolveAsync.call(this, context[token.value], context)
-	                .then(function(value) {
-	                    stack.push(value);
-	                });
-	            }
-	        },
-	        {
-	            type: Twig.expression.type.key.period,
-	            regex: /^\.([a-zA-Z0-9_]+)/,
-	            next: Twig.expression.set.operations_extended.concat([
-	                    Twig.expression.type.parameter.start]),
-	            compile: function(token, stack, output) {
-	                token.key = token.match[1];
-	                delete token.match;
-	                delete token.value;
-
-	                output.push(token);
-	            },
-	            parse: function(token, stack, context, next_token) {
-	                var that = this,
-	                    key = token.key,
-	                    object = stack.pop(),
-	                    value;
-
-	                return parseParams(this, token.params, context)
-	                .then(function(params) {
-	                    if (object === null || object === undefined) {
-	                        if (that.options.strict_variables) {
-	                            throw new Twig.Error("Can't access a key " + key + " on an null or undefined object.");
-	                        } else {
-	                            value = undefined;
-	                        }
-	                    } else {
-	                        var capitalize = function (value) {
-	                            return value.substr(0, 1).toUpperCase() + value.substr(1);
-	                        };
-
-	                        // Get the variable from the context
-	                        if (typeof object === 'object' && key in object) {
-	                            value = object[key];
-	                        } else if (object["get" + capitalize(key)] !== undefined) {
-	                            value = object["get" + capitalize(key)];
-	                        } else if (object["is" + capitalize(key)] !== undefined) {
-	                            value = object["is" + capitalize(key)];
-	                        } else {
-	                            value = undefined;
-	                        }
-	                    }
-
-	                    // When resolving an expression we need to pass next_token in case the expression is a function
-	                    return Twig.expression.resolveAsync.call(that, value, context, params, next_token, object);
-	                })
-	                .then(function(result) {
-	                    stack.push(result);
-	                });
-	            }
-	        },
-	        {
-	            type: Twig.expression.type.key.brackets,
-	            regex: /^\[([^\]\:]*)\]/,
-	            next: Twig.expression.set.operations_extended.concat([
-	                    Twig.expression.type.parameter.start]),
-	            compile: function(token, stack, output) {
-	                var match = token.match[1];
-	                delete token.value;
-	                delete token.match;
-
-	                // The expression stack for the key
-	                token.stack = Twig.expression.compile({
-	                    value: match
-	                }).stack;
-
-	                output.push(token);
-	            },
-	            parse: function(token, stack, context, next_token) {
-	                // Evaluate key
-	                var that = this,
-	                    params = null,
-	                    object,
-	                    value;
-
-	                return parseParams(this, token.params, context)
-	                .then(function(parameters) {
-	                    params = parameters;
-	                    return Twig.expression.parseAsync.call(that, token.stack, context);
-	                })
-	                .then(function(key) {
-	                    object = stack.pop();
-
-	                    if (object === null || object === undefined) {
-	                        if (that.options.strict_variables) {
-	                            throw new Twig.Error("Can't access a key " + key + " on an null or undefined object.");
-	                        } else {
-	                            return null;
-	                        }
-	                    }
-
-	                    // Get the variable from the context
-	                    if (typeof object === 'object' && key in object) {
-	                        value = object[key];
-	                    } else {
-	                        value = null;
-	                    }
-
-	                    // When resolving an expression we need to pass next_token in case the expression is a function
-	                    return Twig.expression.resolveAsync.call(that, value, object, params, next_token);
-	                })
-	                .then(function(result) {
-	                    stack.push(result);
-	                });
-	            }
-	        },
-	        {
-	            /**
-	             * Match a null value.
-	             */
-	            type: Twig.expression.type._null,
-	            // match a number
-	            regex: /^(null|NULL|none|NONE)/,
-	            next: Twig.expression.set.operations,
-	            compile: function(token, stack, output) {
-	                delete token.match;
-	                token.value = null;
-	                output.push(token);
-	            },
-	            parse: Twig.expression.fn.parse.push_value
-	        },
-	        {
-	            /**
-	             * Match the context
-	             */
-	            type: Twig.expression.type.context,
-	            regex: /^_context/,
-	            next: Twig.expression.set.operations_extended.concat([
-	                    Twig.expression.type.parameter.start]),
-	            compile: Twig.expression.fn.compile.push,
-	            parse: function(token, stack, context) {
-	                stack.push(context);
-	            }
-	        },
-	        {
-	            /**
-	             * Match a boolean
-	             */
-	            type: Twig.expression.type.bool,
-	            regex: /^(true|TRUE|false|FALSE)/,
-	            next: Twig.expression.set.operations,
-	            compile: function(token, stack, output) {
-	                token.value = (token.match[0].toLowerCase( ) === "true");
-	                delete token.match;
-	                output.push(token);
-	            },
-	            parse: Twig.expression.fn.parse.push_value
-	        }
-	    ];
-
-	    /**
-	     * Resolve a context value.
-	     *
-	     * If the value is a function, it is executed with a context parameter.
-	     *
-	     * @param {string} key The context object key.
-	     * @param {Object} context The render context.
-	     */
-	    Twig.expression.resolveAsync = function(value, context, params, next_token, object) {
-	        if (typeof value != 'function')
-	            return Twig.Promise.resolve(value);
-
-	        var promise = Twig.Promise.resolve(params);
-
-	        /*
-	        If value is a function, it will have been impossible during the compile stage to determine that a following
-	        set of parentheses were parameters for this function.
-
-	        Those parentheses will have therefore been marked as an expression, with their own parameters, which really
-	        belong to this function.
-
-	        Those parameters will also need parsing in case they are actually an expression to pass as parameters.
-	            */
-	        if (next_token && next_token.type === Twig.expression.type.parameter.end) {
-	            //When parsing these parameters, we need to get them all back, not just the last item on the stack.
-	            var tokens_are_parameters = true;
-
-	            promise = promise.then(function() {
-	                return next_token.params && Twig.expression.parseAsync.call(this, next_token.params, context, tokens_are_parameters);
-	            })
-	            .then(function(p) {
-	                //Clean up the parentheses tokens on the next loop
-	                next_token.cleanup = true;
-
-	                return p;
-	            });
-	        }
-
-	        return promise.then(function(params) {
-	            return value.apply(object || context, params || []);
-	        });
-	    };
-
-	    Twig.expression.resolve = function(value, context, params, next_token, object) {
-	        return Twig.async.potentiallyAsync(this, false, function() {
-	            return Twig.expression.resolveAsync.call(this, value, context, params, next_token, object);
-	        });
-	    }
-
-	    /**
-	     * Registry for logic handlers.
-	     */
-	    Twig.expression.handler = {};
-
-	    /**
-	     * Define a new expression type, available at Twig.logic.type.{type}
-	     *
-	     * @param {string} type The name of the new type.
-	     */
-	    Twig.expression.extendType = function (type) {
-	        Twig.expression.type[type] = "Twig.expression.type." + type;
-	    };
-
-	    /**
-	     * Extend the expression parsing functionality with a new definition.
-	     *
-	     * Token definitions follow this format:
-	     *  {
-	     *      type:     One of Twig.expression.type.[type], either pre-defined or added using
-	     *                    Twig.expression.extendType
-	     *
-	     *      next:     Array of types from Twig.expression.type that can follow this token,
-	     *
-	     *      regex:    A regex or array of regex's that should match the token.
-	     *
-	     *      compile: function(token, stack, output) called when this token is being compiled.
-	     *                   Should return an object with stack and output set.
-	     *
-	     *      parse:   function(token, stack, context) called when this token is being parsed.
-	     *                   Should return an object with stack and context set.
-	     *  }
-	     *
-	     * @param {Object} definition A token definition.
-	     */
-	    Twig.expression.extend = function (definition) {
-	        if (!definition.type) {
-	            throw new Twig.Error("Unable to extend logic definition. No type provided for " + definition);
-	        }
-	        Twig.expression.handler[definition.type] = definition;
-	    };
-
-	    // Extend with built-in expressions
-	    while (Twig.expression.definitions.length > 0) {
-	        Twig.expression.extend(Twig.expression.definitions.shift());
-	    }
-
-	    /**
-	     * Break an expression into tokens defined in Twig.expression.definitions.
-	     *
-	     * @param {string} expression The string to tokenize.
-	     *
-	     * @return {Array} An array of tokens.
-	     */
-	    Twig.expression.tokenize = function (expression) {
-	        var tokens = [],
-	            // Keep an offset of the location in the expression for error messages.
-	            exp_offset = 0,
-	            // The valid next tokens of the previous token
-	            next = null,
-	            // Match information
-	            type, regex, regex_i,
-	            // The possible next token for the match
-	            token_next,
-	            // Has a match been found from the definitions
-	            match_found, invalid_matches = [], match_function;
-
-	        match_function = function () {
-	            // Don't pass arguments to `Array.slice`, that is a performance killer
-	            var match_i = arguments.length - 2, match = new Array(match_i);
-	            while (match_i-- > 0) match[match_i] = arguments[match_i];
-
-	            Twig.log.trace("Twig.expression.tokenize",
-	                           "Matched a ", type, " regular expression of ", match);
-
-	            if (next && Twig.indexOf(next, type) < 0) {
-	                invalid_matches.push(
-	                    type + " cannot follow a " + tokens[tokens.length - 1].type +
-	                           " at template:" + exp_offset + " near '" + match[0].substring(0, 20) +
-	                           "...'"
-	                );
-
-	                // Not a match, don't change the expression
-	                return match[0];
-	            }
-
-	            var handler = Twig.expression.handler[type];
-
-	            // Validate the token if a validation function is provided
-	            if (handler.validate && !handler.validate(match, tokens)) {
-	                return match[0];
-	            }
-
-	            invalid_matches = [];
-
-	            tokens.push({
-	                type:  type,
-	                value: match[0],
-	                match: match
-	            });
-
-	            match_found = true;
-	            next = token_next;
-	            exp_offset += match[0].length;
-
-	            // Does the token need to return output back to the expression string
-	            // e.g. a function match of cycle( might return the '(' back to the expression
-	            // This allows look-ahead to differentiate between token types (e.g. functions and variable names)
-	            if (handler.transform) {
-	                return handler.transform(match, tokens);
-	            }
-	            return '';
-	        };
-
-	        Twig.log.debug("Twig.expression.tokenize", "Tokenizing expression ", expression);
-
-	        while (expression.length > 0) {
-	            expression = expression.trim();
-	            for (type in Twig.expression.handler) {
-	                token_next = Twig.expression.handler[type].next;
-	                regex = Twig.expression.handler[type].regex;
-	                Twig.log.trace("Checking type ", type, " on ", expression);
-
-	                match_found = false;
-
-	                if (Twig.lib.isArray(regex)) {
-	                    regex_i = regex.length;
-	                    while (regex_i-- > 0)
-	                        expression = expression.replace(regex[regex_i], match_function);
-	                } else {
-	                    expression = expression.replace(regex, match_function);
-	                }
-
-	                // An expression token has been matched. Break the for loop and start trying to
-	                //  match the next template (if expression isn't empty.)
-	                if (match_found) {
-	                    break;
-	                }
-	            }
-	            if (!match_found) {
-	                if (invalid_matches.length > 0) {
-	                    throw new Twig.Error(invalid_matches.join(" OR "));
-	                } else {
-	                    throw new Twig.Error("Unable to parse '" + expression + "' at template position" + exp_offset);
-	                }
-	            }
-	        }
-
-	        Twig.log.trace("Twig.expression.tokenize", "Tokenized to ", tokens);
-	        return tokens;
-	    };
-
-	    /**
-	     * Compile an expression token.
-	     *
-	     * @param {Object} raw_token The uncompiled token.
-	     *
-	     * @return {Object} The compiled token.
-	     */
-	    Twig.expression.compile = function (raw_token) {
-	        var expression = raw_token.value,
-	            // Tokenize expression
-	            tokens = Twig.expression.tokenize(expression),
-	            token = null,
-	            output = [],
-	            stack = [],
-	            token_template = null;
-
-	        Twig.log.trace("Twig.expression.compile: ", "Compiling ", expression);
-
-	        // Push tokens into RPN stack using the Shunting-yard algorithm
-	        // See http://en.wikipedia.org/wiki/Shunting_yard_algorithm
-
-	        while (tokens.length > 0) {
-	            token = tokens.shift();
-	            token_template = Twig.expression.handler[token.type];
-
-	            Twig.log.trace("Twig.expression.compile: ", "Compiling ", token);
-
-	            // Compile the template
-	            token_template.compile && token_template.compile(token, stack, output);
-
-	            Twig.log.trace("Twig.expression.compile: ", "Stack is", stack);
-	            Twig.log.trace("Twig.expression.compile: ", "Output is", output);
-	        }
-
-	        while(stack.length > 0) {
-	            output.push(stack.pop());
-	        }
-
-	        Twig.log.trace("Twig.expression.compile: ", "Final output is", output);
-
-	        raw_token.stack = output;
-	        delete raw_token.value;
-
-	        return raw_token;
-	    };
-
-
-	    /**
-	     * Parse an RPN expression stack within a context.
-	     *
-	     * @param {Array} tokens An array of compiled expression tokens.
-	     * @param {Object} context The render context to parse the tokens with.
-	     *
-	     * @return {Object} The result of parsing all the tokens. The result
-	     *                  can be anything, String, Array, Object, etc... based on
-	     *                  the given expression.
-	     */
-	    Twig.expression.parse = function (tokens, context, tokens_are_parameters, allow_async) {
-	        var that = this;
-
-	        // If the token isn't an array, make it one.
-	        if (!Twig.lib.isArray(tokens))
-	            tokens = [tokens];
-
-	        // The output stack
-	        var stack = [],
-	            loop_token_fixups = [],
-	            binaryOperator = Twig.expression.type.operator.binary;
-
-	        return Twig.async.potentiallyAsync(this, allow_async, function() {
-	            return Twig.async.forEach(tokens, function expressionToken(token, index) {
-	                var token_template = null,
-	                    next_token = null,
-	                    result;
-
-	                //If the token is marked for cleanup, we don't need to parse it
-	                if (token.cleanup) {
-	                    return;
-	                }
-
-	                //Determine the token that follows this one so that we can pass it to the parser
-	                if (tokens.length > index + 1) {
-	                    next_token = tokens[index + 1];
-	                }
-
-	                token_template = Twig.expression.handler[token.type];
-
-	                if (token_template.parse)
-	                    result = token_template.parse.call(that, token, stack, context, next_token);
-
-	                //Store any binary tokens for later if we are in a loop.
-	                if (token.type === binaryOperator && context.loop) {
-	                    loop_token_fixups.push(token);
-	                }
-
-	                return result;
-	            })
-	            .then(function loopTokenFixups() {
-	                //Check every fixup and remove "key" as long as they still have "params". This covers the use case where
-	                //a ":" operator is used in a loop with a "(expression):" statement. We need to be able to evaluate the expression
-	                var len = loop_token_fixups.length;
-	                var loop_token_fixup = null;
-
-	                while(len-- > 0) {
-	                    loop_token_fixup = loop_token_fixups[len];
-	                    if (loop_token_fixup.params && loop_token_fixup.key)
-	                        delete loop_token_fixup.key;
-	                }
-
-	                //If parse has been called with a set of tokens that are parameters, we need to return the whole stack,
-	                //wrapped in an Array.
-	                if (tokens_are_parameters) {
-	                    var params = stack.splice(0);
-
-	                    stack.push(params);
-	                }
-
-	                // Pop the final value off the stack
-	                return stack.pop();
-	            });
-	        });
-	    };
-
-	    return Twig;
-
-	};
-
-
-/***/ }),
-/* 4 */
-/***/ (function(module, exports) {
-
-	// ## twig.expression.operator.js
-	//
-	// This file handles operator lookups and parsing.
-	module.exports = function (Twig) {
-	    "use strict";
-
-	    /**
-	     * Operator associativity constants.
-	     */
-	    Twig.expression.operator = {
-	        leftToRight: 'leftToRight',
-	        rightToLeft: 'rightToLeft'
-	    };
-
-	    var containment = function(a, b) {
-	        if (b === undefined || b === null) {
-	            return null;
-	        } else if (b.indexOf !== undefined) {
-	            // String
-	            return a === b || a !== '' && b.indexOf(a) > -1;
-	        } else {
-	            var el;
-	            for (el in b) {
-	                if (b.hasOwnProperty(el) && b[el] === a) {
-	                    return true;
-	                }
-	            }
-	            return false;
-	        }
-	    };
-
-	    /**
-	     * Get the precidence and associativity of an operator. These follow the order that C/C++ use.
-	     * See http://en.wikipedia.org/wiki/Operators_in_C_and_C++ for the table of values.
-	     */
-	    Twig.expression.operator.lookup = function (operator, token) {
-	        switch (operator) {
-	            case "..":
-	                token.precidence = 20;
-	                token.associativity = Twig.expression.operator.leftToRight;
-	                break;
-
-	            case ',':
-	                token.precidence = 18;
-	                token.associativity = Twig.expression.operator.leftToRight;
-	                break;
-
-	            // Ternary
-	            case '?:':
-	            case '?':
-	            case ':':
-	                token.precidence = 16;
-	                token.associativity = Twig.expression.operator.rightToLeft;
-	                break;
-
-	            case 'or':
-	                token.precidence = 14;
-	                token.associativity = Twig.expression.operator.leftToRight;
-	                break;
-
-	            case 'and':
-	                token.precidence = 13;
-	                token.associativity = Twig.expression.operator.leftToRight;
-	                break;
-
-	            case 'b-or':
-	                token.precidence = 12;
-	                token.associativity = Twig.expression.operator.leftToRight;
-	                break;
-
-	            case 'b-xor':
-	                token.precidence = 11;
-	                token.associativity = Twig.expression.operator.leftToRight;
-	                break;
-
-	            case 'b-and':
-	                token.precidence = 10;
-	                token.associativity = Twig.expression.operator.leftToRight;
-	                break;
-
-	            case '==':
-	            case '!=':
-	                token.precidence = 9;
-	                token.associativity = Twig.expression.operator.leftToRight;
-	                break;
-
-	            case '<':
-	            case '<=':
-	            case '>':
-	            case '>=':
-	            case 'not in':
-	            case 'in':
-	                token.precidence = 8;
-	                token.associativity = Twig.expression.operator.leftToRight;
-	                break;
-
-	            case '~': // String concatination
-	            case '+':
-	            case '-':
-	                token.precidence = 6;
-	                token.associativity = Twig.expression.operator.leftToRight;
-	                break;
-
-	            case '//':
-	            case '**':
-	            case '*':
-	            case '/':
-	            case '%':
-	                token.precidence = 5;
-	                token.associativity = Twig.expression.operator.leftToRight;
-	                break;
-
-	            case 'not':
-	                token.precidence = 3;
-	                token.associativity = Twig.expression.operator.rightToLeft;
-	                break;
-
-	            default:
-	                throw new Twig.Error("Failed to lookup operator: " + operator + " is an unknown operator.");
-	        }
-	        token.operator = operator;
-	        return token;
-	    };
-
-	    /**
-	     * Handle operations on the RPN stack.
-	     *
-	     * Returns the updated stack.
-	     */
-	    Twig.expression.operator.parse = function (operator, stack) {
-	        Twig.log.trace("Twig.expression.operator.parse: ", "Handling ", operator);
-	        var a, b, c;
-
-	        if (operator === '?') {
-	            c = stack.pop();
-	        }
-
-	        b = stack.pop();
-	        if (operator !== 'not') {
-	            a = stack.pop();
-	        }
-
-	        if (operator !== 'in' && operator !== 'not in') {
-	            if (a && Array.isArray(a)) {
-	                a = a.length;
-	            }
-
-	            if (b && Array.isArray(b)) {
-	                b = b.length;
-	            }
-	        }
-
-	        switch (operator) {
-	            case ':':
-	                // Ignore
-	                break;
-
-	            case '?:':
-	                if (Twig.lib.boolval(a)) {
-	                    stack.push(a);
-	                } else {
-	                    stack.push(b);
-	                }
-	                break;
-	            case '?':
-	                if (a === undefined) {
-	                    //An extended ternary.
-	                    a = b;
-	                    b = c;
-	                    c = undefined;
-	                }
-
-	                if (Twig.lib.boolval(a)) {
-	                    stack.push(b);
-	                } else {
-	                    stack.push(c);
-	                }
-	                break;
-
-	            case '+':
-	                b = parseFloat(b);
-	                a = parseFloat(a);
-	                stack.push(a + b);
-	                break;
-
-	            case '-':
-	                b = parseFloat(b);
-	                a = parseFloat(a);
-	                stack.push(a - b);
-	                break;
-
-	            case '*':
-	                b = parseFloat(b);
-	                a = parseFloat(a);
-	                stack.push(a * b);
-	                break;
-
-	            case '/':
-	                b = parseFloat(b);
-	                a = parseFloat(a);
-	                stack.push(a / b);
-	                break;
-
-	            case '//':
-	                b = parseFloat(b);
-	                a = parseFloat(a);
-	                stack.push(Math.floor(a / b));
-	                break;
-
-	            case '%':
-	                b = parseFloat(b);
-	                a = parseFloat(a);
-	                stack.push(a % b);
-	                break;
-
-	            case '~':
-	                stack.push( (a != null ? a.toString() : "")
-	                          + (b != null ? b.toString() : "") );
-	                break;
-
-	            case 'not':
-	            case '!':
-	                stack.push(!Twig.lib.boolval(b));
-	                break;
-
-	            case '<':
-	                stack.push(a < b);
-	                break;
-
-	            case '<=':
-	                stack.push(a <= b);
-	                break;
-
-	            case '>':
-	                stack.push(a > b);
-	                break;
-
-	            case '>=':
-	                stack.push(a >= b);
-	                break;
-
-	            case '===':
-	                stack.push(a === b);
-	                break;
-
-	            case '==':
-	                stack.push(a == b);
-	                break;
-
-	            case '!==':
-	                stack.push(a !== b);
-	                break;
-
-	            case '!=':
-	                stack.push(a != b);
-	                break;
-
-	            case 'or':
-	                stack.push(Twig.lib.boolval(a) || Twig.lib.boolval(b));
-	                break;
-
-	            case 'b-or':
-	                stack.push(a | b);
-	                break;
-
-	            case 'b-xor':
-	                stack.push(a ^ b);
-	                break;
-
-	            case 'and':
-	                stack.push(Twig.lib.boolval(a) && Twig.lib.boolval(b));
-	                break;
-
-	            case 'b-and':
-	                stack.push(a & b);
-	                break;
-
-	            case '**':
-	                stack.push(Math.pow(a, b));
-	                break;
-
-	            case 'not in':
-	                stack.push( !containment(a, b) );
-	                break;
-
-	            case 'in':
-	                stack.push( containment(a, b) );
-	                break;
-
-	            case '..':
-	                stack.push( Twig.functions.range(a, b) );
-	                break;
-
-	            default:
-	                debugger;
-	                throw new Twig.Error("Failed to parse operator: " + operator + " is an unknown operator.");
-	        }
-	    };
-
-	    return Twig;
-
-	};
-
-
-/***/ }),
-/* 5 */
-/***/ (function(module, exports) {
-
-	// ## twig.filters.js
-	//
-	// This file handles parsing filters.
-	module.exports = function (Twig) {
-
-	    // Determine object type
-	    function is(type, obj) {
-	        var clas = Object.prototype.toString.call(obj).slice(8, -1);
-	        return obj !== undefined && obj !== null && clas === type;
-	    }
-
-	    Twig.filters = {
-	        // String Filters
-	        upper:  function(value) {
-	            if ( typeof value !== "string" ) {
-	               return value;
-	            }
-
-	            return value.toUpperCase();
-	        },
-	        lower: function(value) {
-	            if ( typeof value !== "string" ) {
-	               return value;
-	            }
-
-	            return value.toLowerCase();
-	        },
-	        capitalize: function(value) {
-	            if ( typeof value !== "string" ) {
-	                 return value;
-	            }
-
-	            return value.substr(0, 1).toUpperCase() + value.toLowerCase().substr(1);
-	        },
-	        title: function(value) {
-	            if ( typeof value !== "string" ) {
-	               return value;
-	            }
-
-	            return value.toLowerCase().replace( /(^|\s)([a-z])/g , function(m, p1, p2){
-	                return p1 + p2.toUpperCase();
-	            });
-	        },
-	        length: function(value) {
-	            if (Twig.lib.is("Array", value) || typeof value === "string") {
-	                return value.length;
-	            } else if (Twig.lib.is("Object", value)) {
-	                if (value._keys === undefined) {
-	                    return Object.keys(value).length;
-	                } else {
-	                    return value._keys.length;
-	                }
-	            } else {
-	                return 0;
-	            }
-	        },
-
-	        // Array/Object Filters
-	        reverse: function(value) {
-	            if (is("Array", value)) {
-	                return value.reverse();
-	            } else if (is("String", value)) {
-	                return value.split("").reverse().join("");
-	            } else if (is("Object", value)) {
-	                var keys = value._keys || Object.keys(value).reverse();
-	                value._keys = keys;
-	                return value;
-	            }
-	        },
-	        sort: function(value) {
-	            if (is("Array", value)) {
-	                return value.sort();
-	            } else if (is('Object', value)) {
-	                // Sorting objects isn't obvious since the order of
-	                // returned keys isn't guaranteed in JavaScript.
-	                // Because of this we use a "hidden" key called _keys to
-	                // store the keys in the order we want to return them.
-
-	                delete value._keys;
-	                var keys = Object.keys(value),
-	                    sorted_keys = keys.sort(function(a, b) {
-	                        var a1, a2;
-
-	                        // if a and b are comparable, we're fine :-)
-	                        if((value[a] > value[b]) == !(value[a] <= value[b])) {
-	                            return value[a] > value[b] ? 1 :
-				           value[a] < value[b] ? -1 :
-					   0;
-	                        }
-	                        // if a and b can be parsed as numbers, we can compare
-	                        // their numeric value
-	                        else if(!isNaN(a1 = parseFloat(value[a])) &&
-	                                !isNaN(b1 = parseFloat(value[b]))) {
-	                            return a1 > b1 ? 1 :
-				           a1 < b1 ? -1 :
-					   0;
-	                        }
-	                        // if one of the values is a string, we convert the
-	                        // other value to string as well
-	                        else if(typeof value[a] == 'string') {
-	                            return value[a] > value[b].toString() ? 1 :
-	                                   value[a] < value[b].toString() ? -1 :
-					   0;
-	                        }
-	                        else if(typeof value[b] == 'string') {
-	                            return value[a].toString() > value[b] ? 1 :
-	                                   value[a].toString() < value[b] ? -1 :
-					   0;
-	                        }
-	                        // everything failed - return 'null' as sign, that
-	                        // the values are not comparable
-	                        else {
-	                            return null;
-	                        }
-	                    });
-	                value._keys = sorted_keys;
-	                return value;
-	            }
-	        },
-	        keys: function(value) {
-	            if (value === undefined || value === null){
-	                return;
-	           }
-
-	            var keyset = value._keys || Object.keys(value),
-	                output = [];
-
-	            Twig.forEach(keyset, function(key) {
-	                if (key === "_keys") return; // Ignore the _keys property
-	                if (value.hasOwnProperty(key)) {
-	                    output.push(key);
-	                }
-	            });
-	            return output;
-	        },
-	        url_encode: function(value) {
-	            if (value === undefined || value === null){
-	                return;
-	            }
-
-	            var result = encodeURIComponent(value);
-	            result = result.replace("'", "%27");
-	            return result;
-	        },
-	        join: function(value, params) {
-	            if (value === undefined || value === null){
-	                return;
-	            }
-
-	            var join_str = "",
-	                output = [],
-	                keyset = null;
-
-	            if (params && params[0]) {
-	                join_str = params[0];
-	            }
-	            if (is("Array", value)) {
-	                output = value;
-	            } else {
-	                keyset = value._keys || Object.keys(value);
-	                Twig.forEach(keyset, function(key) {
-	                    if (key === "_keys") return; // Ignore the _keys property
-	                    if (value.hasOwnProperty(key)) {
-	                        output.push(value[key]);
-	                    }
-	                });
-	            }
-	            return output.join(join_str);
-	        },
-	        "default": function(value, params) {
-	            if (params !== undefined && params.length > 1) {
-	                throw new Twig.Error("default filter expects one argument");
-	            }
-	            if (value === undefined || value === null || value === '' ) {
-	                if (params === undefined) {
-	                    return '';
-	                }
-
-	                return params[0];
-	            } else {
-	                return value;
-	            }
-	        },
-	        json_encode: function(value) {
-	            if(value === undefined || value === null) {
-	                return "null";
-	            }
-	            else if ((typeof value == 'object') && (is("Array", value))) {
-	                output = [];
-
-	                Twig.forEach(value, function(v) {
-	                    output.push(Twig.filters.json_encode(v));
-	                });
-
-	                return "[" + output.join(",") + "]";
-	            }
-	            else if ((typeof value == 'object') && (is("Date", value))) {
-	                return '"' + value.toISOString() + '"';
-	            }
-	            else if (typeof value == 'object') {
-	                var keyset = value._keys || Object.keys(value),
-	                output = [];
-
-	                Twig.forEach(keyset, function(key) {
-	                    output.push(JSON.stringify(key) + ":" + Twig.filters.json_encode(value[key]));
-	                });
-
-	                return "{" + output.join(",") + "}";
-	            }
-	            else {
-	                return JSON.stringify(value);
-	            }
-	        },
-	        merge: function(value, params) {
-	            var obj = [],
-	                arr_index = 0,
-	                keyset = [];
-
-	            // Check to see if all the objects being merged are arrays
-	            if (!is("Array", value)) {
-	                // Create obj as an Object
-	                obj = { };
-	            } else {
-	                Twig.forEach(params, function(param) {
-	                    if (!is("Array", param)) {
-	                        obj = { };
-	                    }
-	                });
-	            }
-	            if (!is("Array", obj)) {
-	                obj._keys = [];
-	            }
-
-	            if (is("Array", value)) {
-	                Twig.forEach(value, function(val) {
-	                    if (obj._keys) obj._keys.push(arr_index);
-	                    obj[arr_index] = val;
-	                    arr_index++;
-	                });
-	            } else {
-	                keyset = value._keys || Object.keys(value);
-	                Twig.forEach(keyset, function(key) {
-	                    obj[key] = value[key];
-	                    obj._keys.push(key);
-
-	                    // Handle edge case where a number index in an object is greater than
-	                    //   the array counter. In such a case, the array counter is increased
-	                    //   one past the index.
-	                    //
-	                    // Example {{ ["a", "b"]|merge({"4":"value"}, ["c", "d"])
-	                    // Without this, d would have an index of "4" and overwrite the value
-	                    //   of "value"
-	                    var int_key = parseInt(key, 10);
-	                    if (!isNaN(int_key) && int_key >= arr_index) {
-	                        arr_index = int_key + 1;
-	                    }
-	                });
-	            }
-
-	            // mixin the merge arrays
-	            Twig.forEach(params, function(param) {
-	                if (is("Array", param)) {
-	                    Twig.forEach(param, function(val) {
-	                        if (obj._keys) obj._keys.push(arr_index);
-	                        obj[arr_index] = val;
-	                        arr_index++;
-	                    });
-	                } else {
-	                    keyset = param._keys || Object.keys(param);
-	                    Twig.forEach(keyset, function(key) {
-	                        if (!obj[key]) obj._keys.push(key);
-	                        obj[key] = param[key];
-
-	                        var int_key = parseInt(key, 10);
-	                        if (!isNaN(int_key) && int_key >= arr_index) {
-	                            arr_index = int_key + 1;
-	                        }
-	                    });
-	                }
-	            });
-	            if (params.length === 0) {
-	                throw new Twig.Error("Filter merge expects at least one parameter");
-	            }
-
-	            return obj;
-	        },
-	        date: function(value, params) {
-	            var date = Twig.functions.date(value);
-	            var format = params && params.length ? params[0] : 'F j, Y H:i';
-	            return Twig.lib.date(format, date);
-	        },
-
-	        date_modify: function(value, params) {
-	            if (value === undefined || value === null) {
-	                return;
-	            }
-	            if (params === undefined || params.length !== 1) {
-	                throw new Twig.Error("date_modify filter expects 1 argument");
-	            }
-
-	            var modifyText = params[0], time;
-
-	            if (Twig.lib.is("Date", value)) {
-	                time = Twig.lib.strtotime(modifyText, value.getTime() / 1000);
-	            }
-	            if (Twig.lib.is("String", value)) {
-	                time = Twig.lib.strtotime(modifyText, Twig.lib.strtotime(value));
-	            }
-	            if (Twig.lib.is("Number", value)) {
-	                time = Twig.lib.strtotime(modifyText, value);
-	            }
-
-	            return new Date(time * 1000);
-	        },
-
-	        replace: function(value, params) {
-	            if (value === undefined||value === null){
-	                return;
-	            }
-
-	            var pairs = params[0],
-	                tag;
-	            for (tag in pairs) {
-	                if (pairs.hasOwnProperty(tag) && tag !== "_keys") {
-	                    value = Twig.lib.replaceAll(value, tag, pairs[tag]);
-	                }
-	            }
-	            return value;
-	        },
-
-	        format: function(value, params) {
-	            if (value === undefined || value === null){
-	                return;
-	            }
-
-	            return Twig.lib.vsprintf(value, params);
-	        },
-
-	        striptags: function(value, allowed) {
-	            if (value === undefined || value === null){
-	                return;
-	            }
-
-	            return Twig.lib.strip_tags(value, allowed);
-	        },
-
-	        escape: function(value, params) {
-	            if (value === undefined|| value === null){
-	                return;
-	            }
-
-	            var strategy = "html";
-	            if(params && params.length && params[0] !== true)
-	                strategy = params[0];
-
-	            if(strategy == "html") {
-	                var raw_value = value.toString().replace(/&/g, "&amp;")
-	                            .replace(/</g, "&lt;")
-	                            .replace(/>/g, "&gt;")
-	                            .replace(/"/g, "&quot;")
-	                            .replace(/'/g, "&#039;");
-	                return Twig.Markup(raw_value, 'html');
-	            } else if(strategy == "js") {
-	                var raw_value = value.toString();
-	                var result = "";
-
-	                for(var i = 0; i < raw_value.length; i++) {
-	                    if(raw_value[i].match(/^[a-zA-Z0-9,\._]$/))
-	                        result += raw_value[i];
-	                    else {
-	                        var char_code = raw_value.charCodeAt(i);
-
-	                        if(char_code < 0x80)
-	                            result += "\\x" + char_code.toString(16).toUpperCase();
-	                        else
-	                            result += Twig.lib.sprintf("\\u%04s", char_code.toString(16).toUpperCase());
-	                    }
-	                }
-
-	                return Twig.Markup(result, 'js');
-	            } else if(strategy == "css") {
-	                var raw_value = value.toString();
-	                var result = "";
-
-	                for(var i = 0; i < raw_value.length; i++) {
-	                    if(raw_value[i].match(/^[a-zA-Z0-9]$/))
-	                        result += raw_value[i];
-	                    else {
-	                        var char_code = raw_value.charCodeAt(i);
-	                        result += "\\" + char_code.toString(16).toUpperCase() + " ";
-	                    }
-	                }
-
-	                return Twig.Markup(result, 'css');
-	            } else if(strategy == "url") {
-	                var result = Twig.filters.url_encode(value);
-	                return Twig.Markup(result, 'url');
-	            } else if(strategy == "html_attr") {
-	                var raw_value = value.toString();
-	                var result = "";
-
-	                for(var i = 0; i < raw_value.length; i++) {
-	                    if(raw_value[i].match(/^[a-zA-Z0-9,\.\-_]$/))
-	                        result += raw_value[i];
-	                    else if(raw_value[i].match(/^[&<>"]$/))
-	                        result += raw_value[i].replace(/&/g, "&amp;")
-	                                .replace(/</g, "&lt;")
-	                                .replace(/>/g, "&gt;")
-	                                .replace(/"/g, "&quot;");
-	                    else {
-	                        var char_code = raw_value.charCodeAt(i);
-
-	                        // The following replaces characters undefined in HTML with
-	                        // the hex entity for the Unicode replacement character.
-	                        if(char_code <= 0x1f && char_code != 0x09 && char_code != 0x0a && char_code != 0x0d)
-	                            result += "&#xFFFD;";
-	                        else if(char_code < 0x80)
-	                            result += Twig.lib.sprintf("&#x%02s;", char_code.toString(16).toUpperCase());
-	                        else
-	                            result += Twig.lib.sprintf("&#x%04s;", char_code.toString(16).toUpperCase());
-	                    }
-	                }
-
-	                return Twig.Markup(result, 'html_attr');
-	            } else {
-	                throw new Twig.Error("escape strategy unsupported");
-	            }
-	        },
-
-	        /* Alias of escape */
-	        "e": function(value, params) {
-	            return Twig.filters.escape(value, params);
-	        },
-
-	        nl2br: function(value) {
-	            if (value === undefined || value === null){
-	                return;
-	            }
-	            var linebreak_tag = "BACKSLASH_n_replace",
-	                br = "<br />" + linebreak_tag;
-
-	            value = Twig.filters.escape(value)
-	                        .replace(/\r\n/g, br)
-	                        .replace(/\r/g, br)
-	                        .replace(/\n/g, br);
-
-	            value = Twig.lib.replaceAll(value, linebreak_tag, "\n");
-
-	            return Twig.Markup(value);
-	        },
-
-	        /**
-	         * Adapted from: http://phpjs.org/functions/number_format:481
-	         */
-	        number_format: function(value, params) {
-	            var number = value,
-	                decimals = (params && params[0]) ? params[0] : undefined,
-	                dec      = (params && params[1] !== undefined) ? params[1] : ".",
-	                sep      = (params && params[2] !== undefined) ? params[2] : ",";
-
-	            number = (number + '').replace(/[^0-9+\-Ee.]/g, '');
-	            var n = !isFinite(+number) ? 0 : +number,
-	                prec = !isFinite(+decimals) ? 0 : Math.abs(decimals),
-	                s = '',
-	                toFixedFix = function (n, prec) {
-	                    var k = Math.pow(10, prec);
-	                    return '' + Math.round(n * k) / k;
-	                };
-	            // Fix for IE parseFloat(0.55).toFixed(0) = 0;
-	            s = (prec ? toFixedFix(n, prec) : '' + Math.round(n)).split('.');
-	            if (s[0].length > 3) {
-	                s[0] = s[0].replace(/\B(?=(?:\d{3})+(?!\d))/g, sep);
-	            }
-	            if ((s[1] || '').length < prec) {
-	                s[1] = s[1] || '';
-	                s[1] += new Array(prec - s[1].length + 1).join('0');
-	            }
-	            return s.join(dec);
-	        },
-
-	        trim: function(value, params) {
-	            if (value === undefined|| value === null){
-	                return;
-	            }
-
-	            var str = '' + value,
-	                whitespace;
-	            if ( params && params[0] ) {
-	                whitespace = '' + params[0];
-	            } else {
-	                whitespace = ' \n\r\t\f\x0b\xa0\u2000\u2001\u2002\u2003\u2004\u2005\u2006\u2007\u2008\u2009\u200a\u200b\u2028\u2029\u3000';
-	            }
-	            for (var i = 0; i < str.length; i++) {
-	                if (whitespace.indexOf(str.charAt(i)) === -1) {
-	                    str = str.substring(i);
-	                    break;
-	                }
-	            }
-	            for (i = str.length - 1; i >= 0; i--) {
-	                if (whitespace.indexOf(str.charAt(i)) === -1) {
-	                    str = str.substring(0, i + 1);
-	                    break;
-	                }
-	            }
-	            return whitespace.indexOf(str.charAt(0)) === -1 ? str : '';
-	        },
-
-	        truncate: function (value, params) {
-	            var length = 30,
-	                preserve = false,
-	                separator = '...';
-
-	            value =  value + '';
-	            if (params) {
-	                if (params[0]) {
-	                    length = params[0];
-	                }
-	                if (params[1]) {
-	                    preserve = params[1];
-	                }
-	                if (params[2]) {
-	                    separator = params[2];
-	                }
-	            }
-
-	            if (value.length > length) {
-
-	                if (preserve) {
-	                    length = value.indexOf(' ', length);
-	                    if (length === -1) {
-	                        return value;
-	                    }
-	                }
-
-	                value =  value.substr(0, length) + separator;
-	            }
-
-	            return value;
-	        },
-
-	        slice: function(value, params) {
-	            if (value === undefined || value === null) {
-	                return;
-	            }
-	            if (params === undefined || params.length < 1) {
-	                throw new Twig.Error("slice filter expects at least 1 argument");
-	            }
-
-	            // default to start of string
-	            var start = params[0] || 0;
-	            // default to length of string
-	            var length = params.length > 1 ? params[1] : value.length;
-	            // handle negative start values
-	            var startIndex = start >= 0 ? start : Math.max( value.length + start, 0 );
-
-	            if (Twig.lib.is("Array", value)) {
-	                var output = [];
-	                for (var i = startIndex; i < startIndex + length && i < value.length; i++) {
-	                    output.push(value[i]);
-	                }
-	                return output;
-	            } else if (Twig.lib.is("String", value)) {
-	                return value.substr(startIndex, length);
-	            } else {
-	                throw new Twig.Error("slice filter expects value to be an array or string");
-	            }
-	        },
-
-	        abs: function(value) {
-	            if (value === undefined || value === null) {
-	                return;
-	            }
-
-	            return Math.abs(value);
-	        },
-
-	        first: function(value) {
-	            if (is("Array", value)) {
-	                return value[0];
-	            } else if (is("Object", value)) {
-	                if ('_keys' in value) {
-	                    return value[value._keys[0]];
-	                }
-	            } else if ( typeof value === "string" ) {
-	                return value.substr(0, 1);
-	            }
-
-	            return;
-	        },
-
-	        split: function(value, params) {
-	            if (value === undefined || value === null) {
-	                return;
-	            }
-	            if (params === undefined || params.length < 1 || params.length > 2) {
-	                throw new Twig.Error("split filter expects 1 or 2 argument");
-	            }
-	            if (Twig.lib.is("String", value)) {
-	                var delimiter = params[0],
-	                    limit = params[1],
-	                    split = value.split(delimiter);
-
-	                if (limit === undefined) {
-
-	                    return split;
-
-	                } else if (limit < 0) {
-
-	                    return value.split(delimiter, split.length + limit);
-
-	                } else {
-
-	                    var limitedSplit = [];
-
-	                    if (delimiter == '') {
-	                        // empty delimiter
-	                        // "aabbcc"|split('', 2)
-	                        //     -> ['aa', 'bb', 'cc']
-
-	                        while(split.length > 0) {
-	                            var temp = "";
-	                            for (var i=0; i<limit && split.length > 0; i++) {
-	                                temp += split.shift();
-	                            }
-	                            limitedSplit.push(temp);
-	                        }
-
-	                    } else {
-	                        // non-empty delimiter
-	                        // "one,two,three,four,five"|split(',', 3)
-	                        //     -> ['one', 'two', 'three,four,five']
-
-	                        for (var i=0; i<limit-1 && split.length > 0; i++) {
-	                            limitedSplit.push(split.shift());
-	                        }
-
-	                        if (split.length > 0) {
-	                            limitedSplit.push(split.join(delimiter));
-	                        }
-	                    }
-
-	                    return limitedSplit;
-	                }
-
-	            } else {
-	                throw new Twig.Error("split filter expects value to be a string");
-	            }
-	        },
-	        last: function(value) {
-	            if (Twig.lib.is('Object', value)) {
-	                var keys;
-
-	                if (value._keys === undefined) {
-	                    keys = Object.keys(value);
-	                } else {
-	                    keys = value._keys;
-	                }
-
-	                return value[keys[keys.length - 1]];
-	            }
-
-	            // string|array
-	            return value[value.length - 1];
-	        },
-	        raw: function(value) {
-	            return Twig.Markup(value);
-	        },
-	        batch: function(items, params) {
-	            var size = params.shift(),
-	                fill = params.shift(),
-	                result,
-	                last,
-	                missing;
-
-	            if (!Twig.lib.is("Array", items)) {
-	                throw new Twig.Error("batch filter expects items to be an array");
-	            }
-
-	            if (!Twig.lib.is("Number", size)) {
-	                throw new Twig.Error("batch filter expects size to be a number");
-	            }
-
-	            size = Math.ceil(size);
-
-	            result = Twig.lib.chunkArray(items, size);
-
-	            if (fill && items.length % size != 0) {
-	                last = result.pop();
-	                missing = size - last.length;
-
-	                while (missing--) {
-	                    last.push(fill);
-	                }
-
-	                result.push(last);
-	            }
-
-	            return result;
-	        },
-	        round: function(value, params) {
-	            params = params || [];
-
-	            var precision = params.length > 0 ? params[0] : 0,
-	                method = params.length > 1 ? params[1] : "common";
-
-	            value = parseFloat(value);
-
-	            if(precision && !Twig.lib.is("Number", precision)) {
-	                throw new Twig.Error("round filter expects precision to be a number");
-	            }
-
-	            if (method === "common") {
-	                return Twig.lib.round(value, precision);
-	            }
-
-	            if(!Twig.lib.is("Function", Math[method])) {
-	                throw new Twig.Error("round filter expects method to be 'floor', 'ceil', or 'common'");
-	            }
-
-	            return Math[method](value * Math.pow(10, precision)) / Math.pow(10, precision);
-	        }
-	    };
-
-	    Twig.filter = function(filter, value, params) {
-	        if (!Twig.filters[filter]) {
-	            throw "Unable to find filter " + filter;
-	        }
-	        return Twig.filters[filter].call(this, value, params);
-	    };
-
-	    Twig.filter.extend = function(filter, definition) {
-	        Twig.filters[filter] = definition;
-	    };
-
-	    return Twig;
-
-	};
-
-
-/***/ }),
-/* 6 */
-/***/ (function(module, exports) {
-
-	// ## twig.functions.js
-	//
-	// This file handles parsing filters.
-	module.exports = function (Twig) {
-	    /**
-	     * @constant
-	     * @type {string}
-	     */
-	    var TEMPLATE_NOT_FOUND_MESSAGE = 'Template "{name}" is not defined.';
-
-	    // Determine object type
-	    function is(type, obj) {
-	        var clas = Object.prototype.toString.call(obj).slice(8, -1);
-	        return obj !== undefined && obj !== null && clas === type;
-	    }
-
-	    Twig.functions = {
-	        //  attribute, block, constant, date, dump, parent, random,.
-
-	        // Range function from http://phpjs.org/functions/range:499
-	        // Used under an MIT License
-	        range: function (low, high, step) {
-	            // http://kevin.vanzonneveld.net
-	            // +   original by: Waldo Malqui Silva
-	            // *     example 1: range ( 0, 12 );
-	            // *     returns 1: [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12]
-	            // *     example 2: range( 0, 100, 10 );
-	            // *     returns 2: [0, 10, 20, 30, 40, 50, 60, 70, 80, 90, 100]
-	            // *     example 3: range( 'a', 'i' );
-	            // *     returns 3: ['a', 'b', 'c', 'd', 'e', 'f', 'g', 'h', 'i']
-	            // *     example 4: range( 'c', 'a' );
-	            // *     returns 4: ['c', 'b', 'a']
-	            var matrix = [];
-	            var inival, endval, plus;
-	            var walker = step || 1;
-	            var chars = false;
-
-	            if (!isNaN(low) && !isNaN(high)) {
-	                inival = parseInt(low, 10);
-	                endval = parseInt(high, 10);
-	            } else if (isNaN(low) && isNaN(high)) {
-	                chars = true;
-	                inival = low.charCodeAt(0);
-	                endval = high.charCodeAt(0);
-	            } else {
-	                inival = (isNaN(low) ? 0 : low);
-	                endval = (isNaN(high) ? 0 : high);
-	            }
-
-	            plus = ((inival > endval) ? false : true);
-	            if (plus) {
-	                while (inival <= endval) {
-	                    matrix.push(((chars) ? String.fromCharCode(inival) : inival));
-	                    inival += walker;
-	                }
-	            } else {
-	                while (inival >= endval) {
-	                    matrix.push(((chars) ? String.fromCharCode(inival) : inival));
-	                    inival -= walker;
-	                }
-	            }
-
-	            return matrix;
-	        },
-	        cycle: function(arr, i) {
-	            var pos = i % arr.length;
-	            return arr[pos];
-	        },
-	        dump: function() {
-	            // Don't pass arguments to `Array.slice`, that is a performance killer
-	            var args_i = arguments.length; args = new Array(args_i);
-	            while(args_i-- > 0) args[args_i] = arguments[args_i];
-
-	            var EOL = '\n',
-	                indentChar = '  ',
-	                indentTimes = 0,
-	                out = '',
-	                indent = function(times) {
-	                    var ind  = '';
-	                    while (times > 0) {
-	                        times--;
-	                        ind += indentChar;
-	                    }
-	                    return ind;
-	                },
-	                displayVar = function(variable) {
-	                    out += indent(indentTimes);
-	                    if (typeof(variable) === 'object') {
-	                        dumpVar(variable);
-	                    } else if (typeof(variable) === 'function') {
-	                        out += 'function()' + EOL;
-	                    } else if (typeof(variable) === 'string') {
-	                        out += 'string(' + variable.length + ') "' + variable + '"' + EOL;
-	                    } else if (typeof(variable) === 'number') {
-	                        out += 'number(' + variable + ')' + EOL;
-	                    } else if (typeof(variable) === 'boolean') {
-	                        out += 'bool(' + variable + ')' + EOL;
-	                    }
-	                },
-	                dumpVar = function(variable) {
-	                    var i;
-	                    if (variable === null) {
-	                        out += 'NULL' + EOL;
-	                    } else if (variable === undefined) {
-	                        out += 'undefined' + EOL;
-	                    } else if (typeof variable === 'object') {
-	                        out += indent(indentTimes) + typeof(variable);
-	                        indentTimes++;
-	                        out += '(' + (function(obj) {
-	                            var size = 0, key;
-	                            for (key in obj) {
-	                                if (obj.hasOwnProperty(key)) {
-	                                    size++;
-	                                }
-	                            }
-	                            return size;
-	                        })(variable) + ') {' + EOL;
-	                        for (i in variable) {
-	                            out += indent(indentTimes) + '[' + i + ']=> ' + EOL;
-	                            displayVar(variable[i]);
-	                        }
-	                        indentTimes--;
-	                        out += indent(indentTimes) + '}' + EOL;
-	                    } else {
-	                        displayVar(variable);
-	                    }
-	                };
-
-	            // handle no argument case by dumping the entire render context
-	            if (args.length == 0) args.push(this.context);
-
-	            Twig.forEach(args, function(variable) {
-	                dumpVar(variable);
-	            });
-
-	            return out;
-	        },
-	        date: function(date, time) {
-	            var dateObj;
-	            if (date === undefined || date === null || date === "") {
-	                dateObj = new Date();
-	            } else if (Twig.lib.is("Date", date)) {
-	                dateObj = date;
-	            } else if (Twig.lib.is("String", date)) {
-	                if (date.match(/^[0-9]+$/)) {
-	                    dateObj = new Date(date * 1000);
-	                }
-	                else {
-	                    dateObj = new Date(Twig.lib.strtotime(date) * 1000);
-	                }
-	            } else if (Twig.lib.is("Number", date)) {
-	                // timestamp
-	                dateObj = new Date(date * 1000);
-	            } else {
-	                throw new Twig.Error("Unable to parse date " + date);
-	            }
-	            return dateObj;
-	        },
-	        block: function(block) {
-	            if (this.originalBlockTokens[block]) {
-	                return Twig.logic.parse.call(this, this.originalBlockTokens[block], this.context).output;
-	            } else {
-	                return this.blocks[block];
-	            }
-	        },
-	        parent: function() {
-	            // Add a placeholder
-	            return Twig.placeholders.parent;
-	        },
-	        attribute: function(object, method, params) {
-	            if (Twig.lib.is('Object', object)) {
-	                if (object.hasOwnProperty(method)) {
-	                    if (typeof object[method] === "function") {
-	                        return object[method].apply(undefined, params);
-	                    }
-	                    else {
-	                        return object[method];
-	                    }
-	                }
-	            }
-	            // Array will return element 0-index
-	            return object[method] || undefined;
-	        },
-	        max: function(values) {
-	            if(Twig.lib.is("Object", values)) {
-	                delete values["_keys"];
-	                return Twig.lib.max(values);
-	            }
-
-	            return Twig.lib.max.apply(null, arguments);
-	        },
-	        min: function(values) {
-	            if(Twig.lib.is("Object", values)) {
-	                delete values["_keys"];
-	                return Twig.lib.min(values);
-	            }
-
-	            return Twig.lib.min.apply(null, arguments);
-	        },
-	        template_from_string: function(template) {
-	            if (template === undefined) {
-	                template = '';
-	            }
-	            return Twig.Templates.parsers.twig({
-	                options: this.options,
-	                data: template
-	            });
-	        },
-	        random: function(value) {
-	            var LIMIT_INT31 = 0x80000000;
-
-	            function getRandomNumber(n) {
-	                var random = Math.floor(Math.random() * LIMIT_INT31);
-	                var min = Math.min.call(null, 0, n),
-	                    max = Math.max.call(null, 0, n);
-	                return min + Math.floor((max - min + 1) * random / LIMIT_INT31);
-	            }
-
-	            if(Twig.lib.is("Number", value)) {
-	                return getRandomNumber(value);
-	            }
-
-	            if(Twig.lib.is("String", value)) {
-	                return value.charAt(getRandomNumber(value.length-1));
-	            }
-
-	            if(Twig.lib.is("Array", value)) {
-	                return value[getRandomNumber(value.length-1)];
-	            }
-
-	            if(Twig.lib.is("Object", value)) {
-	                var keys = Object.keys(value);
-	                return value[keys[getRandomNumber(keys.length-1)]];
-	            }
-
-	            return getRandomNumber(LIMIT_INT31-1);
-	        },
-
-	        /**
-	         * Returns the content of a template without rendering it
-	         * @param {string} name
-	         * @param {boolean} [ignore_missing=false]
-	         * @returns {string}
-	         */
-	        source: function(name, ignore_missing) {
-	            var templateSource;
-	            var templateFound = false;
-	            var isNodeEnvironment = typeof module !== 'undefined' && typeof module.exports !== 'undefined' && typeof window === 'undefined';
-	            var loader;
-	            var path;
-
-	            //if we are running in a node.js environment, set the loader to 'fs' and ensure the
-	            // path is relative to the CWD of the running script
-	            //else, set the loader to 'ajax' and set the path to the value of name
-	            if (isNodeEnvironment) {
-	                loader = 'fs';
-	                path = __dirname + '/' + name;
-	            } else {
-	                loader = 'ajax';
-	                path = name;
-	            }
-
-	            //build the params object
-	            var params = {
-	                id: name,
-	                path: path,
-	                method: loader,
-	                parser: 'source',
-	                async: false,
-	                fetchTemplateSource: true
-	            };
-
-	            //default ignore_missing to false
-	            if (typeof ignore_missing === 'undefined') {
-	                ignore_missing = false;
-	            }
-
-	            //try to load the remote template
-	            //
-	            //on exception, log it
-	            try {
-	                templateSource = Twig.Templates.loadRemote(name, params);
-
-	                //if the template is undefined or null, set the template to an empty string and do NOT flip the
-	                // boolean indicating we found the template
-	                //
-	                //else, all is good! flip the boolean indicating we found the template
-	                if (typeof templateSource === 'undefined' || templateSource === null) {
-	                    templateSource = '';
-	                } else {
-	                    templateFound = true;
-	                }
-	            } catch (e) {
-	                Twig.log.debug('Twig.functions.source: ', 'Problem loading template  ', e);
-	            }
-
-	            //if the template was NOT found AND we are not ignoring missing templates, return the same message
-	            // that is returned by the PHP implementation of the twig source() function
-	            //
-	            //else, return the template source
-	            if (!templateFound && !ignore_missing) {
-	                return TEMPLATE_NOT_FOUND_MESSAGE.replace('{name}', name);
-	            } else {
-	                return templateSource;
-	            }
-	        }
-	    };
-
-	    Twig._function = function(_function, value, params) {
-	        if (!Twig.functions[_function]) {
-	            throw "Unable to find function " + _function;
-	        }
-	        return Twig.functions[_function](value, params);
-	    };
-
-	    Twig._function.extend = function(_function, definition) {
-	        Twig.functions[_function] = definition;
-	    };
-
-	    return Twig;
-
-	};
-
-
-/***/ }),
-/* 7 */
-/***/ (function(module, exports, __webpack_require__) {
-
-	// ## twig.lib.js
-	//
-	// This file contains 3rd party libraries used within twig.
-	//
-	// Copies of the licenses for the code included here can be found in the
-	// LICENSES.md file.
-	//
-
-	module.exports = function(Twig) {
-
-	    // Namespace for libraries
-	    Twig.lib = { };
-
-	    Twig.lib.sprintf = __webpack_require__(8);
-	    Twig.lib.vsprintf = __webpack_require__(9);
-	    Twig.lib.round = __webpack_require__(10);
-	    Twig.lib.max = __webpack_require__(11);
-	    Twig.lib.min = __webpack_require__(12);
-	    Twig.lib.strip_tags = __webpack_require__(13);
-	    Twig.lib.strtotime = __webpack_require__(14);
-	    Twig.lib.date = __webpack_require__(15);
-	    Twig.lib.boolval = __webpack_require__(16);
-
-	    var toString = Object.prototype.toString;
-
-	    Twig.lib.is = function(type, obj) {
-	        if (typeof obj === 'undefined' || obj === null)
-	            return false;
-
-	        if (type === 'Array' && Array.isArray)
-	            return Array.isArray(obj);
-
-	        return toString.call(obj).slice(8, -1) === type;
-	    };
-
-	    Twig.lib.isArray = Array.isArray || function(obj) {
-	        return toString.call(obj).slice(8, -1) === 'Array';
-	    }
-
-	    // shallow-copy an object
-	    Twig.lib.copy = function(src) {
-	        var target = {},
-	            key;
-	        for (key in src)
-	            target[key] = src[key];
-
-	        return target;
-	    };
-
-	    Twig.lib.extend = function (src, add) {
-	        var keys = Object.keys(add),
-	            i;
-
-	        i = keys.length;
-
-	        while (i--) {
-	            src[keys[i]] = add[keys[i]];
-	        }
-
-	        return src;
-	    };
-
-	    Twig.lib.replaceAll = function(string, search, replace) {
-	        return string.split(search).join(replace);
-	    };
-
-	    // chunk an array (arr) into arrays of (size) items, returns an array of arrays, or an empty array on invalid input
-	    Twig.lib.chunkArray = function (arr, size) {
-	        var returnVal = [],
-	            x = 0,
-	            len = arr.length;
-
-	        if (size < 1 || !Twig.lib.is("Array", arr)) {
-	            return [];
-	        }
-
-	        while (x < len) {
-	            returnVal.push(arr.slice(x, x += size));
-	        }
-
-	        return returnVal;
-	    };
-
-	    return Twig;
-	};
-
-
-/***/ }),
-/* 8 */
-/***/ (function(module, exports) {
-
-	'use strict';
-
-	module.exports = function sprintf() {
-	  //  discuss at: http://locutus.io/php/sprintf/
-	  // original by: Ash Searle (http://hexmen.com/blog/)
-	  // improved by: Michael White (http://getsprink.com)
-	  // improved by: Jack
-	  // improved by: Kevin van Zonneveld (http://kvz.io)
-	  // improved by: Kevin van Zonneveld (http://kvz.io)
-	  // improved by: Kevin van Zonneveld (http://kvz.io)
-	  // improved by: Dj
-	  // improved by: Allidylls
-	  //    input by: Paulo Freitas
-	  //    input by: Brett Zamir (http://brett-zamir.me)
-	  //   example 1: sprintf("%01.2f", 123.1)
-	  //   returns 1: '123.10'
-	  //   example 2: sprintf("[%10s]", 'monkey')
-	  //   returns 2: '[    monkey]'
-	  //   example 3: sprintf("[%'#10s]", 'monkey')
-	  //   returns 3: '[####monkey]'
-	  //   example 4: sprintf("%d", 123456789012345)
-	  //   returns 4: '123456789012345'
-	  //   example 5: sprintf('%-03s', 'E')
-	  //   returns 5: 'E00'
-
-	  var regex = /%%|%(\d+\$)?([-+'#0 ]*)(\*\d+\$|\*|\d+)?(?:\.(\*\d+\$|\*|\d+))?([scboxXuideEfFgG])/g;
-	  var a = arguments;
-	  var i = 0;
-	  var format = a[i++];
-
-	  var _pad = function _pad(str, len, chr, leftJustify) {
-	    if (!chr) {
-	      chr = ' ';
-	    }
-	    var padding = str.length >= len ? '' : new Array(1 + len - str.length >>> 0).join(chr);
-	    return leftJustify ? str + padding : padding + str;
-	  };
-
-	  var justify = function justify(value, prefix, leftJustify, minWidth, zeroPad, customPadChar) {
-	    var diff = minWidth - value.length;
-	    if (diff > 0) {
-	      if (leftJustify || !zeroPad) {
-	        value = _pad(value, minWidth, customPadChar, leftJustify);
-	      } else {
-	        value = [value.slice(0, prefix.length), _pad('', diff, '0', true), value.slice(prefix.length)].join('');
-	      }
-	    }
-	    return value;
-	  };
-
-	  var _formatBaseX = function _formatBaseX(value, base, prefix, leftJustify, minWidth, precision, zeroPad) {
-	    // Note: casts negative numbers to positive ones
-	    var number = value >>> 0;
-	    prefix = prefix && number && {
-	      '2': '0b',
-	      '8': '0',
-	      '16': '0x'
-	    }[base] || '';
-	    value = prefix + _pad(number.toString(base), precision || 0, '0', false);
-	    return justify(value, prefix, leftJustify, minWidth, zeroPad);
-	  };
-
-	  // _formatString()
-	  var _formatString = function _formatString(value, leftJustify, minWidth, precision, zeroPad, customPadChar) {
-	    if (precision !== null && precision !== undefined) {
-	      value = value.slice(0, precision);
-	    }
-	    return justify(value, '', leftJustify, minWidth, zeroPad, customPadChar);
-	  };
-
-	  // doFormat()
-	  var doFormat = function doFormat(substring, valueIndex, flags, minWidth, precision, type) {
-	    var number, prefix, method, textTransform, value;
-
-	    if (substring === '%%') {
-	      return '%';
-	    }
-
-	    // parse flags
-	    var leftJustify = false;
-	    var positivePrefix = '';
-	    var zeroPad = false;
-	    var prefixBaseX = false;
-	    var customPadChar = ' ';
-	    var flagsl = flags.length;
-	    var j;
-	    for (j = 0; j < flagsl; j++) {
-	      switch (flags.charAt(j)) {
-	        case ' ':
-	          positivePrefix = ' ';
-	          break;
-	        case '+':
-	          positivePrefix = '+';
-	          break;
-	        case '-':
-	          leftJustify = true;
-	          break;
-	        case "'":
-	          customPadChar = flags.charAt(j + 1);
-	          break;
-	        case '0':
-	          zeroPad = true;
-	          customPadChar = '0';
-	          break;
-	        case '#':
-	          prefixBaseX = true;
-	          break;
-	      }
-	    }
-
-	    // parameters may be null, undefined, empty-string or real valued
-	    // we want to ignore null, undefined and empty-string values
-	    if (!minWidth) {
-	      minWidth = 0;
-	    } else if (minWidth === '*') {
-	      minWidth = +a[i++];
-	    } else if (minWidth.charAt(0) === '*') {
-	      minWidth = +a[minWidth.slice(1, -1)];
-	    } else {
-	      minWidth = +minWidth;
-	    }
-
-	    // Note: undocumented perl feature:
-	    if (minWidth < 0) {
-	      minWidth = -minWidth;
-	      leftJustify = true;
-	    }
-
-	    if (!isFinite(minWidth)) {
-	      throw new Error('sprintf: (minimum-)width must be finite');
-	    }
-
-	    if (!precision) {
-	      precision = 'fFeE'.indexOf(type) > -1 ? 6 : type === 'd' ? 0 : undefined;
-	    } else if (precision === '*') {
-	      precision = +a[i++];
-	    } else if (precision.charAt(0) === '*') {
-	      precision = +a[precision.slice(1, -1)];
-	    } else {
-	      precision = +precision;
-	    }
-
-	    // grab value using valueIndex if required?
-	    value = valueIndex ? a[valueIndex.slice(0, -1)] : a[i++];
-
-	    switch (type) {
-	      case 's':
-	        return _formatString(value + '', leftJustify, minWidth, precision, zeroPad, customPadChar);
-	      case 'c':
-	        return _formatString(String.fromCharCode(+value), leftJustify, minWidth, precision, zeroPad);
-	      case 'b':
-	        return _formatBaseX(value, 2, prefixBaseX, leftJustify, minWidth, precision, zeroPad);
-	      case 'o':
-	        return _formatBaseX(value, 8, prefixBaseX, leftJustify, minWidth, precision, zeroPad);
-	      case 'x':
-	        return _formatBaseX(value, 16, prefixBaseX, leftJustify, minWidth, precision, zeroPad);
-	      case 'X':
-	        return _formatBaseX(value, 16, prefixBaseX, leftJustify, minWidth, precision, zeroPad).toUpperCase();
-	      case 'u':
-	        return _formatBaseX(value, 10, prefixBaseX, leftJustify, minWidth, precision, zeroPad);
-	      case 'i':
-	      case 'd':
-	        number = +value || 0;
-	        // Plain Math.round doesn't just truncate
-	        number = Math.round(number - number % 1);
-	        prefix = number < 0 ? '-' : positivePrefix;
-	        value = prefix + _pad(String(Math.abs(number)), precision, '0', false);
-	        return justify(value, prefix, leftJustify, minWidth, zeroPad);
-	      case 'e':
-	      case 'E':
-	      case 'f': // @todo: Should handle locales (as per setlocale)
-	      case 'F':
-	      case 'g':
-	      case 'G':
-	        number = +value;
-	        prefix = number < 0 ? '-' : positivePrefix;
-	        method = ['toExponential', 'toFixed', 'toPrecision']['efg'.indexOf(type.toLowerCase())];
-	        textTransform = ['toString', 'toUpperCase']['eEfFgG'.indexOf(type) % 2];
-	        value = prefix + Math.abs(number)[method](precision);
-	        return justify(value, prefix, leftJustify, minWidth, zeroPad)[textTransform]();
-	      default:
-	        return substring;
-	    }
-	  };
-
-	  return format.replace(regex, doFormat);
-	};
-	//# sourceMappingURL=sprintf.js.map
-
-/***/ }),
-/* 9 */
-/***/ (function(module, exports, __webpack_require__) {
-
-	'use strict';
-
-	module.exports = function vsprintf(format, args) {
-	  //  discuss at: http://locutus.io/php/vsprintf/
-	  // original by: ejsanders
-	  //   example 1: vsprintf('%04d-%02d-%02d', [1988, 8, 1])
-	  //   returns 1: '1988-08-01'
-
-	  var sprintf = __webpack_require__(8);
-
-	  return sprintf.apply(this, [format].concat(args));
-	};
-	//# sourceMappingURL=vsprintf.js.map
-
-/***/ }),
-/* 10 */
-/***/ (function(module, exports) {
-
-	'use strict';
-
-	module.exports = function round(value, precision, mode) {
-	  //  discuss at: http://locutus.io/php/round/
-	  // original by: Philip Peterson
-	  //  revised by: Onno Marsman (https://twitter.com/onnomarsman)
-	  //  revised by: T.Wild
-	  //  revised by: Rafał Kukawski (http://blog.kukawski.pl)
-	  //    input by: Greenseed
-	  //    input by: meo
-	  //    input by: William
-	  //    input by: Josep Sanz (http://www.ws3.es/)
-	  // bugfixed by: Brett Zamir (http://brett-zamir.me)
-	  //      note 1: Great work. Ideas for improvement:
-	  //      note 1: - code more compliant with developer guidelines
-	  //      note 1: - for implementing PHP constant arguments look at
-	  //      note 1: the pathinfo() function, it offers the greatest
-	  //      note 1: flexibility & compatibility possible
-	  //   example 1: round(1241757, -3)
-	  //   returns 1: 1242000
-	  //   example 2: round(3.6)
-	  //   returns 2: 4
-	  //   example 3: round(2.835, 2)
-	  //   returns 3: 2.84
-	  //   example 4: round(1.1749999999999, 2)
-	  //   returns 4: 1.17
-	  //   example 5: round(58551.799999999996, 2)
-	  //   returns 5: 58551.8
-
-	  var m, f, isHalf, sgn; // helper variables
-	  // making sure precision is integer
-	  precision |= 0;
-	  m = Math.pow(10, precision);
-	  value *= m;
-	  // sign of the number
-	  sgn = value > 0 | -(value < 0);
-	  isHalf = value % 1 === 0.5 * sgn;
-	  f = Math.floor(value);
-
-	  if (isHalf) {
-	    switch (mode) {
-	      case 'PHP_ROUND_HALF_DOWN':
-	        // rounds .5 toward zero
-	        value = f + (sgn < 0);
-	        break;
-	      case 'PHP_ROUND_HALF_EVEN':
-	        // rouds .5 towards the next even integer
-	        value = f + f % 2 * sgn;
-	        break;
-	      case 'PHP_ROUND_HALF_ODD':
-	        // rounds .5 towards the next odd integer
-	        value = f + !(f % 2);
-	        break;
-	      default:
-	        // rounds .5 away from zero
-	        value = f + (sgn > 0);
-	    }
-	  }
-
-	  return (isHalf ? value : Math.round(value)) / m;
-	};
-	//# sourceMappingURL=round.js.map
-
-/***/ }),
-/* 11 */
-/***/ (function(module, exports) {
-
-	'use strict';
-
-	var _typeof = typeof Symbol === "function" && typeof Symbol.iterator === "symbol" ? function (obj) { return typeof obj; } : function (obj) { return obj && typeof Symbol === "function" && obj.constructor === Symbol && obj !== Symbol.prototype ? "symbol" : typeof obj; };
-
-	module.exports = function max() {
-	  //  discuss at: http://locutus.io/php/max/
-	  // original by: Onno Marsman (https://twitter.com/onnomarsman)
-	  //  revised by: Onno Marsman (https://twitter.com/onnomarsman)
-	  // improved by: Jack
-	  //      note 1: Long code cause we're aiming for maximum PHP compatibility
-	  //   example 1: max(1, 3, 5, 6, 7)
-	  //   returns 1: 7
-	  //   example 2: max([2, 4, 5])
-	  //   returns 2: 5
-	  //   example 3: max(0, 'hello')
-	  //   returns 3: 0
-	  //   example 4: max('hello', 0)
-	  //   returns 4: 'hello'
-	  //   example 5: max(-1, 'hello')
-	  //   returns 5: 'hello'
-	  //   example 6: max([2, 4, 8], [2, 5, 7])
-	  //   returns 6: [2, 5, 7]
-
-	  var ar;
-	  var retVal;
-	  var i = 0;
-	  var n = 0;
-	  var argv = arguments;
-	  var argc = argv.length;
-	  var _obj2Array = function _obj2Array(obj) {
-	    if (Object.prototype.toString.call(obj) === '[object Array]') {
-	      return obj;
-	    } else {
-	      var ar = [];
-	      for (var i in obj) {
-	        if (obj.hasOwnProperty(i)) {
-	          ar.push(obj[i]);
-	        }
-	      }
-	      return ar;
-	    }
-	  };
-	  var _compare = function _compare(current, next) {
-	    var i = 0;
-	    var n = 0;
-	    var tmp = 0;
-	    var nl = 0;
-	    var cl = 0;
-
-	    if (current === next) {
-	      return 0;
-	    } else if ((typeof current === 'undefined' ? 'undefined' : _typeof(current)) === 'object') {
-	      if ((typeof next === 'undefined' ? 'undefined' : _typeof(next)) === 'object') {
-	        current = _obj2Array(current);
-	        next = _obj2Array(next);
-	        cl = current.length;
-	        nl = next.length;
-	        if (nl > cl) {
-	          return 1;
-	        } else if (nl < cl) {
-	          return -1;
-	        }
-	        for (i = 0, n = cl; i < n; ++i) {
-	          tmp = _compare(current[i], next[i]);
-	          if (tmp === 1) {
-	            return 1;
-	          } else if (tmp === -1) {
-	            return -1;
-	          }
-	        }
-	        return 0;
-	      }
-	      return -1;
-	    } else if ((typeof next === 'undefined' ? 'undefined' : _typeof(next)) === 'object') {
-	      return 1;
-	    } else if (isNaN(next) && !isNaN(current)) {
-	      if (current === 0) {
-	        return 0;
-	      }
-	      return current < 0 ? 1 : -1;
-	    } else if (isNaN(current) && !isNaN(next)) {
-	      if (next === 0) {
-	        return 0;
-	      }
-	      return next > 0 ? 1 : -1;
-	    }
-
-	    if (next === current) {
-	      return 0;
-	    }
-
-	    return next > current ? 1 : -1;
-	  };
-
-	  if (argc === 0) {
-	    throw new Error('At least one value should be passed to max()');
-	  } else if (argc === 1) {
-	    if (_typeof(argv[0]) === 'object') {
-	      ar = _obj2Array(argv[0]);
-	    } else {
-	      throw new Error('Wrong parameter count for max()');
-	    }
-	    if (ar.length === 0) {
-	      throw new Error('Array must contain at least one element for max()');
-	    }
-	  } else {
-	    ar = argv;
-	  }
-
-	  retVal = ar[0];
-	  for (i = 1, n = ar.length; i < n; ++i) {
-	    if (_compare(retVal, ar[i]) === 1) {
-	      retVal = ar[i];
-	    }
-	  }
-
-	  return retVal;
-	};
-	//# sourceMappingURL=max.js.map
-
-/***/ }),
-/* 12 */
-/***/ (function(module, exports) {
-
-	'use strict';
-
-	var _typeof = typeof Symbol === "function" && typeof Symbol.iterator === "symbol" ? function (obj) { return typeof obj; } : function (obj) { return obj && typeof Symbol === "function" && obj.constructor === Symbol && obj !== Symbol.prototype ? "symbol" : typeof obj; };
-
-	module.exports = function min() {
-	  //  discuss at: http://locutus.io/php/min/
-	  // original by: Onno Marsman (https://twitter.com/onnomarsman)
-	  //  revised by: Onno Marsman (https://twitter.com/onnomarsman)
-	  // improved by: Jack
-	  //      note 1: Long code cause we're aiming for maximum PHP compatibility
-	  //   example 1: min(1, 3, 5, 6, 7)
-	  //   returns 1: 1
-	  //   example 2: min([2, 4, 5])
-	  //   returns 2: 2
-	  //   example 3: min(0, 'hello')
-	  //   returns 3: 0
-	  //   example 4: min('hello', 0)
-	  //   returns 4: 'hello'
-	  //   example 5: min(-1, 'hello')
-	  //   returns 5: -1
-	  //   example 6: min([2, 4, 8], [2, 5, 7])
-	  //   returns 6: [2, 4, 8]
-
-	  var ar;
-	  var retVal;
-	  var i = 0;
-	  var n = 0;
-	  var argv = arguments;
-	  var argc = argv.length;
-	  var _obj2Array = function _obj2Array(obj) {
-	    if (Object.prototype.toString.call(obj) === '[object Array]') {
-	      return obj;
-	    }
-	    var ar = [];
-	    for (var i in obj) {
-	      if (obj.hasOwnProperty(i)) {
-	        ar.push(obj[i]);
-	      }
-	    }
-	    return ar;
-	  };
-
-	  var _compare = function _compare(current, next) {
-	    var i = 0;
-	    var n = 0;
-	    var tmp = 0;
-	    var nl = 0;
-	    var cl = 0;
-
-	    if (current === next) {
-	      return 0;
-	    } else if ((typeof current === 'undefined' ? 'undefined' : _typeof(current)) === 'object') {
-	      if ((typeof next === 'undefined' ? 'undefined' : _typeof(next)) === 'object') {
-	        current = _obj2Array(current);
-	        next = _obj2Array(next);
-	        cl = current.length;
-	        nl = next.length;
-	        if (nl > cl) {
-	          return 1;
-	        } else if (nl < cl) {
-	          return -1;
-	        }
-	        for (i = 0, n = cl; i < n; ++i) {
-	          tmp = _compare(current[i], next[i]);
-	          if (tmp === 1) {
-	            return 1;
-	          } else if (tmp === -1) {
-	            return -1;
-	          }
-	        }
-	        return 0;
-	      }
-	      return -1;
-	    } else if ((typeof next === 'undefined' ? 'undefined' : _typeof(next)) === 'object') {
-	      return 1;
-	    } else if (isNaN(next) && !isNaN(current)) {
-	      if (current === 0) {
-	        return 0;
-	      }
-	      return current < 0 ? 1 : -1;
-	    } else if (isNaN(current) && !isNaN(next)) {
-	      if (next === 0) {
-	        return 0;
-	      }
-	      return next > 0 ? 1 : -1;
-	    }
-
-	    if (next === current) {
-	      return 0;
-	    }
-
-	    return next > current ? 1 : -1;
-	  };
-
-	  if (argc === 0) {
-	    throw new Error('At least one value should be passed to min()');
-	  } else if (argc === 1) {
-	    if (_typeof(argv[0]) === 'object') {
-	      ar = _obj2Array(argv[0]);
-	    } else {
-	      throw new Error('Wrong parameter count for min()');
-	    }
-
-	    if (ar.length === 0) {
-	      throw new Error('Array must contain at least one element for min()');
-	    }
-	  } else {
-	    ar = argv;
-	  }
-
-	  retVal = ar[0];
-
-	  for (i = 1, n = ar.length; i < n; ++i) {
-	    if (_compare(retVal, ar[i]) === -1) {
-	      retVal = ar[i];
-	    }
-	  }
-
-	  return retVal;
-	};
-	//# sourceMappingURL=min.js.map
-
-/***/ }),
-/* 13 */
-/***/ (function(module, exports) {
-
-	'use strict';
-
-	module.exports = function strip_tags(input, allowed) {
-	  // eslint-disable-line camelcase
-	  //  discuss at: http://locutus.io/php/strip_tags/
-	  // original by: Kevin van Zonneveld (http://kvz.io)
-	  // improved by: Luke Godfrey
-	  // improved by: Kevin van Zonneveld (http://kvz.io)
-	  //    input by: Pul
-	  //    input by: Alex
-	  //    input by: Marc Palau
-	  //    input by: Brett Zamir (http://brett-zamir.me)
-	  //    input by: Bobby Drake
-	  //    input by: Evertjan Garretsen
-	  // bugfixed by: Kevin van Zonneveld (http://kvz.io)
-	  // bugfixed by: Onno Marsman (https://twitter.com/onnomarsman)
-	  // bugfixed by: Kevin van Zonneveld (http://kvz.io)
-	  // bugfixed by: Kevin van Zonneveld (http://kvz.io)
-	  // bugfixed by: Eric Nagel
-	  // bugfixed by: Kevin van Zonneveld (http://kvz.io)
-	  // bugfixed by: Tomasz Wesolowski
-	  //  revised by: Rafał Kukawski (http://blog.kukawski.pl)
-	  //   example 1: strip_tags('<p>Kevin</p> <br /><b>van</b> <i>Zonneveld</i>', '<i><b>')
-	  //   returns 1: 'Kevin <b>van</b> <i>Zonneveld</i>'
-	  //   example 2: strip_tags('<p>Kevin <img src="someimage.png" onmouseover="someFunction()">van <i>Zonneveld</i></p>', '<p>')
-	  //   returns 2: '<p>Kevin van Zonneveld</p>'
-	  //   example 3: strip_tags("<a href='http://kvz.io'>Kevin van Zonneveld</a>", "<a>")
-	  //   returns 3: "<a href='http://kvz.io'>Kevin van Zonneveld</a>"
-	  //   example 4: strip_tags('1 < 5 5 > 1')
-	  //   returns 4: '1 < 5 5 > 1'
-	  //   example 5: strip_tags('1 <br/> 1')
-	  //   returns 5: '1  1'
-	  //   example 6: strip_tags('1 <br/> 1', '<br>')
-	  //   returns 6: '1 <br/> 1'
-	  //   example 7: strip_tags('1 <br/> 1', '<br><br/>')
-	  //   returns 7: '1 <br/> 1'
-
-	  // making sure the allowed arg is a string containing only tags in lowercase (<a><b><c>)
-	  allowed = (((allowed || '') + '').toLowerCase().match(/<[a-z][a-z0-9]*>/g) || []).join('');
-
-	  var tags = /<\/?([a-z][a-z0-9]*)\b[^>]*>/gi;
-	  var commentsAndPhpTags = /<!--[\s\S]*?-->|<\?(?:php)?[\s\S]*?\?>/gi;
-
-	  return input.replace(commentsAndPhpTags, '').replace(tags, function ($0, $1) {
-	    return allowed.indexOf('<' + $1.toLowerCase() + '>') > -1 ? $0 : '';
-	  });
-	};
-	//# sourceMappingURL=strip_tags.js.map
-
-/***/ }),
-/* 14 */
-/***/ (function(module, exports) {
-
-	'use strict';
-
-	module.exports = function strtotime(text, now) {
-	  //  discuss at: http://locutus.io/php/strtotime/
-	  // original by: Caio Ariede (http://caioariede.com)
-	  // improved by: Kevin van Zonneveld (http://kvz.io)
-	  // improved by: Caio Ariede (http://caioariede.com)
-	  // improved by: A. Matías Quezada (http://amatiasq.com)
-	  // improved by: preuter
-	  // improved by: Brett Zamir (http://brett-zamir.me)
-	  // improved by: Mirko Faber
-	  //    input by: David
-	  // bugfixed by: Wagner B. Soares
-	  // bugfixed by: Artur Tchernychev
-	  // bugfixed by: Stephan Bösch-Plepelits (http://github.com/plepe)
-	  //      note 1: Examples all have a fixed timestamp to prevent
-	  //      note 1: tests to fail because of variable time(zones)
-	  //   example 1: strtotime('+1 day', 1129633200)
-	  //   returns 1: 1129719600
-	  //   example 2: strtotime('+1 week 2 days 4 hours 2 seconds', 1129633200)
-	  //   returns 2: 1130425202
-	  //   example 3: strtotime('last month', 1129633200)
-	  //   returns 3: 1127041200
-	  //   example 4: strtotime('2009-05-04 08:30:00 GMT')
-	  //   returns 4: 1241425800
-	  //   example 5: strtotime('2009-05-04 08:30:00+00')
-	  //   returns 5: 1241425800
-	  //   example 6: strtotime('2009-05-04 08:30:00+02:00')
-	  //   returns 6: 1241418600
-	  //   example 7: strtotime('2009-05-04T08:30:00Z')
-	  //   returns 7: 1241425800
-
-	  var parsed;
-	  var match;
-	  var today;
-	  var year;
-	  var date;
-	  var days;
-	  var ranges;
-	  var len;
-	  var times;
-	  var regex;
-	  var i;
-	  var fail = false;
-
-	  if (!text) {
-	    return fail;
-	  }
-
-	  // Unecessary spaces
-	  text = text.replace(/^\s+|\s+$/g, '').replace(/\s{2,}/g, ' ').replace(/[\t\r\n]/g, '').toLowerCase();
-
-	  // in contrast to php, js Date.parse function interprets:
-	  // dates given as yyyy-mm-dd as in timezone: UTC,
-	  // dates with "." or "-" as MDY instead of DMY
-	  // dates with two-digit years differently
-	  // etc...etc...
-	  // ...therefore we manually parse lots of common date formats
-	  var pattern = new RegExp(['^(\\d{1,4})', '([\\-\\.\\/:])', '(\\d{1,2})', '([\\-\\.\\/:])', '(\\d{1,4})', '(?:\\s(\\d{1,2}):(\\d{2})?:?(\\d{2})?)?', '(?:\\s([A-Z]+)?)?$'].join(''));
-	  match = text.match(pattern);
-
-	  if (match && match[2] === match[4]) {
-	    if (match[1] > 1901) {
-	      switch (match[2]) {
-	        case '-':
-	          // YYYY-M-D
-	          if (match[3] > 12 || match[5] > 31) {
-	            return fail;
-	          }
-
-	          return new Date(match[1], parseInt(match[3], 10) - 1, match[5], match[6] || 0, match[7] || 0, match[8] || 0, match[9] || 0) / 1000;
-	        case '.':
-	          // YYYY.M.D is not parsed by strtotime()
-	          return fail;
-	        case '/':
-	          // YYYY/M/D
-	          if (match[3] > 12 || match[5] > 31) {
-	            return fail;
-	          }
-
-	          return new Date(match[1], parseInt(match[3], 10) - 1, match[5], match[6] || 0, match[7] || 0, match[8] || 0, match[9] || 0) / 1000;
-	      }
-	    } else if (match[5] > 1901) {
-	      switch (match[2]) {
-	        case '-':
-	          // D-M-YYYY
-	          if (match[3] > 12 || match[1] > 31) {
-	            return fail;
-	          }
-
-	          return new Date(match[5], parseInt(match[3], 10) - 1, match[1], match[6] || 0, match[7] || 0, match[8] || 0, match[9] || 0) / 1000;
-	        case '.':
-	          // D.M.YYYY
-	          if (match[3] > 12 || match[1] > 31) {
-	            return fail;
-	          }
-
-	          return new Date(match[5], parseInt(match[3], 10) - 1, match[1], match[6] || 0, match[7] || 0, match[8] || 0, match[9] || 0) / 1000;
-	        case '/':
-	          // M/D/YYYY
-	          if (match[1] > 12 || match[3] > 31) {
-	            return fail;
-	          }
-
-	          return new Date(match[5], parseInt(match[1], 10) - 1, match[3], match[6] || 0, match[7] || 0, match[8] || 0, match[9] || 0) / 1000;
-	      }
-	    } else {
-	      switch (match[2]) {
-	        case '-':
-	          // YY-M-D
-	          if (match[3] > 12 || match[5] > 31 || match[1] < 70 && match[1] > 38) {
-	            return fail;
-	          }
-
-	          year = match[1] >= 0 && match[1] <= 38 ? +match[1] + 2000 : match[1];
-	          return new Date(year, parseInt(match[3], 10) - 1, match[5], match[6] || 0, match[7] || 0, match[8] || 0, match[9] || 0) / 1000;
-	        case '.':
-	          // D.M.YY or H.MM.SS
-	          if (match[5] >= 70) {
-	            // D.M.YY
-	            if (match[3] > 12 || match[1] > 31) {
-	              return fail;
-	            }
-
-	            return new Date(match[5], parseInt(match[3], 10) - 1, match[1], match[6] || 0, match[7] || 0, match[8] || 0, match[9] || 0) / 1000;
-	          }
-	          if (match[5] < 60 && !match[6]) {
-	            // H.MM.SS
-	            if (match[1] > 23 || match[3] > 59) {
-	              return fail;
-	            }
-
-	            today = new Date();
-	            return new Date(today.getFullYear(), today.getMonth(), today.getDate(), match[1] || 0, match[3] || 0, match[5] || 0, match[9] || 0) / 1000;
-	          }
-
-	          // invalid format, cannot be parsed
-	          return fail;
-	        case '/':
-	          // M/D/YY
-	          if (match[1] > 12 || match[3] > 31 || match[5] < 70 && match[5] > 38) {
-	            return fail;
-	          }
-
-	          year = match[5] >= 0 && match[5] <= 38 ? +match[5] + 2000 : match[5];
-	          return new Date(year, parseInt(match[1], 10) - 1, match[3], match[6] || 0, match[7] || 0, match[8] || 0, match[9] || 0) / 1000;
-	        case ':':
-	          // HH:MM:SS
-	          if (match[1] > 23 || match[3] > 59 || match[5] > 59) {
-	            return fail;
-	          }
-
-	          today = new Date();
-	          return new Date(today.getFullYear(), today.getMonth(), today.getDate(), match[1] || 0, match[3] || 0, match[5] || 0) / 1000;
-	      }
-	    }
-	  }
-
-	  // other formats and "now" should be parsed by Date.parse()
-	  if (text === 'now') {
-	    return now === null || isNaN(now) ? new Date().getTime() / 1000 | 0 : now | 0;
-	  }
-	  if (!isNaN(parsed = Date.parse(text))) {
-	    return parsed / 1000 | 0;
-	  }
-	  // Browsers !== Chrome have problems parsing ISO 8601 date strings, as they do
-	  // not accept lower case characters, space, or shortened time zones.
-	  // Therefore, fix these problems and try again.
-	  // Examples:
-	  //   2015-04-15 20:33:59+02
-	  //   2015-04-15 20:33:59z
-	  //   2015-04-15t20:33:59+02:00
-	  pattern = new RegExp(['^([0-9]{4}-[0-9]{2}-[0-9]{2})', '[ t]', '([0-9]{2}:[0-9]{2}:[0-9]{2}(\\.[0-9]+)?)', '([\\+-][0-9]{2}(:[0-9]{2})?|z)'].join(''));
-	  match = text.match(pattern);
-	  if (match) {
-	    // @todo: time zone information
-	    if (match[4] === 'z') {
-	      match[4] = 'Z';
-	    } else if (match[4].match(/^([+-][0-9]{2})$/)) {
-	      match[4] = match[4] + ':00';
-	    }
-
-	    if (!isNaN(parsed = Date.parse(match[1] + 'T' + match[2] + match[4]))) {
-	      return parsed / 1000 | 0;
-	    }
-	  }
-
-	  date = now ? new Date(now * 1000) : new Date();
-	  days = {
-	    'sun': 0,
-	    'mon': 1,
-	    'tue': 2,
-	    'wed': 3,
-	    'thu': 4,
-	    'fri': 5,
-	    'sat': 6
-	  };
-	  ranges = {
-	    'yea': 'FullYear',
-	    'mon': 'Month',
-	    'day': 'Date',
-	    'hou': 'Hours',
-	    'min': 'Minutes',
-	    'sec': 'Seconds'
-	  };
-
-	  function lastNext(type, range, modifier) {
-	    var diff;
-	    var day = days[range];
-
-	    if (typeof day !== 'undefined') {
-	      diff = day - date.getDay();
-
-	      if (diff === 0) {
-	        diff = 7 * modifier;
-	      } else if (diff > 0 && type === 'last') {
-	        diff -= 7;
-	      } else if (diff < 0 && type === 'next') {
-	        diff += 7;
-	      }
-
-	      date.setDate(date.getDate() + diff);
-	    }
-	  }
-
-	  function process(val) {
-	    // @todo: Reconcile this with regex using \s, taking into account
-	    // browser issues with split and regexes
-	    var splt = val.split(' ');
-	    var type = splt[0];
-	    var range = splt[1].substring(0, 3);
-	    var typeIsNumber = /\d+/.test(type);
-	    var ago = splt[2] === 'ago';
-	    var num = (type === 'last' ? -1 : 1) * (ago ? -1 : 1);
-
-	    if (typeIsNumber) {
-	      num *= parseInt(type, 10);
-	    }
-
-	    if (ranges.hasOwnProperty(range) && !splt[1].match(/^mon(day|\.)?$/i)) {
-	      return date['set' + ranges[range]](date['get' + ranges[range]]() + num);
-	    }
-
-	    if (range === 'wee') {
-	      return date.setDate(date.getDate() + num * 7);
-	    }
-
-	    if (type === 'next' || type === 'last') {
-	      lastNext(type, range, num);
-	    } else if (!typeIsNumber) {
-	      return false;
-	    }
-
-	    return true;
-	  }
-
-	  times = '(years?|months?|weeks?|days?|hours?|minutes?|min|seconds?|sec' + '|sunday|sun\\.?|monday|mon\\.?|tuesday|tue\\.?|wednesday|wed\\.?' + '|thursday|thu\\.?|friday|fri\\.?|saturday|sat\\.?)';
-	  regex = '([+-]?\\d+\\s' + times + '|' + '(last|next)\\s' + times + ')(\\sago)?';
-
-	  match = text.match(new RegExp(regex, 'gi'));
-	  if (!match) {
-	    return fail;
-	  }
-
-	  for (i = 0, len = match.length; i < len; i++) {
-	    if (!process(match[i])) {
-	      return fail;
-	    }
-	  }
-
-	  return date.getTime() / 1000;
-	};
-	//# sourceMappingURL=strtotime.js.map
-
-/***/ }),
-/* 15 */
-/***/ (function(module, exports) {
-
-	'use strict';
-
-	module.exports = function date(format, timestamp) {
-	  //  discuss at: http://locutus.io/php/date/
-	  // original by: Carlos R. L. Rodrigues (http://www.jsfromhell.com)
-	  // original by: gettimeofday
-	  //    parts by: Peter-Paul Koch (http://www.quirksmode.org/js/beat.html)
-	  // improved by: Kevin van Zonneveld (http://kvz.io)
-	  // improved by: MeEtc (http://yass.meetcweb.com)
-	  // improved by: Brad Touesnard
-	  // improved by: Tim Wiel
-	  // improved by: Bryan Elliott
-	  // improved by: David Randall
-	  // improved by: Theriault (https://github.com/Theriault)
-	  // improved by: Theriault (https://github.com/Theriault)
-	  // improved by: Brett Zamir (http://brett-zamir.me)
-	  // improved by: Theriault (https://github.com/Theriault)
-	  // improved by: Thomas Beaucourt (http://www.webapp.fr)
-	  // improved by: JT
-	  // improved by: Theriault (https://github.com/Theriault)
-	  // improved by: Rafał Kukawski (http://blog.kukawski.pl)
-	  // improved by: Theriault (https://github.com/Theriault)
-	  //    input by: Brett Zamir (http://brett-zamir.me)
-	  //    input by: majak
-	  //    input by: Alex
-	  //    input by: Martin
-	  //    input by: Alex Wilson
-	  //    input by: Haravikk
-	  // bugfixed by: Kevin van Zonneveld (http://kvz.io)
-	  // bugfixed by: majak
-	  // bugfixed by: Kevin van Zonneveld (http://kvz.io)
-	  // bugfixed by: Brett Zamir (http://brett-zamir.me)
-	  // bugfixed by: omid (http://locutus.io/php/380:380#comment_137122)
-	  // bugfixed by: Chris (http://www.devotis.nl/)
-	  //      note 1: Uses global: locutus to store the default timezone
-	  //      note 1: Although the function potentially allows timezone info
-	  //      note 1: (see notes), it currently does not set
-	  //      note 1: per a timezone specified by date_default_timezone_set(). Implementers might use
-	  //      note 1: $locutus.currentTimezoneOffset and
-	  //      note 1: $locutus.currentTimezoneDST set by that function
-	  //      note 1: in order to adjust the dates in this function
-	  //      note 1: (or our other date functions!) accordingly
-	  //   example 1: date('H:m:s \\m \\i\\s \\m\\o\\n\\t\\h', 1062402400)
-	  //   returns 1: '07:09:40 m is month'
-	  //   example 2: date('F j, Y, g:i a', 1062462400)
-	  //   returns 2: 'September 2, 2003, 12:26 am'
-	  //   example 3: date('Y W o', 1062462400)
-	  //   returns 3: '2003 36 2003'
-	  //   example 4: var $x = date('Y m d', (new Date()).getTime() / 1000)
-	  //   example 4: $x = $x + ''
-	  //   example 4: var $result = $x.length // 2009 01 09
-	  //   returns 4: 10
-	  //   example 5: date('W', 1104534000)
-	  //   returns 5: '52'
-	  //   example 6: date('B t', 1104534000)
-	  //   returns 6: '999 31'
-	  //   example 7: date('W U', 1293750000.82); // 2010-12-31
-	  //   returns 7: '52 1293750000'
-	  //   example 8: date('W', 1293836400); // 2011-01-01
-	  //   returns 8: '52'
-	  //   example 9: date('W Y-m-d', 1293974054); // 2011-01-02
-	  //   returns 9: '52 2011-01-02'
-	  //        test: skip-1 skip-2 skip-5
-
-	  var jsdate, f;
-	  // Keep this here (works, but for code commented-out below for file size reasons)
-	  // var tal= [];
-	  var txtWords = ['Sun', 'Mon', 'Tues', 'Wednes', 'Thurs', 'Fri', 'Satur', 'January', 'February', 'March', 'April', 'May', 'June', 'July', 'August', 'September', 'October', 'November', 'December'];
-	  // trailing backslash -> (dropped)
-	  // a backslash followed by any character (including backslash) -> the character
-	  // empty string -> empty string
-	  var formatChr = /\\?(.?)/gi;
-	  var formatChrCb = function formatChrCb(t, s) {
-	    return f[t] ? f[t]() : s;
-	  };
-	  var _pad = function _pad(n, c) {
-	    n = String(n);
-	    while (n.length < c) {
-	      n = '0' + n;
-	    }
-	    return n;
-	  };
-	  f = {
-	    // Day
-	    d: function d() {
-	      // Day of month w/leading 0; 01..31
-	      return _pad(f.j(), 2);
-	    },
-	    D: function D() {
-	      // Shorthand day name; Mon...Sun
-	      return f.l().slice(0, 3);
-	    },
-	    j: function j() {
-	      // Day of month; 1..31
-	      return jsdate.getDate();
-	    },
-	    l: function l() {
-	      // Full day name; Monday...Sunday
-	      return txtWords[f.w()] + 'day';
-	    },
-	    N: function N() {
-	      // ISO-8601 day of week; 1[Mon]..7[Sun]
-	      return f.w() || 7;
-	    },
-	    S: function S() {
-	      // Ordinal suffix for day of month; st, nd, rd, th
-	      var j = f.j();
-	      var i = j % 10;
-	      if (i <= 3 && parseInt(j % 100 / 10, 10) === 1) {
-	        i = 0;
-	      }
-	      return ['st', 'nd', 'rd'][i - 1] || 'th';
-	    },
-	    w: function w() {
-	      // Day of week; 0[Sun]..6[Sat]
-	      return jsdate.getDay();
-	    },
-	    z: function z() {
-	      // Day of year; 0..365
-	      var a = new Date(f.Y(), f.n() - 1, f.j());
-	      var b = new Date(f.Y(), 0, 1);
-	      return Math.round((a - b) / 864e5);
-	    },
-
-	    // Week
-	    W: function W() {
-	      // ISO-8601 week number
-	      var a = new Date(f.Y(), f.n() - 1, f.j() - f.N() + 3);
-	      var b = new Date(a.getFullYear(), 0, 4);
-	      return _pad(1 + Math.round((a - b) / 864e5 / 7), 2);
-	    },
-
-	    // Month
-	    F: function F() {
-	      // Full month name; January...December
-	      return txtWords[6 + f.n()];
-	    },
-	    m: function m() {
-	      // Month w/leading 0; 01...12
-	      return _pad(f.n(), 2);
-	    },
-	    M: function M() {
-	      // Shorthand month name; Jan...Dec
-	      return f.F().slice(0, 3);
-	    },
-	    n: function n() {
-	      // Month; 1...12
-	      return jsdate.getMonth() + 1;
-	    },
-	    t: function t() {
-	      // Days in month; 28...31
-	      return new Date(f.Y(), f.n(), 0).getDate();
-	    },
-
-	    // Year
-	    L: function L() {
-	      // Is leap year?; 0 or 1
-	      var j = f.Y();
-	      return j % 4 === 0 & j % 100 !== 0 | j % 400 === 0;
-	    },
-	    o: function o() {
-	      // ISO-8601 year
-	      var n = f.n();
-	      var W = f.W();
-	      var Y = f.Y();
-	      return Y + (n === 12 && W < 9 ? 1 : n === 1 && W > 9 ? -1 : 0);
-	    },
-	    Y: function Y() {
-	      // Full year; e.g. 1980...2010
-	      return jsdate.getFullYear();
-	    },
-	    y: function y() {
-	      // Last two digits of year; 00...99
-	      return f.Y().toString().slice(-2);
-	    },
-
-	    // Time
-	    a: function a() {
-	      // am or pm
-	      return jsdate.getHours() > 11 ? 'pm' : 'am';
-	    },
-	    A: function A() {
-	      // AM or PM
-	      return f.a().toUpperCase();
-	    },
-	    B: function B() {
-	      // Swatch Internet time; 000..999
-	      var H = jsdate.getUTCHours() * 36e2;
-	      // Hours
-	      var i = jsdate.getUTCMinutes() * 60;
-	      // Minutes
-	      // Seconds
-	      var s = jsdate.getUTCSeconds();
-	      return _pad(Math.floor((H + i + s + 36e2) / 86.4) % 1e3, 3);
-	    },
-	    g: function g() {
-	      // 12-Hours; 1..12
-	      return f.G() % 12 || 12;
-	    },
-	    G: function G() {
-	      // 24-Hours; 0..23
-	      return jsdate.getHours();
-	    },
-	    h: function h() {
-	      // 12-Hours w/leading 0; 01..12
-	      return _pad(f.g(), 2);
-	    },
-	    H: function H() {
-	      // 24-Hours w/leading 0; 00..23
-	      return _pad(f.G(), 2);
-	    },
-	    i: function i() {
-	      // Minutes w/leading 0; 00..59
-	      return _pad(jsdate.getMinutes(), 2);
-	    },
-	    s: function s() {
-	      // Seconds w/leading 0; 00..59
-	      return _pad(jsdate.getSeconds(), 2);
-	    },
-	    u: function u() {
-	      // Microseconds; 000000-999000
-	      return _pad(jsdate.getMilliseconds() * 1000, 6);
-	    },
-
-	    // Timezone
-	    e: function e() {
-	      // Timezone identifier; e.g. Atlantic/Azores, ...
-	      // The following works, but requires inclusion of the very large
-	      // timezone_abbreviations_list() function.
-	      /*              return that.date_default_timezone_get();
-	       */
-	      var msg = 'Not supported (see source code of date() for timezone on how to add support)';
-	      throw new Error(msg);
-	    },
-	    I: function I() {
-	      // DST observed?; 0 or 1
-	      // Compares Jan 1 minus Jan 1 UTC to Jul 1 minus Jul 1 UTC.
-	      // If they are not equal, then DST is observed.
-	      var a = new Date(f.Y(), 0);
-	      // Jan 1
-	      var c = Date.UTC(f.Y(), 0);
-	      // Jan 1 UTC
-	      var b = new Date(f.Y(), 6);
-	      // Jul 1
-	      // Jul 1 UTC
-	      var d = Date.UTC(f.Y(), 6);
-	      return a - c !== b - d ? 1 : 0;
-	    },
-	    O: function O() {
-	      // Difference to GMT in hour format; e.g. +0200
-	      var tzo = jsdate.getTimezoneOffset();
-	      var a = Math.abs(tzo);
-	      return (tzo > 0 ? '-' : '+') + _pad(Math.floor(a / 60) * 100 + a % 60, 4);
-	    },
-	    P: function P() {
-	      // Difference to GMT w/colon; e.g. +02:00
-	      var O = f.O();
-	      return O.substr(0, 3) + ':' + O.substr(3, 2);
-	    },
-	    T: function T() {
-	      // The following works, but requires inclusion of the very
-	      // large timezone_abbreviations_list() function.
-	      /*              var abbr, i, os, _default;
-	      if (!tal.length) {
-	        tal = that.timezone_abbreviations_list();
-	      }
-	      if ($locutus && $locutus.default_timezone) {
-	        _default = $locutus.default_timezone;
-	        for (abbr in tal) {
-	          for (i = 0; i < tal[abbr].length; i++) {
-	            if (tal[abbr][i].timezone_id === _default) {
-	              return abbr.toUpperCase();
-	            }
-	          }
-	        }
-	      }
-	      for (abbr in tal) {
-	        for (i = 0; i < tal[abbr].length; i++) {
-	          os = -jsdate.getTimezoneOffset() * 60;
-	          if (tal[abbr][i].offset === os) {
-	            return abbr.toUpperCase();
-	          }
-	        }
-	      }
-	      */
-	      return 'UTC';
-	    },
-	    Z: function Z() {
-	      // Timezone offset in seconds (-43200...50400)
-	      return -jsdate.getTimezoneOffset() * 60;
-	    },
-
-	    // Full Date/Time
-	    c: function c() {
-	      // ISO-8601 date.
-	      return 'Y-m-d\\TH:i:sP'.replace(formatChr, formatChrCb);
-	    },
-	    r: function r() {
-	      // RFC 2822
-	      return 'D, d M Y H:i:s O'.replace(formatChr, formatChrCb);
-	    },
-	    U: function U() {
-	      // Seconds since UNIX epoch
-	      return jsdate / 1000 | 0;
-	    }
-	  };
-
-	  var _date = function _date(format, timestamp) {
-	    jsdate = timestamp === undefined ? new Date() // Not provided
-	    : timestamp instanceof Date ? new Date(timestamp) // JS Date()
-	    : new Date(timestamp * 1000) // UNIX timestamp (auto-convert to int)
-	    ;
-	    return format.replace(formatChr, formatChrCb);
-	  };
-
-	  return _date(format, timestamp);
-	};
-	//# sourceMappingURL=date.js.map
-
-/***/ }),
-/* 16 */
-/***/ (function(module, exports) {
-
-	'use strict';
-
-	module.exports = function boolval(mixedVar) {
-	  // original by: Will Rowe
-	  //   example 1: boolval(true)
-	  //   returns 1: true
-	  //   example 2: boolval(false)
-	  //   returns 2: false
-	  //   example 3: boolval(0)
-	  //   returns 3: false
-	  //   example 4: boolval(0.0)
-	  //   returns 4: false
-	  //   example 5: boolval('')
-	  //   returns 5: false
-	  //   example 6: boolval('0')
-	  //   returns 6: false
-	  //   example 7: boolval([])
-	  //   returns 7: false
-	  //   example 8: boolval('')
-	  //   returns 8: false
-	  //   example 9: boolval(null)
-	  //   returns 9: false
-	  //   example 10: boolval(undefined)
-	  //   returns 10: false
-	  //   example 11: boolval('true')
-	  //   returns 11: true
-
-	  if (mixedVar === false) {
-	    return false;
-	  }
-
-	  if (mixedVar === 0 || mixedVar === 0.0) {
-	    return false;
-	  }
-
-	  if (mixedVar === '' || mixedVar === '0') {
-	    return false;
-	  }
-
-	  if (Array.isArray(mixedVar) && mixedVar.length === 0) {
-	    return false;
-	  }
-
-	  if (mixedVar === null || mixedVar === undefined) {
-	    return false;
-	  }
-
-	  return true;
-	};
-	//# sourceMappingURL=boolval.js.map
-
-/***/ }),
-/* 17 */
-/***/ (function(module, exports) {
-
-	module.exports = function(Twig) {
-	    'use strict';
-
-	    Twig.Templates.registerLoader('ajax', function(location, params, callback, error_callback) {
-	        var template,
-	            xmlhttp,
-	            precompiled = params.precompiled,
-	            parser = this.parsers[params.parser] || this.parser.twig;
-
-	        if (typeof XMLHttpRequest === "undefined") {
-	            throw new Twig.Error('Unsupported platform: Unable to do ajax requests ' +
-	                                 'because there is no "XMLHTTPRequest" implementation');
-	        }
-
-	        xmlhttp = new XMLHttpRequest();
-	        xmlhttp.onreadystatechange = function() {
-	            var data = null;
-
-	            if(xmlhttp.readyState === 4) {
-	                if (xmlhttp.status === 200 || (window.cordova && xmlhttp.status == 0)) {
-	                    Twig.log.debug("Got template ", xmlhttp.responseText);
-
-	                    if (precompiled === true) {
-	                        data = JSON.parse(xmlhttp.responseText);
-	                    } else {
-	                        data = xmlhttp.responseText;
-	                    }
-
-	                    params.url = location;
-	                    params.data = data;
-
-	                    template = parser.call(this, params);
-
-	                    if (typeof callback === 'function') {
-	                        callback(template);
-	                    }
-	                } else {
-	                    if (typeof error_callback === 'function') {
-	                        error_callback(xmlhttp);
-	                    }
-	                }
-	            }
-	        };
-	        xmlhttp.open("GET", location, !!params.async);
-	        xmlhttp.send();
-
-	        if (params.async) {
-	            // TODO: return deferred promise
-	            return true;
-	        } else {
-	            return template;
-	        }
-	    });
-
-	};
-
-
-/***/ }),
-/* 18 */
-/***/ (function(module, exports, __webpack_require__) {
-
-	module.exports = function(Twig) {
-	    'use strict';
-
-	    var fs, path;
-
-	    try {
-	    	// require lib dependencies at runtime
-	    	fs = __webpack_require__(19);
-	    	path = __webpack_require__(20);
-	    } catch (e) {
-	    	// NOTE: this is in a try/catch to avoid errors cross platform
-	    }
-
-	    Twig.Templates.registerLoader('fs', function(location, params, callback, error_callback) {
-	        var template,
-	            data = null,
-	            precompiled = params.precompiled,
-	            parser = this.parsers[params.parser] || this.parser.twig;
-
-	        if (!fs || !path) {
-	            throw new Twig.Error('Unsupported platform: Unable to load from file ' +
-	                                 'because there is no "fs" or "path" implementation');
-	        }
-
-	        var loadTemplateFn = function(err, data) {
-	            if (err) {
-	                if (typeof error_callback === 'function') {
-	                    error_callback(err);
-	                }
-	                return;
-	            }
-
-	            if (precompiled === true) {
-	                data = JSON.parse(data);
-	            }
-
-	            params.data = data;
-	            params.path = params.path || location;
-
-	            // template is in data
-	            template = parser.call(this, params);
-
-	            if (typeof callback === 'function') {
-	                callback(template);
-	            }
-	        };
-	        params.path = params.path || location;
-
-	        if (params.async) {
-	            fs.stat(params.path, function (err, stats) {
-	                if (err || !stats.isFile()) {
-	                    if (typeof error_callback === 'function') {
-	                        error_callback(new Twig.Error('Unable to find template file ' + params.path));
-	                    }
-	                    return;
-	                }
-	                fs.readFile(params.path, 'utf8', loadTemplateFn);
-	            });
-	            // TODO: return deferred promise
-	            return true;
-	        } else {
-	            try {
-	                if (!fs.statSync(params.path).isFile()) {
-	                    throw new Twig.Error('Unable to find template file ' + params.path);
-	                }
-	            } catch (err) {
-	                throw new Twig.Error('Unable to find template file ' + params.path);
-	            }
-	            data = fs.readFileSync(params.path, 'utf8');
-	            loadTemplateFn(undefined, data);
-	            return template
-	        }
-	    });
-
-	};
-
-
-/***/ }),
-/* 19 */
-/***/ (function(module, exports) {
-
-	module.exports = __webpack_require__(/*! fs */ 0);
-
-/***/ }),
-/* 20 */
-/***/ (function(module, exports) {
-
-	module.exports = __webpack_require__(/*! path */ "./node_modules/path-browserify/index.js");
-
-/***/ }),
-/* 21 */
-/***/ (function(module, exports) {
-
-	// ## twig.logic.js
-	//
-	// This file handles tokenizing, compiling and parsing logic tokens. {% ... %}
-	module.exports = function (Twig) {
-	    "use strict";
-
-	    /**
-	     * Namespace for logic handling.
-	     */
-	    Twig.logic = {};
-
-	    /**
-	     * Logic token types.
-	     */
-	    Twig.logic.type = {
-	        if_:       'Twig.logic.type.if',
-	        endif:     'Twig.logic.type.endif',
-	        for_:      'Twig.logic.type.for',
-	        endfor:    'Twig.logic.type.endfor',
-	        else_:     'Twig.logic.type.else',
-	        elseif:    'Twig.logic.type.elseif',
-	        set:       'Twig.logic.type.set',
-	        setcapture:'Twig.logic.type.setcapture',
-	        endset:    'Twig.logic.type.endset',
-	        filter:    'Twig.logic.type.filter',
-	        endfilter: 'Twig.logic.type.endfilter',
-	        shortblock: 'Twig.logic.type.shortblock',
-	        block:     'Twig.logic.type.block',
-	        endblock:  'Twig.logic.type.endblock',
-	        extends_:  'Twig.logic.type.extends',
-	        use:       'Twig.logic.type.use',
-	        include:   'Twig.logic.type.include',
-	        spaceless: 'Twig.logic.type.spaceless',
-	        endspaceless: 'Twig.logic.type.endspaceless',
-	        macro:     'Twig.logic.type.macro',
-	        endmacro:  'Twig.logic.type.endmacro',
-	        import_:   'Twig.logic.type.import',
-	        from:      'Twig.logic.type.from',
-	        embed:     'Twig.logic.type.embed',
-	        endembed:  'Twig.logic.type.endembed',
-	        'with':     'Twig.logic.type.with',
-	        endwith:  'Twig.logic.type.endwith'
-	    };
-
-
-	    // Regular expressions for handling logic tokens.
-	    //
-	    // Properties:
-	    //
-	    //      type:  The type of expression this matches
-	    //
-	    //      regex: A regular expression that matches the format of the token
-	    //
-	    //      next:  What logic tokens (if any) pop this token off the logic stack. If empty, the
-	    //             logic token is assumed to not require an end tag and isn't push onto the stack.
-	    //
-	    //      open:  Does this tag open a logic expression or is it standalone. For example,
-	    //             {% endif %} cannot exist without an opening {% if ... %} tag, so open = false.
-	    //
-	    //  Functions:
-	    //
-	    //      compile: A function that handles compiling the token into an output token ready for
-	    //               parsing with the parse function.
-	    //
-	    //      parse:   A function that parses the compiled token into output (HTML / whatever the
-	    //               template represents).
-	    Twig.logic.definitions = [
-	        {
-	            /**
-	             * If type logic tokens.
-	             *
-	             *  Format: {% if expression %}
-	             */
-	            type: Twig.logic.type.if_,
-	            regex: /^if\s+([\s\S]+)$/,
-	            next: [
-	                Twig.logic.type.else_,
-	                Twig.logic.type.elseif,
-	                Twig.logic.type.endif
-	            ],
-	            open: true,
-	            compile: function (token) {
-	                var expression = token.match[1];
-	                // Compile the expression.
-	                token.stack = Twig.expression.compile.call(this, {
-	                    type:  Twig.expression.type.expression,
-	                    value: expression
-	                }).stack;
-	                delete token.match;
-	                return token;
-	            },
-	            parse: function (token, context, chain) {
-	                var that = this;
-
-	                return Twig.expression.parseAsync.call(this, token.stack, context)
-	                .then(function(result) {
-	                    chain = true;
-
-	                    if (Twig.lib.boolval(result)) {
-	                        chain = false;
-
-	                        return Twig.parseAsync.call(that, token.output, context);
-	                    }
-
-	                    return '';
-	                })
-	                .then(function(output) {
-	                    return {
-	                        chain: chain,
-	                        output: output
-	                    };
-	                });
-	            }
-	        },
-	        {
-	            /**
-	             * Else if type logic tokens.
-	             *
-	             *  Format: {% elseif expression %}
-	             */
-	            type: Twig.logic.type.elseif,
-	            regex: /^elseif\s+([^\s].*)$/,
-	            next: [
-	                Twig.logic.type.else_,
-	                Twig.logic.type.elseif,
-	                Twig.logic.type.endif
-	            ],
-	            open: false,
-	            compile: function (token) {
-	                var expression = token.match[1];
-	                // Compile the expression.
-	                token.stack = Twig.expression.compile.call(this, {
-	                    type:  Twig.expression.type.expression,
-	                    value: expression
-	                }).stack;
-	                delete token.match;
-	                return token;
-	            },
-	            parse: function (token, context, chain) {
-	                var that = this;
-
-	                return Twig.expression.parseAsync.call(this, token.stack, context)
-	                .then(function(result) {
-	                    if (chain && Twig.lib.boolval(result)) {
-	                        chain = false;
-
-	                        return Twig.parseAsync.call(that, token.output, context);
-	                    }
-
-	                    return '';
-	                })
-	                .then(function(output) {
-	                    return {
-	                        chain: chain,
-	                        output: output
-	                    }
-	                });
-	            }
-	        },
-	        {
-	            /**
-	             * Else if type logic tokens.
-	             *
-	             *  Format: {% elseif expression %}
-	             */
-	            type: Twig.logic.type.else_,
-	            regex: /^else$/,
-	            next: [
-	                Twig.logic.type.endif,
-	                Twig.logic.type.endfor
-	            ],
-	            open: false,
-	            parse: function (token, context, chain) {
-	                var promise = Twig.Promise.resolve('');
-
-	                if (chain) {
-	                    promise = Twig.parseAsync.call(this, token.output, context);
-	                }
-
-	                return promise.then(function(output) {
-	                    return {
-	                        chain: chain,
-	                        output: output
-	                    };
-	                });
-	            }
-	        },
-	        {
-	            /**
-	             * End if type logic tokens.
-	             *
-	             *  Format: {% endif %}
-	             */
-	            type: Twig.logic.type.endif,
-	            regex: /^endif$/,
-	            next: [ ],
-	            open: false
-	        },
-	        {
-	            /**
-	             * For type logic tokens.
-	             *
-	             *  Format: {% for expression %}
-	             */
-	            type: Twig.logic.type.for_,
-	            regex: /^for\s+([a-zA-Z0-9_,\s]+)\s+in\s+([^\s].*?)(?:\s+if\s+([^\s].*))?$/,
-	            next: [
-	                Twig.logic.type.else_,
-	                Twig.logic.type.endfor
-	            ],
-	            open: true,
-	            compile: function (token) {
-	                var key_value = token.match[1],
-	                    expression = token.match[2],
-	                    conditional = token.match[3],
-	                    kv_split = null;
-
-	                token.key_var = null;
-	                token.value_var = null;
-
-	                if (key_value.indexOf(",") >= 0) {
-	                    kv_split = key_value.split(',');
-	                    if (kv_split.length === 2) {
-	                        token.key_var = kv_split[0].trim();
-	                        token.value_var = kv_split[1].trim();
-	                    } else {
-	                        throw new Twig.Error("Invalid expression in for loop: " + key_value);
-	                    }
-	                } else {
-	                    token.value_var = key_value;
-	                }
-
-	                // Valid expressions for a for loop
-	                //   for item     in expression
-	                //   for key,item in expression
-
-	                // Compile the expression.
-	                token.expression = Twig.expression.compile.call(this, {
-	                    type:  Twig.expression.type.expression,
-	                    value: expression
-	                }).stack;
-
-	                // Compile the conditional (if available)
-	                if (conditional) {
-	                    token.conditional = Twig.expression.compile.call(this, {
-	                        type:  Twig.expression.type.expression,
-	                        value: conditional
-	                    }).stack;
-	                }
-
-	                delete token.match;
-	                return token;
-	            },
-	            parse: function (token, context, continue_chain) {
-	                // Parse expression
-	                var output = [],
-	                    len,
-	                    index = 0,
-	                    keyset,
-	                    that = this,
-	                    conditional = token.conditional,
-	                    buildLoop = function(index, len) {
-	                        var isConditional = conditional !== undefined;
-	                        return {
-	                            index: index+1,
-	                            index0: index,
-	                            revindex: isConditional?undefined:len-index,
-	                            revindex0: isConditional?undefined:len-index-1,
-	                            first: (index === 0),
-	                            last: isConditional?undefined:(index === len-1),
-	                            length: isConditional?undefined:len,
-	                            parent: context
-	                        };
-	                    },
-	                    // run once for each iteration of the loop
-	                    loop = function(key, value) {
-	                        var inner_context = Twig.ChildContext(context);
-
-	                        inner_context[token.value_var] = value;
-
-	                        if (token.key_var) {
-	                            inner_context[token.key_var] = key;
-	                        }
-
-	                        // Loop object
-	                        inner_context.loop = buildLoop(index, len);
-
-	                        var promise = conditional === undefined ?
-	                            Twig.Promise.resolve(true) :
-	                            Twig.expression.parseAsync.call(that, conditional, inner_context);
-
-	                        return promise.then(function(condition) {
-	                            if (!condition)
-	                                return;
-
-	                            return Twig.parseAsync.call(that, token.output, inner_context)
-	                            .then(function(o) {
-	                                output.push(o);
-	                                index += 1;
-	                            });
-	                        })
-	                        .then(function() {
-	                            // Delete loop-related variables from the context
-	                            delete inner_context['loop'];
-	                            delete inner_context[token.value_var];
-	                            delete inner_context[token.key_var];
-
-	                            // Merge in values that exist in context but have changed
-	                            // in inner_context.
-	                            Twig.merge(context, inner_context, true);
-	                        });
-	                    };
-
-
-	                return Twig.expression.parseAsync.call(this, token.expression, context)
-	                .then(function(result) {
-	                    if (Twig.lib.isArray(result)) {
-	                        len = result.length;
-	                        return Twig.async.forEach(result, function (value) {
-	                            var key = index;
-
-	                            return loop(key, value);
-	                        });
-	                    } else if (Twig.lib.is('Object', result)) {
-	                        if (result._keys !== undefined) {
-	                            keyset = result._keys;
-	                        } else {
-	                            keyset = Object.keys(result);
-	                        }
-	                        len = keyset.length;
-	                        return Twig.async.forEach(keyset, function(key) {
-	                            // Ignore the _keys property, it's internal to twig.js
-	                            if (key === "_keys") return;
-
-	                            return loop(key,  result[key]);
-	                        });
-	                    }
-	                })
-	                .then(function() {
-	                    // Only allow else statements if no output was generated
-	                    continue_chain = (output.length === 0);
-
-	                    return {
-	                        chain: continue_chain,
-	                        output: Twig.output.call(that, output)
-	                    };
-	                });
-	            }
-	        },
-	        {
-	            /**
-	             * End if type logic tokens.
-	             *
-	             *  Format: {% endif %}
-	             */
-	            type: Twig.logic.type.endfor,
-	            regex: /^endfor$/,
-	            next: [ ],
-	            open: false
-	        },
-	        {
-	            /**
-	             * Set type logic tokens.
-	             *
-	             *  Format: {% set key = expression %}
-	             */
-	            type: Twig.logic.type.set,
-	            regex: /^set\s+([a-zA-Z0-9_,\s]+)\s*=\s*([\s\S]+)$/,
-	            next: [ ],
-	            open: true,
-	            compile: function (token) {
-	                var key = token.match[1].trim(),
-	                    expression = token.match[2],
-	                    // Compile the expression.
-	                    expression_stack  = Twig.expression.compile.call(this, {
-	                        type:  Twig.expression.type.expression,
-	                        value: expression
-	                    }).stack;
-
-	                token.key = key;
-	                token.expression = expression_stack;
-
-	                delete token.match;
-	                return token;
-	            },
-	            parse: function (token, context, continue_chain) {
-	                var key = token.key;
-
-	                return Twig.expression.parseAsync.call(this, token.expression, context)
-	                .then(function(value) {
-	                    if (value === context) {
-	                        /*  If storing the context in a variable, it needs to be a clone of the current state of context.
-	                            Otherwise we have a context with infinite recursion.
-	                            Fixes #341
-	                        */
-	                        value = Twig.lib.copy(value);
-	                    }
-
-	                    context[key] = value;
-
-	                    return {
-	                        chain: continue_chain,
-	                        context: context
-	                    };
-	                });
-	            }
-	        },
-	        {
-	            /**
-	             * Set capture type logic tokens.
-	             *
-	             *  Format: {% set key %}
-	             */
-	            type: Twig.logic.type.setcapture,
-	            regex: /^set\s+([a-zA-Z0-9_,\s]+)$/,
-	            next: [
-	                Twig.logic.type.endset
-	            ],
-	            open: true,
-	            compile: function (token) {
-	                var key = token.match[1].trim();
-
-	                token.key = key;
-
-	                delete token.match;
-	                return token;
-	            },
-	            parse: function (token, context, continue_chain) {
-	                var that = this,
-	                    key = token.key;
-
-	                return Twig.parseAsync.call(this, token.output, context)
-	                .then(function(value) {
-	                    // set on both the global and local context
-	                    that.context[key] = value;
-	                    context[key] = value;
-
-	                    return {
-	                        chain: continue_chain,
-	                        context: context
-	                    };
-	                });
-	            }
-	        },
-	        {
-	            /**
-	             * End set type block logic tokens.
-	             *
-	             *  Format: {% endset %}
-	             */
-	            type: Twig.logic.type.endset,
-	            regex: /^endset$/,
-	            next: [ ],
-	            open: false
-	        },
-	        {
-	            /**
-	             * Filter logic tokens.
-	             *
-	             *  Format: {% filter upper %} or {% filter lower|escape %}
-	             */
-	            type: Twig.logic.type.filter,
-	            regex: /^filter\s+(.+)$/,
-	            next: [
-	                Twig.logic.type.endfilter
-	            ],
-	            open: true,
-	            compile: function (token) {
-	                var expression = "|" + token.match[1].trim();
-	                // Compile the expression.
-	                token.stack = Twig.expression.compile.call(this, {
-	                    type:  Twig.expression.type.expression,
-	                    value: expression
-	                }).stack;
-	                delete token.match;
-	                return token;
-	            },
-	            parse: function (token, context, chain) {
-	                var that = this;
-
-	                return Twig.parseAsync.call(this, token.output, context)
-	                .then(function(unfiltered) {
-	                    var stack = [{
-	                        type: Twig.expression.type.string,
-	                        value: unfiltered
-	                    }].concat(token.stack);
-
-	                    return Twig.expression.parseAsync.call(that, stack, context);
-	                })
-	                .then(function(output) {
-	                    return {
-	                        chain: chain,
-	                        output: output
-	                    }
-	                });
-	            }
-	        },
-	        {
-	            /**
-	             * End filter logic tokens.
-	             *
-	             *  Format: {% endfilter %}
-	             */
-	            type: Twig.logic.type.endfilter,
-	            regex: /^endfilter$/,
-	            next: [ ],
-	            open: false
-	        },
-	        {
-	            /**
-	             * Block logic tokens.
-	             *
-	             *  Format: {% block title %}
-	             */
-	            type: Twig.logic.type.block,
-	            regex: /^block\s+([a-zA-Z0-9_]+)$/,
-	            next: [
-	                Twig.logic.type.endblock
-	            ],
-	            open: true,
-	            compile: function (token) {
-	                token.block = token.match[1].trim();
-	                delete token.match;
-	                return token;
-	            },
-	            parse: function (token, context, chain) {
-	                var that = this,
-	                    block_output,
-	                    output,
-	                    promise = Twig.Promise.resolve(),
-	                    isImported = Twig.indexOf(this.importedBlocks, token.block) > -1,
-	                    hasParent = this.blocks[token.block] && Twig.indexOf(this.blocks[token.block], Twig.placeholders.parent) > -1;
-
-	                // Don't override previous blocks unless they're imported with "use"
-	                // Loops should be exempted as well.
-	                if (this.blocks[token.block] === undefined || isImported || hasParent || context.loop || token.overwrite) {
-	                    if (token.expression) {
-	                        promise = Twig.expression.parseAsync.call(this, token.output, context)
-	                        .then(function(value) {
-	                            return Twig.expression.parseAsync.call(that, {
-	                                type: Twig.expression.type.string,
-	                                value: value
-	                            }, context);
-	                        });
-	                    } else {
-	                        promise = Twig.parseAsync.call(this, token.output, context)
-	                        .then(function(value) {
-	                            return Twig.expression.parseAsync.call(that, {
-	                                type: Twig.expression.type.string,
-	                                value: value
-	                            }, context);
-	                        });
-	                    }
-
-	                    promise = promise.then(function(block_output) {
-	                        if (isImported) {
-	                            // once the block is overridden, remove it from the list of imported blocks
-	                            that.importedBlocks.splice(that.importedBlocks.indexOf(token.block), 1);
-	                        }
-
-	                        if (hasParent) {
-	                            that.blocks[token.block] = Twig.Markup(that.blocks[token.block].replace(Twig.placeholders.parent, block_output));
-	                        } else {
-	                            that.blocks[token.block] = block_output;
-	                        }
-
-	                        that.originalBlockTokens[token.block] = {
-	                            type: token.type,
-	                            block: token.block,
-	                            output: token.output,
-	                            overwrite: true
-	                        };
-	                    });
-	                }
-
-	                return promise.then(function() {
-	                    // Check if a child block has been set from a template extending this one.
-	                    if (that.child.blocks[token.block]) {
-	                        output = that.child.blocks[token.block];
-	                    } else {
-	                        output = that.blocks[token.block];
-	                    }
-
-	                    return {
-	                        chain: chain,
-	                        output: output
-	                    };
-	                });
-	            }
-	        },
-	        {
-	            /**
-	             * Block shorthand logic tokens.
-	             *
-	             *  Format: {% block title expression %}
-	             */
-	            type: Twig.logic.type.shortblock,
-	            regex: /^block\s+([a-zA-Z0-9_]+)\s+(.+)$/,
-	            next: [ ],
-	            open: true,
-	            compile: function (token) {
-	                token.expression = token.match[2].trim();
-
-	                token.output = Twig.expression.compile({
-	                    type: Twig.expression.type.expression,
-	                    value: token.expression
-	                }).stack;
-
-	                token.block = token.match[1].trim();
-	                delete token.match;
-	                return token;
-	            },
-	            parse: function (token, context, chain) {
-	                var args = new Array(arguments.length), args_i = arguments.length;
-	                while(args_i-- > 0) args[args_i] = arguments[args_i];
-	                return Twig.logic.handler[Twig.logic.type.block].parse.apply(this, args);
-	            }
-	        },
-	        {
-	            /**
-	             * End block logic tokens.
-	             *
-	             *  Format: {% endblock %}
-	             */
-	            type: Twig.logic.type.endblock,
-	            regex: /^endblock(?:\s+([a-zA-Z0-9_]+))?$/,
-	            next: [ ],
-	            open: false
-	        },
-	        {
-	            /**
-	             * Block logic tokens.
-	             *
-	             *  Format: {% extends "template.twig" %}
-	             */
-	            type: Twig.logic.type.extends_,
-	            regex: /^extends\s+(.+)$/,
-	            next: [ ],
-	            open: true,
-	            compile: function (token) {
-	                var expression = token.match[1].trim();
-	                delete token.match;
-
-	                token.stack   = Twig.expression.compile.call(this, {
-	                    type:  Twig.expression.type.expression,
-	                    value: expression
-	                }).stack;
-
-	                return token;
-	            },
-	            parse: function (token, context, chain) {
-	                var template,
-	                    that = this,
-	                    innerContext = Twig.ChildContext(context);
-
-	                // Resolve filename
-	                return Twig.expression.parseAsync.call(this, token.stack, context)
-	                .then(function(file) {
-	                    // Set parent template
-	                    that.extend = file;
-
-	                    if (file instanceof Twig.Template) {
-	                        template = file;
-	                    } else {
-	                        // Import file
-	                        template = that.importFile(file);
-	                    }
-
-	                    // Render the template in case it puts anything in its context
-	                    return template.renderAsync(innerContext);
-	                })
-	                .then(function() {
-	                    // Extend the parent context with the extended context
-	                    Twig.lib.extend(context, innerContext);
-
-	                    return {
-	                        chain: chain,
-	                        output: ''
-	                    };
-	                });
-	            }
-	        },
-	        {
-	            /**
-	             * Block logic tokens.
-	             *
-	             *  Format: {% use "template.twig" %}
-	             */
-	            type: Twig.logic.type.use,
-	            regex: /^use\s+(.+)$/,
-	            next: [ ],
-	            open: true,
-	            compile: function (token) {
-	                var expression = token.match[1].trim();
-	                delete token.match;
-
-	                token.stack = Twig.expression.compile.call(this, {
-	                    type:  Twig.expression.type.expression,
-	                    value: expression
-	                }).stack;
-
-	                return token;
-	            },
-	            parse: function (token, context, chain) {
-	                var that = this;
-
-	                // Resolve filename
-	                return Twig.expression.parseAsync.call(this, token.stack, context)
-	                .then(function(file) {
-	                    // Import blocks
-	                    that.importBlocks(file);
-
-	                    return {
-	                        chain: chain,
-	                        output: ''
-	                    };
-	                });
-	            }
-	        },
-	        {
-	            /**
-	             * Block logic tokens.
-	             *
-	             *  Format: {% includes "template.twig" [with {some: 'values'} only] %}
-	             */
-	            type: Twig.logic.type.include,
-	            regex: /^include\s+(.+?)(?:\s|$)(ignore missing(?:\s|$))?(?:with\s+([\S\s]+?))?(?:\s|$)(only)?$/,
-	            next: [ ],
-	            open: true,
-	            compile: function (token) {
-	                var match = token.match,
-	                    expression = match[1].trim(),
-	                    ignoreMissing = match[2] !== undefined,
-	                    withContext = match[3],
-	                    only = ((match[4] !== undefined) && match[4].length);
-
-	                delete token.match;
-
-	                token.only = only;
-	                token.ignoreMissing = ignoreMissing;
-
-	                token.stack = Twig.expression.compile.call(this, {
-	                    type:  Twig.expression.type.expression,
-	                    value: expression
-	                }).stack;
-
-	                if (withContext !== undefined) {
-	                    token.withStack = Twig.expression.compile.call(this, {
-	                        type:  Twig.expression.type.expression,
-	                        value: withContext.trim()
-	                    }).stack;
-	                }
-
-	                return token;
-	            },
-	            parse: function logicTypeInclude(token, context, chain) {
-	                // Resolve filename
-	                var innerContext = token.only ? {} : Twig.ChildContext(context),
-	                    ignoreMissing = token.ignoreMissing,
-	                    that = this,
-	                    promise = null,
-	                    result = { chain: chain, output: '' };
-
-	                if (typeof token.withStack !== 'undefined') {
-	                    promise = Twig.expression.parseAsync.call(this, token.withStack, context)
-	                    .then(function(withContext) {
-	                        Twig.lib.extend(innerContext, withContext);
-	                    });
-	                } else {
-	                    promise = Twig.Promise.resolve();
-	                }
-
-	                return promise
-	                .then(function() {
-	                    return Twig.expression.parseAsync.call(that, token.stack, context);
-	                })
-	                .then(function logicTypeIncludeImport(file) {
-	                    if (file instanceof Twig.Template) {
-	                        return file.renderAsync(innerContext);
-	                    }
-
-	                    try {
-	                        return that.importFile(file).renderAsync(innerContext);
-	                    } catch(err) {
-	                        if (ignoreMissing)
-	                            return '';
-
-	                        throw err;
-	                    }
-	                })
-	                .then(function slowLogicReturn(output) {
-	                    if (output !== '')
-	                        result.output = output;
-
-	                    return result;
-	                });
-	            }
-	        },
-	        {
-	            type: Twig.logic.type.spaceless,
-	            regex: /^spaceless$/,
-	            next: [
-	                Twig.logic.type.endspaceless
-	            ],
-	            open: true,
-
-	            // Parse the html and return it without any spaces between tags
-	            parse: function (token, context, chain) {
-	                // Parse the output without any filter
-	                return Twig.parseAsync.call(this, token.output, context)
-	                .then(function(unfiltered) {
-	                    var // A regular expression to find closing and opening tags with spaces between them
-	                        rBetweenTagSpaces = />\s+</g,
-	                        // Replace all space between closing and opening html tags
-	                        output = unfiltered.replace(rBetweenTagSpaces,'><').trim();
-	                        // Rewrap output as a Twig.Markup
-	                        output = Twig.Markup(output);
-	                    return {
-	                        chain: chain,
-	                        output: output
-	                    };
-	                });
-	            }
-	        },
-
-	        // Add the {% endspaceless %} token
-	        {
-	            type: Twig.logic.type.endspaceless,
-	            regex: /^endspaceless$/,
-	            next: [ ],
-	            open: false
-	        },
-	        {
-	            /**
-	             * Macro logic tokens.
-	             *
-	             * Format: {% maro input(name, value, type, size) %}
-	             *
-	             */
-	            type: Twig.logic.type.macro,
-	            regex: /^macro\s+([a-zA-Z0-9_]+)\s*\(\s*((?:[a-zA-Z0-9_]+(?:,\s*)?)*)\s*\)$/,
-	            next: [
-	                Twig.logic.type.endmacro
-	            ],
-	            open: true,
-	            compile: function (token) {
-	                var macroName = token.match[1],
-	                    parameters = token.match[2].split(/[\s,]+/);
-
-	                //TODO: Clean up duplicate check
-	                for (var i=0; i<parameters.length; i++) {
-	                    for (var j=0; j<parameters.length; j++){
-	                        if (parameters[i] === parameters[j] && i !== j) {
-	                            throw new Twig.Error("Duplicate arguments for parameter: "+ parameters[i]);
-	                        }
-	                    }
-	                }
-
-	                token.macroName = macroName;
-	                token.parameters = parameters;
-
-	                delete token.match;
-	                return token;
-	            },
-	            parse: function (token, context, chain) {
-	                var template = this;
-	                this.macros[token.macroName] = function() {
-	                    // Pass global context and other macros
-	                    var macroContext = {
-	                        _self: template.macros
-	                    }
-	                    // Add parameters from context to macroContext
-	                    for (var i=0; i<token.parameters.length; i++) {
-	                        var prop = token.parameters[i];
-	                        if(typeof arguments[i] !== 'undefined') {
-	                            macroContext[prop] = arguments[i];
-	                        } else {
-	                            macroContext[prop] = undefined;
-	                        }
-	                    }
-
-	                    // Render
-	                    return Twig.parseAsync.call(template, token.output, macroContext);
-	                };
-
-	                return {
-	                    chain: chain,
-	                    output: ''
-	                };
-
-	            }
-	        },
-	        {
-	            /**
-	             * End macro logic tokens.
-	             *
-	             * Format: {% endmacro %}
-	             */
-	             type: Twig.logic.type.endmacro,
-	             regex: /^endmacro$/,
-	             next: [ ],
-	             open: false
-	        },
-	        {
-	            /*
-	            * import logic tokens.
-	            *
-	            * Format: {% import "template.twig" as form %}
-	            */
-	            type: Twig.logic.type.import_,
-	            regex: /^import\s+(.+)\s+as\s+([a-zA-Z0-9_]+)$/,
-	            next: [ ],
-	            open: true,
-	            compile: function (token) {
-	                var expression = token.match[1].trim(),
-	                    contextName = token.match[2].trim();
-	                delete token.match;
-
-	                token.expression = expression;
-	                token.contextName = contextName;
-
-	                token.stack = Twig.expression.compile.call(this, {
-	                    type: Twig.expression.type.expression,
-	                    value: expression
-	                }).stack;
-
-	                return token;
-	            },
-	            parse: function (token, context, chain) {
-	                var that = this,
-	                    output = { chain: chain, output: '' };
-
-	                if (token.expression === '_self') {
-	                    context[token.contextName] = this.macros;
-	                    return Twig.Promise.resolve(output);
-	                }
-
-	                return Twig.expression.parseAsync.call(this, token.stack, context)
-	                .then(function(file) {
-	                    return that.importFile(file || token.expression);
-	                })
-	                .then(function(template) {
-	                    context[token.contextName] = template.renderAsync({}, {output: 'macros'});
-
-	                    return output;
-	                });
-	            }
-	        },
-	        {
-	            /*
-	            * from logic tokens.
-	            *
-	            * Format: {% from "template.twig" import func as form %}
-	            */
-	            type: Twig.logic.type.from,
-	            regex: /^from\s+(.+)\s+import\s+([a-zA-Z0-9_, ]+)$/,
-	            next: [ ],
-	            open: true,
-	            compile: function (token) {
-	                var expression = token.match[1].trim(),
-	                    macroExpressions = token.match[2].trim().split(/\s*,\s*/),
-	                    macroNames = {};
-
-	                for (var i=0; i<macroExpressions.length; i++) {
-	                    var res = macroExpressions[i];
-
-	                    // match function as variable
-	                    var macroMatch = res.match(/^([a-zA-Z0-9_]+)\s+as\s+([a-zA-Z0-9_]+)$/);
-	                    if (macroMatch) {
-	                        macroNames[macroMatch[1].trim()] = macroMatch[2].trim();
-	                    }
-	                    else if (res.match(/^([a-zA-Z0-9_]+)$/)) {
-	                        macroNames[res] = res;
-	                    }
-	                    else {
-	                        // ignore import
-	                    }
-
-	                }
-
-	                delete token.match;
-
-	                token.expression = expression;
-	                token.macroNames = macroNames;
-
-	                token.stack = Twig.expression.compile.call(this, {
-	                    type: Twig.expression.type.expression,
-	                    value: expression
-	                }).stack;
-
-	                return token;
-	            },
-	            parse: function (token, context, chain) {
-	                var that = this,
-	                    promise = Twig.Promise.resolve(this.macros);
-
-	                if (token.expression !== "_self") {
-	                    promise = Twig.expression.parseAsync.call(this, token.stack, context)
-	                    .then(function(file) {
-	                        return that.importFile(file || token.expression);
-	                    })
-	                    .then(function(template) {
-	                        return template.renderAsync({}, {output: 'macros'});
-	                    });
-	                }
-
-	                return promise
-	                .then(function(macros) {
-	                    for (var macroName in token.macroNames) {
-	                        if (macros.hasOwnProperty(macroName)) {
-	                            context[token.macroNames[macroName]] = macros[macroName];
-	                        }
-	                    }
-
-	                    return {
-	                        chain: chain,
-	                        output: ''
-	                    }
-	                });
-	            }
-	        },
-	        {
-	            /**
-	             * The embed tag combines the behaviour of include and extends.
-	             * It allows you to include another template's contents, just like include does.
-	             *
-	             *  Format: {% embed "template.twig" [with {some: 'values'} only] %}
-	             */
-	            type: Twig.logic.type.embed,
-	            regex: /^embed\s+(.+?)(?:\s+(ignore missing))?(?:\s+with\s+([\S\s]+?))?(?:\s+(only))?$/,
-	            next: [
-	                Twig.logic.type.endembed
-	            ],
-	            open: true,
-	            compile: function (token) {
-	                var match = token.match,
-	                    expression = match[1].trim(),
-	                    ignoreMissing = match[2] !== undefined,
-	                    withContext = match[3],
-	                    only = ((match[4] !== undefined) && match[4].length);
-
-	                delete token.match;
-
-	                token.only = only;
-	                token.ignoreMissing = ignoreMissing;
-
-	                token.stack = Twig.expression.compile.call(this, {
-	                    type:  Twig.expression.type.expression,
-	                    value: expression
-	                }).stack;
-
-	                if (withContext !== undefined) {
-	                    token.withStack = Twig.expression.compile.call(this, {
-	                        type:  Twig.expression.type.expression,
-	                        value: withContext.trim()
-	                    }).stack;
-	                }
-
-	                return token;
-	            },
-	            parse: function (token, context, chain) {
-	                // Resolve filename
-	                var innerContext = {},
-	                    that = this,
-	                    i,
-	                    template,
-	                    promise = Twig.Promise.resolve();
-
-	                if (!token.only) {
-	                    for (i in context) {
-	                        if (context.hasOwnProperty(i))
-	                            innerContext[i] = context[i];
-	                    }
-	                }
-
-	                if (token.withStack !== undefined) {
-	                    promise = Twig.expression.parseAsync.call(this, token.withStack, context)
-	                    .then(function(withContext) {
-	                        for (i in withContext) {
-	                            if (withContext.hasOwnProperty(i))
-	                                innerContext[i] = withContext[i];
-	                        }
-	                    });
-	                }
-
-	                return promise.then(function() {
-	                    // Allow this function to be cleaned up early
-	                    promise = null;
-	                    return Twig.expression.parseAsync.call(that, token.stack, innerContext);
-	                })
-	                .then(function(file) {
-	                    if (file instanceof Twig.Template) {
-	                        template = file;
-	                    } else {
-	                        // Import file
-	                        try {
-	                            template = that.importFile(file);
-	                        } catch (err) {
-	                            if (token.ignoreMissing) {
-	                                return '';
-	                            }
-
-	                            // Errors preserve references to variables in scope,
-	                            // this removes `this` from the scope.
-	                            that = null;
-
-	                            throw err;
-	                        }
-	                    }
-
-	                    // reset previous blocks
-	                    that.blocks = {};
-
-	                    // parse tokens. output will be not used
-	                    return Twig.parseAsync.call(that, token.output, innerContext)
-	                    .then(function() {
-	                        // render tempalte with blocks defined in embed block
-	                        return template.renderAsync(innerContext, {'blocks':that.blocks});
-	                    });
-	                })
-	                .then(function(output) {
-	                    return {
-	                        chain: chain,
-	                        output: output
-	                    };
-	                });
-	            }
-	        },
-	        /* Add the {% endembed %} token
-	         *
-	         */
-	        {
-	            type: Twig.logic.type.endembed,
-	            regex: /^endembed$/,
-	            next: [ ],
-	            open: false
-	        },
-	        {
-	            /**
-	             * Block logic tokens.
-	             *
-	             *  Format: {% with {some: 'values'} [only] %}
-	             */
-	            type: Twig.logic.type['with'],
-	            regex: /^(?:with\s+([\S\s]+?))(?:\s|$)(only)?$/,
-	            next: [
-	                Twig.logic.type.endwith
-	            ],
-	            open: true,
-	            compile: function (token) {
-	                var match = token.match,
-	                    withContext = match[1],
-	                    only = ((match[2] !== undefined) && match[2].length);
-
-	                delete token.match;
-
-	                token.only = only;
-
-	                if (withContext !== undefined) {
-	                    token.withStack = Twig.expression.compile.call(this, {
-	                        type:  Twig.expression.type.expression,
-	                        value: withContext.trim()
-	                    }).stack;
-	                }
-
-	                return token;
-	            },
-	            parse: function (token, context, chain) {
-	                // Resolve filename
-	                var innerContext = {},
-	                    i,
-	                    that = this,
-	                    promise = Twig.Promise.resolve();
-
-	                if (!token.only) {
-	                    innerContext = Twig.ChildContext(context);
-	                }
-
-	                if (token.withStack !== undefined) {
-	                    promise = Twig.expression.parseAsync.call(this, token.withStack, context)
-	                    .then(function(withContext) {
-	                        for (i in withContext) {
-	                            if (withContext.hasOwnProperty(i))
-	                                innerContext[i] = withContext[i];
-	                        }
-	                    });
-	                }
-
-	                return promise
-	                .then(function() {
-	                    return Twig.parseAsync.call(that, token.output, innerContext);
-	                })
-	                .then(function(output) {
-	                    return {
-	                        chain: chain,
-	                        output: output
-	                    };
-	                });
-	            }
-	        },
-	        {
-	            type: Twig.logic.type.endwith,
-	            regex: /^endwith$/,
-	            next: [ ],
-	            open: false
-	        }
-
-	    ];
-
-
-	    /**
-	     * Registry for logic handlers.
-	     */
-	    Twig.logic.handler = {};
-
-	    /**
-	     * Define a new token type, available at Twig.logic.type.{type}
-	     */
-	    Twig.logic.extendType = function (type, value) {
-	        value = value || ("Twig.logic.type" + type);
-	        Twig.logic.type[type] = value;
-	    };
-
-	    /**
-	     * Extend the logic parsing functionality with a new token definition.
-	     *
-	     * // Define a new tag
-	     * Twig.logic.extend({
-	     *     type: Twig.logic.type.{type},
-	     *     // The pattern to match for this token
-	     *     regex: ...,
-	     *     // What token types can follow this token, leave blank if any.
-	     *     next: [ ... ]
-	     *     // Create and return compiled version of the token
-	     *     compile: function(token) { ... }
-	     *     // Parse the compiled token with the context provided by the render call
-	     *     //   and whether this token chain is complete.
-	     *     parse: function(token, context, chain) { ... }
-	     * });
-	     *
-	     * @param {Object} definition The new logic expression.
-	     */
-	    Twig.logic.extend = function (definition) {
-
-	        if (!definition.type) {
-	            throw new Twig.Error("Unable to extend logic definition. No type provided for " + definition);
-	        } else {
-	            Twig.logic.extendType(definition.type);
-	        }
-	        Twig.logic.handler[definition.type] = definition;
-	    };
-
-	    // Extend with built-in expressions
-	    while (Twig.logic.definitions.length > 0) {
-	        Twig.logic.extend(Twig.logic.definitions.shift());
-	    }
-
-	    /**
-	     * Compile a logic token into an object ready for parsing.
-	     *
-	     * @param {Object} raw_token An uncompiled logic token.
-	     *
-	     * @return {Object} A compiled logic token, ready for parsing.
-	     */
-	    Twig.logic.compile = function (raw_token) {
-	        var expression = raw_token.value.trim(),
-	            token = Twig.logic.tokenize.call(this, expression),
-	            token_template = Twig.logic.handler[token.type];
-
-	        // Check if the token needs compiling
-	        if (token_template.compile) {
-	            token = token_template.compile.call(this, token);
-	            Twig.log.trace("Twig.logic.compile: ", "Compiled logic token to ", token);
-	        }
-
-	        return token;
-	    };
-
-	    /**
-	     * Tokenize logic expressions. This function matches token expressions against regular
-	     * expressions provided in token definitions provided with Twig.logic.extend.
-	     *
-	     * @param {string} expression the logic token expression to tokenize
-	     *                (i.e. what's between {% and %})
-	     *
-	     * @return {Object} The matched token with type set to the token type and match to the regex match.
-	     */
-	    Twig.logic.tokenize = function (expression) {
-	        var token_template_type = null,
-	            token_type = null,
-	            token_regex = null,
-	            regex_array = null,
-	            regex_len = null,
-	            regex_i = null,
-	            regex = null,
-	            match = null;
-
-	        // Ignore whitespace around expressions.
-	        expression = expression.trim();
-
-	        for (token_template_type in Twig.logic.handler) {
-	            // Get the type and regex for this template type
-	            token_type = Twig.logic.handler[token_template_type].type;
-	            token_regex = Twig.logic.handler[token_template_type].regex;
-
-	            // Handle multiple regular expressions per type.
-	            regex_array = token_regex;
-	            if (!Twig.lib.isArray(token_regex))
-	                regex_array = [token_regex];
-
-	            regex_len = regex_array.length;
-	            // Check regular expressions in the order they were specified in the definition.
-	            for (regex_i = 0; regex_i < regex_len; regex_i++) {
-	                match = regex_array[regex_i].exec(expression);
-	                if (match !== null) {
-	                    Twig.log.trace("Twig.logic.tokenize: ", "Matched a ", token_type, " regular expression of ", match);
-	                    return {
-	                        type: token_type,
-	                        match: match
-	                    };
-	                }
-	            }
-	        }
-
-	        // No regex matches
-	        throw new Twig.Error("Unable to parse '" + expression.trim() + "'");
-	    };
-
-	    /**
-	     * Parse a logic token within a given context.
-	     *
-	     * What are logic chains?
-	     *      Logic chains represent a series of tokens that are connected,
-	     *          for example:
-	     *          {% if ... %} {% else %} {% endif %}
-	     *
-	     *      The chain parameter is used to signify if a chain is open of closed.
-	     *      open:
-	     *          More tokens in this chain should be parsed.
-	     *      closed:
-	     *          This token chain has completed parsing and any additional
-	     *          tokens (else, elseif, etc...) should be ignored.
-	     *
-	     * @param {Object} token The compiled token.
-	     * @param {Object} context The render context.
-	     * @param {boolean} chain Is this an open logic chain. If false, that means a
-	     *                        chain is closed and no further cases should be parsed.
-	     */
-	    Twig.logic.parse = function (token, context, chain, allow_async) {
-	        return Twig.async.potentiallyAsync(this, allow_async, function() {
-	            Twig.log.debug("Twig.logic.parse: ", "Parsing logic token ", token);
-
-	            var token_template = Twig.logic.handler[token.type];
-
-	            if (!token_template.parse)
-	                return '';
-
-	            return token_template.parse.call(this, token, context || {}, chain);
-	        });
-	    };
-
-	    return Twig;
-
-	};
-
-
-/***/ }),
-/* 22 */
-/***/ (function(module, exports) {
-
-	module.exports = function(Twig) {
-	    'use strict';
-
-	    Twig.Templates.registerParser('source', function(params) {
-	        return params.data || '';
-	    });
-	};
-
-
-/***/ }),
-/* 23 */
-/***/ (function(module, exports) {
-
-	module.exports = function(Twig) {
-	    'use strict';
-
-	    Twig.Templates.registerParser('twig', function(params) {
-	        return new Twig.Template(params);
-	    });
-	};
-
-
-/***/ }),
-/* 24 */
-/***/ (function(module, exports, __webpack_require__) {
-
-	// ## twig.path.js
-	//
-	// This file handles path parsing
-	module.exports = function (Twig) {
-	    "use strict";
-
-	    /**
-	     * Namespace for path handling.
-	     */
-	    Twig.path = {};
-
-
-	    var colon = /.::/;
-	    var atSign = /@/;
-
-	    /**
-	     * Generate the canonical version of a url based on the given base path and file path and in
-	     * the previously registered namespaces.
-	     *
-	     * @param  {string} template The Twig Template
-	     * @param  {string} file     The file path, may be relative and may contain namespaces.
-	     *
-	     * @return {string}          The canonical version of the path
-	     */
-	     Twig.path.parsePath = function(template, _file) {
-	        var k = null,
-	            value = null,
-	            namespaces = template.options.namespaces,
-	            file = _file || "",
-	            hasNamespaces = namespaces && typeof namespaces === 'object';
-
-	        if (hasNamespaces){
-	            for (k in namespaces) {
-	                if (colon.test(file))
-	                    file = file.replace(k + '::', namespaces[k]);
-	                else if(atSign.test(file))
-	                    file = file.replace('@' + k, namespaces[k]);
-	            }
-
-	            return file;
-	        }
-
-	        return Twig.path.relativePath(template, file);
-	    };
-
-	    /**
-	     * Generate the relative canonical version of a url based on the given base path and file path.
-	     *
-	     * @param {Twig.Template} template The Twig.Template.
-	     * @param {string} file The file path, relative to the base path.
-	     *
-	     * @return {string} The canonical version of the path.
-	     */
-	    Twig.path.relativePath = function(template, file) {
-	        var base,
-	            base_path,
-	            sep_chr = "/",
-	            new_path = [],
-	            file = file || "",
-	            val;
-
-	        if (template.url) {
-	            if (typeof template.base !== 'undefined') {
-	                base = template.base + ((template.base.charAt(template.base.length-1) === '/') ? '' : '/');
-	            } else {
-	                base = template.url;
-	            }
-	        } else if (template.path) {
-	            // Get the system-specific path separator
-	            var path = __webpack_require__(20),
-	                sep = path.sep || sep_chr,
-	                relative = new RegExp("^\\.{1,2}" + sep.replace("\\", "\\\\"));
-	            file = file.replace(/\//g, sep);
-
-	            if (template.base !== undefined && file.match(relative) == null) {
-	                file = file.replace(template.base, '');
-	                base = template.base + sep;
-	            } else {
-	                base = path.normalize(template.path);
-	            }
-
-	            base = base.replace(sep+sep, sep);
-	            sep_chr = sep;
-	        } else if ((template.name || template.id) && template.method && template.method !== 'fs' && template.method !== 'ajax') {
-	            // Custom registered loader
-	            base = template.base || template.name || template.id;
-	        } else {
-	            throw new Twig.Error("Cannot extend an inline template.");
-	        }
-
-	        base_path = base.split(sep_chr);
-
-	        // Remove file from url
-	        base_path.pop();
-	        base_path = base_path.concat(file.split(sep_chr));
-
-	        while (base_path.length > 0) {
-	            val = base_path.shift();
-	            if (val == ".") {
-	                // Ignore
-	            } else if (val == ".." && new_path.length > 0 && new_path[new_path.length-1] != "..") {
-	                new_path.pop();
-	            } else {
-	                new_path.push(val);
-	            }
-	        }
-
-	        return new_path.join(sep_chr);
-	    };
-
-	    return Twig;
-	};
-
-
-/***/ }),
-/* 25 */
-/***/ (function(module, exports) {
-
-	// ## twig.tests.js
-	//
-	// This file handles expression tests. (is empty, is not defined, etc...)
-	module.exports = function (Twig) {
-	    "use strict";
-	    Twig.tests = {
-	        empty: function(value) {
-	            if (value === null || value === undefined) return true;
-	            // Handler numbers
-	            if (typeof value === "number") return false; // numbers are never "empty"
-	            // Handle strings and arrays
-	            if (value.length && value.length > 0) return false;
-	            // Handle objects
-	            for (var key in value) {
-	                if (value.hasOwnProperty(key)) return false;
-	            }
-	            return true;
-	        },
-	        odd: function(value) {
-	            return value % 2 === 1;
-	        },
-	        even: function(value) {
-	            return value % 2 === 0;
-	        },
-	        divisibleby: function(value, params) {
-	            return value % params[0] === 0;
-	        },
-	        defined: function(value) {
-	            return value !== undefined;
-	        },
-	        none: function(value) {
-	            return value === null;
-	        },
-	        'null': function(value) {
-	            return this.none(value); // Alias of none
-	        },
-	        'same as': function(value, params) {
-	            return value === params[0];
-	        },
-	        sameas: function(value, params) {
-	            console.warn('`sameas` is deprecated use `same as`');
-	            return Twig.tests['same as'](value, params);
-	        },
-	        iterable: function(value) {
-	            return value && (Twig.lib.is("Array", value) || Twig.lib.is("Object", value));
-	        }
-	        /*
-	        constant ?
-	         */
-	    };
-
-	    Twig.test = function(test, value, params) {
-	        if (!Twig.tests[test]) {
-	            throw "Test " + test + " is not defined.";
-	        }
-	        return Twig.tests[test](value, params);
-	    };
-
-	    Twig.test.extend = function(test, definition) {
-	        Twig.tests[test] = definition;
-	    };
-
-	    return Twig;
-	};
-
-
-/***/ }),
-/* 26 */
-/***/ (function(module, exports) {
-
-	// ## twig.async.js
-	//
-	// This file handles asynchronous tasks within twig.
-	module.exports = function (Twig) {
-	    "use strict";
-
-	    var STATE_UNKNOWN = 0;
-	    var STATE_RESOLVED = 1;
-	    var STATE_REJECTED = 2;
-
-	    Twig.parseAsync = function (tokens, context) {
-	        return Twig.parse.call(this, tokens, context, true);
-	    }
-
-	    Twig.expression.parseAsync = function (tokens, context, tokens_are_parameters) {
-	        return Twig.expression.parse.call(this, tokens, context, tokens_are_parameters, true);
-	    }
-
-	    Twig.logic.parseAsync = function (token, context, chain) {
-	        return Twig.logic.parse.call(this, token, context, chain, true);
-	    }
-
-	    Twig.Template.prototype.renderAsync = function (context, params) {
-	        return this.render(context, params, true);
-	    }
-
-	    Twig.async = {};
-
-	    /**
-	     * Checks for `thenable` objects
-	     */
-	    Twig.isPromise = function(obj) {
-	        return obj && obj.then && (typeof obj.then == 'function');
-	    }
-
-	    /**
-	     * Handling of code paths that might either return a promise
-	     * or a value depending on whether async code is used.
-	     *
-	     * @see https://github.com/twigjs/twig.js/blob/master/ASYNC.md#detecting-asynchronous-behaviour
-	     */
-	    function potentiallyAsyncSlow(that, allow_async, action) {
-	        var result = action.call(that),
-	            err = null,
-	            is_async = true;
-
-	        if (!Twig.isPromise(result))
-	            return result;
-
-	        result.then(function(res) {
-	            result = res;
-	            is_async = false;
-	        })
-	        .catch(function(e) {
-	            err = e;
-	        });
-
-	        if (err !== null)
-	            throw err;
-
-	        if (is_async)
-	            throw new Twig.Error('You are using Twig.js in sync mode in combination with async extensions.');
-
-	        return result;
-	    }
-
-	    Twig.async.potentiallyAsync = function potentiallyAsync(that, allow_async, action) {
-	        if (allow_async)
-	            return Twig.Promise.resolve(action.call(that));
-
-	        return potentiallyAsyncSlow(that, allow_async, action);
-	    }
-
-	    function run(fn, resolve, reject) {
-	        try { fn(resolve, reject); }
-	        catch(e) { reject(e); }
-	    }
-
-	    function pending(handlers, onResolved, onRejected) {
-	        var h = [ onResolved, onRejected, -2 ];
-
-	        // The promise has yet to be rejected or resolved.
-	        if (!handlers)
-	            handlers = h;
-	        // Only allocate an array when there are multiple handlers
-	        else if (handlers[2] == -2)
-	            handlers = [ handlers, h ];
-	        else
-	            handlers.push(h);
-
-	        return handlers;
-	    }
-
-	    /**
-	     * Really small thenable to represent promises that resolve immediately.
-	     *
-	     */
-	    Twig.Thenable = function(then, value, state) {
-	        this.then = then;
-	        this._value = state ? value : null;
-	        this._state = state || STATE_UNKNOWN;
-	    }
-
-	    Twig.Thenable.prototype.catch = function thenableCatch(onRejected) {
-	        // THe promise will not throw, it has already resolved.
-	        if (this._state == STATE_RESOLVED)
-	            return this;
-
-	        return this.then(null, onRejected);
-	    }
-
-	    /**
-	     * The `then` method attached to a Thenable when it has resolved.
-	     *
-	     */
-	    Twig.Thenable.resolvedThen = function resolvedThen(onResolved) {
-	        try { return Twig.Promise.resolve(onResolved(this._value)); }
-	        catch(e) { return Twig.Promise.reject(e); }
-	    }
-
-	    /**
-	     * The `then` method attached to a Thenable when it has rejected.
-	     *
-	     */
-	    Twig.Thenable.rejectedThen = function rejectedThen(onResolved, onRejected) {
-	        // Shortcut for rejected twig promises
-	        if (!onRejected || typeof onRejected != 'function')
-	            return this;
-
-	        var value = this._value;
-	        var result = Twig.attempt(function() {
-	            return onRejected(value);
-	        }, Twig.Promise.reject);
-
-	        return Twig.Promise.resolve(result);
-	    }
-
-	    /**
-	     * An alternate implementation of a Promise that does not fully follow
-	     * the spec, but instead works fully synchronous while still being
-	     * thenable.
-	     *
-	     * These promises can be mixed with regular promises at which point
-	     * the synchronous behaviour is lost.
-	     */
-	    Twig.Promise = function(executor) {
-	        var state = STATE_UNKNOWN;
-	        var value = null;
-
-	        var changeState = function(nextState, nextValue) {
-	            state = nextState;
-	            value = nextValue;
-	        }
-
-	        function onReady(v) {
-	            changeState(STATE_RESOLVED, v);
-	        }
-
-	        function onReject(e) {
-	            changeState(STATE_REJECTED, e);
-	        }
-
-	        run(executor, onReady, onReject);
-
-	        // If the promise settles right after running the executor we can
-	        // return a Promise with it's state already set.
-	        //
-	        // Twig.Promise.resolve and Twig.Promise.reject both use the more
-	        // efficient `Twig.Thenable` for this purpose.
-	        if (state === STATE_RESOLVED)
-	            return Twig.Promise.resolve(value);
-
-	        if (state === STATE_REJECTED)
-	            return Twig.Promise.reject(value);
-
-	        // If we managed to get here our promise is going to resolve asynchronous.
-	        changeState = Twig.FullPromise();
-
-	        return changeState.promise;
-	    }
-
-	    /**
-	     * Promise implementation that can handle being resolved at any later time.
-	     *
-	     */
-	    Twig.FullPromise = function() {
-	        var handlers = null;
-
-	        // The state has been changed to either resolve, or reject
-	        // which means we should call the handler.
-	        function resolved(onResolved) {
-	            onResolved(p._value);
-	        };
-	        function rejected(onResolved, onRejected) {
-	            onRejected(p._value);
-	        };
-
-	        var append = function unknown(onResolved, onRejected) {
-	            handlers = pending(handlers, onResolved, onRejected);
-	        };
-
-	        function changeState(newState, v) {
-	            if (p._state) return;
-
-	            p._value = v;
-	            p._state = newState;
-
-	            append = newState == STATE_RESOLVED ? resolved : rejected;
-
-	            if (!handlers) return;
-
-	            if (handlers[2] === -2) {
-	                append(handlers[0], handlers[1]);
-	                handlers = null;
-	            }
-
-	            Twig.forEach(handlers, function changeStateLoop(h) {
-	                append(h[0], h[1]);
-	            });
-	            handlers = null;
-	        }
-
-	        var p = new Twig.Thenable(function then(onResolved, onRejected) {
-	            var hasResolved = typeof onResolved == 'function';
-
-	            // Shortcut for resolved twig promises
-	            if (p._state == STATE_RESOLVED && !hasResolved) {
-	                return Twig.Promise.resolve(p._value);
-	            } else if (p._state === STATE_RESOLVED) {
-	                return Twig.attempt(function() {
-	                    return Twig.Promise.resolve(onResolved(p._value));
-	                }, Twig.Promise.reject);
-	            }
-
-	            var hasRejected = typeof onRejected == 'function';
-	            return Twig.Promise(function thenExecutor(resolve, reject) {
-	                append(
-	                    hasResolved ? function thenResolve(result) {
-	                        Twig.attempt(function thenAttemptResolve() {
-	                            resolve(onResolved(result));
-	                        }, reject);
-	                    } : resolve,
-	                    hasRejected ? function thenReject(err) {
-	                        Twig.attempt(function thenAttemptReject() {
-	                            resolve(onRejected(err));
-	                        }, reject);
-	                    } : reject
-	                );
-	            });
-	        });
-
-	        changeState.promise = p;
-
-	        return changeState;
-	    }
-
-	    Twig.Promise.defaultResolved = new Twig.Thenable(Twig.Thenable.resolvedThen, undefined, STATE_RESOLVED);
-	    Twig.Promise.emptyStringResolved = new Twig.Thenable(Twig.Thenable.resolvedThen, '', STATE_RESOLVED);
-
-	    Twig.Promise.resolve = function promiseResolve(value) {
-	        if (arguments.length < 1 || typeof value === 'undefined')
-	            return Twig.Promise.defaultResolved;
-
-	        if (Twig.isPromise(value))
-	            return value;
-
-	        // Twig often resolves with an empty string, we optimize for this
-	        // scenario by returning a fixed promise. This reduces the load on
-	        // garbage collection.
-	        if (value === '')
-	            return Twig.Promise.emptyStringResolved;
-
-	        return new Twig.Thenable(Twig.Thenable.resolvedThen, value, STATE_RESOLVED);
-	    };
-
-	    Twig.Promise.reject = function(e) {
-	        // `e` should never be a promise.
-	        return new Twig.Thenable(Twig.Thenable.rejectedThen, e, STATE_REJECTED);
-	    };
-
-	    Twig.Promise.all = function TwigPromiseAll(promises) {
-	        var results = new Array(promises.length);
-
-	        return Twig.async.forEach(promises, function promiseAllCb(p, index) {
-	            if (!Twig.isPromise(p)) {
-	                results[index] = p;
-	                return;
-	            }
-
-	            if (p._state == STATE_RESOLVED) {
-	                results[index] = p._value;
-	                return;
-	            }
-
-	            return p.then(function promiseAllThen(v) {
-	                results[index] = v;
-	            });
-	        })
-	        .then(function promiseAllResults() {
-	            return results;
-	        });
-	    };
-
-	    /**
-	    * Go over each item in a fashion compatible with Twig.forEach,
-	    * allow the function to return a promise or call the third argument
-	    * to signal it is finished.
-	    *
-	    * Each item in the array will be called sequentially.
-	    */
-	    Twig.async.forEach = function forEachAsync(arr, callback) {
-	        var len = arr.length;
-	        var index = 0;
-
-	        function next() {
-	            var resp = null;
-
-	            do {
-	                if (index == len)
-	                    return Twig.Promise.resolve();
-
-	                resp = callback(arr[index], index);
-	                index++;
-
-	            // While the result of the callback is not a promise or it is
-	            // a promise that has settled we can use a regular loop which
-	            // is much faster.
-	            } while(!resp || !Twig.isPromise(resp) || resp._state == STATE_RESOLVED);
-
-	            return resp.then(next);
-	        }
-
-	        return next();
-	    };
-
-	    return Twig;
-
-	};
-
-
-/***/ }),
-/* 27 */
-/***/ (function(module, exports) {
-
-	// ## twig.exports.js
-	//
-	// This file provides extension points and other hooks into the twig functionality.
-
-	module.exports = function (Twig) {
-	    "use strict";
-	    Twig.exports = {
-	        VERSION: Twig.VERSION
-	    };
-
-	    /**
-	     * Create and compile a twig.js template.
-	     *
-	     * @param {Object} param Paramteres for creating a Twig template.
-	     *
-	     * @return {Twig.Template} A Twig template ready for rendering.
-	     */
-	    Twig.exports.twig = function twig(params) {
-	        'use strict';
-	        var id = params.id,
-	            options = {
-	                strict_variables: params.strict_variables || false,
-	                // TODO: turn autoscape on in the next major version
-	                autoescape: params.autoescape != null && params.autoescape || false,
-	                allowInlineIncludes: params.allowInlineIncludes || false,
-	                rethrow: params.rethrow || false,
-	                namespaces: params.namespaces
-	            };
-
-	        if (Twig.cache && id) {
-	            Twig.validateId(id);
-	        }
-
-	        if (params.debug !== undefined) {
-	            Twig.debug = params.debug;
-	        }
-	        if (params.trace !== undefined) {
-	            Twig.trace = params.trace;
-	        }
-
-	        if (params.data !== undefined) {
-	            return Twig.Templates.parsers.twig({
-	                data: params.data,
-	                path: params.hasOwnProperty('path') ? params.path : undefined,
-	                module: params.module,
-	                id:   id,
-	                options: options
-	            });
-
-	        } else if (params.ref !== undefined) {
-	            if (params.id !== undefined) {
-	                throw new Twig.Error("Both ref and id cannot be set on a twig.js template.");
-	            }
-	            return Twig.Templates.load(params.ref);
-
-	        } else if (params.method !== undefined) {
-	            if (!Twig.Templates.isRegisteredLoader(params.method)) {
-	                throw new Twig.Error('Loader for "' + params.method + '" is not defined.');
-	            }
-	            return Twig.Templates.loadRemote(params.name || params.href || params.path || id || undefined, {
-	                id: id,
-	                method: params.method,
-	                parser: params.parser || 'twig',
-	                base: params.base,
-	                module: params.module,
-	                precompiled: params.precompiled,
-	                async: params.async,
-	                options: options
-
-	            }, params.load, params.error);
-
-	        } else if (params.href !== undefined) {
-	            return Twig.Templates.loadRemote(params.href, {
-	                id: id,
-	                method: 'ajax',
-	                parser: params.parser || 'twig',
-	                base: params.base,
-	                module: params.module,
-	                precompiled: params.precompiled,
-	                async: params.async,
-	                options: options
-
-	            }, params.load, params.error);
-
-	        } else if (params.path !== undefined) {
-	            return Twig.Templates.loadRemote(params.path, {
-	                id: id,
-	                method: 'fs',
-	                parser: params.parser || 'twig',
-	                base: params.base,
-	                module: params.module,
-	                precompiled: params.precompiled,
-	                async: params.async,
-	                options: options
-
-	            }, params.load, params.error);
-	        }
-	    };
-
-	    // Extend Twig with a new filter.
-	    Twig.exports.extendFilter = function(filter, definition) {
-	        Twig.filter.extend(filter, definition);
-	    };
-
-	    // Extend Twig with a new function.
-	    Twig.exports.extendFunction = function(fn, definition) {
-	        Twig._function.extend(fn, definition);
-	    };
-
-	    // Extend Twig with a new test.
-	    Twig.exports.extendTest = function(test, definition) {
-	        Twig.test.extend(test, definition);
-	    };
-
-	    // Extend Twig with a new definition.
-	    Twig.exports.extendTag = function(definition) {
-	        Twig.logic.extend(definition);
-	    };
-
-	    // Provide an environment for extending Twig core.
-	    // Calls fn with the internal Twig object.
-	    Twig.exports.extend = function(fn) {
-	        fn(Twig);
-	    };
-
-
-	    /**
-	     * Provide an extension for use with express 2.
-	     *
-	     * @param {string} markup The template markup.
-	     * @param {array} options The express options.
-	     *
-	     * @return {string} The rendered template.
-	     */
-	    Twig.exports.compile = function(markup, options) {
-	        var id = options.filename,
-	            path = options.filename,
-	            template;
-
-	        // Try to load the template from the cache
-	        template = new Twig.Template({
-	            data: markup,
-	            path: path,
-	            id: id,
-	            options: options.settings['twig options']
-	        }); // Twig.Templates.load(id) ||
-
-	        return function(context) {
-	            return template.render(context);
-	        };
-	    };
-
-	    /**
-	     * Provide an extension for use with express 3.
-	     *
-	     * @param {string} path The location of the template file on disk.
-	     * @param {Object|Function} The options or callback.
-	     * @param {Function} fn callback.
-	     *
-	     * @throws Twig.Error
-	     */
-	    Twig.exports.renderFile = function(path, options, fn) {
-	        // handle callback in options
-	        if (typeof options === 'function') {
-	            fn = options;
-	            options = {};
-	        }
-
-	        options = options || {};
-
-	        var settings = options.settings || {};
-
-	        var params = {
-	            path: path,
-	            base: settings.views,
-	            load: function(template) {
-	                // render and return template as a simple string, see https://github.com/twigjs/twig.js/pull/348 for more information
-	                fn(null, '' + template.render(options));
-	            }
-	        };
-
-	        // mixin any options provided to the express app.
-	        var view_options = settings['twig options'];
-
-	        if (view_options) {
-	            for (var option in view_options) {
-	                if (view_options.hasOwnProperty(option)) {
-	                    params[option] = view_options[option];
-	                }
-	            }
-	        }
-
-	        Twig.exports.twig(params);
-	    };
-
-	    // Express 3 handler
-	    Twig.exports.__express = Twig.exports.renderFile;
-
-	    /**
-	     * Shoud Twig.js cache templates.
-	     * Disable during development to see changes to templates without
-	     * reloading, and disable in production to improve performance.
-	     *
-	     * @param {boolean} cache
-	     */
-	    Twig.exports.cache = function(cache) {
-	        Twig.cache = cache;
-	    };
-
-	    //We need to export the path module so we can effectively test it
-	    Twig.exports.path = Twig.path;
-
-	    //Export our filters.
-	    //Resolves #307
-	    Twig.exports.filters = Twig.filters;
-
-	    Twig.exports.Promise = Twig.Promise;
-
-	    return Twig;
-	};
-
-
-/***/ })
-/******/ ])
-});
-;
-/* WEBPACK VAR INJECTION */}.call(this, "/"))
+/* WEBPACK VAR INJECTION */(function(global, __dirname) {!function(e,t){ true?module.exports=t():undefined}(global,function(){return function(e){var t={};function r(n){if(t[n])return t[n].exports;var o=t[n]={i:n,l:!1,exports:{}};return e[n].call(o.exports,o,o.exports,r),o.l=!0,o.exports}return r.m=e,r.c=t,r.d=function(e,t,n){r.o(e,t)||Object.defineProperty(e,t,{enumerable:!0,get:n})},r.r=function(e){"undefined"!=typeof Symbol&&Symbol.toStringTag&&Object.defineProperty(e,Symbol.toStringTag,{value:"Module"}),Object.defineProperty(e,"__esModule",{value:!0})},r.t=function(e,t){if(1&t&&(e=r(e)),8&t)return e;if(4&t&&"object"==typeof e&&e&&e.__esModule)return e;var n=Object.create(null);if(r.r(n),Object.defineProperty(n,"default",{enumerable:!0,value:e}),2&t&&"string"!=typeof e)for(var o in e)r.d(n,o,function(t){return e[t]}.bind(null,o));return n},r.n=function(e){var t=e&&e.__esModule?function(){return e.default}:function(){return e};return r.d(t,"a",t),t},r.o=function(e,t){return Object.prototype.hasOwnProperty.call(e,t)},r.p="",r(r.s=27)}([function(e,t){e.exports=__webpack_require__(/*! path */ "./node_modules/path-browserify/index.js")},function(e,t,r){"use strict";e.exports=function(){var e=arguments,t=0,r=function(e,t,r,n){r||(r=" ");var o=e.length>=t?"":new Array(1+t-e.length>>>0).join(r);return n?e+o:o+e},n=function(e,t,n,o,i,s){var a=o-e.length;return a>0&&(e=n||!i?r(e,o,s,n):[e.slice(0,t.length),r("",a,"0",!0),e.slice(t.length)].join("")),e},o=function(e,t,o,i,s,a,p){var c=e>>>0;return e=(o=o&&c&&{2:"0b",8:"0",16:"0x"}[t]||"")+r(c.toString(t),a||0,"0",!1),n(e,o,i,s,p)},i=function(e,t,r,o,i,s){return null!==o&&void 0!==o&&(e=e.slice(0,o)),n(e,"",t,r,i,s)};return e[t++].replace(/%%|%(\d+\$)?([-+'#0 ]*)(\*\d+\$|\*|\d+)?(?:\.(\*\d+\$|\*|\d+))?([scboxXuideEfFgG])/g,function(s,a,p,c,l,u){var f,h,y,d,g;if("%%"===s)return"%";var m,x=!1,v="",b=!1,w=!1,k=" ",_=p.length;for(m=0;m<_;m++)switch(p.charAt(m)){case" ":v=" ";break;case"+":v="+";break;case"-":x=!0;break;case"'":k=p.charAt(m+1);break;case"0":b=!0,k="0";break;case"#":w=!0}if((c=c?"*"===c?+e[t++]:"*"===c.charAt(0)?+e[c.slice(1,-1)]:+c:0)<0&&(c=-c,x=!0),!isFinite(c))throw new Error("sprintf: (minimum-)width must be finite");switch(l=l?"*"===l?+e[t++]:"*"===l.charAt(0)?+e[l.slice(1,-1)]:+l:"fFeE".indexOf(u)>-1?6:"d"===u?0:void 0,g=a?e[a.slice(0,-1)]:e[t++],u){case"s":return i(g+"",x,c,l,b,k);case"c":return i(String.fromCharCode(+g),x,c,l,b);case"b":return o(g,2,w,x,c,l,b);case"o":return o(g,8,w,x,c,l,b);case"x":return o(g,16,w,x,c,l,b);case"X":return o(g,16,w,x,c,l,b).toUpperCase();case"u":return o(g,10,w,x,c,l,b);case"i":case"d":return f=+g||0,g=(h=(f=Math.round(f-f%1))<0?"-":v)+r(String(Math.abs(f)),l,"0",!1),n(g,h,x,c,b);case"e":case"E":case"f":case"F":case"g":case"G":return h=(f=+g)<0?"-":v,y=["toExponential","toFixed","toPrecision"]["efg".indexOf(u.toLowerCase())],d=["toString","toUpperCase"]["eEfFgG".indexOf(u)%2],g=h+Math.abs(f)[y](l),n(g,h,x,c,b)[d]();default:return s}})}},function(e,t){e.exports=function(e){"use strict";return e.exports={VERSION:e.VERSION},e.exports.twig=function(t){var r=t.id,n={strict_variables:t.strict_variables||!1,autoescape:null!=t.autoescape&&t.autoescape||!1,allowInlineIncludes:t.allowInlineIncludes||!1,rethrow:t.rethrow||!1,namespaces:t.namespaces};if(e.cache&&r&&e.validateId(r),void 0!==t.debug&&(e.debug=t.debug),void 0!==t.trace&&(e.trace=t.trace),void 0!==t.data)return e.Templates.parsers.twig({data:t.data,path:t.hasOwnProperty("path")?t.path:void 0,module:t.module,id:r,options:n});if(void 0!==t.ref){if(void 0!==t.id)throw new e.Error("Both ref and id cannot be set on a twig.js template.");return e.Templates.load(t.ref)}if(void 0!==t.method){if(!e.Templates.isRegisteredLoader(t.method))throw new e.Error('Loader for "'+t.method+'" is not defined.');return e.Templates.loadRemote(t.name||t.href||t.path||r||void 0,{id:r,method:t.method,parser:t.parser||"twig",base:t.base,module:t.module,precompiled:t.precompiled,async:t.async,options:n},t.load,t.error)}return void 0!==t.href?e.Templates.loadRemote(t.href,{id:r,method:"ajax",parser:t.parser||"twig",base:t.base,module:t.module,precompiled:t.precompiled,async:t.async,options:n},t.load,t.error):void 0!==t.path?e.Templates.loadRemote(t.path,{id:r,method:"fs",parser:t.parser||"twig",base:t.base,module:t.module,precompiled:t.precompiled,async:t.async,options:n},t.load,t.error):void 0},e.exports.extendFilter=function(t,r){e.filter.extend(t,r)},e.exports.extendFunction=function(t,r){e._function.extend(t,r)},e.exports.extendTest=function(t,r){e.test.extend(t,r)},e.exports.extendTag=function(t){e.logic.extend(t)},e.exports.extend=function(t){t(e)},e.exports.compile=function(t,r){var n,o=r.filename,i=r.filename;return n=new e.Template({data:t,path:i,id:o,options:r.settings["twig options"]}),function(e){return n.render(e)}},e.exports.renderFile=function(t,r,n){"function"==typeof r&&(n=r,r={});var o=(r=r||{}).settings||{},i=o["twig options"],s={path:t,base:o.views,load:function(e){i&&i.allow_async?e.renderAsync(r).then(function(e){n(null,e)},n):n(null,""+e.render(r))}};if(i)for(var a in i)i.hasOwnProperty(a)&&(s[a]=i[a]);e.exports.twig(s)},e.exports.__express=e.exports.renderFile,e.exports.cache=function(t){e.cache=t},e.exports.path=e.path,e.exports.filters=e.filters,e.exports.Promise=e.Promise,e}},function(e,t){e.exports=function(e){"use strict";var t=1,r=2;return e.parseAsync=function(t,r){return e.parse.call(this,t,r,!0)},e.expression.parseAsync=function(t,r,n){return e.expression.parse.call(this,t,r,n,!0)},e.logic.parseAsync=function(t,r,n){return e.logic.parse.call(this,t,r,n,!0)},e.Template.prototype.renderAsync=function(e,t){return this.render(e,t,!0)},e.async={},e.isPromise=function(e){return e&&e.then&&"function"==typeof e.then},e.async.potentiallyAsync=function(t,r,n){return r?e.Promise.resolve(n.call(t)):function(t,r,n){var o=n.call(t),i=null,s=!0;if(!e.isPromise(o))return o;if(o.then(function(e){o=e,s=!1}).catch(function(e){i=e}),null!==i)throw i;if(s)throw new e.Error("You are using Twig.js in sync mode in combination with async extensions.");return o}(t,0,n)},e.Thenable=function(e,t,r){this.then=e,this._value=r?t:null,this._state=r||0},e.Thenable.prototype.catch=function(e){return this._state==t?this:this.then(null,e)},e.Thenable.resolvedThen=function(t){try{return e.Promise.resolve(t(this._value))}catch(t){return e.Promise.reject(t)}},e.Thenable.rejectedThen=function(t,r){if(!r||"function"!=typeof r)return this;var n=this._value,o=e.attempt(function(){return r(n)},e.Promise.reject);return e.Promise.resolve(o)},e.Promise=function(n){var o=0,i=null,s=function(e,t){o=e,i=t};return function(e,t,r){try{e(t,r)}catch(e){r(e)}}(n,function(e){s(t,e)},function(e){s(r,e)}),o===t?e.Promise.resolve(i):o===r?e.Promise.reject(i):(s=e.FullPromise()).promise},e.FullPromise=function(){var r=null;function n(e){e(a._value)}function o(e,t){t(a._value)}var i=function(e,t){r=function(e,t,r){var n=[t,r,-2];return e?-2==e[2]?e=[e,n]:e.push(n):e=n,e}(r,e,t)};function s(s,p){a._state||(a._value=p,a._state=s,i=s==t?n:o,r&&(-2===r[2]&&(i(r[0],r[1]),r=null),e.forEach(r,function(e){i(e[0],e[1])}),r=null))}var a=new e.Thenable(function(r,n){var o="function"==typeof r;if(a._state==t&&!o)return e.Promise.resolve(a._value);if(a._state===t)return e.attempt(function(){return e.Promise.resolve(r(a._value))},e.Promise.reject);var s="function"==typeof n;return e.Promise(function(t,a){i(o?function(n){e.attempt(function(){t(r(n))},a)}:t,s?function(r){e.attempt(function(){t(n(r))},a)}:a)})});return s.promise=a,s},e.Promise.defaultResolved=new e.Thenable(e.Thenable.resolvedThen,void 0,t),e.Promise.emptyStringResolved=new e.Thenable(e.Thenable.resolvedThen,"",t),e.Promise.resolve=function(r){return arguments.length<1||void 0===r?e.Promise.defaultResolved:e.isPromise(r)?r:""===r?e.Promise.emptyStringResolved:new e.Thenable(e.Thenable.resolvedThen,r,t)},e.Promise.reject=function(t){return new e.Thenable(e.Thenable.rejectedThen,t,r)},e.Promise.all=function(r){var n=new Array(r.length);return e.async.forEach(r,function(r,o){if(e.isPromise(r)){if(r._state!=t)return r.then(function(e){n[o]=e});n[o]=r._value}else n[o]=r}).then(function(){return n})},e.async.forEach=function(r,n){var o=r.length,i=0;return function s(){var a=null;do{if(i==o)return e.Promise.resolve();a=n(r[i],i),i++}while(!a||!e.isPromise(a)||a._state==t);return a.then(s)}()},e}},function(e,t){e.exports=function(e){"use strict";return e.tests={empty:function(e){if(null===e||void 0===e)return!0;if("number"==typeof e)return!1;if(e.length&&e.length>0)return!1;for(var t in e)if(e.hasOwnProperty(t))return!1;return!0},odd:function(e){return e%2==1},even:function(e){return e%2==0},divisibleby:function(e,t){return e%t[0]==0},defined:function(e){return void 0!==e},none:function(e){return null===e},null:function(e){return this.none(e)},"same as":function(e,t){return e===t[0]},sameas:function(t,r){return console.warn("`sameas` is deprecated use `same as`"),e.tests["same as"](t,r)},iterable:function(t){return t&&(e.lib.is("Array",t)||e.lib.is("Object",t))}},e.test=function(t,r,n){if(!e.tests[t])throw"Test "+t+" is not defined.";return e.tests[t](r,n)},e.test.extend=function(t,r){e.tests[t]=r},e}},function(e,t,r){e.exports=function(e){"use strict";e.path={};var t=/.::/,n=/@/;return e.path.parsePath=function(r,o){var i=null,s=r.options.namespaces,a=o||"";if(s&&"object"==typeof s)for(i in s){if(t.test(a))return a=a.replace(i+"::",s[i]);if(n.test(a))return a=a.replace("@"+i,s[i])}return e.path.relativePath(r,a)},e.path.relativePath=function(t,n){var o,i,s,a="/",p=[];n=n||"";if(t.url)o=void 0!==t.base?t.base+("/"===t.base.charAt(t.base.length-1)?"":"/"):t.url;else if(t.path){var c=r(0),l=c.sep||a,u=new RegExp("^\\.{1,2}"+l.replace("\\","\\\\"));n=n.replace(/\//g,l),void 0!==t.base&&null==n.match(u)?(n=n.replace(t.base,""),o=t.base+l):o=c.normalize(t.path),o=o.replace(l+l,l),a=l}else{if(!t.name&&!t.id||!t.method||"fs"===t.method||"ajax"===t.method)throw new e.Error("Cannot extend an inline template.");o=t.base||t.name||t.id}for((i=o.split(a)).pop(),i=i.concat(n.split(a));i.length>0;)"."==(s=i.shift())||(".."==s&&p.length>0&&".."!=p[p.length-1]?p.pop():p.push(s));return p.join(a)},e}},function(e,t){e.exports=function(e){"use strict";e.Templates.registerParser("twig",function(t){return new e.Template(t)})}},function(e,t){e.exports=function(e){"use strict";e.Templates.registerParser("source",function(e){return e.data||""})}},function(e,t){e.exports=function(e){"use strict";for(e.logic={},e.logic.type={if_:"Twig.logic.type.if",endif:"Twig.logic.type.endif",for_:"Twig.logic.type.for",endfor:"Twig.logic.type.endfor",else_:"Twig.logic.type.else",elseif:"Twig.logic.type.elseif",set:"Twig.logic.type.set",setcapture:"Twig.logic.type.setcapture",endset:"Twig.logic.type.endset",filter:"Twig.logic.type.filter",endfilter:"Twig.logic.type.endfilter",shortblock:"Twig.logic.type.shortblock",block:"Twig.logic.type.block",endblock:"Twig.logic.type.endblock",extends_:"Twig.logic.type.extends",use:"Twig.logic.type.use",include:"Twig.logic.type.include",spaceless:"Twig.logic.type.spaceless",endspaceless:"Twig.logic.type.endspaceless",macro:"Twig.logic.type.macro",endmacro:"Twig.logic.type.endmacro",import_:"Twig.logic.type.import",from:"Twig.logic.type.from",embed:"Twig.logic.type.embed",endembed:"Twig.logic.type.endembed",with:"Twig.logic.type.with",endwith:"Twig.logic.type.endwith"},e.logic.definitions=[{type:e.logic.type.if_,regex:/^if\s+([\s\S]+)$/,next:[e.logic.type.else_,e.logic.type.elseif,e.logic.type.endif],open:!0,compile:function(t){var r=t.match[1];return t.stack=e.expression.compile.call(this,{type:e.expression.type.expression,value:r}).stack,delete t.match,t},parse:function(t,r,n){var o=this;return e.expression.parseAsync.call(this,t.stack,r).then(function(i){return n=!0,e.lib.boolval(i)?(n=!1,e.parseAsync.call(o,t.output,r)):""}).then(function(e){return{chain:n,output:e}})}},{type:e.logic.type.elseif,regex:/^elseif\s+([^\s].*)$/,next:[e.logic.type.else_,e.logic.type.elseif,e.logic.type.endif],open:!1,compile:function(t){var r=t.match[1];return t.stack=e.expression.compile.call(this,{type:e.expression.type.expression,value:r}).stack,delete t.match,t},parse:function(t,r,n){var o=this;return e.expression.parseAsync.call(this,t.stack,r).then(function(i){return n&&e.lib.boolval(i)?(n=!1,e.parseAsync.call(o,t.output,r)):""}).then(function(e){return{chain:n,output:e}})}},{type:e.logic.type.else_,regex:/^else$/,next:[e.logic.type.endif,e.logic.type.endfor],open:!1,parse:function(t,r,n){var o=e.Promise.resolve("");return n&&(o=e.parseAsync.call(this,t.output,r)),o.then(function(e){return{chain:n,output:e}})}},{type:e.logic.type.endif,regex:/^endif$/,next:[],open:!1},{type:e.logic.type.for_,regex:/^for\s+([a-zA-Z0-9_,\s]+)\s+in\s+([\S\s]+?)(?:\s+if\s+([^\s].*))?$/,next:[e.logic.type.else_,e.logic.type.endfor],open:!0,compile:function(t){var r=t.match[1],n=t.match[2],o=t.match[3],i=null;if(t.key_var=null,t.value_var=null,r.indexOf(",")>=0){if(2!==(i=r.split(",")).length)throw new e.Error("Invalid expression in for loop: "+r);t.key_var=i[0].trim(),t.value_var=i[1].trim()}else t.value_var=r;return t.expression=e.expression.compile.call(this,{type:e.expression.type.expression,value:n}).stack,o&&(t.conditional=e.expression.compile.call(this,{type:e.expression.type.expression,value:o}).stack),delete t.match,t},parse:function(t,r,n){var o,i,s=[],a=0,p=this,c=t.conditional,l=function(n,i){var l=e.ChildContext(r);return l[t.value_var]=i,t.key_var&&(l[t.key_var]=n),l.loop=function(e,t){var n=void 0!==c;return{index:e+1,index0:e,revindex:n?void 0:t-e,revindex0:n?void 0:t-e-1,first:0===e,last:n?void 0:e===t-1,length:n?void 0:t,parent:r}}(a,o),(void 0===c?e.Promise.resolve(!0):e.expression.parseAsync.call(p,c,l)).then(function(r){if(r)return e.parseAsync.call(p,t.output,l).then(function(e){s.push(e),a+=1})}).then(function(){delete l.loop,delete l[t.value_var],delete l[t.key_var],e.merge(r,l,!0)})};return e.expression.parseAsync.call(this,t.expression,r).then(function(t){return e.lib.isArray(t)?(o=t.length,e.async.forEach(t,function(e){return l(a,e)})):e.lib.is("Object",t)?(i=void 0!==t._keys?t._keys:Object.keys(t),o=i.length,e.async.forEach(i,function(e){if("_keys"!==e)return l(e,t[e])})):void 0}).then(function(){return{chain:0===s.length,output:e.output.call(p,s)}})}},{type:e.logic.type.endfor,regex:/^endfor$/,next:[],open:!1},{type:e.logic.type.set,regex:/^set\s+([a-zA-Z0-9_,\s]+)\s*=\s*([\s\S]+)$/,next:[],open:!0,compile:function(t){var r=t.match[1].trim(),n=t.match[2],o=e.expression.compile.call(this,{type:e.expression.type.expression,value:n}).stack;return t.key=r,t.expression=o,delete t.match,t},parse:function(t,r,n){var o=t.key;return e.expression.parseAsync.call(this,t.expression,r).then(function(t){return t===r&&(t=e.lib.copy(t)),r[o]=t,{chain:n,context:r}})}},{type:e.logic.type.setcapture,regex:/^set\s+([a-zA-Z0-9_,\s]+)$/,next:[e.logic.type.endset],open:!0,compile:function(e){var t=e.match[1].trim();return e.key=t,delete e.match,e},parse:function(t,r,n){var o=this,i=t.key;return e.parseAsync.call(this,t.output,r).then(function(e){return o.context[i]=e,r[i]=e,{chain:n,context:r}})}},{type:e.logic.type.endset,regex:/^endset$/,next:[],open:!1},{type:e.logic.type.filter,regex:/^filter\s+(.+)$/,next:[e.logic.type.endfilter],open:!0,compile:function(t){var r="|"+t.match[1].trim();return t.stack=e.expression.compile.call(this,{type:e.expression.type.expression,value:r}).stack,delete t.match,t},parse:function(t,r,n){var o=this;return e.parseAsync.call(this,t.output,r).then(function(n){var i=[{type:e.expression.type.string,value:n}].concat(t.stack);return e.expression.parseAsync.call(o,i,r)}).then(function(e){return{chain:n,output:e}})}},{type:e.logic.type.endfilter,regex:/^endfilter$/,next:[],open:!1},{type:e.logic.type.block,regex:/^block\s+([a-zA-Z0-9_]+)$/,next:[e.logic.type.endblock],open:!0,compile:function(e){return e.block=e.match[1].trim(),delete e.match,e},parse:function(t,r,n){var o,i=this,s=e.Promise.resolve(),a=e.indexOf(this.importedBlocks,t.block)>-1,p=this.blocks[t.block]&&e.indexOf(this.blocks[t.block],e.placeholders.parent)>-1;return e.forEach(this.parseStack,function(r){r.type==e.logic.type.for_&&(t.overwrite=!0)}),(void 0===this.blocks[t.block]||a||p||t.overwrite)&&(s=(s=t.expression?e.expression.parseAsync.call(this,t.output,r).then(function(t){return e.expression.parseAsync.call(i,{type:e.expression.type.string,value:t},r)}):e.parseAsync.call(this,t.output,r).then(function(t){return e.expression.parseAsync.call(i,{type:e.expression.type.string,value:t},r)})).then(function(r){a&&i.importedBlocks.splice(i.importedBlocks.indexOf(t.block),1),i.blocks[t.block]=p?e.Markup(i.blocks[t.block].replace(e.placeholders.parent,r)):r,i.originalBlockTokens[t.block]={type:t.type,block:t.block,output:t.output,overwrite:!0}})),s.then(function(){return o=i.child.blocks[t.block]?i.child.blocks[t.block]:i.blocks[t.block],{chain:n,output:o}})}},{type:e.logic.type.shortblock,regex:/^block\s+([a-zA-Z0-9_]+)\s+(.+)$/,next:[],open:!0,compile:function(t){return t.expression=t.match[2].trim(),t.output=e.expression.compile({type:e.expression.type.expression,value:t.expression}).stack,t.block=t.match[1].trim(),delete t.match,t},parse:function(t,r,n){for(var o=new Array(arguments.length),i=arguments.length;i-- >0;)o[i]=arguments[i];return e.logic.handler[e.logic.type.block].parse.apply(this,o)}},{type:e.logic.type.endblock,regex:/^endblock(?:\s+([a-zA-Z0-9_]+))?$/,next:[],open:!1},{type:e.logic.type.extends_,regex:/^extends\s+(.+)$/,next:[],open:!0,compile:function(t){var r=t.match[1].trim();return delete t.match,t.stack=e.expression.compile.call(this,{type:e.expression.type.expression,value:r}).stack,t},parse:function(t,r,n){var o=this,i=e.ChildContext(r);return e.expression.parseAsync.call(this,t.stack,r).then(function(t){return o.extend=t,(t instanceof e.Template?t:o.importFile(t)).renderAsync(i)}).then(function(){return e.lib.extend(r,i),{chain:n,output:""}})}},{type:e.logic.type.use,regex:/^use\s+(.+)$/,next:[],open:!0,compile:function(t){var r=t.match[1].trim();return delete t.match,t.stack=e.expression.compile.call(this,{type:e.expression.type.expression,value:r}).stack,t},parse:function(t,r,n){var o=this;return e.expression.parseAsync.call(this,t.stack,r).then(function(e){return o.importBlocks(e),{chain:n,output:""}})}},{type:e.logic.type.include,regex:/^include\s+(.+?)(?:\s|$)(ignore missing(?:\s|$))?(?:with\s+([\S\s]+?))?(?:\s|$)(only)?$/,next:[],open:!0,compile:function(t){var r=t.match,n=r[1].trim(),o=void 0!==r[2],i=r[3],s=void 0!==r[4]&&r[4].length;return delete t.match,t.only=s,t.ignoreMissing=o,t.stack=e.expression.compile.call(this,{type:e.expression.type.expression,value:n}).stack,void 0!==i&&(t.withStack=e.expression.compile.call(this,{type:e.expression.type.expression,value:i.trim()}).stack),t},parse:function(t,r,n){var o=t.only?{}:e.ChildContext(r),i=t.ignoreMissing,s=this,a={chain:n,output:""};return(void 0!==t.withStack?e.expression.parseAsync.call(this,t.withStack,r).then(function(t){e.lib.extend(o,t)}):e.Promise.resolve()).then(function(){return e.expression.parseAsync.call(s,t.stack,r)}).then(function(t){if(t instanceof e.Template)return t.renderAsync(o);try{return s.importFile(t).renderAsync(o)}catch(e){if(i)return"";throw e}}).then(function(e){return""!==e&&(a.output=e),a})}},{type:e.logic.type.spaceless,regex:/^spaceless$/,next:[e.logic.type.endspaceless],open:!0,parse:function(t,r,n){return e.parseAsync.call(this,t.output,r).then(function(t){var r=t.replace(/>\s+</g,"><").trim();return r=e.Markup(r),{chain:n,output:r}})}},{type:e.logic.type.endspaceless,regex:/^endspaceless$/,next:[],open:!1},{type:e.logic.type.macro,regex:/^macro\s+([a-zA-Z0-9_]+)\s*\(\s*((?:[a-zA-Z0-9_]+(?:\s*=\s*([\s\S]+))?(?:,\s*)?)*)\s*\)$/,next:[e.logic.type.endmacro],open:!0,compile:function(t){var r=t.match[1],n=t.match[2].split(/\s*,\s*/),o=n.map(function(e){return e.split(/\s*=\s*/)[0]}),i=o.length;if(i>1)for(var s={},a=0;a<i;a++){var p=o[a];if(s[p])throw new e.Error("Duplicate arguments for parameter: "+p);s[p]=1}return t.macroName=r,t.parameters=o,t.defaults=n.reduce(function(t,r){var n=r.split(/\s*=\s*/),o=n[0],i=n[1];return t[o]=i?e.expression.compile.call(this,{type:e.expression.type.expression,value:i}).stack:void 0,t},{}),delete t.match,t},parse:function(t,r,n){var o=this;return this.macros[t.macroName]=function(){var n={_self:o.macros},i=Array.prototype.slice.call(arguments);return e.async.forEach(t.parameters,function(o,s){return void 0!==i[s]?(n[o]=i[s],!0):void 0!==t.defaults[o]?e.expression.parseAsync.call(this,t.defaults[o],r).then(function(t){return n[o]=t,e.Promise.resolve()}):(n[o]=void 0,!0)}).then(function(){return e.parseAsync.call(o,t.output,n)})},{chain:n,output:""}}},{type:e.logic.type.endmacro,regex:/^endmacro$/,next:[],open:!1},{type:e.logic.type.import_,regex:/^import\s+(.+)\s+as\s+([a-zA-Z0-9_]+)$/,next:[],open:!0,compile:function(t){var r=t.match[1].trim(),n=t.match[2].trim();return delete t.match,t.expression=r,t.contextName=n,t.stack=e.expression.compile.call(this,{type:e.expression.type.expression,value:r}).stack,t},parse:function(t,r,n){var o=this,i={chain:n,output:""};return"_self"===t.expression?(r[t.contextName]=this.macros,e.Promise.resolve(i)):e.expression.parseAsync.call(this,t.stack,r).then(function(e){return o.importFile(e||t.expression)}).then(function(e){return r[t.contextName]=e.renderAsync({},{output:"macros"}),i})}},{type:e.logic.type.from,regex:/^from\s+(.+)\s+import\s+([a-zA-Z0-9_, ]+)$/,next:[],open:!0,compile:function(t){for(var r=t.match[1].trim(),n=t.match[2].trim().split(/\s*,\s*/),o={},i=0;i<n.length;i++){var s=n[i],a=s.match(/^([a-zA-Z0-9_]+)\s+as\s+([a-zA-Z0-9_]+)$/);a?o[a[1].trim()]=a[2].trim():s.match(/^([a-zA-Z0-9_]+)$/)&&(o[s]=s)}return delete t.match,t.expression=r,t.macroNames=o,t.stack=e.expression.compile.call(this,{type:e.expression.type.expression,value:r}).stack,t},parse:function(t,r,n){var o=this,i=e.Promise.resolve(this.macros);return"_self"!==t.expression&&(i=e.expression.parseAsync.call(this,t.stack,r).then(function(e){return o.importFile(e||t.expression)}).then(function(e){return e.renderAsync({},{output:"macros"})})),i.then(function(e){for(var o in t.macroNames)e.hasOwnProperty(o)&&(r[t.macroNames[o]]=e[o]);return{chain:n,output:""}})}},{type:e.logic.type.embed,regex:/^embed\s+(.+?)(?:\s+(ignore missing))?(?:\s+with\s+([\S\s]+?))?(?:\s+(only))?$/,next:[e.logic.type.endembed],open:!0,compile:function(t){var r=t.match,n=r[1].trim(),o=void 0!==r[2],i=r[3],s=void 0!==r[4]&&r[4].length;return delete t.match,t.only=s,t.ignoreMissing=o,t.stack=e.expression.compile.call(this,{type:e.expression.type.expression,value:n}).stack,void 0!==i&&(t.withStack=e.expression.compile.call(this,{type:e.expression.type.expression,value:i.trim()}).stack),t},parse:function(t,r,n){var o,i,s={},a=this,p=e.Promise.resolve();if(!t.only)for(o in r)r.hasOwnProperty(o)&&(s[o]=r[o]);return void 0!==t.withStack&&(p=e.expression.parseAsync.call(this,t.withStack,r).then(function(e){for(o in e)e.hasOwnProperty(o)&&(s[o]=e[o])})),p.then(function(){return p=null,e.expression.parseAsync.call(a,t.stack,s)}).then(function(r){if(r instanceof e.Template)i=r;else try{i=a.importFile(r)}catch(e){if(t.ignoreMissing)return"";throw a=null,e}return a._blocks=e.lib.copy(a.blocks),a.blocks={},e.parseAsync.call(a,t.output,s).then(function(){return i.renderAsync(s,{blocks:a.blocks})})}).then(function(t){return a.blocks=e.lib.copy(a._blocks),{chain:n,output:t}})}},{type:e.logic.type.endembed,regex:/^endembed$/,next:[],open:!1},{type:e.logic.type.with,regex:/^(?:with\s+([\S\s]+?))(?:\s|$)(only)?$/,next:[e.logic.type.endwith],open:!0,compile:function(t){var r=t.match,n=r[1],o=void 0!==r[2]&&r[2].length;return delete t.match,t.only=o,void 0!==n&&(t.withStack=e.expression.compile.call(this,{type:e.expression.type.expression,value:n.trim()}).stack),t},parse:function(t,r,n){var o,i={},s=this,a=e.Promise.resolve();return t.only||(i=e.ChildContext(r)),void 0!==t.withStack&&(a=e.expression.parseAsync.call(this,t.withStack,r).then(function(e){for(o in e)e.hasOwnProperty(o)&&(i[o]=e[o])})),a.then(function(){return e.parseAsync.call(s,t.output,i)}).then(function(e){return{chain:n,output:e}})}},{type:e.logic.type.endwith,regex:/^endwith$/,next:[],open:!1}],e.logic.handler={},e.logic.extendType=function(t,r){r=r||"Twig.logic.type"+t,e.logic.type[t]=r},e.logic.extend=function(t){if(!t.type)throw new e.Error("Unable to extend logic definition. No type provided for "+t);e.logic.extendType(t.type),e.logic.handler[t.type]=t};e.logic.definitions.length>0;)e.logic.extend(e.logic.definitions.shift());return e.logic.compile=function(t){var r=t.value.trim(),n=e.logic.tokenize.call(this,r),o=e.logic.handler[n.type];return o.compile&&(n=o.compile.call(this,n),e.log.trace("Twig.logic.compile: ","Compiled logic token to ",n)),n},e.logic.tokenize=function(t){var r=null,n=null,o=null,i=null,s=null,a=null,p=null;for(r in t=t.trim(),e.logic.handler)for(n=e.logic.handler[r].type,i=o=e.logic.handler[r].regex,e.lib.isArray(o)||(i=[o]),s=i.length,a=0;a<s;a++)if(null!==(p=i[a].exec(t)))return e.log.trace("Twig.logic.tokenize: ","Matched a ",n," regular expression of ",p),{type:n,match:p};throw new e.Error("Unable to parse '"+t.trim()+"'")},e.logic.parse=function(t,r,n,o){return e.async.potentiallyAsync(this,o,function(){e.log.debug("Twig.logic.parse: ","Parsing logic token ",t);var o,i=e.logic.handler[t.type],s=this;return i.parse?(s.parseStack.unshift(t),o=i.parse.call(s,t,r||{},n),e.isPromise(o)?o=o.then(function(e){return s.parseStack.shift(),e}):s.parseStack.shift(),o):""})},e}},function(e,t){e.exports=__webpack_require__(/*! fs */ 0)},function(e,t,r){e.exports=function(e){"use strict";var t,n;try{t=r(9),n=r(0)}catch(e){}e.Templates.registerLoader("fs",function(r,o,i,s){var a,p=null,c=o.precompiled,l=this.parsers[o.parser]||this.parser.twig;if(!t||!n)throw new e.Error('Unsupported platform: Unable to load from file because there is no "fs" or "path" implementation');var u=function(e,t){e?"function"==typeof s&&s(e):(!0===c&&(t=JSON.parse(t)),o.data=t,o.path=o.path||r,a=l.call(this,o),"function"==typeof i&&i(a))};if(o.path=o.path||r,o.async)return t.stat(o.path,function(r,n){!r&&n.isFile()?t.readFile(o.path,"utf8",u):"function"==typeof s&&s(new e.Error("Unable to find template file "+o.path))}),!0;try{if(!t.statSync(o.path).isFile())throw new e.Error("Unable to find template file "+o.path)}catch(t){throw new e.Error("Unable to find template file "+o.path)}return p=t.readFileSync(o.path,"utf8"),u(void 0,p),a})}},function(e,t){e.exports=function(e){"use strict";e.Templates.registerLoader("ajax",function(t,r,n,o){var i,s,a=r.precompiled,p=this.parsers[r.parser]||this.parser.twig;if("undefined"==typeof XMLHttpRequest)throw new e.Error('Unsupported platform: Unable to do ajax requests because there is no "XMLHTTPRequest" implementation');return(s=new XMLHttpRequest).onreadystatechange=function(){var c=null;4===s.readyState&&(200===s.status||window.cordova&&0==s.status?(e.log.debug("Got template ",s.responseText),c=!0===a?JSON.parse(s.responseText):s.responseText,r.url=t,r.data=c,i=p.call(this,r),"function"==typeof n&&n(i)):"function"==typeof o&&o(s))},s.open("GET",t,!!r.async),s.send(),!!r.async||i})}},function(e,t,r){"use strict";e.exports=function(e){return!1!==e&&(0!==e&&0!==e&&(""!==e&&"0"!==e&&((!Array.isArray(e)||0!==e.length)&&(null!==e&&void 0!==e))))}},function(e,t,r){"use strict";e.exports=function(e,t){var r,n,o=["Sun","Mon","Tues","Wednes","Thurs","Fri","Satur","January","February","March","April","May","June","July","August","September","October","November","December"],i=/\\?(.?)/gi,s=function(e,t){return n[e]?n[e]():t},a=function(e,t){for(e=String(e);e.length<t;)e="0"+e;return e};n={d:function(){return a(n.j(),2)},D:function(){return n.l().slice(0,3)},j:function(){return r.getDate()},l:function(){return o[n.w()]+"day"},N:function(){return n.w()||7},S:function(){var e=n.j(),t=e%10;return t<=3&&1===parseInt(e%100/10,10)&&(t=0),["st","nd","rd"][t-1]||"th"},w:function(){return r.getDay()},z:function(){var e=new Date(n.Y(),n.n()-1,n.j()),t=new Date(n.Y(),0,1);return Math.round((e-t)/864e5)},W:function(){var e=new Date(n.Y(),n.n()-1,n.j()-n.N()+3),t=new Date(e.getFullYear(),0,4);return a(1+Math.round((e-t)/864e5/7),2)},F:function(){return o[6+n.n()]},m:function(){return a(n.n(),2)},M:function(){return n.F().slice(0,3)},n:function(){return r.getMonth()+1},t:function(){return new Date(n.Y(),n.n(),0).getDate()},L:function(){var e=n.Y();return e%4==0&e%100!=0|e%400==0},o:function(){var e=n.n(),t=n.W();return n.Y()+(12===e&&t<9?1:1===e&&t>9?-1:0)},Y:function(){return r.getFullYear()},y:function(){return n.Y().toString().slice(-2)},a:function(){return r.getHours()>11?"pm":"am"},A:function(){return n.a().toUpperCase()},B:function(){var e=3600*r.getUTCHours(),t=60*r.getUTCMinutes(),n=r.getUTCSeconds();return a(Math.floor((e+t+n+3600)/86.4)%1e3,3)},g:function(){return n.G()%12||12},G:function(){return r.getHours()},h:function(){return a(n.g(),2)},H:function(){return a(n.G(),2)},i:function(){return a(r.getMinutes(),2)},s:function(){return a(r.getSeconds(),2)},u:function(){return a(1e3*r.getMilliseconds(),6)},e:function(){throw new Error("Not supported (see source code of date() for timezone on how to add support)")},I:function(){return new Date(n.Y(),0)-Date.UTC(n.Y(),0)!=new Date(n.Y(),6)-Date.UTC(n.Y(),6)?1:0},O:function(){var e=r.getTimezoneOffset(),t=Math.abs(e);return(e>0?"-":"+")+a(100*Math.floor(t/60)+t%60,4)},P:function(){var e=n.O();return e.substr(0,3)+":"+e.substr(3,2)},T:function(){return"UTC"},Z:function(){return 60*-r.getTimezoneOffset()},c:function(){return"Y-m-d\\TH:i:sP".replace(i,s)},r:function(){return"D, d M Y H:i:s O".replace(i,s)},U:function(){return r/1e3|0}};return function(e,t){return r=void 0===t?new Date:t instanceof Date?new Date(t):new Date(1e3*t),e.replace(i,s)}(e,t)}},function(e,t,r){"use strict";e.exports=function(e,t){var r,n,o,i,s,a,p,c,l,u,f;if(!e)return!1;e=e.replace(/^\s+|\s+$/g,"").replace(/\s{2,}/g," ").replace(/[\t\r\n]/g,"").toLowerCase();var h=new RegExp(["^(\\d{1,4})","([\\-\\.\\/:])","(\\d{1,2})","([\\-\\.\\/:])","(\\d{1,4})","(?:\\s(\\d{1,2}):(\\d{2})?:?(\\d{2})?)?","(?:\\s([A-Z]+)?)?$"].join(""));if((n=e.match(h))&&n[2]===n[4])if(n[1]>1901)switch(n[2]){case"-":return!(n[3]>12||n[5]>31)&&new Date(n[1],parseInt(n[3],10)-1,n[5],n[6]||0,n[7]||0,n[8]||0,n[9]||0)/1e3;case".":return!1;case"/":return!(n[3]>12||n[5]>31)&&new Date(n[1],parseInt(n[3],10)-1,n[5],n[6]||0,n[7]||0,n[8]||0,n[9]||0)/1e3}else if(n[5]>1901)switch(n[2]){case"-":case".":return!(n[3]>12||n[1]>31)&&new Date(n[5],parseInt(n[3],10)-1,n[1],n[6]||0,n[7]||0,n[8]||0,n[9]||0)/1e3;case"/":return!(n[1]>12||n[3]>31)&&new Date(n[5],parseInt(n[1],10)-1,n[3],n[6]||0,n[7]||0,n[8]||0,n[9]||0)/1e3}else switch(n[2]){case"-":return!(n[3]>12||n[5]>31||n[1]<70&&n[1]>38)&&(i=n[1]>=0&&n[1]<=38?+n[1]+2e3:n[1],new Date(i,parseInt(n[3],10)-1,n[5],n[6]||0,n[7]||0,n[8]||0,n[9]||0)/1e3);case".":return n[5]>=70?!(n[3]>12||n[1]>31)&&new Date(n[5],parseInt(n[3],10)-1,n[1],n[6]||0,n[7]||0,n[8]||0,n[9]||0)/1e3:n[5]<60&&!n[6]&&(!(n[1]>23||n[3]>59)&&(o=new Date,new Date(o.getFullYear(),o.getMonth(),o.getDate(),n[1]||0,n[3]||0,n[5]||0,n[9]||0)/1e3));case"/":return!(n[1]>12||n[3]>31||n[5]<70&&n[5]>38)&&(i=n[5]>=0&&n[5]<=38?+n[5]+2e3:n[5],new Date(i,parseInt(n[1],10)-1,n[3],n[6]||0,n[7]||0,n[8]||0,n[9]||0)/1e3);case":":return!(n[1]>23||n[3]>59||n[5]>59)&&(o=new Date,new Date(o.getFullYear(),o.getMonth(),o.getDate(),n[1]||0,n[3]||0,n[5]||0)/1e3)}if("now"===e)return null===t||isNaN(t)?(new Date).getTime()/1e3|0:0|t;if(!isNaN(r=Date.parse(e)))return r/1e3|0;if(h=new RegExp(["^([0-9]{4}-[0-9]{2}-[0-9]{2})","[ t]","([0-9]{2}:[0-9]{2}:[0-9]{2}(\\.[0-9]+)?)","([\\+-][0-9]{2}(:[0-9]{2})?|z)"].join("")),(n=e.match(h))&&("z"===n[4]?n[4]="Z":n[4].match(/^([+-][0-9]{2})$/)&&(n[4]=n[4]+":00"),!isNaN(r=Date.parse(n[1]+"T"+n[2]+n[4]))))return r/1e3|0;function y(e){var t=e.split(" "),r=t[0],n=t[1].substring(0,3),o=/\d+/.test(r),i="ago"===t[2],c=("last"===r?-1:1)*(i?-1:1);if(o&&(c*=parseInt(r,10)),p.hasOwnProperty(n)&&!t[1].match(/^mon(day|\.)?$/i))return s["set"+p[n]](s["get"+p[n]]()+c);if("wee"===n)return s.setDate(s.getDate()+7*c);if("next"===r||"last"===r)!function(e,t,r){var n,o=a[t];void 0!==o&&(0==(n=o-s.getDay())?n=7*r:n>0&&"last"===e?n-=7:n<0&&"next"===e&&(n+=7),s.setDate(s.getDate()+n))}(r,n,c);else if(!o)return!1;return!0}if(s=t?new Date(1e3*t):new Date,a={sun:0,mon:1,tue:2,wed:3,thu:4,fri:5,sat:6},p={yea:"FullYear",mon:"Month",day:"Date",hou:"Hours",min:"Minutes",sec:"Seconds"},u="([+-]?\\d+\\s"+(l="(years?|months?|weeks?|days?|hours?|minutes?|min|seconds?|sec|sunday|sun\\.?|monday|mon\\.?|tuesday|tue\\.?|wednesday|wed\\.?|thursday|thu\\.?|friday|fri\\.?|saturday|sat\\.?)")+"|(last|next)\\s"+l+")(\\sago)?",!(n=e.match(new RegExp(u,"gi"))))return!1;for(f=0,c=n.length;f<c;f++)if(!y(n[f]))return!1;return s.getTime()/1e3}},function(e,t,r){"use strict";e.exports=function(e,t){t=(((t||"")+"").toLowerCase().match(/<[a-z][a-z0-9]*>/g)||[]).join("");return e.replace(/<!--[\s\S]*?-->|<\?(?:php)?[\s\S]*?\?>/gi,"").replace(/<\/?([a-z][a-z0-9]*)\b[^>]*>/gi,function(e,r){return t.indexOf("<"+r.toLowerCase()+">")>-1?e:""})}},function(e,t,r){"use strict";var n="function"==typeof Symbol&&"symbol"==typeof Symbol.iterator?function(e){return typeof e}:function(e){return e&&"function"==typeof Symbol&&e.constructor===Symbol&&e!==Symbol.prototype?"symbol":typeof e};e.exports=function(){var e,t,r,o=0,i=arguments,s=i.length,a=function(e){if("[object Array]"===Object.prototype.toString.call(e))return e;var t=[];for(var r in e)e.hasOwnProperty(r)&&t.push(e[r]);return t},p=function e(t,r){var o=0,i=0,s=0,p=0,c=0;if(t===r)return 0;if("object"===(void 0===t?"undefined":n(t))){if("object"===(void 0===r?"undefined":n(r))){if(t=a(t),r=a(r),c=t.length,(p=r.length)>c)return 1;if(p<c)return-1;for(o=0,i=c;o<i;++o){if(1===(s=e(t[o],r[o])))return 1;if(-1===s)return-1}return 0}return-1}return"object"===(void 0===r?"undefined":n(r))?1:isNaN(r)&&!isNaN(t)?0===t?0:t<0?1:-1:isNaN(t)&&!isNaN(r)?0===r?0:r>0?1:-1:r===t?0:r>t?1:-1};if(0===s)throw new Error("At least one value should be passed to min()");if(1===s){if("object"!==n(i[0]))throw new Error("Wrong parameter count for min()");if(0===(e=a(i[0])).length)throw new Error("Array must contain at least one element for min()")}else e=i;for(t=e[0],o=1,r=e.length;o<r;++o)-1===p(t,e[o])&&(t=e[o]);return t}},function(e,t,r){"use strict";var n="function"==typeof Symbol&&"symbol"==typeof Symbol.iterator?function(e){return typeof e}:function(e){return e&&"function"==typeof Symbol&&e.constructor===Symbol&&e!==Symbol.prototype?"symbol":typeof e};e.exports=function(){var e,t,r,o=0,i=arguments,s=i.length,a=function(e){if("[object Array]"===Object.prototype.toString.call(e))return e;var t=[];for(var r in e)e.hasOwnProperty(r)&&t.push(e[r]);return t},p=function e(t,r){var o=0,i=0,s=0,p=0,c=0;if(t===r)return 0;if("object"===(void 0===t?"undefined":n(t))){if("object"===(void 0===r?"undefined":n(r))){if(t=a(t),r=a(r),c=t.length,(p=r.length)>c)return 1;if(p<c)return-1;for(o=0,i=c;o<i;++o){if(1===(s=e(t[o],r[o])))return 1;if(-1===s)return-1}return 0}return-1}return"object"===(void 0===r?"undefined":n(r))?1:isNaN(r)&&!isNaN(t)?0===t?0:t<0?1:-1:isNaN(t)&&!isNaN(r)?0===r?0:r>0?1:-1:r===t?0:r>t?1:-1};if(0===s)throw new Error("At least one value should be passed to max()");if(1===s){if("object"!==n(i[0]))throw new Error("Wrong parameter count for max()");if(0===(e=a(i[0])).length)throw new Error("Array must contain at least one element for max()")}else e=i;for(t=e[0],o=1,r=e.length;o<r;++o)1===p(t,e[o])&&(t=e[o]);return t}},function(e,t,r){"use strict";e.exports=function(e,t,r){var n,o,i,s;if(t|=0,i=(e*=n=Math.pow(10,t))%1==.5*(s=e>0|-(e<0)),o=Math.floor(e),i)switch(r){case"PHP_ROUND_HALF_DOWN":e=o+(s<0);break;case"PHP_ROUND_HALF_EVEN":e=o+o%2*s;break;case"PHP_ROUND_HALF_ODD":e=o+!(o%2);break;default:e=o+(s>0)}return(i?e:Math.round(e))/n}},function(e,t,r){"use strict";e.exports=function(e,t){return r(1).apply(this,[e].concat(t))}},function(e,t,r){e.exports=function(e){e.lib={},e.lib.sprintf=r(1),e.lib.vsprintf=r(19),e.lib.round=r(18),e.lib.max=r(17),e.lib.min=r(16),e.lib.strip_tags=r(15),e.lib.strtotime=r(14),e.lib.date=r(13),e.lib.boolval=r(12);var t=Object.prototype.toString;return e.lib.is=function(e,r){return void 0!==r&&null!==r&&("Array"===e&&Array.isArray?Array.isArray(r):t.call(r).slice(8,-1)===e)},e.lib.isArray=Array.isArray||function(e){return"Array"===t.call(e).slice(8,-1)},e.lib.copy=function(e){var t,r={};for(t in e)r[t]=e[t];return r},e.lib.extend=function(e,t){var r,n=Object.keys(t||{});for(r=n.length;r--;)e[n[r]]=t[n[r]];return e},e.lib.replaceAll=function(e,t,r){return e.split(t).join(r)},e.lib.chunkArray=function(t,r){var n=[],o=0,i=t.length;if(r<1||!e.lib.is("Array",t))return[];for(;o<i;)n.push(t.slice(o,o+=r));return n},e}},function(e,t){e.exports=function(t){return t.functions={range:function(e,t,r){var n,o,i=[],s=r||1,a=!1;if(isNaN(e)||isNaN(t)?isNaN(e)&&isNaN(t)?(a=!0,n=e.charCodeAt(0),o=t.charCodeAt(0)):(n=isNaN(e)?0:e,o=isNaN(t)?0:t):(n=parseInt(e,10),o=parseInt(t,10)),!(n>o))for(;n<=o;)i.push(a?String.fromCharCode(n):n),n+=s;else for(;n>=o;)i.push(a?String.fromCharCode(n):n),n-=s;return i},cycle:function(e,t){return e[t%e.length]},dump:function(){var e=arguments.length;for(args=new Array(e);e-- >0;)args[e]=arguments[e];var r=0,n="",o=function(e){for(var t="";e>0;)e--,t+="  ";return t},i=function(e){n+=o(r),"object"==typeof e?s(e):"function"==typeof e?n+="function()\n":"string"==typeof e?n+="string("+e.length+') "'+e+'"\n':"number"==typeof e?n+="number("+e+")\n":"boolean"==typeof e&&(n+="bool("+e+")\n")},s=function(e){var t;if(null===e)n+="NULL\n";else if(void 0===e)n+="undefined\n";else if("object"==typeof e){for(t in n+=o(r)+typeof e,r++,n+="("+function(e){var t,r=0;for(t in e)e.hasOwnProperty(t)&&r++;return r}(e)+") {\n",e)n+=o(r)+"["+t+"]=> \n",i(e[t]);n+=o(--r)+"}\n"}else i(e)};return 0==args.length&&args.push(this.context),t.forEach(args,function(e){s(e)}),n},date:function(e,r){var n;if(void 0===e||null===e||""===e)n=new Date;else if(t.lib.is("Date",e))n=e;else if(t.lib.is("String",e))n=e.match(/^[0-9]+$/)?new Date(1e3*e):new Date(1e3*t.lib.strtotime(e));else{if(!t.lib.is("Number",e))throw new t.Error("Unable to parse date "+e);n=new Date(1e3*e)}return n},block:function(e){return this.originalBlockTokens[e]?t.logic.parse.call(this,this.originalBlockTokens[e],this.context).output:this.blocks[e]},parent:function(){return t.placeholders.parent},attribute:function(e,r,n){return t.lib.is("Object",e)&&e.hasOwnProperty(r)?"function"==typeof e[r]?e[r].apply(void 0,n):e[r]:e[r]||void 0},max:function(e){return t.lib.is("Object",e)?(delete e._keys,t.lib.max(e)):t.lib.max.apply(null,arguments)},min:function(e){return t.lib.is("Object",e)?(delete e._keys,t.lib.min(e)):t.lib.min.apply(null,arguments)},template_from_string:function(e){return void 0===e&&(e=""),t.Templates.parsers.twig({options:this.options,data:e})},random:function(e){var r=2147483648;function n(e){var t=Math.floor(Math.random()*r),n=Math.min.call(null,0,e),o=Math.max.call(null,0,e);return n+Math.floor((o-n+1)*t/r)}if(t.lib.is("Number",e))return n(e);if(t.lib.is("String",e))return e.charAt(n(e.length-1));if(t.lib.is("Array",e))return e[n(e.length-1)];if(t.lib.is("Object",e)){var o=Object.keys(e);return e[o[n(o.length-1)]]}return n(r-1)},source:function(r,n){var o,i,s,a=!1;void 0!==e&&void 0!==e.exports&&"undefined"==typeof window?(i="fs",s=__dirname+"/"+r):(i="ajax",s=r);var p={id:r,path:s,method:i,parser:"source",async:!1,fetchTemplateSource:!0};void 0===n&&(n=!1);try{void 0===(o=t.Templates.loadRemote(r,p))||null===o?o="":a=!0}catch(e){t.log.debug("Twig.functions.source: ","Problem loading template  ",e)}return a||n?o:'Template "{name}" is not defined.'.replace("{name}",r)}},t._function=function(e,r,n){if(!t.functions[e])throw"Unable to find function "+e;return t.functions[e](r,n)},t._function.extend=function(e,r){t.functions[e]=r},t}},function(e,t){e.exports=function(e){function t(e,t){var r=Object.prototype.toString.call(t).slice(8,-1);return void 0!==t&&null!==t&&r===e}return e.filters={upper:function(e){return"string"!=typeof e?e:e.toUpperCase()},lower:function(e){return"string"!=typeof e?e:e.toLowerCase()},capitalize:function(e){return"string"!=typeof e?e:e.substr(0,1).toUpperCase()+e.toLowerCase().substr(1)},title:function(e){return"string"!=typeof e?e:e.toLowerCase().replace(/(^|\s)([a-z])/g,function(e,t,r){return t+r.toUpperCase()})},length:function(t){return e.lib.is("Array",t)||"string"==typeof t?t.length:e.lib.is("Object",t)?void 0===t._keys?Object.keys(t).length:t._keys.length:0},reverse:function(e){if(t("Array",e))return e.reverse();if(t("String",e))return e.split("").reverse().join("");if(t("Object",e)){var r=e._keys||Object.keys(e).reverse();return e._keys=r,e}},sort:function(e){if(t("Array",e))return e.sort();if(t("Object",e)){delete e._keys;var r=Object.keys(e).sort(function(t,r){var n;return e[t]>e[r]==!(e[t]<=e[r])?e[t]>e[r]?1:e[t]<e[r]?-1:0:isNaN(n=parseFloat(e[t]))||isNaN(b1=parseFloat(e[r]))?"string"==typeof e[t]?e[t]>e[r].toString()?1:e[t]<e[r].toString()?-1:0:"string"==typeof e[r]?e[t].toString()>e[r]?1:e[t].toString()<e[r]?-1:0:null:n>b1?1:n<b1?-1:0});return e._keys=r,e}},keys:function(t){if(void 0!==t&&null!==t){var r=t._keys||Object.keys(t),n=[];return e.forEach(r,function(e){"_keys"!==e&&t.hasOwnProperty(e)&&n.push(e)}),n}},url_encode:function(e){if(void 0!==e&&null!==e){var t=encodeURIComponent(e);return t=t.replace("'","%27")}},join:function(r,n){if(void 0!==r&&null!==r){var o="",i=[],s=null;return n&&n[0]&&(o=n[0]),t("Array",r)?i=r:(s=r._keys||Object.keys(r),e.forEach(s,function(e){"_keys"!==e&&r.hasOwnProperty(e)&&i.push(r[e])})),i.join(o)}},default:function(t,r){if(void 0!==r&&r.length>1)throw new e.Error("default filter expects one argument");return void 0===t||null===t||""===t?void 0===r?"":r[0]:t},json_encode:function(r){if(void 0===r||null===r)return"null";if("object"==typeof r&&t("Array",r))return o=[],e.forEach(r,function(t){o.push(e.filters.json_encode(t))}),"["+o.join(",")+"]";if("object"==typeof r&&t("Date",r))return'"'+r.toISOString()+'"';if("object"==typeof r){var n=r._keys||Object.keys(r),o=[];return e.forEach(n,function(t){o.push(JSON.stringify(t)+":"+e.filters.json_encode(r[t]))}),"{"+o.join(",")+"}"}return JSON.stringify(r)},merge:function(r,n){var o=[],i=0,s=[];if(t("Array",r)?e.forEach(n,function(e){t("Array",e)||(o={})}):o={},t("Array",o)||(o._keys=[]),t("Array",r)?e.forEach(r,function(e){o._keys&&o._keys.push(i),o[i]=e,i++}):(s=r._keys||Object.keys(r),e.forEach(s,function(e){o[e]=r[e],o._keys.push(e);var t=parseInt(e,10);!isNaN(t)&&t>=i&&(i=t+1)})),e.forEach(n,function(r){t("Array",r)?e.forEach(r,function(e){o._keys&&o._keys.push(i),o[i]=e,i++}):(s=r._keys||Object.keys(r),e.forEach(s,function(e){o[e]||o._keys.push(e),o[e]=r[e];var t=parseInt(e,10);!isNaN(t)&&t>=i&&(i=t+1)}))}),0===n.length)throw new e.Error("Filter merge expects at least one parameter");return o},date:function(t,r){var n=e.functions.date(t),o=r&&r.length?r[0]:"F j, Y H:i";return e.lib.date(o,n)},date_modify:function(t,r){if(void 0!==t&&null!==t){if(void 0===r||1!==r.length)throw new e.Error("date_modify filter expects 1 argument");var n,o=r[0];return e.lib.is("Date",t)&&(n=e.lib.strtotime(o,t.getTime()/1e3)),e.lib.is("String",t)&&(n=e.lib.strtotime(o,e.lib.strtotime(t))),e.lib.is("Number",t)&&(n=e.lib.strtotime(o,t)),new Date(1e3*n)}},replace:function(t,r){if(void 0!==t&&null!==t){var n,o=r[0];for(n in o)o.hasOwnProperty(n)&&"_keys"!==n&&(t=e.lib.replaceAll(t,n,o[n]));return t}},format:function(t,r){if(void 0!==t&&null!==t)return e.lib.vsprintf(t,r)},striptags:function(t,r){if(void 0!==t&&null!==t)return e.lib.strip_tags(t,r)},escape:function(t,r){if(void 0!==t&&null!==t){var n="html";if(r&&r.length&&!0!==r[0]&&(n=r[0]),"html"==n){var o=t.toString().replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;").replace(/"/g,"&quot;").replace(/'/g,"&#039;");return e.Markup(o,"html")}if("js"==n){o=t.toString();for(var i="",s=0;s<o.length;s++){if(o[s].match(/^[a-zA-Z0-9,\._]$/))i+=o[s];else i+=(a=o.charCodeAt(s))<128?"\\x"+a.toString(16).toUpperCase():e.lib.sprintf("\\u%04s",a.toString(16).toUpperCase())}return e.Markup(i,"js")}if("css"==n){for(o=t.toString(),i="",s=0;s<o.length;s++){if(o[s].match(/^[a-zA-Z0-9]$/))i+=o[s];else i+="\\"+(a=o.charCodeAt(s)).toString(16).toUpperCase()+" "}return e.Markup(i,"css")}if("url"==n){i=e.filters.url_encode(t);return e.Markup(i,"url")}if("html_attr"==n){for(o=t.toString(),i="",s=0;s<o.length;s++)if(o[s].match(/^[a-zA-Z0-9,\.\-_]$/))i+=o[s];else if(o[s].match(/^[&<>"]$/))i+=o[s].replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;").replace(/"/g,"&quot;");else{var a;i+=(a=o.charCodeAt(s))<=31&&9!=a&&10!=a&&13!=a?"&#xFFFD;":a<128?e.lib.sprintf("&#x%02s;",a.toString(16).toUpperCase()):e.lib.sprintf("&#x%04s;",a.toString(16).toUpperCase())}return e.Markup(i,"html_attr")}throw new e.Error("escape strategy unsupported")}},e:function(t,r){return e.filters.escape(t,r)},nl2br:function(t){if(void 0!==t&&null!==t){var r="<br />BACKSLASH_n_replace";return t=e.filters.escape(t).replace(/\r\n/g,r).replace(/\r/g,r).replace(/\n/g,r),t=e.lib.replaceAll(t,"BACKSLASH_n_replace","\n"),e.Markup(t)}},number_format:function(e,t){var r=e,n=t&&t[0]?t[0]:void 0,o=t&&void 0!==t[1]?t[1]:".",i=t&&void 0!==t[2]?t[2]:",";r=(r+"").replace(/[^0-9+\-Ee.]/g,"");var s=isFinite(+r)?+r:0,a=isFinite(+n)?Math.abs(n):0,p="";return(p=(a?function(e,t){var r=Math.pow(10,t);return""+Math.round(e*r)/r}(s,a):""+Math.round(s)).split("."))[0].length>3&&(p[0]=p[0].replace(/\B(?=(?:\d{3})+(?!\d))/g,i)),(p[1]||"").length<a&&(p[1]=p[1]||"",p[1]+=new Array(a-p[1].length+1).join("0")),p.join(o)},trim:function(e,t){if(void 0!==e&&null!==e){var r,n=""+e;r=t&&t[0]?""+t[0]:" \n\r\t\f\v            ​\u2028\u2029　";for(var o=0;o<n.length;o++)if(-1===r.indexOf(n.charAt(o))){n=n.substring(o);break}for(o=n.length-1;o>=0;o--)if(-1===r.indexOf(n.charAt(o))){n=n.substring(0,o+1);break}return-1===r.indexOf(n.charAt(0))?n:""}},truncate:function(e,t){var r=30,n=!1,o="...";if(e+="",t&&(t[0]&&(r=t[0]),t[1]&&(n=t[1]),t[2]&&(o=t[2])),e.length>r){if(n&&-1===(r=e.indexOf(" ",r)))return e;e=e.substr(0,r)+o}return e},slice:function(t,r){if(void 0!==t&&null!==t){if(void 0===r||r.length<1)throw new e.Error("slice filter expects at least 1 argument");var n=r[0]||0,o=r.length>1?r[1]:t.length,i=n>=0?n:Math.max(t.length+n,0);if(e.lib.is("Array",t)){for(var s=[],a=i;a<i+o&&a<t.length;a++)s.push(t[a]);return s}if(e.lib.is("String",t))return t.substr(i,o);throw new e.Error("slice filter expects value to be an array or string")}},abs:function(e){if(void 0!==e&&null!==e)return Math.abs(e)},first:function(e){if(t("Array",e))return e[0];if(t("Object",e)){if("_keys"in e)return e[e._keys[0]]}else if("string"==typeof e)return e.substr(0,1)},split:function(t,r){if(void 0!==t&&null!==t){if(void 0===r||r.length<1||r.length>2)throw new e.Error("split filter expects 1 or 2 argument");if(e.lib.is("String",t)){var n=r[0],o=r[1],i=t.split(n);if(void 0===o)return i;if(o<0)return t.split(n,i.length+o);var s=[];if(""==n)for(;i.length>0;){for(var a="",p=0;p<o&&i.length>0;p++)a+=i.shift();s.push(a)}else{for(p=0;p<o-1&&i.length>0;p++)s.push(i.shift());i.length>0&&s.push(i.join(n))}return s}throw new e.Error("split filter expects value to be a string")}},last:function(t){var r;return e.lib.is("Object",t)?t[(r=void 0===t._keys?Object.keys(t):t._keys)[r.length-1]]:t[t.length-1]},raw:function(t){return e.Markup(t)},batch:function(t,r){var n,o,i,s=r.shift(),a=r.shift();if(!e.lib.is("Array",t))throw new e.Error("batch filter expects items to be an array");if(!e.lib.is("Number",s))throw new e.Error("batch filter expects size to be a number");if(s=Math.ceil(s),n=e.lib.chunkArray(t,s),a&&t.length%s!=0){for(i=s-(o=n.pop()).length;i--;)o.push(a);n.push(o)}return n},round:function(t,r){var n=(r=r||[]).length>0?r[0]:0,o=r.length>1?r[1]:"common";if(t=parseFloat(t),n&&!e.lib.is("Number",n))throw new e.Error("round filter expects precision to be a number");if("common"===o)return e.lib.round(t,n);if(!e.lib.is("Function",Math[o]))throw new e.Error("round filter expects method to be 'floor', 'ceil', or 'common'");return Math[o](t*Math.pow(10,n))/Math.pow(10,n)}},e.filter=function(t,r,n){if(!e.filters[t])throw"Unable to find filter "+t;return e.filters[t].call(this,r,n)},e.filter.extend=function(t,r){e.filters[t]=r},e}},function(e,t){e.exports=function(e){"use strict";e.expression.operator={leftToRight:"leftToRight",rightToLeft:"rightToLeft"};var t=function(e,t){if(void 0===t||null===t)return null;if(void 0!==t.indexOf)return e===t||""!==e&&t.indexOf(e)>-1;var r;for(r in t)if(t.hasOwnProperty(r)&&t[r]===e)return!0;return!1};return e.expression.operator.lookup=function(t,r){switch(t){case"..":r.precidence=20,r.associativity=e.expression.operator.leftToRight;break;case",":r.precidence=18,r.associativity=e.expression.operator.leftToRight;break;case"?:":case"?":case":":r.precidence=16,r.associativity=e.expression.operator.rightToLeft;break;case"or":r.precidence=14,r.associativity=e.expression.operator.leftToRight;break;case"and":r.precidence=13,r.associativity=e.expression.operator.leftToRight;break;case"b-or":r.precidence=12,r.associativity=e.expression.operator.leftToRight;break;case"b-xor":r.precidence=11,r.associativity=e.expression.operator.leftToRight;break;case"b-and":r.precidence=10,r.associativity=e.expression.operator.leftToRight;break;case"==":case"!=":r.precidence=9,r.associativity=e.expression.operator.leftToRight;break;case"<":case"<=":case">":case">=":case"not in":case"in":r.precidence=8,r.associativity=e.expression.operator.leftToRight;break;case"~":case"+":case"-":r.precidence=6,r.associativity=e.expression.operator.leftToRight;break;case"//":case"**":case"*":case"/":case"%":r.precidence=5,r.associativity=e.expression.operator.leftToRight;break;case"not":r.precidence=3,r.associativity=e.expression.operator.rightToLeft;break;default:throw new e.Error("Failed to lookup operator: "+t+" is an unknown operator.")}return r.operator=t,r},e.expression.operator.parse=function(r,n){var o,i,s;switch(e.log.trace("Twig.expression.operator.parse: ","Handling ",r),"?"===r&&(s=n.pop()),i=n.pop(),"not"!==r&&(o=n.pop()),"in"!==r&&"not in"!==r&&(o&&Array.isArray(o)&&(o=o.length),i&&Array.isArray(i)&&(i=i.length)),r){case":":break;case"?:":e.lib.boolval(o)?n.push(o):n.push(i);break;case"?":void 0===o&&(o=i,i=s,s=void 0),e.lib.boolval(o)?n.push(i):n.push(s);break;case"+":i=parseFloat(i),o=parseFloat(o),n.push(o+i);break;case"-":i=parseFloat(i),o=parseFloat(o),n.push(o-i);break;case"*":i=parseFloat(i),o=parseFloat(o),n.push(o*i);break;case"/":i=parseFloat(i),o=parseFloat(o),n.push(o/i);break;case"//":i=parseFloat(i),o=parseFloat(o),n.push(Math.floor(o/i));break;case"%":i=parseFloat(i),o=parseFloat(o),n.push(o%i);break;case"~":n.push((null!=o?o.toString():"")+(null!=i?i.toString():""));break;case"not":case"!":n.push(!e.lib.boolval(i));break;case"<":n.push(o<i);break;case"<=":n.push(o<=i);break;case">":n.push(o>i);break;case">=":n.push(o>=i);break;case"===":n.push(o===i);break;case"==":n.push(o==i);break;case"!==":n.push(o!==i);break;case"!=":n.push(o!=i);break;case"or":n.push(e.lib.boolval(o)||e.lib.boolval(i));break;case"b-or":n.push(o|i);break;case"b-xor":n.push(o^i);break;case"and":n.push(e.lib.boolval(o)&&e.lib.boolval(i));break;case"b-and":n.push(o&i);break;case"**":n.push(Math.pow(o,i));break;case"not in":n.push(!t(o,i));break;case"in":n.push(t(o,i));break;case"..":n.push(e.functions.range(o,i));break;default:throw new e.Error("Failed to parse operator: "+r+" is an unknown operator.")}},e}},function(e,t,r){e.exports=function(e){"use strict";function t(t,r,n){return r?e.expression.parseAsync.call(t,r,n):e.Promise.resolve(!1)}for(e.expression={},r(23)(e),e.expression.reservedWords=["true","false","null","TRUE","FALSE","NULL","_context","and","b-and","or","b-or","b-xor","in","not in","if"],e.expression.type={comma:"Twig.expression.type.comma",operator:{unary:"Twig.expression.type.operator.unary",binary:"Twig.expression.type.operator.binary"},string:"Twig.expression.type.string",bool:"Twig.expression.type.bool",slice:"Twig.expression.type.slice",array:{start:"Twig.expression.type.array.start",end:"Twig.expression.type.array.end"},object:{start:"Twig.expression.type.object.start",end:"Twig.expression.type.object.end"},parameter:{start:"Twig.expression.type.parameter.start",end:"Twig.expression.type.parameter.end"},subexpression:{start:"Twig.expression.type.subexpression.start",end:"Twig.expression.type.subexpression.end"},key:{period:"Twig.expression.type.key.period",brackets:"Twig.expression.type.key.brackets"},filter:"Twig.expression.type.filter",_function:"Twig.expression.type._function",variable:"Twig.expression.type.variable",number:"Twig.expression.type.number",_null:"Twig.expression.type.null",context:"Twig.expression.type.context",test:"Twig.expression.type.test"},e.expression.set={operations:[e.expression.type.filter,e.expression.type.operator.unary,e.expression.type.operator.binary,e.expression.type.array.end,e.expression.type.object.end,e.expression.type.parameter.end,e.expression.type.subexpression.end,e.expression.type.comma,e.expression.type.test],expressions:[e.expression.type._function,e.expression.type.bool,e.expression.type.string,e.expression.type.variable,e.expression.type.number,e.expression.type._null,e.expression.type.context,e.expression.type.parameter.start,e.expression.type.array.start,e.expression.type.object.start,e.expression.type.subexpression.start,e.expression.type.operator.unary]},e.expression.set.operations_extended=e.expression.set.operations.concat([e.expression.type.key.period,e.expression.type.key.brackets,e.expression.type.slice]),e.expression.fn={compile:{push:function(e,t,r){r.push(e)},push_both:function(e,t,r){r.push(e),t.push(e)}},parse:{push:function(e,t,r){t.push(e)},push_value:function(e,t,r){t.push(e.value)}}},e.expression.definitions=[{type:e.expression.type.test,regex:/^is\s+(not)?\s*([a-zA-Z_][a-zA-Z0-9_]*(\s?as)?)/,next:e.expression.set.operations.concat([e.expression.type.parameter.start]),compile:function(e,t,r){e.filter=e.match[2],e.modifier=e.match[1],delete e.match,delete e.value,r.push(e)},parse:function(r,n,o){var i=n.pop();return t(this,r.params,o).then(function(t){var o=e.test(r.filter,i,t);"not"==r.modifier?n.push(!o):n.push(o)})}},{type:e.expression.type.comma,regex:/^,/,next:e.expression.set.expressions.concat([e.expression.type.array.end,e.expression.type.object.end]),compile:function(t,r,n){var o,i=r.length-1;for(delete t.match,delete t.value;i>=0;i--){if((o=r.pop()).type===e.expression.type.object.start||o.type===e.expression.type.parameter.start||o.type===e.expression.type.array.start){r.push(o);break}n.push(o)}n.push(t)}},{type:e.expression.type.number,regex:/^\-?\d+(\.\d+)?/,next:e.expression.set.operations,compile:function(e,t,r){e.value=Number(e.value),r.push(e)},parse:e.expression.fn.parse.push_value},{type:e.expression.type.operator.binary,regex:/(^\?\:|^(b\-and)|^(b\-or)|^(b\-xor)|^[\+\-~%\?]|^[\:](?!\d\])|^[!=]==?|^[!<>]=?|^\*\*?|^\/\/?|^(and)[\(|\s+]|^(or)[\(|\s+]|^(in)[\(|\s+]|^(not in)[\(|\s+]|^\.\.)/,next:e.expression.set.expressions,transform:function(e,t){switch(e[0]){case"and(":case"or(":case"in(":case"not in(":return t[t.length-1].value=e[2],e[0];default:return""}},compile:function(t,r,n){delete t.match,t.value=t.value.trim();var o=t.value,i=e.expression.operator.lookup(o,t);for(e.log.trace("Twig.expression.compile: ","Operator: ",i," from ",o);r.length>0&&(r[r.length-1].type==e.expression.type.operator.unary||r[r.length-1].type==e.expression.type.operator.binary)&&(i.associativity===e.expression.operator.leftToRight&&i.precidence>=r[r.length-1].precidence||i.associativity===e.expression.operator.rightToLeft&&i.precidence>r[r.length-1].precidence);){var s=r.pop();n.push(s)}if(":"===o){if(!r[r.length-1]||"?"!==r[r.length-1].value){var a=n.pop();if(a.type===e.expression.type.string||a.type===e.expression.type.variable)t.key=a.value;else if(a.type===e.expression.type.number)t.key=a.value.toString();else{if(!a.expression||a.type!==e.expression.type.parameter.end&&a.type!=e.expression.type.subexpression.end)throw new e.Error("Unexpected value before ':' of "+a.type+" = "+a.value);t.params=a.params}return void n.push(t)}}else r.push(i)},parse:function(t,r,n){if(t.key)r.push(t);else{if(t.params)return e.expression.parseAsync.call(this,t.params,n).then(function(e){t.key=e,r.push(t),n.loop||delete t.params});e.expression.operator.parse(t.value,r)}}},{type:e.expression.type.operator.unary,regex:/(^not\s+)/,next:e.expression.set.expressions,compile:function(t,r,n){delete t.match,t.value=t.value.trim();var o=t.value,i=e.expression.operator.lookup(o,t);for(e.log.trace("Twig.expression.compile: ","Operator: ",i," from ",o);r.length>0&&(r[r.length-1].type==e.expression.type.operator.unary||r[r.length-1].type==e.expression.type.operator.binary)&&(i.associativity===e.expression.operator.leftToRight&&i.precidence>=r[r.length-1].precidence||i.associativity===e.expression.operator.rightToLeft&&i.precidence>r[r.length-1].precidence);){var s=r.pop();n.push(s)}r.push(i)},parse:function(t,r,n){e.expression.operator.parse(t.value,r)}},{type:e.expression.type.string,regex:/^(["'])(?:(?=(\\?))\2[\s\S])*?\1/,next:e.expression.set.operations_extended,compile:function(t,r,n){var o=t.value;delete t.match,o='"'===o.substring(0,1)?o.replace('\\"','"'):o.replace("\\'","'"),t.value=o.substring(1,o.length-1).replace(/\\n/g,"\n").replace(/\\r/g,"\r"),e.log.trace("Twig.expression.compile: ","String value: ",t.value),n.push(t)},parse:e.expression.fn.parse.push_value},{type:e.expression.type.subexpression.start,regex:/^\(/,next:e.expression.set.expressions.concat([e.expression.type.subexpression.end]),compile:function(e,t,r){e.value="(",r.push(e),t.push(e)},parse:e.expression.fn.parse.push},{type:e.expression.type.subexpression.end,regex:/^\)/,next:e.expression.set.operations_extended,validate:function(t,r){for(var n=r.length-1,o=!1,i=!1,s=0;!o&&n>=0;){var a=r[n];(o=a.type===e.expression.type.subexpression.start)&&i&&(i=!1,o=!1),a.type===e.expression.type.parameter.start?s++:a.type===e.expression.type.parameter.end?s--:a.type===e.expression.type.subexpression.end&&(i=!0),n--}return o&&0===s},compile:function(t,r,n){var o,i=t;for(o=r.pop();r.length>0&&o.type!=e.expression.type.subexpression.start;)n.push(o),o=r.pop();for(var s=[];t.type!==e.expression.type.subexpression.start;)s.unshift(t),t=n.pop();s.unshift(t);void 0===(o=r[r.length-1])||o.type!==e.expression.type._function&&o.type!==e.expression.type.filter&&o.type!==e.expression.type.test&&o.type!==e.expression.type.key.brackets?(i.expression=!0,s.pop(),s.shift(),i.params=s,n.push(i)):(i.expression=!1,o.params=s)},parse:function(t,r,n){if(t.expression)return e.expression.parseAsync.call(this,t.params,n).then(function(e){r.push(e)});throw new e.Error("Unexpected subexpression end when token is not marked as an expression")}},{type:e.expression.type.parameter.start,regex:/^\(/,next:e.expression.set.expressions.concat([e.expression.type.parameter.end]),validate:function(t,r){var n=r[r.length-1];return n&&e.indexOf(e.expression.reservedWords,n.value.trim())<0},compile:e.expression.fn.compile.push_both,parse:e.expression.fn.parse.push},{type:e.expression.type.parameter.end,regex:/^\)/,next:e.expression.set.operations_extended,compile:function(t,r,n){var o,i=t;for(o=r.pop();r.length>0&&o.type!=e.expression.type.parameter.start;)n.push(o),o=r.pop();for(var s=[];t.type!==e.expression.type.parameter.start;)s.unshift(t),t=n.pop();s.unshift(t);void 0===(t=n[n.length-1])||t.type!==e.expression.type._function&&t.type!==e.expression.type.filter&&t.type!==e.expression.type.test&&t.type!==e.expression.type.key.brackets?(i.expression=!0,s.pop(),s.shift(),i.params=s,n.push(i)):(i.expression=!1,t.params=s)},parse:function(t,r,n){var o=[],i=!1,s=null;if(t.expression)return e.expression.parseAsync.call(this,t.params,n).then(function(e){r.push(e)});for(;r.length>0;){if((s=r.pop())&&s.type&&s.type==e.expression.type.parameter.start){i=!0;break}o.unshift(s)}if(!i)throw new e.Error("Expected end of parameter set.");r.push(o)}},{type:e.expression.type.slice,regex:/^\[(\d*\:\d*)\]/,next:e.expression.set.operations_extended,compile:function(e,t,r){var n=e.match[1].split(":"),o=n[0]?parseInt(n[0]):void 0,i=n[1]?parseInt(n[1]):void 0;e.value="slice",e.params=[o,i],i||(e.params=[o]),r.push(e)},parse:function(t,r,n){var o=r.pop(),i=t.params;r.push(e.filter.call(this,t.value,o,i))}},{type:e.expression.type.array.start,regex:/^\[/,next:e.expression.set.expressions.concat([e.expression.type.array.end]),compile:e.expression.fn.compile.push_both,parse:e.expression.fn.parse.push},{type:e.expression.type.array.end,regex:/^\]/,next:e.expression.set.operations_extended,compile:function(t,r,n){for(var o,i=r.length-1;i>=0&&(o=r.pop()).type!==e.expression.type.array.start;i--)n.push(o);n.push(t)},parse:function(t,r,n){for(var o=[],i=!1,s=null;r.length>0;){if((s=r.pop()).type&&s.type==e.expression.type.array.start){i=!0;break}o.unshift(s)}if(!i)throw new e.Error("Expected end of array.");r.push(o)}},{type:e.expression.type.object.start,regex:/^\{/,next:e.expression.set.expressions.concat([e.expression.type.object.end]),compile:e.expression.fn.compile.push_both,parse:e.expression.fn.parse.push},{type:e.expression.type.object.end,regex:/^\}/,next:e.expression.set.operations_extended,compile:function(t,r,n){for(var o,i=r.length-1;i>=0&&(!(o=r.pop())||o.type!==e.expression.type.object.start);i--)n.push(o);n.push(t)},parse:function(t,r,n){for(var o={},i=!1,s=null,a=!1,p=null;r.length>0;){if((s=r.pop())&&s.type&&s.type===e.expression.type.object.start){i=!0;break}if(s&&s.type&&(s.type===e.expression.type.operator.binary||s.type===e.expression.type.operator.unary)&&s.key){if(!a)throw new e.Error("Missing value for key '"+s.key+"' in object definition.");o[s.key]=p,void 0===o._keys&&(o._keys=[]),o._keys.unshift(s.key),p=null,a=!1}else a=!0,p=s}if(!i)throw new e.Error("Unexpected end of object.");r.push(o)}},{type:e.expression.type.filter,regex:/^\|\s?([a-zA-Z_][a-zA-Z0-9_\-]*)/,next:e.expression.set.operations_extended.concat([e.expression.type.parameter.start]),compile:function(e,t,r){e.value=e.match[1],r.push(e)},parse:function(r,n,o){var i=this,s=n.pop();return t(this,r.params,o).then(function(t){return e.filter.call(i,r.value,s,t)}).then(function(e){n.push(e)})}},{type:e.expression.type._function,regex:/^([a-zA-Z_][a-zA-Z0-9_]*)\s*\(/,next:e.expression.type.parameter.start,validate:function(t,r){return t[1]&&e.indexOf(e.expression.reservedWords,t[1])<0},transform:function(e,t){return"("},compile:function(e,t,r){var n=e.match[1];e.fn=n,delete e.match,delete e.value,r.push(e)},parse:function(r,n,o){var i,s=this,a=r.fn;return t(this,r.params,o).then(function(t){if(e.functions[a])i=e.functions[a].apply(s,t);else{if("function"!=typeof o[a])throw new e.Error(a+" function does not exist and is not defined in the context");i=o[a].apply(o,t)}return i}).then(function(e){n.push(e)})}},{type:e.expression.type.variable,regex:/^[a-zA-Z_][a-zA-Z0-9_]*/,next:e.expression.set.operations_extended.concat([e.expression.type.parameter.start]),compile:e.expression.fn.compile.push,validate:function(t,r){return e.indexOf(e.expression.reservedWords,t[0])<0},parse:function(t,r,n){return e.expression.resolveAsync.call(this,n[t.value],n).then(function(e){r.push(e)})}},{type:e.expression.type.key.period,regex:/^\.([a-zA-Z0-9_]+)/,next:e.expression.set.operations_extended.concat([e.expression.type.parameter.start]),compile:function(e,t,r){e.key=e.match[1],delete e.match,delete e.value,r.push(e)},parse:function(r,n,o,i){var s,a=this,p=r.key,c=n.pop();return t(this,r.params,o).then(function(t){if(null===c||void 0===c){if(a.options.strict_variables)throw new e.Error("Can't access a key "+p+" on an null or undefined object.");s=void 0}else{var r=function(e){return e.substr(0,1).toUpperCase()+e.substr(1)};s="object"==typeof c&&p in c?c[p]:void 0!==c["get"+r(p)]?c["get"+r(p)]:void 0!==c["is"+r(p)]?c["is"+r(p)]:void 0}return e.expression.resolveAsync.call(a,s,o,t,i,c)}).then(function(e){n.push(e)})}},{type:e.expression.type.key.brackets,regex:/^\[([^\]\:]*)\]/,next:e.expression.set.operations_extended.concat([e.expression.type.parameter.start]),compile:function(t,r,n){var o=t.match[1];delete t.value,delete t.match,t.stack=e.expression.compile({value:o}).stack,n.push(t)},parse:function(r,n,o,i){var s,a,p=this,c=null;return t(this,r.params,o).then(function(t){return c=t,e.expression.parseAsync.call(p,r.stack,o)}).then(function(t){if(null===(s=n.pop())||void 0===s){if(p.options.strict_variables)throw new e.Error("Can't access a key "+t+" on an null or undefined object.");return null}return a="object"==typeof s&&t in s?s[t]:null,e.expression.resolveAsync.call(p,a,s,c,i)}).then(function(e){n.push(e)})}},{type:e.expression.type._null,regex:/^(null|NULL|none|NONE)/,next:e.expression.set.operations,compile:function(e,t,r){delete e.match,e.value=null,r.push(e)},parse:e.expression.fn.parse.push_value},{type:e.expression.type.context,regex:/^_context/,next:e.expression.set.operations_extended.concat([e.expression.type.parameter.start]),compile:e.expression.fn.compile.push,parse:function(e,t,r){t.push(r)}},{type:e.expression.type.bool,regex:/^(true|TRUE|false|FALSE)/,next:e.expression.set.operations,compile:function(e,t,r){e.value="true"===e.match[0].toLowerCase(),delete e.match,r.push(e)},parse:e.expression.fn.parse.push_value}],e.expression.resolveAsync=function(t,r,n,o,i){if("function"!=typeof t)return e.Promise.resolve(t);var s=e.Promise.resolve(n);if(o&&o.type===e.expression.type.parameter.end){s=s.then(function(){return o.params&&e.expression.parseAsync.call(this,o.params,r,!0)}).then(function(e){return o.cleanup=!0,e})}return s.then(function(e){return t.apply(i||r,e||[])})},e.expression.resolve=function(t,r,n,o,i){return e.async.potentiallyAsync(this,!1,function(){return e.expression.resolveAsync.call(this,t,r,n,o,i)})},e.expression.handler={},e.expression.extendType=function(t){e.expression.type[t]="Twig.expression.type."+t},e.expression.extend=function(t){if(!t.type)throw new e.Error("Unable to extend logic definition. No type provided for "+t);e.expression.handler[t.type]=t};e.expression.definitions.length>0;)e.expression.extend(e.expression.definitions.shift());return e.expression.tokenize=function(t){var r,n,o,i,s,a,p=[],c=0,l=null,u=[];for(a=function(){for(var t=arguments.length-2,n=new Array(t);t-- >0;)n[t]=arguments[t];if(e.log.trace("Twig.expression.tokenize","Matched a ",r," regular expression of ",n),l&&e.indexOf(l,r)<0)return u.push(r+" cannot follow a "+p[p.length-1].type+" at template:"+c+" near '"+n[0].substring(0,20)+"...'"),n[0];var o=e.expression.handler[r];return o.validate&&!o.validate(n,p)?n[0]:(u=[],p.push({type:r,value:n[0],match:n}),s=!0,l=i,c+=n[0].length,o.transform?o.transform(n,p):"")},e.log.debug("Twig.expression.tokenize","Tokenizing expression ",t);t.length>0;){for(r in t=t.trim(),e.expression.handler){if(i=e.expression.handler[r].next,n=e.expression.handler[r].regex,e.log.trace("Checking type ",r," on ",t),s=!1,e.lib.isArray(n))for(o=n.length;o-- >0;)t=t.replace(n[o],a);else t=t.replace(n,a);if(s)break}if(!s)throw u.length>0?new e.Error(u.join(" OR ")):new e.Error("Unable to parse '"+t+"' at template position"+c)}return e.log.trace("Twig.expression.tokenize","Tokenized to ",p),p},e.expression.compile=function(t){var r=t.value,n=e.expression.tokenize(r),o=null,i=[],s=[],a=null;for(e.log.trace("Twig.expression.compile: ","Compiling ",r);n.length>0;)o=n.shift(),a=e.expression.handler[o.type],e.log.trace("Twig.expression.compile: ","Compiling ",o),a.compile&&a.compile(o,s,i),e.log.trace("Twig.expression.compile: ","Stack is",s),e.log.trace("Twig.expression.compile: ","Output is",i);for(;s.length>0;)i.push(s.pop());return e.log.trace("Twig.expression.compile: ","Final output is",i),t.stack=i,delete t.value,t},e.expression.parse=function(t,r,n,o){var i=this;e.lib.isArray(t)||(t=[t]);var s=[],a=[],p=e.expression.type.operator.binary;return e.async.potentiallyAsync(this,o,function(){return e.async.forEach(t,function(n,o){var c,l=null,u=null;if(!n.cleanup)return t.length>o+1&&(u=t[o+1]),(l=e.expression.handler[n.type]).parse&&(c=l.parse.call(i,n,s,r,u)),n.type===p&&r.loop&&a.push(n),c}).then(function(){for(var e=a.length,t=null;e-- >0;)(t=a[e]).params&&t.key&&delete t.key;if(n){var r=s.splice(0);s.push(r)}return s.pop()})})},e}},function(e,t){e.exports=function(e){return e.compiler={module:{}},e.compiler.compile=function(t,r){var n,o=JSON.stringify(t.tokens),i=t.id;if(r.module){if(void 0===e.compiler.module[r.module])throw new e.Error("Unable to find module type "+r.module);n=e.compiler.module[r.module](i,o,r.twig)}else n=e.compiler.wrap(i,o);return n},e.compiler.module={amd:function(t,r,n){return'define(["'+n+'"], function (Twig) {\n\tvar twig, templates;\ntwig = Twig.twig;\ntemplates = '+e.compiler.wrap(t,r)+"\n\treturn templates;\n});"},node:function(t,r){return'var twig = require("twig").twig;\nexports.template = '+e.compiler.wrap(t,r)},cjs2:function(t,r,n){return'module.declare([{ twig: "'+n+'" }], function (require, exports, module) {\n\tvar twig = require("twig").twig;\n\texports.template = '+e.compiler.wrap(t,r)+"\n});"}},e.compiler.wrap=function(e,t){return'twig({id:"'+e.replace('"','\\"')+'", data:'+t+", precompiled: true});\n"},e}},function(e,t){e.exports=function(e){"use strict";function t(t,r){if(t.options.rethrow)throw"string"==typeof r&&(r=new e.Error(r)),"TwigException"!=r.type||r.file||(r.file=t.id),r;if(e.log.error("Error parsing twig template "+t.id+": "),r.stack?e.log.error(r.stack):e.log.error(r.toString()),e.debug)return r.toString()}return e.trace=!1,e.debug=!1,e.cache=!0,e.noop=function(){},e.placeholders={parent:"{{|PARENT|}}"},e.hasIndexOf=Array.prototype.hasOwnProperty("indexOf"),e.indexOf=function(t,r){if(e.hasIndexOf)return t.indexOf(r);if(void 0===t||null===t)throw new TypeError;var n=Object(t),o=n.length>>>0;if(0===o)return-1;var i=0;if(arguments.length>0&&((i=Number(arguments[1]))!=i?i=0:0!==i&&i!==1/0&&i!==-1/0&&(i=(i>0||-1)*Math.floor(Math.abs(i)))),i>=o)return-1;for(var s=i>=0?i:Math.max(o-Math.abs(i),0);s<o;s++)if(s in n&&n[s]===r)return s;return t==r?0:-1},e.forEach=function(e,t,r){if(Array.prototype.forEach)return e.forEach(t,r);var n,o;if(null==e)throw new TypeError(" this is null or not defined");var i=Object(e),s=i.length>>>0;if("[object Function]"!={}.toString.call(t))throw new TypeError(t+" is not a function");for(r&&(n=r),o=0;o<s;){var a;o in i&&(a=i[o],t.call(n,a,o,i)),o++}},e.merge=function(t,r,n){return e.forEach(Object.keys(r),function(e){(!n||e in t)&&(t[e]=r[e])}),t},e.attempt=function(e,t){try{return e()}catch(e){return t(e)}},e.Error=function(e,t){this.message=e,this.name="TwigException",this.type="TwigException",this.file=t},e.Error.prototype.toString=function(){return this.name+": "+this.message},e.log={trace:function(){e.trace&&console&&console.log(Array.prototype.slice.call(arguments))},debug:function(){e.debug&&console&&console.log(Array.prototype.slice.call(arguments))}},"undefined"!=typeof console?void 0!==console.error?e.log.error=function(){console.error.apply(console,arguments)}:void 0!==console.log&&(e.log.error=function(){console.log.apply(console,arguments)}):e.log.error=function(){},e.ChildContext=function(t){return e.lib.copy(t)},e.token={},e.token.type={output:"output",logic:"logic",comment:"comment",raw:"raw",output_whitespace_pre:"output_whitespace_pre",output_whitespace_post:"output_whitespace_post",output_whitespace_both:"output_whitespace_both",logic_whitespace_pre:"logic_whitespace_pre",logic_whitespace_post:"logic_whitespace_post",logic_whitespace_both:"logic_whitespace_both"},e.token.definitions=[{type:e.token.type.raw,open:"{% raw %}",close:"{% endraw %}"},{type:e.token.type.raw,open:"{% verbatim %}",close:"{% endverbatim %}"},{type:e.token.type.output_whitespace_pre,open:"{{-",close:"}}"},{type:e.token.type.output_whitespace_post,open:"{{",close:"-}}"},{type:e.token.type.output_whitespace_both,open:"{{-",close:"-}}"},{type:e.token.type.logic_whitespace_pre,open:"{%-",close:"%}"},{type:e.token.type.logic_whitespace_post,open:"{%",close:"-%}"},{type:e.token.type.logic_whitespace_both,open:"{%-",close:"-%}"},{type:e.token.type.output,open:"{{",close:"}}"},{type:e.token.type.logic,open:"{%",close:"%}"},{type:e.token.type.comment,open:"{#",close:"#}"}],e.token.strings=['"',"'"],e.token.findStart=function(t){var r,n,o,i,s={position:null,def:null},a=null,p=e.token.definitions.length;for(r=0;r<p;r++)n=e.token.definitions[r],o=t.indexOf(n.open),i=t.indexOf(n.close),e.log.trace("Twig.token.findStart: ","Searching for ",n.open," found at ",o),o>=0&&n.open.length!==n.close.length&&i<0||(o>=0&&(null===s.position||o<s.position)?(s.position=o,s.def=n,a=i):o>=0&&null!==s.position&&o===s.position&&(n.open.length>s.def.open.length?(s.position=o,s.def=n,a=i):n.open.length===s.def.open.length&&(n.close.length,s.def.close.length,i>=0&&i<a&&(s.position=o,s.def=n,a=i))));return s},e.token.findEnd=function(t,r,n){for(var o,i,s=null,a=!1,p=0,c=null,l=null,u=null,f=null,h=null,y=null;!a;){if(c=null,l=null,!((u=t.indexOf(r.close,p))>=0))throw new e.Error("Unable to find closing bracket '"+r.close+"' opened near template position "+n);if(s=u,a=!0,r.type===e.token.type.comment)break;if(r.type===e.token.type.raw)break;for(i=e.token.strings.length,o=0;o<i;o+=1)(h=t.indexOf(e.token.strings[o],p))>0&&h<u&&(null===c||h<c)&&(c=h,l=e.token.strings[o]);if(null!==c)for(f=c+1,s=null,a=!1;;){if((y=t.indexOf(l,f))<0)throw"Unclosed string in template";if("\\"!==t.substr(y-1,1)){p=y+1;break}f=y+1}}return s},e.tokenize=function(t){for(var r=[],n=0,o=null,i=null;t.length>0;)if(o=e.token.findStart(t),e.log.trace("Twig.tokenize: ","Found token: ",o),null!==o.position){if(o.position>0&&r.push({type:e.token.type.raw,value:t.substring(0,o.position)}),t=t.substr(o.position+o.def.open.length),n+=o.position+o.def.open.length,i=e.token.findEnd(t,o.def,n),e.log.trace("Twig.tokenize: ","Token ends at ",i),r.push({type:o.def.type,value:t.substring(0,i).trim()}),"\n"===t.substr(i+o.def.close.length,1))switch(o.def.type){case"logic_whitespace_pre":case"logic_whitespace_post":case"logic_whitespace_both":case"logic":i+=1}t=t.substr(i+o.def.close.length),n+=i+o.def.close.length}else r.push({type:e.token.type.raw,value:t}),t="";return r},e.compile=function(t){var r=this;return e.attempt(function(){for(var n=[],o=[],i=[],s=null,a=null,p=null,c=null,l=null,u=null,f=null,h=null,y=null,d=null,g=null,m=null,x=function(t){e.expression.compile.call(r,t),o.length>0?i.push(t):n.push(t)},v=function(t){if(a=e.logic.compile.call(r,t),d=a.type,g=e.logic.handler[d].open,m=e.logic.handler[d].next,e.log.trace("Twig.compile: ","Compiled logic token to ",a," next is: ",m," open is : ",g),void 0!==g&&!g){if(c=o.pop(),f=e.logic.handler[c.type],e.indexOf(f.next,d)<0)throw new Error(d+" not expected after a "+c.type);c.output=c.output||[],c.output=c.output.concat(i),i=[],y={type:e.token.type.logic,token:c},o.length>0?i.push(y):n.push(y)}void 0!==m&&m.length>0?(e.log.trace("Twig.compile: ","Pushing ",a," to logic stack."),o.length>0&&((c=o.pop()).output=c.output||[],c.output=c.output.concat(i),o.push(c),i=[]),o.push(a)):void 0!==g&&g&&(y={type:e.token.type.logic,token:a},o.length>0?i.push(y):n.push(y))};t.length>0;){switch(s=t.shift(),l=n[n.length-1],u=i[i.length-1],h=t[0],e.log.trace("Compiling token ",s),s.type){case e.token.type.raw:o.length>0?i.push(s):n.push(s);break;case e.token.type.logic:v.call(r,s);break;case e.token.type.comment:break;case e.token.type.output:x.call(r,s);break;case e.token.type.logic_whitespace_pre:case e.token.type.logic_whitespace_post:case e.token.type.logic_whitespace_both:case e.token.type.output_whitespace_pre:case e.token.type.output_whitespace_post:case e.token.type.output_whitespace_both:switch(s.type!==e.token.type.output_whitespace_post&&s.type!==e.token.type.logic_whitespace_post&&(l&&l.type===e.token.type.raw&&(n.pop(),null===l.value.match(/^\s*$/)&&(l.value=l.value.trim(),n.push(l))),u&&u.type===e.token.type.raw&&(i.pop(),null===u.value.match(/^\s*$/)&&(u.value=u.value.trim(),i.push(u)))),s.type){case e.token.type.output_whitespace_pre:case e.token.type.output_whitespace_post:case e.token.type.output_whitespace_both:x.call(r,s);break;case e.token.type.logic_whitespace_pre:case e.token.type.logic_whitespace_post:case e.token.type.logic_whitespace_both:v.call(r,s)}s.type!==e.token.type.output_whitespace_pre&&s.type!==e.token.type.logic_whitespace_pre&&h&&h.type===e.token.type.raw&&(t.shift(),null===h.value.match(/^\s*$/)&&(h.value=h.value.trim(),t.unshift(h)))}e.log.trace("Twig.compile: "," Output: ",n," Logic Stack: ",o," Pending Output: ",i)}if(o.length>0)throw p=o.pop(),new Error("Unable to find an end tag for "+p.type+", expecting one of "+p.next);return n},function(t){if(r.options.rethrow)throw"TwigException"!=t.type||t.file||(t.file=r.id),t;e.log.error("Error compiling twig template "+r.id+": "),t.stack?e.log.error(t.stack):e.log.error(t.toString())})},e.parse=function(r,n,o){var i,s=this,a=[],p=null,c=!0,l=!0;function u(e){a.push(e)}function f(e){void 0!==e.chain&&(l=e.chain),void 0!==e.context&&(n=e.context),void 0!==e.output&&a.push(e.output)}if(i=e.async.forEach(r,function(t){switch(e.log.debug("Twig.parse: ","Parsing token: ",t),t.type){case e.token.type.raw:a.push(e.filters.raw(t.value));break;case e.token.type.logic:return e.logic.parseAsync.call(s,t.token,n,l).then(f);case e.token.type.comment:break;case e.token.type.output_whitespace_pre:case e.token.type.output_whitespace_post:case e.token.type.output_whitespace_both:case e.token.type.output:return e.log.debug("Twig.parse: ","Output token: ",t.stack),e.expression.parseAsync.call(s,t.stack,n).then(u)}}).then(function(){return a=e.output.call(s,a),c=!1,a}).catch(function(e){o&&t(s,e),p=e}),o)return i;if(null!==p)return t(this,p);if(c)throw new e.Error("You are using Twig.js in sync mode in combination with async extensions.");return a},e.prepare=function(t){var r,n;return e.log.debug("Twig.prepare: ","Tokenizing ",t),n=e.tokenize.call(this,t),e.log.debug("Twig.prepare: ","Compiling ",n),r=e.compile.call(this,n),e.log.debug("Twig.prepare: ","Compiled ",r),r},e.output=function(t){var r=this.options.autoescape;if(!r)return t.join("");var n="string"==typeof r?r:"html",o=0,i=t.length,s="",a=new Array(i);for(o=0;o<i;o++)(s=t[o])&&!0!==s.twig_markup&&s.twig_markup!=n&&(s=e.filters.escape(s,[n])),a[o]=s;return a.length<1?"":e.Markup(a.join(""),!0)},e.Templates={loaders:{},parsers:{},registry:{}},e.validateId=function(t){if("prototype"===t)throw new e.Error(t+" is not a valid twig identifier");if(e.cache&&e.Templates.registry.hasOwnProperty(t))throw new e.Error("There is already a template with the ID "+t);return!0},e.Templates.registerLoader=function(t,r,n){if("function"!=typeof r)throw new e.Error("Unable to add loader for "+t+": Invalid function reference given.");n&&(r=r.bind(n)),this.loaders[t]=r},e.Templates.unRegisterLoader=function(e){this.isRegisteredLoader(e)&&delete this.loaders[e]},e.Templates.isRegisteredLoader=function(e){return this.loaders.hasOwnProperty(e)},e.Templates.registerParser=function(t,r,n){if("function"!=typeof r)throw new e.Error("Unable to add parser for "+t+": Invalid function regerence given.");n&&(r=r.bind(n)),this.parsers[t]=r},e.Templates.unRegisterParser=function(e){this.isRegisteredParser(e)&&delete this.parsers[e]},e.Templates.isRegisteredParser=function(e){return this.parsers.hasOwnProperty(e)},e.Templates.save=function(t){if(void 0===t.id)throw new e.Error("Unable to save template with no id");e.Templates.registry[t.id]=t},e.Templates.load=function(t){return e.Templates.registry.hasOwnProperty(t)?e.Templates.registry[t]:null},e.Templates.loadRemote=function(t,r,n,o){var i=void 0===r.id?t:r.id,s=e.Templates.registry[i];return e.cache&&void 0!==s?("function"==typeof n&&n(s),s):(r.parser=r.parser||"twig",r.id=i,void 0===r.async&&(r.async=!0),(this.loaders[r.method]||this.loaders.fs).call(this,t,r,n,o))},e.Template=function(t){var r,n,o,i=t.data,s=t.id,a=t.blocks,p=t.macros||{},c=t.base,l=t.path,u=t.url,f=t.name,h=t.method,y=t.options;this.id=s,this.method=h,this.base=c,this.path=l,this.url=u,this.name=f,this.macros=p,this.options=y,this.reset(a),r="String",n=i,o=Object.prototype.toString.call(n).slice(8,-1),this.tokens=void 0!==n&&null!==n&&o===r?e.prepare.call(this,i):i,void 0!==s&&e.Templates.save(this)},e.Template.prototype.reset=function(t){e.log.debug("Twig.Template.reset","Reseting template "+this.id),this.blocks={},this.importedBlocks=[],this.originalBlockTokens={},this.child={blocks:t||{}},this.extend=null,this.parseStack=[]},e.Template.prototype.render=function(t,r,n){var o=this;return this.context=t||{},this.reset(),r&&r.blocks&&(this.blocks=r.blocks),r&&r.macros&&(this.macros=r.macros),e.async.potentiallyAsync(this,n,function(){return e.parseAsync.call(this,this.tokens,this.context).then(function(t){var n,i;return o.extend?(o.options.allowInlineIncludes&&(n=e.Templates.load(o.extend))&&(n.options=o.options),n||(i=e.path.parsePath(o,o.extend),n=e.Templates.loadRemote(i,{method:o.getLoaderMethod(),base:o.base,async:!1,id:i,options:o.options})),o.parent=n,o.parent.renderAsync(o.context,{blocks:o.blocks})):r?"blocks"==r.output?o.blocks:"macros"==r.output?o.macros:t:t})})},e.Template.prototype.importFile=function(t){var r,n;if(!this.url&&this.options.allowInlineIncludes){if(t=this.path?e.path.parsePath(this,t):t,!(n=e.Templates.load(t))&&!(n=e.Templates.loadRemote(r,{id:t,method:this.getLoaderMethod(),async:!1,path:t,options:this.options})))throw new e.Error("Unable to find the template "+t);return n.options=this.options,n}return r=e.path.parsePath(this,t),n=e.Templates.loadRemote(r,{method:this.getLoaderMethod(),base:this.base,async:!1,options:this.options,id:r})},e.Template.prototype.importBlocks=function(t,r){var n=this.importFile(t),o=this.context,i=this;r=r||!1,n.render(o),e.forEach(Object.keys(n.blocks),function(e){(r||void 0===i.blocks[e])&&(i.blocks[e]=n.blocks[e],i.importedBlocks.push(e))})},e.Template.prototype.importMacros=function(t){var r=e.path.parsePath(this,t);return e.Templates.loadRemote(r,{method:this.getLoaderMethod(),async:!1,id:r})},e.Template.prototype.getLoaderMethod=function(){return this.path?"fs":this.url?"ajax":this.method||"fs"},e.Template.prototype.compile=function(t){return e.compiler.compile(this,t)},e.Markup=function(e,t){if("string"!=typeof e||e.length<1)return e;var r=new String(e);return r.twig_markup=void 0===t||t,r},e}},function(e,t,r){
+/**
+ * Twig.js
+ *
+ * @copyright 2011-2016 John Roepke and the Twig.js Contributors
+ * @license   Available under the BSD 2-Clause License
+ * @link      https://github.com/twigjs/twig.js
+ */
+var n={VERSION:"1.12.0"};r(26)(n),r(25)(n),r(24)(n),r(22)(n),r(21)(n),r(20)(n),r(11)(n),r(10)(n),r(8)(n),r(7)(n),r(6)(n),r(5)(n),r(4)(n),r(3)(n),r(2)(n),e.exports=n.exports}])});
+/* WEBPACK VAR INJECTION */}.call(this, __webpack_require__(/*! ./../webpack/buildin/global.js */ "./node_modules/webpack/buildin/global.js"), "/"))
 
 /***/ }),
 
@@ -21915,6 +14078,8 @@ module.exports = function(dependencies, opts) {
       chromeShim.shimOnTrack(window);
       chromeShim.shimAddTrackRemoveTrack(window);
       chromeShim.shimGetSendersWithDtmf(window);
+      chromeShim.shimSenderReceiverGetStats(window);
+      chromeShim.fixNegotiationNeeded(window);
 
       commonShim.shimRTCIceCandidate(window);
       commonShim.shimMaxMessageSize(window);
@@ -21936,6 +14101,9 @@ module.exports = function(dependencies, opts) {
       firefoxShim.shimPeerConnection(window);
       firefoxShim.shimOnTrack(window);
       firefoxShim.shimRemoveStream(window);
+      firefoxShim.shimSenderGetStats(window);
+      firefoxShim.shimReceiverGetStats(window);
+      firefoxShim.shimRTCDataChannel(window);
 
       commonShim.shimRTCIceCandidate(window);
       commonShim.shimMaxMessageSize(window);
@@ -21971,12 +14139,12 @@ module.exports = function(dependencies, opts) {
       commonShim.shimCreateObjectURL(window);
 
       safariShim.shimRTCIceServerUrls(window);
+      safariShim.shimCreateOfferLegacy(window);
       safariShim.shimCallbacksAPI(window);
       safariShim.shimLocalStreamsAPI(window);
       safariShim.shimRemoteStreamsAPI(window);
       safariShim.shimTrackEventTransceiver(window);
       safariShim.shimGetUserMedia(window);
-      safariShim.shimCreateOfferLegacy(window);
 
       commonShim.shimRTCIceCandidate(window);
       commonShim.shimMaxMessageSize(window);
@@ -22014,6 +14182,47 @@ module.exports = function(dependencies, opts) {
 var utils = __webpack_require__(/*! ../utils.js */ "./node_modules/webrtc-adapter/src/js/utils.js");
 var logging = utils.log;
 
+/* iterates the stats graph recursively. */
+function walkStats(stats, base, resultSet) {
+  if (!base || resultSet.has(base.id)) {
+    return;
+  }
+  resultSet.set(base.id, base);
+  Object.keys(base).forEach(function(name) {
+    if (name.endsWith('Id')) {
+      walkStats(stats, stats.get(base[name]), resultSet);
+    } else if (name.endsWith('Ids')) {
+      base[name].forEach(function(id) {
+        walkStats(stats, stats.get(id), resultSet);
+      });
+    }
+  });
+}
+
+/* filter getStats for a sender/receiver track. */
+function filterStats(result, track, outbound) {
+  var streamStatsType = outbound ? 'outbound-rtp' : 'inbound-rtp';
+  var filteredResult = new Map();
+  if (track === null) {
+    return filteredResult;
+  }
+  var trackStats = [];
+  result.forEach(function(value) {
+    if (value.type === 'track' &&
+        value.trackIdentifier === track.id) {
+      trackStats.push(value);
+    }
+  });
+  trackStats.forEach(function(trackStat) {
+    result.forEach(function(stats) {
+      if (stats.type === streamStatsType && stats.trackId === trackStat.id) {
+        walkStats(result, stats, filteredResult);
+      }
+    });
+  });
+  return filteredResult;
+}
+
 module.exports = {
   shimGetUserMedia: __webpack_require__(/*! ./getusermedia */ "./node_modules/webrtc-adapter/src/js/chrome/getusermedia.js"),
   shimMediaStream: function(window) {
@@ -22032,7 +14241,9 @@ module.exports = {
             this.removeEventListener('track', this._ontrack);
           }
           this.addEventListener('track', this._ontrack = f);
-        }
+        },
+        enumerable: true,
+        configurable: true
       });
       var origSetRemoteDescription =
           window.RTCPeerConnection.prototype.setRemoteDescription;
@@ -22192,6 +14403,122 @@ module.exports = {
         }
       });
     }
+  },
+
+  shimSenderReceiverGetStats: function(window) {
+    if (!(typeof window === 'object' && window.RTCPeerConnection &&
+        window.RTCRtpSender && window.RTCRtpReceiver)) {
+      return;
+    }
+
+    // shim sender stats.
+    if (!('getStats' in window.RTCRtpSender.prototype)) {
+      var origGetSenders = window.RTCPeerConnection.prototype.getSenders;
+      if (origGetSenders) {
+        window.RTCPeerConnection.prototype.getSenders = function() {
+          var pc = this;
+          var senders = origGetSenders.apply(pc, []);
+          senders.forEach(function(sender) {
+            sender._pc = pc;
+          });
+          return senders;
+        };
+      }
+
+      var origAddTrack = window.RTCPeerConnection.prototype.addTrack;
+      if (origAddTrack) {
+        window.RTCPeerConnection.prototype.addTrack = function() {
+          var sender = origAddTrack.apply(this, arguments);
+          sender._pc = this;
+          return sender;
+        };
+      }
+      window.RTCRtpSender.prototype.getStats = function() {
+        var sender = this;
+        return this._pc.getStats().then(function(result) {
+          /* Note: this will include stats of all senders that
+           *   send a track with the same id as sender.track as
+           *   it is not possible to identify the RTCRtpSender.
+           */
+          return filterStats(result, sender.track, true);
+        });
+      };
+    }
+
+    // shim receiver stats.
+    if (!('getStats' in window.RTCRtpReceiver.prototype)) {
+      var origGetReceivers = window.RTCPeerConnection.prototype.getReceivers;
+      if (origGetReceivers) {
+        window.RTCPeerConnection.prototype.getReceivers = function() {
+          var pc = this;
+          var receivers = origGetReceivers.apply(pc, []);
+          receivers.forEach(function(receiver) {
+            receiver._pc = pc;
+          });
+          return receivers;
+        };
+      }
+      utils.wrapPeerConnectionEvent(window, 'track', function(e) {
+        e.receiver._pc = e.srcElement;
+        return e;
+      });
+      window.RTCRtpReceiver.prototype.getStats = function() {
+        var receiver = this;
+        return this._pc.getStats().then(function(result) {
+          return filterStats(result, receiver.track, false);
+        });
+      };
+    }
+
+    if (!('getStats' in window.RTCRtpSender.prototype &&
+        'getStats' in window.RTCRtpReceiver.prototype)) {
+      return;
+    }
+
+    // shim RTCPeerConnection.getStats(track).
+    var origGetStats = window.RTCPeerConnection.prototype.getStats;
+    window.RTCPeerConnection.prototype.getStats = function() {
+      var pc = this;
+      if (arguments.length > 0 &&
+          arguments[0] instanceof window.MediaStreamTrack) {
+        var track = arguments[0];
+        var sender;
+        var receiver;
+        var err;
+        pc.getSenders().forEach(function(s) {
+          if (s.track === track) {
+            if (sender) {
+              err = true;
+            } else {
+              sender = s;
+            }
+          }
+        });
+        pc.getReceivers().forEach(function(r) {
+          if (r.track === track) {
+            if (receiver) {
+              err = true;
+            } else {
+              receiver = r;
+            }
+          }
+          return r.track === track;
+        });
+        if (err || (sender && receiver)) {
+          return Promise.reject(new DOMException(
+            'There are more than one sender or receiver for the track.',
+            'InvalidAccessError'));
+        } else if (sender) {
+          return sender.getStats();
+        } else if (receiver) {
+          return receiver.getStats();
+        }
+        return Promise.reject(new DOMException(
+          'There is no sender or receiver for the track.',
+          'InvalidAccessError'));
+      }
+      return origGetStats.apply(pc, arguments);
+    };
   },
 
   shimSourceObject: function(window) {
@@ -22744,6 +15071,42 @@ module.exports = {
       }
       return nativeAddIceCandidate.apply(this, arguments);
     };
+  },
+
+  fixNegotiationNeeded: function(window) {
+    utils.wrapPeerConnectionEvent(window, 'negotiationneeded', function(e) {
+      var pc = e.target;
+      if (pc.signalingState !== 'stable') {
+        return;
+      }
+      return e;
+    });
+  },
+
+  shimGetDisplayMedia: function(window, getSourceId) {
+    if ('getDisplayMedia' in window.navigator) {
+      return;
+    }
+    // getSourceId is a function that returns a promise resolving with
+    // the sourceId of the screen/window/tab to be shared.
+    if (typeof getSourceId !== 'function') {
+      console.error('shimGetDisplayMedia: getSourceId argument is not ' +
+          'a function');
+      return;
+    }
+    navigator.getDisplayMedia = function(constraints) {
+      return getSourceId(constraints)
+        .then(function(sourceId) {
+          constraints.video = {
+            mandatory: {
+              chromeMediaSource: 'desktop',
+              chromeMediaSourceId: sourceId,
+              maxFrameRate: constraints.video.frameRate || 3
+            }
+          };
+          return navigator.mediaDevices.getUserMedia(constraints);
+        });
+    };
   }
 };
 
@@ -22893,6 +15256,9 @@ module.exports = function(window) {
   };
 
   var shimError_ = function(e) {
+    if (browserDetails.version >= 64) {
+      return e;
+    }
     return {
       name: {
         PermissionDeniedError: 'NotAllowedError',
@@ -22908,7 +15274,7 @@ module.exports = function(window) {
         DeviceCaptureError: 'AbortError'
       }[e.name] || e.name,
       message: e.message,
-      constraint: e.constraintName,
+      constraint: e.constraint || e.constraintName,
       toString: function() {
         return this.name + (this.message && ': ') + this.message;
       }
@@ -23185,13 +15551,16 @@ module.exports = {
             // messages. Thus, supporting ~2 GiB when sending.
             canSendMaxMessageSize = 2147483637;
           }
-        } else {
+        } else if (browserDetails.version < 60) {
           // Currently, all FF >= 57 will reset the remote maximum message size
           // to the default value when a data channel is created at a later
           // stage. :(
           // See: https://bugzilla.mozilla.org/show_bug.cgi?id=1426831
           canSendMaxMessageSize =
             browserDetails.version === 57 ? 65535 : 65536;
+        } else {
+          // FF >= 60 supports sending ~2 GiB
+          canSendMaxMessageSize = 2147483637;
         }
       }
       return canSendMaxMessageSize;
@@ -23274,27 +15643,31 @@ module.exports = {
     //       message size can be reset for all data channels at a later stage.
     //       See: https://bugzilla.mozilla.org/show_bug.cgi?id=1426831
 
+    function wrapDcSend(dc, pc) {
+      var origDataChannelSend = dc.send;
+      dc.send = function() {
+        var data = arguments[0];
+        var length = data.length || data.size || data.byteLength;
+        if (dc.readyState === 'open' &&
+            pc.sctp && length > pc.sctp.maxMessageSize) {
+          throw new TypeError('Message too large (can send a maximum of ' +
+            pc.sctp.maxMessageSize + ' bytes)');
+        }
+        return origDataChannelSend.apply(dc, arguments);
+      };
+    }
     var origCreateDataChannel =
       window.RTCPeerConnection.prototype.createDataChannel;
     window.RTCPeerConnection.prototype.createDataChannel = function() {
       var pc = this;
       var dataChannel = origCreateDataChannel.apply(pc, arguments);
-      var origDataChannelSend = dataChannel.send;
-
-      // Patch 'send' method
-      dataChannel.send = function() {
-        var dc = this;
-        var data = arguments[0];
-        var length = data.length || data.size || data.byteLength;
-        if (length > pc.sctp.maxMessageSize) {
-          throw new DOMException('Message too large (can send a maximum of ' +
-            pc.sctp.maxMessageSize + ' bytes)', 'TypeError');
-        }
-        return origDataChannelSend.apply(dc, arguments);
-      };
-
+      wrapDcSend(dataChannel, pc);
       return dataChannel;
     };
+    utils.wrapPeerConnectionEvent(window, 'datachannel', function(e) {
+      wrapDcSend(e.channel, e.target);
+      return e;
+    });
   }
 };
 
@@ -23320,6 +15693,7 @@ module.exports = {
 
 
 var utils = __webpack_require__(/*! ../utils */ "./node_modules/webrtc-adapter/src/js/utils.js");
+var filterIceServers = __webpack_require__(/*! ./filtericeservers */ "./node_modules/webrtc-adapter/src/js/edge/filtericeservers.js");
 var shimRTCPeerConnection = __webpack_require__(/*! rtcpeerconnection-shim */ "./node_modules/rtcpeerconnection-shim/rtcpeerconnection.js");
 
 module.exports = {
@@ -23377,8 +15751,15 @@ module.exports = {
       window.RTCDTMFSender = window.RTCDtmfSender;
     }
 
-    window.RTCPeerConnection =
-        shimRTCPeerConnection(window, browserDetails.version);
+    var RTCPeerConnectionShim = shimRTCPeerConnection(window,
+        browserDetails.version);
+    window.RTCPeerConnection = function(config) {
+      if (config && config.iceServers) {
+        config.iceServers = filterIceServers(config.iceServers);
+      }
+      return new RTCPeerConnectionShim(config);
+    };
+    window.RTCPeerConnection.prototype = RTCPeerConnectionShim.prototype;
   },
   shimReplaceTrack: function(window) {
     // ORTC has replaceTrack -- https://github.com/w3c/ortc/issues/614
@@ -23388,6 +15769,67 @@ module.exports = {
           window.RTCRtpSender.prototype.setTrack;
     }
   }
+};
+
+
+/***/ }),
+
+/***/ "./node_modules/webrtc-adapter/src/js/edge/filtericeservers.js":
+/*!*********************************************************************!*\
+  !*** ./node_modules/webrtc-adapter/src/js/edge/filtericeservers.js ***!
+  \*********************************************************************/
+/*! no static exports found */
+/***/ (function(module, exports, __webpack_require__) {
+
+"use strict";
+/*
+ *  Copyright (c) 2018 The WebRTC project authors. All Rights Reserved.
+ *
+ *  Use of this source code is governed by a BSD-style license
+ *  that can be found in the LICENSE file in the root of the source
+ *  tree.
+ */
+ /* eslint-env node */
+
+
+var utils = __webpack_require__(/*! ../utils */ "./node_modules/webrtc-adapter/src/js/utils.js");
+// Edge does not like
+// 1) stun: filtered after 14393 unless ?transport=udp is present
+// 2) turn: that does not have all of turn:host:port?transport=udp
+// 3) turn: with ipv6 addresses
+// 4) turn: occurring muliple times
+module.exports = function(iceServers, edgeVersion) {
+  var hasTurn = false;
+  iceServers = JSON.parse(JSON.stringify(iceServers));
+  return iceServers.filter(function(server) {
+    if (server && (server.urls || server.url)) {
+      var urls = server.urls || server.url;
+      if (server.url && !server.urls) {
+        utils.deprecated('RTCIceServer.url', 'RTCIceServer.urls');
+      }
+      var isString = typeof urls === 'string';
+      if (isString) {
+        urls = [urls];
+      }
+      urls = urls.filter(function(url) {
+        var validTurn = url.indexOf('turn:') === 0 &&
+            url.indexOf('transport=udp') !== -1 &&
+            url.indexOf('turn:[') === -1 &&
+            !hasTurn;
+
+        if (validTurn) {
+          hasTurn = true;
+          return true;
+        }
+        return url.indexOf('stun:') === 0 && edgeVersion >= 14393 &&
+            url.indexOf('?transport=udp') === -1;
+      });
+
+      delete server.url;
+      server.urls = isString ? urls[0] : urls;
+      return !!urls.length;
+    }
+  });
 };
 
 
@@ -23484,7 +15926,9 @@ module.exports = {
               this.dispatchEvent(event);
             }.bind(this));
           }.bind(this));
-        }
+        },
+        enumerable: true,
+        configurable: true
       });
     }
     if (typeof window === 'object' && window.RTCTrackEvent &&
@@ -23648,6 +16092,68 @@ module.exports = {
     };
   },
 
+  shimSenderGetStats: function(window) {
+    if (!(typeof window === 'object' && window.RTCPeerConnection &&
+        window.RTCRtpSender)) {
+      return;
+    }
+    if (window.RTCRtpSender && 'getStats' in window.RTCRtpSender.prototype) {
+      return;
+    }
+    var origGetSenders = window.RTCPeerConnection.prototype.getSenders;
+    if (origGetSenders) {
+      window.RTCPeerConnection.prototype.getSenders = function() {
+        var pc = this;
+        var senders = origGetSenders.apply(pc, []);
+        senders.forEach(function(sender) {
+          sender._pc = pc;
+        });
+        return senders;
+      };
+    }
+
+    var origAddTrack = window.RTCPeerConnection.prototype.addTrack;
+    if (origAddTrack) {
+      window.RTCPeerConnection.prototype.addTrack = function() {
+        var sender = origAddTrack.apply(this, arguments);
+        sender._pc = this;
+        return sender;
+      };
+    }
+    window.RTCRtpSender.prototype.getStats = function() {
+      return this.track ? this._pc.getStats(this.track) :
+          Promise.resolve(new Map());
+    };
+  },
+
+  shimReceiverGetStats: function(window) {
+    if (!(typeof window === 'object' && window.RTCPeerConnection &&
+        window.RTCRtpSender)) {
+      return;
+    }
+    if (window.RTCRtpSender && 'getStats' in window.RTCRtpReceiver.prototype) {
+      return;
+    }
+    var origGetReceivers = window.RTCPeerConnection.prototype.getReceivers;
+    if (origGetReceivers) {
+      window.RTCPeerConnection.prototype.getReceivers = function() {
+        var pc = this;
+        var receivers = origGetReceivers.apply(pc, []);
+        receivers.forEach(function(receiver) {
+          receiver._pc = pc;
+        });
+        return receivers;
+      };
+    }
+    utils.wrapPeerConnectionEvent(window, 'track', function(e) {
+      e.receiver._pc = e.srcElement;
+      return e;
+    });
+    window.RTCRtpReceiver.prototype.getStats = function() {
+      return this._pc.getStats(this.track);
+    };
+  },
+
   shimRemoveStream: function(window) {
     if (!window.RTCPeerConnection ||
         'removeStream' in window.RTCPeerConnection.prototype) {
@@ -23661,6 +16167,36 @@ module.exports = {
           pc.removeTrack(sender);
         }
       });
+    };
+  },
+
+  shimRTCDataChannel: function(window) {
+    // rename DataChannel to RTCDataChannel (native fix in FF60):
+    // https://bugzilla.mozilla.org/show_bug.cgi?id=1173851
+    if (window.DataChannel && !window.RTCDataChannel) {
+      window.RTCDataChannel = window.DataChannel;
+    }
+  },
+
+  shimGetDisplayMedia: function(window, preferredMediaSource) {
+    if ('getDisplayMedia' in window.navigator) {
+      return;
+    }
+    navigator.getDisplayMedia = function(constraints) {
+      if (!(constraints && constraints.video)) {
+        var err = new DOMException('getDisplayMedia without video ' +
+            'constraints is undefined');
+        err.name = 'NotFoundError';
+        // from https://heycam.github.io/webidl/#idl-DOMException-error-names
+        err.code = 8;
+        return Promise.reject(err);
+      }
+      if (constraints.video === true) {
+        constraints.video = {mediaSource: preferredMediaSource};
+      } else {
+        constraints.video.mediaSource = preferredMediaSource;
+      }
+      return navigator.mediaDevices.getUserMedia(constraints);
     };
   }
 };
@@ -24001,12 +16537,17 @@ module.exports = {
           return this._onaddstream;
         },
         set: function(f) {
-          var pc = this;
           if (this._onaddstream) {
             this.removeEventListener('addstream', this._onaddstream);
-            this.removeEventListener('track', this._onaddstreampoly);
           }
           this.addEventListener('addstream', this._onaddstream = f);
+        }
+      });
+      var origSetRemoteDescription =
+          window.RTCPeerConnection.prototype.setRemoteDescription;
+      window.RTCPeerConnection.prototype.setRemoteDescription = function() {
+        var pc = this;
+        if (!this._onaddstreampoly) {
           this.addEventListener('track', this._onaddstreampoly = function(e) {
             e.streams.forEach(function(stream) {
               if (!pc._remoteStreams) {
@@ -24022,7 +16563,8 @@ module.exports = {
             });
           });
         }
-      });
+        return origSetRemoteDescription.apply(pc, arguments);
+      };
     }
   },
   shimCallbacksAPI: function(window) {
@@ -24182,7 +16724,7 @@ module.exports = {
         }
 
 
-        if (typeof offerOptions.offerToReceiveAudio !== 'undefined') {
+        if (typeof offerOptions.offerToReceiveVideo !== 'undefined') {
           // support bit values
           offerOptions.offerToReceiveVideo = !!offerOptions.offerToReceiveVideo;
         }
@@ -24244,7 +16786,8 @@ function extractVersion(uastring, expr, pos) {
 }
 
 // Wraps the peerconnection event eventNameToWrap in a function
-// which returns the modified event object.
+// which returns the modified event object (or false to prevent
+// the event).
 function wrapPeerConnectionEvent(window, eventNameToWrap, wrapper) {
   if (!window.RTCPeerConnection) {
     return;
@@ -24256,7 +16799,10 @@ function wrapPeerConnectionEvent(window, eventNameToWrap, wrapper) {
       return nativeAddEventListener.apply(this, arguments);
     }
     var wrappedCallback = function(e) {
-      cb(wrapper(e));
+      var modifiedEvent = wrapper(e);
+      if (modifiedEvent) {
+        cb(modifiedEvent);
+      }
     };
     this._eventMap = this._eventMap || {};
     this._eventMap[cb] = wrappedCallback;
@@ -24290,7 +16836,9 @@ function wrapPeerConnectionEvent(window, eventNameToWrap, wrapper) {
         this.addEventListener(eventNameToWrap,
             this['_on' + eventNameToWrap] = cb);
       }
-    }
+    },
+    enumerable: true,
+    configurable: true
   });
 }
 
@@ -24399,10 +16947,10 @@ module.exports = {
 /*!**********************!*\
   !*** ./package.json ***!
   \**********************/
-/*! exports provided: name, version, description, browser, main, scripts, keywords, repository, bugs, license, licenses, dependencies, devDependencies, author, readmeFilename, contributors, default */
+/*! exports provided: name, version, description, browser, main, private, scripts, keywords, repository, bugs, license, licenses, dependencies, devDependencies, author, readmeFilename, contributors, default */
 /***/ (function(module) {
 
-module.exports = {"name":"nodefony-stage","version":"0.1.9","description":"Client Side Nodefony web developpement","browser":"dist/stage6.js","main":"src/core.js","scripts":{"build-dev":"WEBPACK_ENV=dev webpack --verbose","build-prod":"WEBPACK_ENV=prod webpack --verbose","start":"npm start --prefix ./demo/nodefony"},"keywords":["javascript","webpack","nodefony","webrtc","sip","opensip","kamailio","webaudio"],"repository":{"type":"git","url":"git@github.com:nodefony/nodefony-stage.git"},"bugs":{"url":"https://github.com/nodefony/nodefony-stage/issues"},"license":"CECILL-B","licenses":[{"type":"CECILL-B","url":"http://www.cecill.info/licences/Licence_CeCILL-B_V1-en.html"}],"dependencies":{"ascii-table":"0.0.9","asciify":"1.3.5","babel-core":"^6.26.3","babel-preset-env":"1.6.1","jquery":"^3.3.1","opn":"^5.3.0","shortid":"2.2.8","twig":"^1.11.0","webrtc-adapter":"^6.1.5"},"devDependencies":{"assets-webpack-plugin":"3.5.1","babel-loader":"^7.1.4","babel-plugin-transform-runtime":"6.23.0","babel-polyfill":"6.26.0","babel-preset-es2015":"6.24.1","babel-register":"6.26.0","chai":"4.1.2","css-loader":"^0.28.11","exports-loader":"^0.7.0","expose-loader":"^0.7.5","file-loader":"^1.1.11","imports-loader":"^0.8.0","jshint":"2.9.5","jshint-loader":"0.8.4","json-loader":"^0.5.7","mocha":"^5.1.1","node-sass":"^4.9.0","raw-loader":"0.5.1","sass-loader":"^7.0.1","should":"^13.2.1","sinon":"^4.5.0","sinon-chai":"^3.0.0","to-string-loader":"1.1.5","tokenizer":"1.1.2","uglify-es":"^3.3.9","uglifyjs-webpack-plugin":"^1.2.5","url-loader":"^1.0.1","webpack":"^4.6.0","webpack-cli":"^2.0.15","webpack-dev-server":"^3.1.3","webpack-merge":"^4.1.2"},"author":"cci <christophe.camensuli@gmail.com>","readmeFilename":"README.md","contributors":[{}]};
+module.exports = {"name":"@nodefony/stage","version":"0.1.11","description":"Nodefony Framework Client Side Nodefony web developpement","browser":"dist/stage6.js","main":"src/core.js","private":false,"scripts":{"build-dev":"WEBPACK_ENV=dev webpack --verbose","build-prod":"WEBPACK_ENV=prod webpack --verbose","start":"npm start --prefix ./demo/nodefony"},"keywords":["javascript","webpack","nodefony","webrtc","sip","opensip","kamailio","webaudio"],"repository":{"type":"git","url":"git@github.com:nodefony/nodefony-stage.git"},"bugs":{"url":"https://github.com/nodefony/nodefony-stage/issues"},"license":"CECILL-B","licenses":[{"type":"CECILL-B","url":"http://www.cecill.info/licences/Licence_CeCILL-B_V1-en.html"}],"dependencies":{"ascii-table":"0.0.9","asciify":"1.3.5","jquery":"^3.3.1","opn":"^5.3.0","shortid":"^2.2.13","twig":"^1.12.0","webrtc-adapter":"^6.3.2"},"devDependencies":{"@babel/core":"^7.0.0","@babel/preset-env":"^7.0.0","assets-webpack-plugin":"^3.9.6","babel-loader":"^8.0.2","babel-plugin-transform-runtime":"6.23.0","babel-polyfill":"6.26.0","babel-preset-es2015":"6.24.1","babel-register":"6.26.0","chai":"4.1.2","css-loader":"^1.0.0","exports-loader":"^0.7.0","expose-loader":"^0.7.5","file-loader":"^2.0.0","imports-loader":"^0.8.0","jshint":"^2.9.6","jshint-loader":"0.8.4","json-loader":"^0.5.7","mocha":"^5.2.0","node-sass":"^4.9.3","raw-loader":"0.5.1","sass-loader":"^7.1.0","should":"^13.2.3","sinon":"^6.1.5","sinon-chai":"^3.2.0","to-string-loader":"1.1.5","tokenizer":"1.1.2","uglify-es":"^3.3.9","uglifyjs-webpack-plugin":"^1.3.0","url-loader":"^1.1.1","webpack":"^4.17.2","webpack-cli":"^3.1.0","webpack-dev-server":"^3.1.7","webpack-merge":"^4.1.4"},"author":"cci <christophe.camensuli@gmail.com>","readmeFilename":"README.md","contributors":[{}]};
 
 /***/ }),
 
@@ -24412,9 +16960,6 @@ module.exports = {"name":"nodefony-stage","version":"0.1.9","description":"Clien
   \*********************/
 /*! no static exports found */
 /***/ (function(module, exports, __webpack_require__) {
-
-"use strict";
-
 
 /*
  *
@@ -24453,61 +16998,86 @@ module.exports = {"name":"nodefony-stage","version":"0.1.9","description":"Clien
  *	knowledge of the CeCILL-B license and that you accept its terms.
  *
  */
-
 // CORE
 var stage = __webpack_require__(/*! ./core/stage.es6 */ "./src/core/stage.es6")();
+
 __webpack_require__(/*! ./core/notificationsCenter.es6 */ "./src/core/notificationsCenter.es6")(stage);
+
 __webpack_require__(/*! ./syslog/syslog.es6 */ "./src/syslog/syslog.es6")(stage);
+
 __webpack_require__(/*! ./kernel/service.es6 */ "./src/kernel/service.es6")(stage);
-__webpack_require__(/*! ./kernel/container.es6 */ "./src/kernel/container.es6")(stage);
 
-// TOOLS
+__webpack_require__(/*! ./kernel/container.es6 */ "./src/kernel/container.es6")(stage); // TOOLS
+
+
 __webpack_require__(/*! ./tools/xml.js */ "./src/tools/xml.js")(stage);
+
 __webpack_require__(/*! ./structs/hash/hash.es6 */ "./src/structs/hash/hash.es6")(stage);
-__webpack_require__(/*! ./structs/queue/queue.es6 */ "./src/structs/queue/queue.es6")(stage);
 
-// CRYPTO
+__webpack_require__(/*! ./structs/queue/queue.es6 */ "./src/structs/queue/queue.es6")(stage); // CRYPTO
+
+
 __webpack_require__(/*! ./crypto/base64.js */ "./src/crypto/base64.js")(stage);
-__webpack_require__(/*! ./crypto/md5.js */ "./src/crypto/md5.js")(stage);
 
-// IO
+__webpack_require__(/*! ./crypto/md5.js */ "./src/crypto/md5.js")(stage); // IO
+
+
 __webpack_require__(/*! ./io/io.es6 */ "./src/io/io.es6")(stage);
+
 __webpack_require__(/*! ./io/authentication/mechanisms/digest-md5/digestMd5.es6 */ "./src/io/authentication/mechanisms/digest-md5/digestMd5.es6")(stage);
-__webpack_require__(/*! ./io/authentication/sasl/sasl.es6 */ "./src/io/authentication/sasl/sasl.es6")(stage);
 
-// IO TRANSPORT
+__webpack_require__(/*! ./io/authentication/sasl/sasl.es6 */ "./src/io/authentication/sasl/sasl.es6")(stage); // IO TRANSPORT
+
+
 __webpack_require__(/*! ./io/transports/socket.es6 */ "./src/io/transports/socket.es6")(stage);
+
 __webpack_require__(/*! ./io/transports/websockets/websocket.es6 */ "./src/io/transports/websockets/websocket.es6")(stage);
+
 __webpack_require__(/*! ./io/transports/in/poll.es6 */ "./src/io/transports/in/poll.es6")(stage);
-__webpack_require__(/*! ./io/transports/in/longPoll.es6 */ "./src/io/transports/in/longPoll.es6")(stage);
 
-// IO PROTOCOLS
+__webpack_require__(/*! ./io/transports/in/longPoll.es6 */ "./src/io/transports/in/longPoll.es6")(stage); // IO PROTOCOLS
+
+
 __webpack_require__(/*! ./io/protocols/bayeux/bayeux.es6 */ "./src/io/protocols/bayeux/bayeux.es6")(stage);
+
 __webpack_require__(/*! ./io/protocols/sip/sdp.es6 */ "./src/io/protocols/sip/sdp.es6")(stage);
-__webpack_require__(/*! ./io/protocols/sip/sip.es6 */ "./src/io/protocols/sip/sip.es6")(stage);
 
-// IO REALTIME
-__webpack_require__(/*! ./io/realtime/realtime.es6 */ "./src/io/realtime/realtime.es6")(stage);
+__webpack_require__(/*! ./io/protocols/sip/sip.es6 */ "./src/io/protocols/sip/sip.es6")(stage); // IO REALTIME
 
-// MEDIAS
+
+__webpack_require__(/*! ./io/realtime/realtime.es6 */ "./src/io/realtime/realtime.es6")(stage); // MEDIAS
+
+
 __webpack_require__(/*! webrtc-adapter */ "./node_modules/webrtc-adapter/src/js/adapter_core.js");
+
 __webpack_require__(/*! ./media/media.es6 */ "./src/media/media.es6")(stage);
+
 __webpack_require__(/*! ./media/webAudio/webaudio.es6 */ "./src/media/webAudio/webaudio.es6")(stage);
+
 __webpack_require__(/*! ./media/webrtc/webrtc.es6 */ "./src/media/webrtc/webrtc.es6")(stage);
+
 __webpack_require__(/*! ./media/webrtc/user.es6 */ "./src/media/webrtc/user.es6")(stage);
-__webpack_require__(/*! ./media/webrtc/transaction.es6 */ "./src/media/webrtc/transaction.es6")(stage);
 
-// KERNEL STAGE ( nodefony )
+__webpack_require__(/*! ./media/webrtc/transaction.es6 */ "./src/media/webrtc/transaction.es6")(stage); // KERNEL STAGE ( nodefony )
+
+
 __webpack_require__(/*! ./kernel/kernel.es6 */ "./src/kernel/kernel.es6")(stage);
-__webpack_require__(/*! ./kernel/appKernel.es6 */ "./src/kernel/appKernel.es6")(stage);
-__webpack_require__(/*! ./kernel/autoload.es6 */ "./src/kernel/autoload.es6")(stage);
-__webpack_require__(/*! ./kernel/controller.es6 */ "./src/kernel/controller.es6")(stage);
-__webpack_require__(/*! ./kernel/locationService.es6 */ "./src/kernel/locationService.es6")(stage);
-__webpack_require__(/*! ./kernel/module.es6 */ "./src/kernel/module.es6")(stage);
-__webpack_require__(/*! ./kernel/routerService.es6 */ "./src/kernel/routerService.es6")(stage);
-__webpack_require__(/*! ./kernel/translationService.es6 */ "./src/kernel/translationService.es6")(stage);
 
-// EXPORT
+__webpack_require__(/*! ./kernel/appKernel.es6 */ "./src/kernel/appKernel.es6")(stage);
+
+__webpack_require__(/*! ./kernel/autoload.es6 */ "./src/kernel/autoload.es6")(stage);
+
+__webpack_require__(/*! ./kernel/controller.es6 */ "./src/kernel/controller.es6")(stage);
+
+__webpack_require__(/*! ./kernel/locationService.es6 */ "./src/kernel/locationService.es6")(stage);
+
+__webpack_require__(/*! ./kernel/module.es6 */ "./src/kernel/module.es6")(stage);
+
+__webpack_require__(/*! ./kernel/routerService.es6 */ "./src/kernel/routerService.es6")(stage);
+
+__webpack_require__(/*! ./kernel/translationService.es6 */ "./src/kernel/translationService.es6")(stage); // EXPORT
+
+
 module.exports = stage;
 
 /***/ }),
@@ -24517,21 +17087,18 @@ module.exports = stage;
   !*** ./src/core/notificationsCenter.es6 ***!
   \******************************************/
 /*! no static exports found */
-/***/ (function(module, exports, __webpack_require__) {
-
-"use strict";
-
-
-var _createClass = function () { function defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ("value" in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } } return function (Constructor, protoProps, staticProps) { if (protoProps) defineProperties(Constructor.prototype, protoProps); if (staticProps) defineProperties(Constructor, staticProps); return Constructor; }; }();
+/***/ (function(module, exports) {
 
 function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError("Cannot call a class as a function"); } }
 
-module.exports = function (stage) {
+function _defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ("value" in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } }
 
+function _createClass(Constructor, protoProps, staticProps) { if (protoProps) _defineProperties(Constructor.prototype, protoProps); if (staticProps) _defineProperties(Constructor, staticProps); return Constructor; }
+
+module.exports = function (stage) {
   'use strict';
 
   var regListenOn = /^on(.*)$/;
-
   /**
    *      Events
    *
@@ -24544,17 +17111,20 @@ module.exports = function (stage) {
    *
    *
    */
-  var Notification = function () {
+
+  var Notification =
+  /*#__PURE__*/
+  function () {
     function Notification(settings, context) {
       _classCallCheck(this, Notification);
 
       this.events = {};
       this.garbageEvent = {};
+
       if (settings) {
         this.settingsToListen(settings, context);
       }
     }
-
     /**
      *
      *      @method listen
@@ -24563,46 +17133,51 @@ module.exports = function (stage) {
 
 
     _createClass(Notification, [{
-      key: 'listen',
+      key: "listen",
       value: function listen(context, eventName, callback) {
         var event = arguments[1];
         var ContextClosure = this;
+
         if (!this.events[eventName]) {
           this.events[eventName] = [];
           this.garbageEvent[eventName] = [];
         }
+
         if (typeof callback === 'function') {
           this.garbageEvent[eventName].push(callback);
           this.events[eventName].push(function (args) {
             callback.apply(context, args);
           });
         }
+
         return function () {
           Array.prototype.unshift.call(arguments, event);
           return ContextClosure.fire.apply(ContextClosure, arguments);
         };
       }
     }, {
-      key: 'on',
+      key: "on",
       value: function on(eventName, callback) {
         var event = arguments[1];
         var ContextClosure = this;
+
         if (!this.events[eventName]) {
           this.events[eventName] = [];
           this.garbageEvent[eventName] = [];
         }
+
         if (typeof callback === 'function') {
           this.garbageEvent[eventName].push(callback);
           this.events[eventName].push(function (args) {
             callback(args);
           });
         }
+
         return function () {
           Array.prototype.unshift.call(arguments, event);
           return ContextClosure.fire.apply(ContextClosure, arguments);
         };
       }
-
       /**
        *
        *      @method clearNotifications
@@ -24610,7 +17185,7 @@ module.exports = function (stage) {
        */
 
     }, {
-      key: 'clearNotifications',
+      key: "clearNotifications",
       value: function clearNotifications(eventName) {
         if (eventName) {
           if (this.events[eventName]) {
@@ -24618,6 +17193,7 @@ module.exports = function (stage) {
               this.events[eventName].pop();
               this.garbageEvent[eventName].pop();
             }
+
             delete this.events[eventName];
             delete this.garbageEvent[eventName];
           }
@@ -24628,7 +17204,6 @@ module.exports = function (stage) {
           this.garbageEvent = {};
         }
       }
-
       /**
        *
        *      @method fire
@@ -24636,14 +17211,17 @@ module.exports = function (stage) {
        */
 
     }, {
-      key: 'fire',
+      key: "fire",
       value: function fire(eventName) {
         var ret = true;
+
         if (this.events[eventName]) {
           var args = Array.prototype.slice.call(arguments, 1);
+
           for (var i = 0; i < this.events[eventName].length; i++) {
             try {
               ret = this.events[eventName][i](args);
+
               if (ret) {
                 break;
               }
@@ -24653,9 +17231,9 @@ module.exports = function (stage) {
             }
           }
         }
+
         return ret;
       }
-
       /**
        *
        *      @method settingsToListen
@@ -24663,18 +17241,20 @@ module.exports = function (stage) {
        */
 
     }, {
-      key: 'settingsToListen',
+      key: "settingsToListen",
       value: function settingsToListen(localSettings, context) {
         for (var i in localSettings) {
           var res = regListenOn.exec(i);
+
           if (!res) {
             continue;
           }
+
           this.listen(context || this, res[0], localSettings[i]);
         }
       }
     }, {
-      key: 'unListen',
+      key: "unListen",
       value: function unListen(eventName, callback) {
         if (this.events[eventName]) {
           if (callback) {
@@ -24702,7 +17282,6 @@ module.exports = function (stage) {
       return new Notification(settings, context);
     }
   };
-
   return Notification;
 };
 
@@ -24715,71 +17294,83 @@ module.exports = function (stage) {
 /*! no static exports found */
 /***/ (function(module, exports, __webpack_require__) {
 
-"use strict";
-/* WEBPACK VAR INJECTION */(function(jQuery) {
+/* WEBPACK VAR INJECTION */(function(jQuery) {function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError("Cannot call a class as a function"); } }
 
-var _createClass = function () { function defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ("value" in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } } return function (Constructor, protoProps, staticProps) { if (protoProps) defineProperties(Constructor.prototype, protoProps); if (staticProps) defineProperties(Constructor, staticProps); return Constructor; }; }();
+function _defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ("value" in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } }
 
-var _typeof = typeof Symbol === "function" && typeof Symbol.iterator === "symbol" ? function (obj) { return typeof obj; } : function (obj) { return obj && typeof Symbol === "function" && obj.constructor === Symbol && obj !== Symbol.prototype ? "symbol" : typeof obj; };
+function _createClass(Constructor, protoProps, staticProps) { if (protoProps) _defineProperties(Constructor.prototype, protoProps); if (staticProps) _defineProperties(Constructor, staticProps); return Constructor; }
 
-function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError("Cannot call a class as a function"); } }
+function _typeof(obj) { if (typeof Symbol === "function" && typeof Symbol.iterator === "symbol") { _typeof = function _typeof(obj) { return typeof obj; }; } else { _typeof = function _typeof(obj) { return obj && typeof Symbol === "function" && obj.constructor === Symbol && obj !== Symbol.prototype ? "symbol" : typeof obj; }; } return _typeof(obj); }
 
 module.exports = function () {
-
   //const config = require("../../package.json");
   'use strict';
 
-  var version = __webpack_require__(/*! ../../package.json */ "./package.json").version;
+  var version = __webpack_require__(/*! ../../package.json */ "./package.json").version; // Traf indexOf IE8
 
-  // Traf indexOf IE8
+
   var arrayProto = Array.prototype;
 
   var indexOf = function () {
     if (arrayProto.indexOf) {
       return arrayProto.indexOf;
     }
+
     arrayProto.indexOf = function (value, startIndex) {
       var index = startIndex === null ? 0 : startIndex < 0 ? Math.max(0, this.length + startIndex) : startIndex;
+
       for (var i = index; i < this.length; i++) {
         if (i in this && this[i] === value) {
           return i;
         }
       }
+
       return -1;
     };
+
     return arrayProto.indexOf;
   }();
 
   var typeOf = function typeOf(value) {
-    var t = typeof value === 'undefined' ? 'undefined' : _typeof(value);
+    var t = _typeof(value);
+
     if (t === 'object') {
       if (value === null) {
         return "object";
       }
+
       if (value instanceof Array || !(value instanceof Object) && Object.prototype.toString.call(value) === '[object Array]' || typeof value.length === 'number' && typeof value.splice !== 'undefined' && typeof value.propertyIsEnumerable !== 'undefined' && !value.propertyIsEnumerable('splice')) {
         return "array";
       }
+
       if (!(value instanceof Object) && (Object.prototype.toString.call(value) === '[object Function]' || typeof value.call !== 'undefined' && typeof value.propertyIsEnumerable !== 'undefined' && !value.propertyIsEnumerable('call'))) {
         return 'function';
       }
+
       if (value.nodeType === 1) {
         return "element";
       }
+
       if (value.nodeType === 9) {
         return "document";
       }
+
       if (value === window) {
         return "window";
       }
+
       if (value instanceof Date) {
         return "date";
       }
+
       if (value.callee) {
         return "arguments";
       }
+
       if (value instanceof SyntaxError) {
         return "SyntaxError";
       }
+
       if (value instanceof Error) {
         return "Error";
       }
@@ -24788,6 +17379,7 @@ module.exports = function () {
         return 'object';
       }
     }
+
     return t;
   };
 
@@ -24795,29 +17387,35 @@ module.exports = function () {
     if (navigator.userAgent.indexOf('MSIE') > -1) {
       return "MSIE";
     }
+
     if (navigator.userAgent.indexOf('Firefox') > -1) {
       return "Firefox";
     }
+
     if (navigator.userAgent.indexOf('Chrome') > -1) {
       return "Chrome";
     }
+
     if (navigator.userAgent.indexOf('Safari') > -1) {
       return "Safari";
     }
+
     if (navigator.userAgent.indexOf('Opera') > -1) {
       return "Opera";
     }
+
     if (navigator.userAgent.indexOf('Iceweasel') > -1) {
       return "Firefox";
     }
+
     return "undefined";
   }();
 
   var getBrowserVersion = function () {
-
     if (/MSIE (\d+\.\d+);/.test(navigator.userAgent)) {
       return parseInt(RegExp.$1, 10);
     }
+
     if (/Firefox[\/\s](\d+\.\d+)/.test(navigator.userAgent)) {
       return parseInt(RegExp.$1, 10);
     }
@@ -24847,7 +17445,6 @@ module.exports = function () {
   }();
 
   var useragent = navigator.userAgent.toLowerCase();
-
   /**
    *  stage class
    *  The class is a **`stage client side `** .
@@ -24856,7 +17453,10 @@ module.exports = function () {
    *  @module library
    *
    */
-  var Stage = function () {
+
+  var Stage =
+  /*#__PURE__*/
+  function () {
     function Stage() {
       _classCallCheck(this, Stage);
 
@@ -24881,34 +17481,36 @@ module.exports = function () {
     }
 
     _createClass(Stage, [{
-      key: 'register',
+      key: "register",
       value: function register(name, closure) {
         var reg = null;
+
         if (typeof closure === "function") {
           // exec closure
           reg = closure(this, name);
         } else {
           reg = closure;
         }
+
         return this[name] = reg;
       }
     }, {
-      key: 'registerModule',
+      key: "registerModule",
       value: function registerModule(name, closure) {
         return this.register.call(this.modules, name, closure);
       }
     }, {
-      key: 'registerController',
+      key: "registerController",
       value: function registerController(name, closure) {
         return this.register.call(this.controllers, name, closure);
       }
     }, {
-      key: 'basename',
+      key: "basename",
       value: function basename(path) {
         return path.replace(/\\/g, '/').replace(/.*\//, '');
       }
     }, {
-      key: 'dirname',
+      key: "dirname",
       value: function dirname(path) {
         return path.replace(/\\/g, '/').replace(/\/[^\/]*$/, '');
       }
@@ -24916,6 +17518,7 @@ module.exports = function () {
 
     return Stage;
   }();
+
   return new Stage();
 };
 /* WEBPACK VAR INJECTION */}.call(this, __webpack_require__(/*! jquery */ "./node_modules/jquery/dist/jquery.js-exposed")))
@@ -24927,10 +17530,7 @@ module.exports = function () {
   !*** ./src/crypto/base64.js ***!
   \******************************/
 /*! no static exports found */
-/***/ (function(module, exports, __webpack_require__) {
-
-"use strict";
-
+/***/ (function(module, exports) {
 
 /*
  *
@@ -24941,26 +17541,20 @@ module.exports = function () {
  *
  *
  */
-
 module.exports = function (stage) {
-
   // private property
-  var _keyStr = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/=";
+  var _keyStr = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/="; // public method for encoding
 
-  // public method for encoding
   var encode64 = function encode64(input) {
     var output = "";
     var chr1, chr2, chr3, enc1, enc2, enc3, enc4;
     var i = 0;
-
     input = _utf8_encode(input);
 
     while (i < input.length) {
-
       chr1 = input.charCodeAt(i++);
       chr2 = input.charCodeAt(i++);
       chr3 = input.charCodeAt(i++);
-
       enc1 = chr1 >> 2;
       enc2 = (chr1 & 3) << 4 | chr2 >> 4;
       enc3 = (chr2 & 15) << 2 | chr3 >> 6;
@@ -24974,34 +17568,32 @@ module.exports = function (stage) {
 
       output = output + _keyStr.charAt(enc1) + _keyStr.charAt(enc2) + _keyStr.charAt(enc3) + _keyStr.charAt(enc4);
     }
-    return output;
-  };
 
-  // public method for decoding
+    return output;
+  }; // public method for decoding
+
+
   var decode64 = function decode64(input) {
     var output = "";
     var chr1, chr2, chr3;
     var enc1, enc2, enc3, enc4;
     var i = 0;
-
     input = input.replace(/[^A-Za-z0-9\+\/\=]/g, "");
 
     while (i < input.length) {
-
       enc1 = _keyStr.indexOf(input.charAt(i++));
       enc2 = _keyStr.indexOf(input.charAt(i++));
       enc3 = _keyStr.indexOf(input.charAt(i++));
       enc4 = _keyStr.indexOf(input.charAt(i++));
-
       chr1 = enc1 << 2 | enc2 >> 4;
       chr2 = (enc2 & 15) << 4 | enc3 >> 2;
       chr3 = (enc3 & 3) << 6 | enc4;
-
       output = output + String.fromCharCode(chr1);
 
       if (enc3 != 64) {
         output = output + String.fromCharCode(chr2);
       }
+
       if (enc4 != 64) {
         output = output + String.fromCharCode(chr3);
       }
@@ -25012,17 +17604,18 @@ module.exports = function (stage) {
     }
 
     output = _utf8_decode(output);
-
     return output;
   };
 
   var decode = function decode(input, arrayBuffer) {
     //get last chars to see if are valid
     var lkey1 = _keyStr.indexOf(input.charAt(input.length - 1));
+
     var lkey2 = _keyStr.indexOf(input.charAt(input.length - 2));
 
     var bytes = input.length / 4 * 3;
     if (lkey1 == 64) bytes--; //padding chars, so skip
+
     if (lkey2 == 64) bytes--; //padding chars, so skip
 
     var uarray;
@@ -25030,9 +17623,7 @@ module.exports = function (stage) {
     var enc1, enc2, enc3, enc4;
     var i = 0;
     var j = 0;
-
     if (arrayBuffer) uarray = new Uint8Array(arrayBuffer);else uarray = new Uint8Array(bytes);
-
     input = input.replace(/[^A-Za-z0-9\+\/\=]/g, "");
 
     for (i = 0; i < bytes; i += 3) {
@@ -25041,25 +17632,23 @@ module.exports = function (stage) {
       enc2 = _keyStr.indexOf(input.charAt(j++));
       enc3 = _keyStr.indexOf(input.charAt(j++));
       enc4 = _keyStr.indexOf(input.charAt(j++));
-
       chr1 = enc1 << 2 | enc2 >> 4;
       chr2 = (enc2 & 15) << 4 | enc3 >> 2;
       chr3 = (enc3 & 3) << 6 | enc4;
-
       uarray[i] = chr1;
       if (enc3 != 64) uarray[i + 1] = chr2;
       if (enc4 != 64) uarray[i + 2] = chr3;
     }
-    return uarray;
-  };
 
-  // private method for UTF-8 encoding
+    return uarray;
+  }; // private method for UTF-8 encoding
+
+
   var _utf8_encode = function _utf8_encode(string) {
     string = string.replace(/\r\n/g, "\n");
     var utftext = "";
 
     for (var n = 0; n < string.length; n++) {
-
       var c = string.charCodeAt(n);
 
       if (c < 128) {
@@ -25071,21 +17660,24 @@ module.exports = function (stage) {
         utftext += String.fromCharCode(c >> 12 | 224);
         utftext += String.fromCharCode(c >> 6 & 63 | 128);
         utftext += String.fromCharCode(c & 63 | 128);
-      };
-    };
-    return utftext;
-  };
+      }
 
-  // private method for UTF-8 decoding
+      ;
+    }
+
+    ;
+    return utftext;
+  }; // private method for UTF-8 decoding
+
+
   var _utf8_decode = function _utf8_decode(utftext) {
     var string = "";
     var i = 0;
-    var c = 0;
-    //var c1 = 0;
+    var c = 0; //var c1 = 0;
+
     var c2 = 0;
 
     while (i < utftext.length) {
-
       c = utftext.charCodeAt(i);
 
       if (c < 128) {
@@ -25102,10 +17694,12 @@ module.exports = function (stage) {
         i += 3;
       }
     }
+
     return string;
   };
-
   /* will return a  Uint8Array type */
+
+
   var decodeArrayBuffer = function decodeArrayBuffer(input) {
     var bytes = input.length / 4 * 3;
     var ab = new ArrayBuffer(bytes);
@@ -25118,7 +17712,6 @@ module.exports = function (stage) {
     encode: encode64,
     decode: decode64
   };
-
   return stage.crypto.base64;
 };
 
@@ -25129,10 +17722,7 @@ module.exports = function (stage) {
   !*** ./src/crypto/md5.js ***!
   \***************************/
 /*! no static exports found */
-/***/ (function(module, exports, __webpack_require__) {
-
-"use strict";
-
+/***/ (function(module, exports) {
 
 /*
  * A JavaScript implementation of the RSA Data Security, Inc. MD5 Message
@@ -25142,40 +17732,47 @@ module.exports = function (stage) {
  * Distributed under the BSD License
  * See http://pajhome.org.uk/crypt/md5 for more info.
  */
-
 module.exports = function (stage) {
-
   /*
    * Configurable variables. You may need to tweak these to be compatible with
    * the server-side, but the defaults work in most cases.
    */
-  var hexcase = 0; /* hex output format. 0 - lowercase; 1 - uppercase        */
-  var b64pad = ""; /* base-64 pad character. "=" for strict RFC compliance   */
+  var hexcase = 0;
+  /* hex output format. 0 - lowercase; 1 - uppercase        */
+
+  var b64pad = "";
+  /* base-64 pad character. "=" for strict RFC compliance   */
 
   /*
    * Perform a simple self-test to see if the VM is working
    */
+
   var md5_vm_test = function md5_vm_test() {
     return rstr2hex("abc").toLowerCase() === "900150983cd24fb0d6963f7d28e17f72";
   };
-
   /*
    * Calculate the MD5 of a raw string
    */
+
+
   var rstr_md5 = function rstr_md5(s) {
     return binl2rstr(binl_md5(rstr2binl(s), s.length * 8));
   };
-
   /*
    * Calculate the HMAC-MD5, of a key and some data (raw strings)
    */
+
+
   var rstr_hmac_md5 = function rstr_hmac_md5(key, data) {
     var bkey = rstr2binl(key);
+
     if (bkey.length > 16) {
       bkey = binl_md5(bkey, key.length * 8);
     }
+
     var ipad = Array(16),
         opad = Array(16);
+
     for (var i = 0; i < 16; i++) {
       ipad[i] = bkey[i] ^ 0x36363636;
       opad[i] = bkey[i] ^ 0x5C5C5C5C;
@@ -25184,32 +17781,38 @@ module.exports = function (stage) {
     var hash = binl_md5(ipad.concat(rstr2binl(data)), 512 + data.length * 8);
     return binl2rstr(binl_md5(opad.concat(hash), 512 + 128));
   };
-
   /*
    * Convert a raw string to a hex string
    */
+
+
   var rstr2hex = function rstr2hex(input) {
     //try { hexcase } catch(e) { hexcase=0; }
     var hex_tab = hexcase ? "0123456789ABCDEF" : "0123456789abcdef";
     var output = "";
     var x;
+
     for (var i = 0; i < input.length; i++) {
       x = input.charCodeAt(i);
       output += hex_tab.charAt(x >>> 4 & 0x0F) + hex_tab.charAt(x & 0x0F);
     }
+
     return output;
   };
-
   /*
    * Convert a raw string to a base-64 string
    */
+
+
   var rstr2b64 = function rstr2b64(input) {
     //try { b64pad } catch(e) { b64pad=''; }
     var tab = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/";
     var output = "";
     var len = input.length;
+
     for (var i = 0; i < len; i += 3) {
       var triplet = input.charCodeAt(i) << 16 | (i + 1 < len ? input.charCodeAt(i + 1) << 8 : 0) | (i + 2 < len ? input.charCodeAt(i + 2) : 0);
+
       for (var j = 0; j < 4; j++) {
         if (i * 8 + j * 6 > input.length * 8) {
           output += b64pad;
@@ -25218,57 +17821,69 @@ module.exports = function (stage) {
         }
       }
     }
+
     return output;
   };
-
   /*
    * Convert a raw string to an arbitrary string encoding
    */
+
+
   var rstr2any = function rstr2any(input, encoding) {
     var divisor = encoding.length;
     var i, j, q, x, quotient;
-
     /* Convert to an array of 16-bit big-endian values, forming the dividend */
+
     var dividend = Array(Math.ceil(input.length / 2));
+
     for (i = 0; i < dividend.length; i++) {
       dividend[i] = input.charCodeAt(i * 2) << 8 | input.charCodeAt(i * 2 + 1);
     }
-
     /*
      * Repeatedly perform a long division. The binary array forms the dividend,
      * the length of the encoding is the divisor. Once computed, the quotient
      * forms the dividend for the next step. All remainders are stored for later
      * use.
      */
+
+
     var full_length = Math.ceil(input.length * 8 / (Math.log(encoding.length) / Math.log(2)));
     var remainders = Array(full_length);
+
     for (j = 0; j < full_length; j++) {
       quotient = Array();
       x = 0;
+
       for (i = 0; i < dividend.length; i++) {
         x = (x << 16) + dividend[i];
         q = Math.floor(x / divisor);
         x -= q * divisor;
+
         if (quotient.length > 0 || q > 0) {
           quotient[quotient.length] = q;
         }
       }
+
       remainders[j] = x;
       dividend = quotient;
     }
-
     /* Convert the remainders to the output string */
+
+
     var output = "";
+
     for (i = remainders.length - 1; i >= 0; i--) {
       output += encoding.charAt(remainders[i]);
     }
+
     return output;
   };
-
   /*
    * Encode a string as utf-8.
    * For efficiency, this assumes the input is valid utf-16.
    */
+
+
   var str2rstr_utf8 = function str2rstr_utf8(input) {
     var output = "";
     var i = -1;
@@ -25278,12 +17893,14 @@ module.exports = function (stage) {
       /* Decode utf-16 surrogate pairs */
       x = input.charCodeAt(i);
       y = i + 1 < input.length ? input.charCodeAt(i + 1) : 0;
+
       if (0xD800 <= x && x <= 0xDBFF && 0xDC00 <= y && y <= 0xDFFF) {
         x = 0x10000 + ((x & 0x03FF) << 10) + (y & 0x03FF);
         i++;
       }
-
       /* Encode output as utf-8 */
+
+
       if (x <= 0x7F) {
         output += String.fromCharCode(x);
       } else if (x <= 0x7FF) {
@@ -25294,62 +17911,75 @@ module.exports = function (stage) {
         output += String.fromCharCode(0xF0 | x >>> 18 & 0x07, 0x80 | x >>> 12 & 0x3F, 0x80 | x >>> 6 & 0x3F, 0x80 | x & 0x3F);
       }
     }
+
     return output;
   };
-
   /*
    * Encode a string as utf-16
    */
+
+
   var str2rstr_utf16le = function str2rstr_utf16le(input) {
     var output = "";
+
     for (var i = 0; i < input.length; i++) {
       output += String.fromCharCode(input.charCodeAt(i) & 0xFF, input.charCodeAt(i) >>> 8 & 0xFF);
     }
+
     return output;
   };
 
   var str2rstr_utf16be = function str2rstr_utf16be(input) {
     var output = "";
+
     for (var i = 0; i < input.length; i++) {
       output += String.fromCharCode(input.charCodeAt(i) >>> 8 & 0xFF, input.charCodeAt(i) & 0xFF);
     }
+
     return output;
   };
-
   /*
    * Convert a raw string to an array of little-endian words
    * Characters >255 have their high-byte silently ignored.
    */
+
+
   var rstr2binl = function rstr2binl(input) {
     var output = Array(input.length >> 2);
+
     for (var i = 0; i < output.length; i++) {
       output[i] = 0;
     }
+
     for (var i = 0; i < input.length * 8; i += 8) {
       output[i >> 5] |= (input.charCodeAt(i / 8) & 0xFF) << i % 32;
     }
+
     return output;
   };
-
   /*
    * Convert an array of little-endian words to a string
    */
+
+
   var binl2rstr = function binl2rstr(input) {
     var output = "";
+
     for (var i = 0; i < input.length * 32; i += 8) {
       output += String.fromCharCode(input[i >> 5] >>> i % 32 & 0xFF);
     }
+
     return output;
   };
-
   /*
    * Calculate the MD5 of an array of little-endian words, and a bit length.
    */
+
+
   var binl_md5 = function binl_md5(x, len) {
     /* append padding */
     x[len >> 5] |= 0x80 << len % 32;
     x[(len + 64 >>> 9 << 4) + 14] = len;
-
     var a = 1732584193;
     var b = -271733879;
     var c = -1732584194;
@@ -25360,7 +17990,6 @@ module.exports = function (stage) {
       var oldb = b;
       var oldc = c;
       var oldd = d;
-
       a = md5_ff(a, b, c, d, x[i + 0], 7, -680876936);
       d = md5_ff(d, a, b, c, x[i + 1], 12, -389564586);
       c = md5_ff(c, d, a, b, x[i + 2], 17, 606105819);
@@ -25377,7 +18006,6 @@ module.exports = function (stage) {
       d = md5_ff(d, a, b, c, x[i + 13], 12, -40341101);
       c = md5_ff(c, d, a, b, x[i + 14], 17, -1502002290);
       b = md5_ff(b, c, d, a, x[i + 15], 22, 1236535329);
-
       a = md5_gg(a, b, c, d, x[i + 1], 5, -165796510);
       d = md5_gg(d, a, b, c, x[i + 6], 9, -1069501632);
       c = md5_gg(c, d, a, b, x[i + 11], 14, 643717713);
@@ -25394,7 +18022,6 @@ module.exports = function (stage) {
       d = md5_gg(d, a, b, c, x[i + 2], 9, -51403784);
       c = md5_gg(c, d, a, b, x[i + 7], 14, 1735328473);
       b = md5_gg(b, c, d, a, x[i + 12], 20, -1926607734);
-
       a = md5_hh(a, b, c, d, x[i + 5], 4, -378558);
       d = md5_hh(d, a, b, c, x[i + 8], 11, -2022574463);
       c = md5_hh(c, d, a, b, x[i + 11], 16, 1839030562);
@@ -25411,7 +18038,6 @@ module.exports = function (stage) {
       d = md5_hh(d, a, b, c, x[i + 12], 11, -421815835);
       c = md5_hh(c, d, a, b, x[i + 15], 16, 530742520);
       b = md5_hh(b, c, d, a, x[i + 2], 23, -995338651);
-
       a = md5_ii(a, b, c, d, x[i + 0], 6, -198630844);
       d = md5_ii(d, a, b, c, x[i + 7], 10, 1126891415);
       c = md5_ii(c, d, a, b, x[i + 14], 15, -1416354905);
@@ -25428,47 +18054,54 @@ module.exports = function (stage) {
       d = md5_ii(d, a, b, c, x[i + 11], 10, -1120210379);
       c = md5_ii(c, d, a, b, x[i + 2], 15, 718787259);
       b = md5_ii(b, c, d, a, x[i + 9], 21, -343485551);
-
       a = safe_add(a, olda);
       b = safe_add(b, oldb);
       c = safe_add(c, oldc);
       d = safe_add(d, oldd);
     }
+
     return Array(a, b, c, d);
   };
-
   /*
    * These functions implement the four basic operations the algorithm uses.
    */
+
+
   var md5_cmn = function md5_cmn(q, a, b, x, s, t) {
     return safe_add(bit_rol(safe_add(safe_add(a, q), safe_add(x, t)), s), b);
   };
+
   var md5_ff = function md5_ff(a, b, c, d, x, s, t) {
     return md5_cmn(b & c | ~b & d, a, b, x, s, t);
   };
+
   var md5_gg = function md5_gg(a, b, c, d, x, s, t) {
     return md5_cmn(b & d | c & ~d, a, b, x, s, t);
   };
+
   var md5_hh = function md5_hh(a, b, c, d, x, s, t) {
     return md5_cmn(b ^ c ^ d, a, b, x, s, t);
   };
+
   var md5_ii = function md5_ii(a, b, c, d, x, s, t) {
     return md5_cmn(c ^ (b | ~d), a, b, x, s, t);
   };
-
   /*
    * Add integers, wrapping at 2^32. This uses 16-bit operations internally
    * to work around bugs in some JS interpreters.
    */
+
+
   var safe_add = function safe_add(x, y) {
     var lsw = (x & 0xFFFF) + (y & 0xFFFF);
     var msw = (x >> 16) + (y >> 16) + (lsw >> 16);
     return msw << 16 | lsw & 0xFFFF;
   };
-
   /*
    * Bitwise rotate a 32-bit number to the left.
    */
+
+
   var bit_rol = function bit_rol(num, cnt) {
     return num << cnt | num >>> 32 - cnt;
   };
@@ -25512,202 +18145,217 @@ module.exports = function (stage) {
   !*** ./src/io/authentication/mechanisms/digest-md5/digestMd5.es6 ***!
   \*******************************************************************/
 /*! no static exports found */
-/***/ (function(module, exports, __webpack_require__) {
+/***/ (function(module, exports) {
 
-"use strict";
-
-
-var _typeof = typeof Symbol === "function" && typeof Symbol.iterator === "symbol" ? function (obj) { return typeof obj; } : function (obj) { return obj && typeof Symbol === "function" && obj.constructor === Symbol && obj !== Symbol.prototype ? "symbol" : typeof obj; };
-
-var _createClass = function () { function defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ("value" in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } } return function (Constructor, protoProps, staticProps) { if (protoProps) defineProperties(Constructor.prototype, protoProps); if (staticProps) defineProperties(Constructor, staticProps); return Constructor; }; }();
+function _typeof(obj) { if (typeof Symbol === "function" && typeof Symbol.iterator === "symbol") { _typeof = function _typeof(obj) { return typeof obj; }; } else { _typeof = function _typeof(obj) { return obj && typeof Symbol === "function" && obj.constructor === Symbol && obj !== Symbol.prototype ? "symbol" : typeof obj; }; } return _typeof(obj); }
 
 function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError("Cannot call a class as a function"); } }
 
+function _defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ("value" in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } }
+
+function _createClass(Constructor, protoProps, staticProps) { if (protoProps) _defineProperties(Constructor.prototype, protoProps); if (staticProps) _defineProperties(Constructor, staticProps); return Constructor; }
+
 module.exports = function (stage) {
+  var keyWord = {
+    realm: true,
+    qop: true,
+    charset: true,
+    algorithm: true,
+    nonce: true
+  };
+  var reg = /^([^=]+)=(.+)$/;
 
-	var keyWord = {
-		realm: true,
-		qop: true,
-		charset: true,
-		algorithm: true,
-		nonce: true
-	};
+  var parserAuthenticate = function parserAuthenticate(str) {
+    var ret = str.replace(/"/g, "");
+    ret = ret.replace(/Digest /g, "");
+    var head = ret.split(",");
+    var obj = {};
 
-	var reg = /^([^=]+)=(.+)$/;
-	var parserAuthenticate = function parserAuthenticate(str) {
-		var ret = str.replace(/"/g, "");
-		ret = ret.replace(/Digest /g, "");
-		var head = ret.split(",");
-		var obj = {};
-		for (var i = 0; i < head.length; i++) {
-			var res = reg.exec(head[i]);
-			if (res && res[1]) {
-				obj[res[1]] = res[2];
-			}
-		}
-		return obj;
-	};
+    for (var i = 0; i < head.length; i++) {
+      var res = reg.exec(head[i]);
 
-	var MD5 = stage.crypto.md5.hex_md5_noUTF8;
-	var BASE64 = stage.crypto.base64.encode;
-	var DBASE64 = stage.crypto.base64.decode;
+      if (res && res[1]) {
+        obj[res[1]] = res[2];
+      }
+    }
 
-	var generateA1 = function generateA1(username, realm, password, nonce, cnonce) {
-		var A1 = null;
-		if (cnonce) {
-			A1 = username + ":" + realm + ":" + password + ":" + nonce + ":" + cnonce;
-		} else {
-			A1 = username + ":" + realm + ":" + password; //+ ":" + nonce ;
-		}
-		return MD5(A1);
-	};
+    return obj;
+  };
 
-	var generateA2 = function generateA2(method, uri, entity_body, qop) {
-		var A2 = "";
-		if (!qop || qop === "auth") {
-			A2 = method + ":" + uri;
-		} else if (qop === "auth-int") {
-			if (entity_body) {
-				var entity = MD5(entity_body);
-				A2 = method + ":" + uri + ":" + entity;
-			} else {
-				A2 = method + ":" + uri + ":" + "d41d8cd98f00b204e9800998ecf8427e";
-			}
-		}
-		return MD5(A2);
-	};
+  var MD5 = stage.crypto.md5.hex_md5_noUTF8;
+  var BASE64 = stage.crypto.base64.encode;
+  var DBASE64 = stage.crypto.base64.decode;
 
-	var responseDigest = function responseDigest(A1, nonce, noncecount, cnonce, qop, A2) {
-		var res = "";
-		if (qop === "auth" || qop === "auth-int") {
-			res = A1 + ":" + nonce + ":" + noncecount + ":" + cnonce + ":" + qop + ":" + A2;
-		} else {
-			res = A1 + ":" + nonce + ":" + A2;
-		}
-		return MD5(res);
-	};
+  var generateA1 = function generateA1(username, realm, password, nonce, cnonce) {
+    var A1 = null;
 
-	/*
- 	 *
- 	 */
-	var digestMd5 = function () {
-		function digestMd5(url, method, headers, body) {
-			_classCallCheck(this, digestMd5);
+    if (cnonce) {
+      A1 = username + ":" + realm + ":" + password + ":" + nonce + ":" + cnonce;
+    } else {
+      A1 = username + ":" + realm + ":" + password; //+ ":" + nonce ;
+    }
 
-			this.method = method;
-			this.entity_body = body;
-			this.url = url;
-			this.uri = this.url.requestUri;
-			this.protocol = this.url.protocol.replace(":", "");
-			this.host = this.url.host;
-			switch (typeof headers === "undefined" ? "undefined" : _typeof(headers)) {
-				case "object":
-					this.parseChallenge(headers);
-					break;
-				default:
-					throw new Error("digetMD5 bad format header");
-			}
-		}
+    return MD5(A1);
+  };
 
-		_createClass(digestMd5, [{
-			key: "parseChallenge",
-			value: function parseChallenge(headers) {
-				//console.log(headers)
-				var parsing = {};
-				switch (typeof headers === "undefined" ? "undefined" : _typeof(headers)) {
-					case "string":
-						//TODO
-						throw new Error("digetMD5 bad format challenge");
-					case "object":
-						for (var ele in headers) {
-							switch (ele) {
-								case "challenge":
-									if (typeof headers.challenge === "string") {
-										try {
-											this.challengeB64 = DBASE64(headers.challenge);
-										} catch (e) {
-											this.challengeB64 = headers.challenge;
-											//throw new Error("DIGEST MD5 ERROR DECODE BAS64")	
-										}
-									}
-									break;
-								default:
-									parsing[ele] = headers[ele];
+  var generateA2 = function generateA2(method, uri, entity_body, qop) {
+    var A2 = "";
 
-							}
-						}
-						break;
-					default:
-						throw new Error("digetMD5 bad format challenge");
-				}
-				var challenge = stage.extend(parserAuthenticate(this.challengeB64), parsing);
-				//var challenge = parserAuthenticate(this.challengeB64);
-				//console.log(challenge)
-				for (var name in challenge) {
-					if (name in keyWord) {
-						this[name] = challenge[name];
-					} else {
-						console.warn("digestMd5 parser challenge header name dropped: " + name);
-					}
-				}
-			}
-		}, {
-			key: "generateAuthorization",
-			value: function generateAuthorization(username, password) {
+    if (!qop || qop === "auth") {
+      A2 = method + ":" + uri;
+    } else if (qop === "auth-int") {
+      if (entity_body) {
+        var entity = MD5(entity_body);
+        A2 = method + ":" + uri + ":" + entity;
+      } else {
+        A2 = method + ":" + uri + ":" + "d41d8cd98f00b204e9800998ecf8427e";
+      }
+    }
 
-				var line = 'Digest username="' + username + '"';
-				if (!this.realm) {
-					this.realm = username + "@" + this.url.host;
-				}
+    return MD5(A2);
+  };
 
-				var res = {
-					nonce: '"' + this.nonce + '"',
-					realm: '"' + this.realm + '"',
-					response: null
-				};
+  var responseDigest = function responseDigest(A1, nonce, noncecount, cnonce, qop, A2) {
+    var res = "";
 
-				this["digest-uri"] = this.protocol + "/" + this.host;
-				//this["digest-uri"] = '"'+this.protocol+"/"+this.uri+'"';
+    if (qop === "auth" || qop === "auth-int") {
+      res = A1 + ":" + nonce + ":" + noncecount + ":" + cnonce + ":" + qop + ":" + A2;
+    } else {
+      res = A1 + ":" + nonce + ":" + A2;
+    }
 
-				res["digest-uri"] = '"' + this["digest-uri"] + '"';
+    return MD5(res);
+  };
+  /*
+  	 *
+  	 */
 
-				/*if (this.charset){
-      res["charset"]=this.charset;
-      }*/
 
-				if (this.qop) {
-					this.cnonce = BASE64(Math.floor(Math.random() * 100000000).toString());
-					res["cnonce"] = '"' + this.cnonce + '"';
-					res["qop"] = this.qop;
-				}
-				if (this.opaque) {
-					res["opaque"] = this.opaque;
-				}
+  var digestMd5 =
+  /*#__PURE__*/
+  function () {
+    function digestMd5(url, method, headers, body) {
+      _classCallCheck(this, digestMd5);
 
-				this.nc = "00000001";
-				res["nc"] = this.nc;
+      this.method = method;
+      this.entity_body = body;
+      this.url = url;
+      this.uri = this.url.requestUri;
+      this.protocol = this.url.protocol.replace(":", "");
+      this.host = this.url.host;
 
-				this.A1 = generateA1(username, this.realm, password /*, this.nonce, this.cnonce*/);
-				this.A2 = generateA2(this.method, this["digest-uri"], this.entity_body, this.qop);
+      switch (_typeof(headers)) {
+        case "object":
+          this.parseChallenge(headers);
+          break;
 
-				res.response = responseDigest(this.A1, this.nonce, this.nc, this.cnonce, this.qop, this.A2);
-				// generate Authorization 
+        default:
+          throw new Error("digetMD5 bad format header");
+      }
+    }
 
-				for (var ele in res) {
-					line += "," + ele + "=" + res[ele];
-				}
-				//console.log(line)
-				var toSend = BASE64(line);
-				return toSend;
-			}
-		}]);
+    _createClass(digestMd5, [{
+      key: "parseChallenge",
+      value: function parseChallenge(headers) {
+        //console.log(headers)
+        var parsing = {};
 
-		return digestMd5;
-	}();
+        switch (_typeof(headers)) {
+          case "string":
+            //TODO
+            throw new Error("digetMD5 bad format challenge");
 
-	stage.io.authentication.Digest = digestMd5;
-	stage.io.authentication.mechanisms.Digest = digestMd5;
-	return digestMd5;
+          case "object":
+            for (var ele in headers) {
+              switch (ele) {
+                case "challenge":
+                  if (typeof headers.challenge === "string") {
+                    try {
+                      this.challengeB64 = DBASE64(headers.challenge);
+                    } catch (e) {
+                      this.challengeB64 = headers.challenge; //throw new Error("DIGEST MD5 ERROR DECODE BAS64")	
+                    }
+                  }
+
+                  break;
+
+                default:
+                  parsing[ele] = headers[ele];
+              }
+            }
+
+            break;
+
+          default:
+            throw new Error("digetMD5 bad format challenge");
+        }
+
+        var challenge = stage.extend(parserAuthenticate(this.challengeB64), parsing); //var challenge = parserAuthenticate(this.challengeB64);
+        //console.log(challenge)
+
+        for (var name in challenge) {
+          if (name in keyWord) {
+            this[name] = challenge[name];
+          } else {
+            console.warn("digestMd5 parser challenge header name dropped: " + name);
+          }
+        }
+      }
+    }, {
+      key: "generateAuthorization",
+      value: function generateAuthorization(username, password) {
+        var line = 'Digest username="' + username + '"';
+
+        if (!this.realm) {
+          this.realm = username + "@" + this.url.host;
+        }
+
+        var res = {
+          nonce: '"' + this.nonce + '"',
+          realm: '"' + this.realm + '"',
+          response: null
+        };
+        this["digest-uri"] = this.protocol + "/" + this.host; //this["digest-uri"] = '"'+this.protocol+"/"+this.uri+'"';
+
+        res["digest-uri"] = '"' + this["digest-uri"] + '"';
+        /*if (this.charset){
+          res["charset"]=this.charset;
+          }*/
+
+        if (this.qop) {
+          this.cnonce = BASE64(Math.floor(Math.random() * 100000000).toString());
+          res["cnonce"] = '"' + this.cnonce + '"';
+          res["qop"] = this.qop;
+        }
+
+        if (this.opaque) {
+          res["opaque"] = this.opaque;
+        }
+
+        this.nc = "00000001";
+        res["nc"] = this.nc;
+        this.A1 = generateA1(username, this.realm, password
+        /*, this.nonce, this.cnonce*/
+        );
+        this.A2 = generateA2(this.method, this["digest-uri"], this.entity_body, this.qop);
+        res.response = responseDigest(this.A1, this.nonce, this.nc, this.cnonce, this.qop, this.A2); // generate Authorization 
+
+        for (var ele in res) {
+          line += "," + ele + "=" + res[ele];
+        } //console.log(line)
+
+
+        var toSend = BASE64(line);
+        return toSend;
+      }
+    }]);
+
+    return digestMd5;
+  }();
+
+  stage.io.authentication.Digest = digestMd5;
+  stage.io.authentication.mechanisms.Digest = digestMd5;
+  return digestMd5;
 };
 
 /***/ }),
@@ -25717,92 +18365,99 @@ module.exports = function (stage) {
   !*** ./src/io/authentication/sasl/sasl.es6 ***!
   \*********************************************/
 /*! no static exports found */
-/***/ (function(module, exports, __webpack_require__) {
+/***/ (function(module, exports) {
 
-"use strict";
-
-
-var _typeof = typeof Symbol === "function" && typeof Symbol.iterator === "symbol" ? function (obj) { return typeof obj; } : function (obj) { return obj && typeof Symbol === "function" && obj.constructor === Symbol && obj !== Symbol.prototype ? "symbol" : typeof obj; };
-
-var _createClass = function () { function defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ("value" in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } } return function (Constructor, protoProps, staticProps) { if (protoProps) defineProperties(Constructor.prototype, protoProps); if (staticProps) defineProperties(Constructor, staticProps); return Constructor; }; }();
+function _typeof(obj) { if (typeof Symbol === "function" && typeof Symbol.iterator === "symbol") { _typeof = function _typeof(obj) { return typeof obj; }; } else { _typeof = function _typeof(obj) { return obj && typeof Symbol === "function" && obj.constructor === Symbol && obj !== Symbol.prototype ? "symbol" : typeof obj; }; } return _typeof(obj); }
 
 function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError("Cannot call a class as a function"); } }
 
+function _defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ("value" in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } }
+
+function _createClass(Constructor, protoProps, staticProps) { if (protoProps) _defineProperties(Constructor.prototype, protoProps); if (staticProps) _defineProperties(Constructor, staticProps); return Constructor; }
+
 module.exports = function (stage) {
+  var reg = /^([^=]+)=(.+)$/;
 
-	var reg = /^([^=]+)=(.+)$/;
-	var parserSasl = function parserSasl(str) {
-		//console.log(str)
-		var ret = str.replace(/"/g, "");
-		var head = ret.split(",");
-		var obj = {};
-		for (var i = 0; i < head.length; i++) {
-			var res = reg.exec(head[i]);
-			if (res && res[1]) obj[res[1]] = res[2];
-		}
-		return obj;
-	};
+  var parserSasl = function parserSasl(str) {
+    //console.log(str)
+    var ret = str.replace(/"/g, "");
+    var head = ret.split(",");
+    var obj = {};
 
-	var Sasl = function () {
-		function Sasl(url, method, headers, body) {
-			_classCallCheck(this, Sasl);
+    for (var i = 0; i < head.length; i++) {
+      var res = reg.exec(head[i]);
+      if (res && res[1]) obj[res[1]] = res[2];
+    }
 
-			this.method = method;
-			this.url = url;
-			this.name = "sasl";
-			this.headers = parserSasl(headers);
-			this.body = body;
-			this.mechanisms = this.headers.mechanisms;
-			var mechanism = this.getBestMechanism(this.mechanisms);
-			if (mechanism) {
-				delete this.headers.mechanisms;
-				this.bestMechanism = mechanism.name;
-				this.mechanism = new mechanism.Class(this.url, this.method, this.headers, this.body);
-			} else {
-				throw new Error("SALS mechanism not found");
-			}
-		}
+    return obj;
+  };
 
-		_createClass(Sasl, [{
-			key: "getBestMechanism",
-			value: function getBestMechanism(mechanism) {
-				var goodM = null;
-				switch (typeof mechanism === "undefined" ? "undefined" : _typeof(mechanism)) {
-					case "object":
-						for (var i = 0; i < mechanism.length; i++) {
-							if (mechanism[i] in stage.io.authentication.mechanisms) {
-								var goodM = stage.io.authentication.mechanisms[mechanism[i]];
-								var name = mechanism[i];
-								break;
-							}
-						}
-						break;
-					case "string":
-						//console.log(mechanism.split(" "));
-						return this.getBestMechanism(mechanism.split(" "));
-						break;
-					default:
-						throw new Error("FORMAT SALS mechanism bad format");
+  var Sasl =
+  /*#__PURE__*/
+  function () {
+    function Sasl(url, method, headers, body) {
+      _classCallCheck(this, Sasl);
 
-				}
-				return {
-					name: name,
-					Class: goodM
-				};
-			}
-		}, {
-			key: "getAuthorization",
-			value: function getAuthorization(user, password) {
-				return 'SASL mechanism="' + this.bestMechanism + '",' + this.mechanism.generateAuthorization(user, password);
-			}
-		}]);
+      this.method = method;
+      this.url = url;
+      this.name = "sasl";
+      this.headers = parserSasl(headers);
+      this.body = body;
+      this.mechanisms = this.headers.mechanisms;
+      var mechanism = this.getBestMechanism(this.mechanisms);
 
-		return Sasl;
-	}();
+      if (mechanism) {
+        delete this.headers.mechanisms;
+        this.bestMechanism = mechanism.name;
+        this.mechanism = new mechanism.Class(this.url, this.method, this.headers, this.body);
+      } else {
+        throw new Error("SALS mechanism not found");
+      }
+    }
 
-	stage.io.authentication.SASL = Sasl;
+    _createClass(Sasl, [{
+      key: "getBestMechanism",
+      value: function getBestMechanism(mechanism) {
+        var goodM = null;
 
-	return Sasl;
+        switch (_typeof(mechanism)) {
+          case "object":
+            for (var i = 0; i < mechanism.length; i++) {
+              if (mechanism[i] in stage.io.authentication.mechanisms) {
+                var goodM = stage.io.authentication.mechanisms[mechanism[i]];
+                var name = mechanism[i];
+                break;
+              }
+            }
+
+            break;
+
+          case "string":
+            //console.log(mechanism.split(" "));
+            return this.getBestMechanism(mechanism.split(" "));
+            break;
+
+          default:
+            throw new Error("FORMAT SALS mechanism bad format");
+        }
+
+        return {
+          name: name,
+          Class: goodM
+        };
+      }
+    }, {
+      key: "getAuthorization",
+      value: function getAuthorization(user, password) {
+        return 'SASL mechanism="' + this.bestMechanism + '",' + this.mechanism.generateAuthorization(user, password);
+      }
+    }]);
+
+    return Sasl;
+  }();
+
+  stage.io.authentication.SASL = Sasl;
+  return Sasl;
 };
 
 /***/ }),
@@ -25814,21 +18469,25 @@ module.exports = function (stage) {
 /*! no static exports found */
 /***/ (function(module, exports, __webpack_require__) {
 
-"use strict";
-/* WEBPACK VAR INJECTION */(function($) {
+/* WEBPACK VAR INJECTION */(function($) {function _possibleConstructorReturn(self, call) { if (call && (_typeof(call) === "object" || typeof call === "function")) { return call; } return _assertThisInitialized(self); }
 
-var _typeof = typeof Symbol === "function" && typeof Symbol.iterator === "symbol" ? function (obj) { return typeof obj; } : function (obj) { return obj && typeof Symbol === "function" && obj.constructor === Symbol && obj !== Symbol.prototype ? "symbol" : typeof obj; };
+function _assertThisInitialized(self) { if (self === void 0) { throw new ReferenceError("this hasn't been initialised - super() hasn't been called"); } return self; }
 
-var _createClass = function () { function defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ("value" in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } } return function (Constructor, protoProps, staticProps) { if (protoProps) defineProperties(Constructor.prototype, protoProps); if (staticProps) defineProperties(Constructor, staticProps); return Constructor; }; }();
+function _getPrototypeOf(o) { _getPrototypeOf = Object.setPrototypeOf ? Object.getPrototypeOf : function _getPrototypeOf(o) { return o.__proto__ || Object.getPrototypeOf(o); }; return _getPrototypeOf(o); }
 
-function _possibleConstructorReturn(self, call) { if (!self) { throw new ReferenceError("this hasn't been initialised - super() hasn't been called"); } return call && (typeof call === "object" || typeof call === "function") ? call : self; }
+function _inherits(subClass, superClass) { if (typeof superClass !== "function" && superClass !== null) { throw new TypeError("Super expression must either be null or a function"); } subClass.prototype = Object.create(superClass && superClass.prototype, { constructor: { value: subClass, writable: true, configurable: true } }); if (superClass) _setPrototypeOf(subClass, superClass); }
 
-function _inherits(subClass, superClass) { if (typeof superClass !== "function" && superClass !== null) { throw new TypeError("Super expression must either be null or a function, not " + typeof superClass); } subClass.prototype = Object.create(superClass && superClass.prototype, { constructor: { value: subClass, enumerable: false, writable: true, configurable: true } }); if (superClass) Object.setPrototypeOf ? Object.setPrototypeOf(subClass, superClass) : subClass.__proto__ = superClass; }
+function _setPrototypeOf(o, p) { _setPrototypeOf = Object.setPrototypeOf || function _setPrototypeOf(o, p) { o.__proto__ = p; return o; }; return _setPrototypeOf(o, p); }
+
+function _typeof(obj) { if (typeof Symbol === "function" && typeof Symbol.iterator === "symbol") { _typeof = function _typeof(obj) { return typeof obj; }; } else { _typeof = function _typeof(obj) { return obj && typeof Symbol === "function" && obj.constructor === Symbol && obj !== Symbol.prototype ? "symbol" : typeof obj; }; } return _typeof(obj); }
 
 function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError("Cannot call a class as a function"); } }
 
-module.exports = function (stage) {
+function _defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ("value" in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } }
 
+function _createClass(Constructor, protoProps, staticProps) { if (protoProps) _defineProperties(Constructor.prototype, protoProps); if (staticProps) _defineProperties(Constructor, staticProps); return Constructor; }
+
+module.exports = function (stage) {
   'use strict';
 
   var isSameOrigin = function isSameOrigin(url) {
@@ -25842,7 +18501,6 @@ module.exports = function (stage) {
     var a = urlToOject(url);
     return a.protocol === "https:";
   };
-
   /*
    *
    *   CLASS AUTHENTICATE
@@ -25857,27 +18515,32 @@ module.exports = function (stage) {
    *
    *
    */
-  var authenticate = function () {
+
+
+  var authenticate =
+  /*#__PURE__*/
+  function () {
     function authenticate(url, request, settings) {
       _classCallCheck(this, authenticate);
 
-      this.url = (typeof url === "undefined" ? "undefined" : _typeof(url)) === "object" ? url : stage.io.urlToOject(url);
-      this.crossDomain = !stage.io.isSameOrigin(url);
-      // notification center
-      this.notificationCenter = stage.notificationsCenter.create(settings);
-      // get header WWW-Authenticate
-      var _authenticate = request["WWW-Authenticate"].split(" ");
-      //  get type authentification
-      var authType = Array.prototype.shift.call(_authenticate);
-      var headers = request["WWW-Authenticate"].replace(authType + " ", "");
-      //console.log(authType);
-      this.method = "POST";
-      var body = request.body;
+      this.url = _typeof(url) === "object" ? url : stage.io.urlToOject(url);
+      this.crossDomain = !stage.io.isSameOrigin(url); // notification center
 
-      // intance of authentication
+      this.notificationCenter = stage.notificationsCenter.create(settings); // get header WWW-Authenticate
+
+      var _authenticate = request["WWW-Authenticate"].split(" "); //  get type authentification
+
+
+      var authType = Array.prototype.shift.call(_authenticate);
+      var headers = request["WWW-Authenticate"].replace(authType + " ", ""); //console.log(authType);
+
+      this.method = "POST";
+      var body = request.body; // intance of authentication
+
       var auth = this.getAuthenticationType(authType);
       this.authentication = new auth(this.url, this.method, headers, body);
       this.ajax = false;
+
       if (settings.ajax) {
         this.ajax = true;
       }
@@ -25899,6 +18562,7 @@ module.exports = function (stage) {
 
         var line = this.authentication.getAuthorization(username, password);
         this.notificationCenter.fire("onRegister", this, line);
+
         if (this.ajax) {
           $.ajax({
             type: this.method,
@@ -25909,8 +18573,7 @@ module.exports = function (stage) {
               _this.notificationCenter.fire("onError", obj, type, message);
             },
             beforeSend: function beforeSend(xhr) {
-              xhr.setRequestHeader("Authorization", line);
-              //if (this.crossDomain)
+              xhr.setRequestHeader("Authorization", line); //if (this.crossDomain)
               //xhr.setRequestHeader("X-Requested-With", "XMLHttpRequest");
             },
             success: function success(data, state, obj) {
@@ -25923,7 +18586,6 @@ module.exports = function (stage) {
 
     return authenticate;
   }();
-
   /**
    * We need our custom method because encodeURIComponent is too aggressive and doesn't follow
    * http://www.ietf.org/rfc/rfc3986.txt with regards to the character set (pchar) allowed in path
@@ -25935,10 +18597,11 @@ module.exports = function (stage) {
    *    sub-delims    = "!" / "$" / "&" / "'" / "(" / ")"
    *                     / "*" / "+" / "," / ";" / "="
    */
+
+
   var encodeUriSegment = function encodeUriSegment(val) {
     return encodeUriQuery(val, true).replace(/%26/gi, '&').replace(/%3D/gi, '=').replace(/%2B/gi, '+');
   };
-
   /**
    * This method is intended for encoding *key* or *value* parts of query component. We need a custom
    * method because encodeURIComponent is too aggressive and encodes stuff that doesn't have to be
@@ -25950,31 +18613,37 @@ module.exports = function (stage) {
    *    sub-delims    = "!" / "$" / "&" / "'" / "(" / ")"
    *                     / "*" / "+" / "," / ";" / "="
    */
+
+
   var encodeUriQuery = function encodeUriQuery(val, pctEncodeSpaces) {
     return encodeURIComponent(val).replace(/%40/gi, '@').replace(/%3A/gi, ':').replace(/%24/g, '$').replace(/%2C/gi, ',').replace(/%3B/gi, ';').replace(/%20/g, pctEncodeSpaces ? '%20' : '+');
   };
 
   var regSearch = /^\?(.*)/;
+
   var parseKeyValue = function parseKeyValue(search) {
     //console.log(search)
-    var test = regSearch.exec(search);
-    //console.log(test)
+    var test = regSearch.exec(search); //console.log(test)
+
     if (test) {
       search = test[1];
     }
+
     var obj = {},
         key_value,
         key;
     var tab = (search || "").split('&');
+
     if (tab.length) {
       for (var i = 0; i < tab.length; i++) {
         try {
           var key_value = tab[i].replace(/\+/g, '%20').split('=');
-          var key = decodeURIComponent(key_value[0]);
-          //console.log(key_value)
+          var key = decodeURIComponent(key_value[0]); //console.log(key_value)
           //console.log(key)
+
           if (key) {
             var val = decodeURIComponent(key_value[1]);
+
             if (!Object.prototype.hasOwnProperty.call(obj, key)) {
               obj[key] = val;
             } else {
@@ -25982,41 +18651,48 @@ module.exports = function (stage) {
                 case "array":
                   obj[key].push(val);
                   break;
+
                 default:
                   obj[key] = [obj[key], val];
               }
             }
           }
-        } catch (e) {
-          //invalid
+        } catch (e) {//invalid
         }
       }
     }
+
     return obj;
   };
 
   var toKeyValue = function toKeyValue(obj) {
     var parts = [];
+
     for (var ele in obj) {
       switch (stage.typeOf(obj[ele])) {
         case "array":
           for (var i = 0; i < obj[ele].length; i++) {
             parts.push(encodeUriQuery(ele, true) + (obj[ele][i] === true ? '' : '=' + encodeUriQuery(obj[ele][i], true)));
           }
+
           break;
+
         case "string":
         case "boolean":
           parts.push(encodeUriQuery(ele, true) + (obj[ele] === true ? '' : '=' + encodeUriQuery(obj[ele], true)));
           break;
+
         default:
           continue;
       }
     }
+
     return parts.length ? parts.join('&') : '';
   };
 
   var getHeaderJSON = function getHeaderJSON(xhr) {
     var json = xhr.getResponseHeader("X-Json");
+
     if (json) {
       try {
         return JSON.parse(json);
@@ -26024,16 +18700,16 @@ module.exports = function (stage) {
         return json;
       }
     }
+
     return null;
   };
 
   var urlToOject = function urlToOject(url) {
     var result = {};
-
     var anchor = document.createElement('a');
     anchor.href = url;
-
     var keys = 'protocol hostname host pathname port search hash href'.split(' ');
+
     for (var keyIndex in keys) {
       var currentKey = keys[keyIndex];
       result[currentKey] = anchor[currentKey];
@@ -26042,24 +18718,26 @@ module.exports = function (stage) {
     result.toString = function () {
       return anchor.href;
     };
-    result.requestUri = result.pathname + result.search;
 
+    result.requestUri = result.pathname + result.search;
     result.basename = result.pathname.replace(/\\/g, '/').replace(/.*\//, '');
     result.dirname = result.pathname.replace(/\\/g, '/').replace(/\/[^\/]*$/, '');
-
     return result;
   };
 
   var nativeWebSocket = window.WebSocket ? true : false;
 
-  var transportCore = function (_stage$notificationsC) {
+  var transportCore =
+  /*#__PURE__*/
+  function (_stage$notificationsC) {
     _inherits(transportCore, _stage$notificationsC);
 
     function transportCore(url, settings, context) {
+      var _this2;
+
       _classCallCheck(this, transportCore);
 
-      // Manage Url
-      var _this2 = _possibleConstructorReturn(this, (transportCore.__proto__ || Object.getPrototypeOf(transportCore)).call(this, settings, context));
+      _this2 = _possibleConstructorReturn(this, _getPrototypeOf(transportCore).call(this, settings, context)); // Manage Url
 
       if (url) {
         _this2.url = urlToOject(url);
@@ -26068,6 +18746,7 @@ module.exports = function (stage) {
       } else {
         _this2.fire("onError", new Error("Transport URL not defined"));
       }
+
       return _this2;
     }
 
@@ -26092,7 +18771,6 @@ module.exports = function (stage) {
     transport: transportCore,
     transports: {}
   };
-
   return stage.io;
 };
 /* WEBPACK VAR INJECTION */}.call(this, __webpack_require__(/*! jquery */ "./node_modules/jquery/dist/jquery.js-exposed")))
@@ -26106,15 +18784,13 @@ module.exports = function (stage) {
 /*! no static exports found */
 /***/ (function(module, exports, __webpack_require__) {
 
-"use strict";
-/* WEBPACK VAR INJECTION */(function($) {
+/* WEBPACK VAR INJECTION */(function($) {function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError("Cannot call a class as a function"); } }
 
-var _createClass = function () { function defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ("value" in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } } return function (Constructor, protoProps, staticProps) { if (protoProps) defineProperties(Constructor.prototype, protoProps); if (staticProps) defineProperties(Constructor, staticProps); return Constructor; }; }();
+function _defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ("value" in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } }
 
-function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError("Cannot call a class as a function"); } }
+function _createClass(Constructor, protoProps, staticProps) { if (protoProps) _defineProperties(Constructor.prototype, protoProps); if (staticProps) _defineProperties(Constructor, staticProps); return Constructor; }
 
 module.exports = function (stage) {
-
   'use strict';
 
   var clientsCapabilities = function () {
@@ -26133,18 +18809,24 @@ module.exports = function (stage) {
       try {
         var socket = this.getBestConnection(message.supportedConnectionTypes);
         this.socket = new socket.Class(socket.url);
+
         this.socket.onmessage = function (message) {
           if (message.data) {
             _this.onMessage(message.data);
           }
         };
+
         this.socket.onopen = function () {
           _this.socket.send(_this.connect(message));
+
           _this.notificationCenter.fire("onHandshake", message, _this.socket);
         };
+
         this.socket.onerror = this.notificationCenter.listen(this, "onError");
+
         this.socket.onclose = function (err) {
           delete _this.socket;
+
           _this.notificationCenter.fire("onClose", err);
         };
       } catch (e) {
@@ -26164,6 +18846,7 @@ module.exports = function (stage) {
     if (message.successful) {
       this.connected = true;
       this.idconnection = message.clientId;
+
       if (message.advice) {
         for (var ele in message.advice) {
           switch (ele) {
@@ -26173,10 +18856,12 @@ module.exports = function (stage) {
                   this.notificationCenter.listen(this, "onClose", reconnect);
                 }
               }
+
               break;
           }
         }
       }
+
       this.notificationCenter.fire("onConnect", message);
     } else {
       this.connected = false;
@@ -26222,30 +18907,37 @@ module.exports = function (stage) {
             var arg = res[1];
             var mess = res[2];
             break;
+
           case "object":
             if (message.error) {
               return onError.call(this, message.error);
             }
+
             break;
+
           case "Error":
             message.error = "500::" + message.error.message;
             return onError.call(this, message.error);
+
           default:
             throw new Error("Bad protocole error BAYEUX");
-
         }
+
         return this.notificationCenter.fire("onError", code, arg, mess);
       } catch (e) {
         throw new Error("Bad protocole error BAYEUX" + e);
       }
     }
   };
-
   /*
    *	BAYEUX PROTOCOL
    *
    */
-  var bayeux = function () {
+
+
+  var bayeux =
+  /*#__PURE__*/
+  function () {
     function bayeux(url) {
       _classCallCheck(this, bayeux);
 
@@ -26267,6 +18959,7 @@ module.exports = function (stage) {
         } else {
           this.url.protocol = "ws:";
         }
+
         this.socketType = "WEBSOCKET";
         return {
           Class: window.WebSocket,
@@ -26354,17 +19047,23 @@ module.exports = function (stage) {
           onError.call(this, message);
           return;
         }
+
         switch (message.channel) {
           case "/meta/handshake":
             return onHandshakeResponse.call(this, message);
+
           case "/meta/connect":
             return onConnectResponse.call(this, message);
+
           case "/meta/disconnect":
             return onDisconnectResponse.call(this, message);
+
           case "/meta/subscribe":
             return onSubscribeResponse.call(this, message);
+
           case "/meta/unsubscribe":
             return onUnsubscribeResponse.call(this, message);
+
           default:
             // /some/channel
             this.notificationCenter.fire("onMessage", message);
@@ -26378,6 +19077,7 @@ module.exports = function (stage) {
         if (this.socket) {
           return this.socket.send(data);
         }
+
         return $.ajax({
           method: 'POST',
           cache: false,
@@ -26410,23 +19110,22 @@ module.exports = function (stage) {
   !*** ./src/io/protocols/sip/sdp.es6 ***!
   \**************************************/
 /*! no static exports found */
-/***/ (function(module, exports, __webpack_require__) {
-
-"use strict";
-
-
-var _createClass = function () { function defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ("value" in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } } return function (Constructor, protoProps, staticProps) { if (protoProps) defineProperties(Constructor.prototype, protoProps); if (staticProps) defineProperties(Constructor, staticProps); return Constructor; }; }();
+/***/ (function(module, exports) {
 
 function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError("Cannot call a class as a function"); } }
 
-module.exports = function (stage) {
+function _defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ("value" in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } }
 
+function _createClass(Constructor, protoProps, staticProps) { if (protoProps) _defineProperties(Constructor.prototype, protoProps); if (staticProps) _defineProperties(Constructor, staticProps); return Constructor; }
+
+module.exports = function (stage) {
   'use strict';
 
   var defaultAparser = function defaultAparser(value, block) {
     if (value) {
       return value;
     }
+
     return null;
   };
 
@@ -26441,20 +19140,25 @@ module.exports = function (stage) {
         raw: value
       };
       var res = value.split(" ");
+
       for (var i = 0; i < res.length; i++) {
         switch (i) {
           case 0:
             obj.payloadType = res[i];
             break;
+
           case 1:
             var ret = res[i].split("/");
             obj.encodingName = ret[0];
+
             if (ret[1]) {
               obj.clockRate = ret[1];
             }
+
             if (ret[2]) {
               obj.encodingParameters = ret[2];
             }
+
             break;
         }
       }
@@ -26463,8 +19167,10 @@ module.exports = function (stage) {
         var index = block.rtpmap.push(obj);
         block.rtpmap["rtpmap_" + obj.payloadType] = block.rtpmap[index - 1];
       }
+
       return obj;
     }
+
     return null;
   };
 
@@ -26491,7 +19197,6 @@ module.exports = function (stage) {
      *               extension-att-value)
      */
     if (value) {
-
       var obj = {
         foundation: null,
         componentId: null,
@@ -26508,55 +19213,71 @@ module.exports = function (stage) {
         raw: value
       };
       var res = value.split(" ");
+
       for (var i = 0; i < res.length; i++) {
         switch (i) {
           case 0:
             obj.foundation = res[i];
             break;
+
           case 1:
             obj.componentId = res[i];
             break;
+
           case 2:
             obj.transport = res[i];
             var ret = res[i].split("/");
             obj.transport = ret[0];
+
             if (ret[1]) {
               obj.transportExt = ret[1];
             }
+
             break;
+
           case 3:
             obj.priority = res[i];
             break;
+
           case 4:
             obj.connectionAddress = res[i];
             break;
+
           case 5:
             obj.port = res[i];
             break;
+
           default:
             switch (res[i]) {
               case "typ":
                 obj.candidateType = res[i + 1];
                 break;
+
               case "raddr":
                 obj.remoteAddr = res[i + 1];
                 break;
+
               case "rport":
                 obj.remotePort = res[i + 1];
                 break;
+
               case "generation":
                 obj.generation = res[i + 1];
                 break;
+
               case "network-id":
                 obj.networkId = res[i + 1];
                 break;
             }
+
             break;
         }
       }
+
       block.candidates.push(obj);
       return value;
     }
+
     return null;
   };
 
@@ -26577,28 +19298,30 @@ module.exports = function (stage) {
     "fmtp": defaultAparser,
     "candidate": candidateParser
   };
-
   var aAttributeDirection = {
     "recvonly": defaultAparser,
     "sendrecv": defaultAparser,
     "sendonly": defaultAparser,
     "inactive": defaultAparser
   };
-
   /*
    *	SDP PROTOCOL
    *
    */
-  var parserSdp = function () {
+
+  var parserSdp =
+  /*#__PURE__*/
+  function () {
     function parserSdp(body) {
       _classCallCheck(this, parserSdp);
 
       if (!body) {
         throw new Error("SDP parser no data found !! ");
-      }
-      //this.line = body.split("\n");
+      } //this.line = body.split("\n");
       //this.nbLines = this.line.length ;
       //this.size = body.length ;
+
+
       this.raw = body;
       this.blocks = [];
       this.sessionBlock = null;
@@ -26615,6 +19338,7 @@ module.exports = function (stage) {
         var nbLines = line.length;
         var first = 0;
         var m = null;
+
         for (var i = 0; i < nbLines; i++) {
           var res = line[i].split("=");
           var key = res[0].replace(/ |\n|\r/g, "");
@@ -26623,6 +19347,7 @@ module.exports = function (stage) {
           var _size = null;
           var _media = null;
           var _type = null;
+
           switch (key) {
             case "m":
               if (first === 0) {
@@ -26632,7 +19357,9 @@ module.exports = function (stage) {
                 _data = line.slice(first + 1, i);
                 _size = _data.length;
               }
+
               var _parseM = this.parseMline(m);
+
               if (_parseM) {
                 _media = _parseM;
                 _type = _parseM.media;
@@ -26640,6 +19367,7 @@ module.exports = function (stage) {
                 _media = null;
                 _type = "session";
               }
+
               this.blocks.push({
                 type: _type,
                 direction: null,
@@ -26660,11 +19388,13 @@ module.exports = function (stage) {
               break;
           }
         }
+
         var data = line.slice(first + 1, nbLines);
         var size = data.length;
         var media = null;
         var type = null;
         var parseM = this.parseMline(m);
+
         if (parseM) {
           media = parseM;
           type = parseM.media;
@@ -26672,6 +19402,7 @@ module.exports = function (stage) {
           media = null;
           type = "session";
         }
+
         this.blocks.push({
           type: type,
           direction: null,
@@ -26694,6 +19425,7 @@ module.exports = function (stage) {
         // RFC https://tools.ietf.org/html/rfc4566#section-5.14
         //=<media> <port>/<number of ports> <proto> <fmt> ...
         var obj = null;
+
         if (data) {
           obj = {
             media: "",
@@ -26704,29 +19436,37 @@ module.exports = function (stage) {
             raw: data
           };
           var res = data.split(" ");
+
           for (var i = 0; i < res.length; i++) {
             switch (i) {
               case 0:
                 obj.media = res[i];
                 break;
+
               case 1:
                 var ret = res[i].split("/");
                 obj.port = ret[0];
+
                 if (ret[1]) {
                   obj.nbPort = ret[1];
                 } else {
                   obj.nbPort = 1;
                 }
+
                 break;
+
               case 2:
                 obj.proto = res[i];
                 break;
+
               default:
                 obj.fmt.push(res[i]);
             }
           }
+
           return obj;
         }
+
         return null;
       }
     }, {
@@ -26734,12 +19474,15 @@ module.exports = function (stage) {
       value: function parseAline(data, block) {
         //a=<attribute>:<value>
         var obj = {};
+
         if (!data) {
           return obj;
         }
+
         var res = data.split(":");
         var attribute = res[0].replace(/ |\n|\r/g, "");
         var value = res[1];
+
         if (aAttribute[attribute]) {
           obj[attribute] = aAttribute[attribute](value, block);
         } else {
@@ -26748,6 +19491,7 @@ module.exports = function (stage) {
               obj[attribute] = value;
               block.setup = value;
               break;
+
             default:
               if (aAttributeDirection[attribute]) {
                 var ele = aAttributeDirection[attribute](attribute, block);
@@ -26756,8 +19500,10 @@ module.exports = function (stage) {
               } else {
                 obj[attribute] = value;
               }
+
           }
         }
+
         return obj;
       }
     }, {
@@ -26772,22 +19518,26 @@ module.exports = function (stage) {
             raw: data
           };
           var res = data.split(" ");
+
           for (var i = 0; i < res.length; i++) {
             switch (i) {
               case 0:
                 obj.nettype = res[i];
                 break;
+
               case 1:
                 obj.addrtype = res[i];
-
                 break;
+
               case 2:
                 obj.address = res[i];
                 break;
             }
           }
+
           return obj;
         }
+
         return null;
       }
     }, {
@@ -26795,6 +19545,7 @@ module.exports = function (stage) {
       value: function parseOline(data) {
         //o=<username> <sess-id> <sess-version> <nettype> <addrtype> <unicast-address>
         var obj = null;
+
         if (data) {
           obj = {
             username: null,
@@ -26806,33 +19557,40 @@ module.exports = function (stage) {
             raw: data
           };
           var res = data.split(" ");
+
           for (var i = 0; i < res.length; i++) {
             switch (i) {
               case 0:
                 obj.username = res[i];
                 break;
+
               case 1:
                 obj.sessId = res[i];
                 break;
+
               case 2:
                 obj.sessVersion = res[i];
                 break;
+
               case 3:
                 obj.nettype = res[i];
                 break;
+
               case 4:
                 obj.addrtype = res[i];
                 break;
+
               case 5:
                 obj.unicastAddr = res[i];
                 break;
             }
           }
+
           return obj;
         }
+
         return null;
       }
-
       /*
        *	TIME DESCRIPTION
        */
@@ -26848,18 +19606,22 @@ module.exports = function (stage) {
             raw: data
           };
           var res = data.split(" ");
+
           for (var i = 0; i < res.length; i++) {
             switch (i) {
               case 0:
                 obj.start = res[i];
                 break;
+
               case 1:
                 obj.stop = res[i];
                 break;
             }
           }
+
           return obj;
         }
+
         return null;
       }
     }, {
@@ -26874,24 +19636,28 @@ module.exports = function (stage) {
             raw: data
           };
           var res = data.split(" ");
+
           for (var i = 0; i < res.length; i++) {
             switch (i) {
               case 0:
                 obj.interval = res[i];
                 break;
+
               case 1:
                 obj.duration = res[i];
                 break;
+
               case 2:
                 obj.offsets = res[i];
                 break;
             }
           }
+
           return obj;
         }
+
         return null;
       }
-
       /** BLOCK MEDIA
        *    Media description, if present
        *  m=  (media name and transport address)
@@ -26907,31 +19673,37 @@ module.exports = function (stage) {
       key: "blockMediaParser",
       value: function blockMediaParser(block) {
         block.rtpmap = [];
+
         for (var j = 0; j < block.data.length; j++) {
           var res = block.data[j].split("=");
           var key = res[0].replace(/ |\n|\r/g, "");
           var value = res[1];
+
           switch (key) {
             case "a":
               block.attributes.push(this.parseAline(value, block));
               break;
+
             case "c":
               block.connection = this.parseCline(value);
               break;
+
             case "i":
               block.information = value;
               break;
+
             case "b":
               block.bandwidths.push(value);
               break;
+
             case "k":
               block.encryption = value;
               break;
           }
         }
+
         return block;
       }
-
       /*  BLOCK SESSION
        *    session description
        *  v=  (protocol version)
@@ -26970,52 +19742,67 @@ module.exports = function (stage) {
           var res = block.data[j].split("=");
           var key = res[0].replace(/ |\n|\r/g, "");
           var value = res[1];
+
           switch (key) {
             case "v":
               block.protocol = value;
               break;
+
             case "o":
               block.originator = this.parseOline(value);
               break;
+
             case "s":
               block.sessionName = value;
               break;
+
             case "u":
               block.uri = value;
               break;
+
             case "e":
               block.email = value;
               break;
+
             case "p":
               block.phoneNumber = value;
               break;
+
             case "z":
               block.timeZone = value;
               break;
+
             case "a":
               block.attributes.push(this.parseAline(value, block));
               break;
+
             case "c":
               block.connection = this.parseCline(value);
               break;
+
             case "i":
               block.information = value;
               break;
+
             case "b":
               block.bandwidths.push(value);
               break;
+
             case "k":
               block.encryption = value;
               break;
             // TIME DESCRIPTION
+
             case "t":
               block.timeDescription = this.parseTline(value);
               break;
+
             case "r":
               block.timeRepeat = this.parseRline(value);
               break;
           }
         }
+
         return block;
       }
     }, {
@@ -27026,9 +19813,11 @@ module.exports = function (stage) {
             case "session":
               this.sessionBlock = this.blockSessionParser(this.blocks[i]);
               break;
+
             case "audio":
               this.audioBlock = this.blockMediaParser(this.blocks[i]);
               break;
+
             case "video":
               this.videoBlock = this.blockMediaParser(this.blocks[i]);
               break;
@@ -27041,7 +19830,6 @@ module.exports = function (stage) {
   }();
 
   stage.io.protocols.sdp = parserSdp;
-
   return parserSdp;
 };
 
@@ -27054,19 +19842,25 @@ module.exports = function (stage) {
 /*! no static exports found */
 /***/ (function(module, exports, __webpack_require__) {
 
-"use strict";
-/* WEBPACK VAR INJECTION */(function($) {
+/* WEBPACK VAR INJECTION */(function($) {function _typeof(obj) { if (typeof Symbol === "function" && typeof Symbol.iterator === "symbol") { _typeof = function _typeof(obj) { return typeof obj; }; } else { _typeof = function _typeof(obj) { return obj && typeof Symbol === "function" && obj.constructor === Symbol && obj !== Symbol.prototype ? "symbol" : typeof obj; }; } return _typeof(obj); }
 
-var _createClass = function () { function defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ("value" in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } } return function (Constructor, protoProps, staticProps) { if (protoProps) defineProperties(Constructor.prototype, protoProps); if (staticProps) defineProperties(Constructor, staticProps); return Constructor; }; }();
+function _possibleConstructorReturn(self, call) { if (call && (_typeof(call) === "object" || typeof call === "function")) { return call; } return _assertThisInitialized(self); }
 
-function _possibleConstructorReturn(self, call) { if (!self) { throw new ReferenceError("this hasn't been initialised - super() hasn't been called"); } return call && (typeof call === "object" || typeof call === "function") ? call : self; }
+function _assertThisInitialized(self) { if (self === void 0) { throw new ReferenceError("this hasn't been initialised - super() hasn't been called"); } return self; }
 
-function _inherits(subClass, superClass) { if (typeof superClass !== "function" && superClass !== null) { throw new TypeError("Super expression must either be null or a function, not " + typeof superClass); } subClass.prototype = Object.create(superClass && superClass.prototype, { constructor: { value: subClass, enumerable: false, writable: true, configurable: true } }); if (superClass) Object.setPrototypeOf ? Object.setPrototypeOf(subClass, superClass) : subClass.__proto__ = superClass; }
+function _getPrototypeOf(o) { _getPrototypeOf = Object.setPrototypeOf ? Object.getPrototypeOf : function _getPrototypeOf(o) { return o.__proto__ || Object.getPrototypeOf(o); }; return _getPrototypeOf(o); }
+
+function _inherits(subClass, superClass) { if (typeof superClass !== "function" && superClass !== null) { throw new TypeError("Super expression must either be null or a function"); } subClass.prototype = Object.create(superClass && superClass.prototype, { constructor: { value: subClass, writable: true, configurable: true } }); if (superClass) _setPrototypeOf(subClass, superClass); }
+
+function _setPrototypeOf(o, p) { _setPrototypeOf = Object.setPrototypeOf || function _setPrototypeOf(o, p) { o.__proto__ = p; return o; }; return _setPrototypeOf(o, p); }
 
 function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError("Cannot call a class as a function"); } }
 
-module.exports = function (stage) {
+function _defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ("value" in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } }
 
+function _createClass(Constructor, protoProps, staticProps) { if (protoProps) _defineProperties(Constructor.prototype, protoProps); if (staticProps) _defineProperties(Constructor, staticProps); return Constructor; }
+
+module.exports = function (stage) {
   'use strict';
 
   var byteToHex = function byteToHex(byte) {
@@ -27078,49 +19872,56 @@ module.exports = function (stage) {
     window.crypto.getRandomValues(arr);
     return [].map.call(arr, byteToHex).join("");
   };
-
   /*
    *
    *	DIGEST authenticate
    *
    *
    */
+
+
   var stringify = function stringify(value) {
     return '"' + value + '"';
   };
 
   var reg = /^([^=]+)=(.+)$/;
+
   var parserAuthenticate = function parserAuthenticate(str) {
     var ret = str.replace(/"/g, "");
     ret = ret.replace(/Digest /g, "");
     var head = ret.split(",");
     var obj = [];
+
     for (var i = 0; i < head.length; i++) {
       var res = reg.exec(head[i]);
       var key = res[1].replace(/ |\n|\r/g, "");
+
       if (res && key) {
         obj[key] = res[2];
       }
     }
+
     return obj;
   };
 
-  var MD5 = stage.crypto.md5.hex_md5_noUTF8;
-  //var BASE64 = stage.crypto.base64.encode ;
+  var MD5 = stage.crypto.md5.hex_md5_noUTF8; //var BASE64 = stage.crypto.base64.encode ;
 
   var digest = {
     generateA1: function generateA1(username, realm, password, nonce, cnonce) {
       var A1 = null;
+
       if (cnonce) {
         A1 = username + ":" + realm + ":" + password + ":" + nonce + ":" + cnonce;
       } else {
         A1 = username + ":" + realm + ":" + password; //+ ":" + nonce ;
-      }
-      //console.log(A1)
+      } //console.log(A1)
+
+
       return MD5(A1);
     },
     generateA2: function generateA2(method, uri, entity_body, qop) {
       var A2 = "";
+
       if (!qop || qop === "auth") {
         A2 = method + ":" + uri;
       } else if (qop === "auth-int") {
@@ -27130,23 +19931,28 @@ module.exports = function (stage) {
         } else {
           A2 = method + ":" + uri + ":" + "d41d8cd98f00b204e9800998ecf8427e";
         }
-      }
-      //console.log(A2)
+      } //console.log(A2)
+
+
       return MD5(A2);
     },
     generateResponse: function generateResponse(A1, nonce, noncecount, cnonce, qop, A2) {
       var res = "";
+
       if (qop === "auth" || qop === "auth-int") {
         res = A1 + ":" + nonce + ":" + noncecount + ":" + cnonce + ":" + qop + ":" + A2;
       } else {
         res = A1 + ":" + nonce + ":" + A2;
-      }
-      //console.log(res)
+      } //console.log(res)
+
+
       return MD5(res);
     }
   };
 
-  var authenticate = function () {
+  var authenticate =
+  /*#__PURE__*/
+  function () {
     function authenticate(dialog, username, password) {
       _classCallCheck(this, authenticate);
 
@@ -27166,24 +19972,28 @@ module.exports = function (stage) {
     }
 
     _createClass(authenticate, [{
-      key: 'register',
+      key: "register",
       value: function register(message, type) {
         //console.log("AUTH REGISTER")
         //console.log(message);
         var head = message.authenticate;
+
         if (!head) {
           head = this.dialog.authenticate;
         } else {
           this.dialog.authenticate = head;
         }
+
         this.realm = head.realm;
         this.nonce = head.nonce;
         this.cnonce = head.cnonce;
         this.qop = head.qop;
         this.algorithm = head.Digestalgorithm ? head.Digestalgorithm : "md5";
+
         if (message.rawBody) {
           this.entity_body = message.rawBody;
         }
+
         switch (this.algorithm.toLowerCase()) {
           case "md5":
             this.response = this.digestMD5(message.method);
@@ -27191,6 +20001,7 @@ module.exports = function (stage) {
         }
 
         var method = "";
+
         if (!type) {
           method = "Authorization: ";
         } else {
@@ -27200,13 +20011,13 @@ module.exports = function (stage) {
             method = "Authorization: ";
           }
         }
-        var line = "Digest username=" + stringify(this.userName) + ", realm=" + stringify(this.realm) + ", nonce=" + stringify(this.nonce) + ", uri=" + stringify(this.uri) + ", algorithm=" + this.algorithm + ", response=" + stringify(this.response);
-        this.lineResponse = method + line;
 
-        //var transac = message.transaction ;
+        var line = "Digest username=" + stringify(this.userName) + ", realm=" + stringify(this.realm) + ", nonce=" + stringify(this.nonce) + ", uri=" + stringify(this.uri) + ", algorithm=" + this.algorithm + ", response=" + stringify(this.response);
+        this.lineResponse = method + line; //var transac = message.transaction ;
+
         var transac = this.dialog.createTransaction(message.transaction.to);
-        this.dialog.tagTo = null;
-        //this.dialog.sip.fire("onInitCall", this.dialog.toName, this.dialog, transac);
+        this.dialog.tagTo = null; //this.dialog.sip.fire("onInitCall", this.dialog.toName, this.dialog, transac);
+
         var request = transac.createRequest(this.dialog.body, this.dialog.bodyType);
         request.header.response = this.lineResponse;
         request.send();
@@ -27214,7 +20025,7 @@ module.exports = function (stage) {
         return transac;
       }
     }, {
-      key: 'unregister',
+      key: "unregister",
       value: function unregister() {
         this.dialog.expires = 0;
         this.dialog.contact = "*";
@@ -27222,15 +20033,17 @@ module.exports = function (stage) {
         this.dialog.to = this.dialog.from;
         this.dialog.tagTo = null;
         var request = trans.createRequest();
+
         if (this.lineResponse) {
           request.header.response = this.lineResponse;
         }
+
         this.unregisterSended = true;
         request.send();
         return trans;
       }
     }, {
-      key: 'digestMD5',
+      key: "digestMD5",
       value: function digestMD5(method) {
         var A1 = digest.generateA1(this.userName, this.realm, this.password, this.nonce, this.cnonce);
         var A2 = digest.generateA2(method, this.uri, this.entity_body, this.qop);
@@ -27240,7 +20053,6 @@ module.exports = function (stage) {
 
     return authenticate;
   }();
-
   /*
    *
    * CLASS PARSER HEADER SIP
@@ -27248,6 +20060,8 @@ module.exports = function (stage) {
    *
    */
   //var regContact = /.*<(sip:.*)>(.*)|.*<(sips:.*)>(.*)/g;
+
+
   var regHeaders = {
     line: /\r\n|\r|\n/,
     headName: /: */,
@@ -27265,34 +20079,38 @@ module.exports = function (stage) {
       var sp = value.split(";");
       this.message[type + "Tag"] = null;
       var res = sp.shift();
-      var res2 = regHeaders.fromTo.exec(res);
-      //console.log(regHeaders.fromToG.exec(res))
+      var res2 = regHeaders.fromTo.exec(res); //console.log(regHeaders.fromToG.exec(res))
       //console.log(res2)
+
       this.message[type + "Name"] = res2.length > 2 ? res2[1].replace(/ |\n|\r/g, "").replace(/"/g, "") : "";
       this.message[type] = res2[1].replace(" ", "") + "@" + res2[2].replace(/ |\n|\r/g, "");
       var ret = regHeaders.fromToG.exec(res);
+
       if (ret && ret[1]) {
-        var displayName = ret[1].replace(/"/g, "");
-        //this.message[type+"Name"] = displayName ;
-        this.message[type + "NameDisplay"] = displayName;
-        //console.log(displayName)
+        var displayName = ret[1].replace(/"/g, ""); //this.message[type+"Name"] = displayName ;
+
+        this.message[type + "NameDisplay"] = displayName; //console.log(displayName)
       }
 
       for (var i = 0; i < sp.length; i++) {
         var res3 = sp[i].split("=");
+
         if (res3[0].replace(/ |\n|\r/g, "") === "tag") {
           this.message[type + "Tag"] = res3[1];
         } else {
           this.message[res3[0]] = res3[1];
         }
       }
+
       return value;
     } catch (e) {
       throw e;
     }
   };
 
-  var headerSip = function () {
+  var headerSip =
+  /*#__PURE__*/
+  function () {
     function headerSip(message, header) {
       _classCallCheck(this, headerSip);
 
@@ -27304,6 +20122,7 @@ module.exports = function (stage) {
       this.Via = [];
       this.routes = [];
       this.recordRoutes = [];
+
       if (header && typeof header === "string") {
         try {
           this.parse(header);
@@ -27315,7 +20134,7 @@ module.exports = function (stage) {
     }
 
     _createClass(headerSip, [{
-      key: 'parse',
+      key: "parse",
       value: function parse(header) {
         var _this = this;
 
@@ -27329,21 +20148,26 @@ module.exports = function (stage) {
           var headValue = res.input.substr(res.index + size);
           _this.rawHeader[headName] = headValue;
           var func = "set" + headName;
+
           if (func === "setVia") {
             var index = _this.Via.push(headValue);
+
             _this[headName][index - 1] = _this[func](headValue, ele);
           } else {
             _this[headName] = headValue;
+
             if (_this[func]) {
               try {
                 _this[headName] = _this[func](headValue);
               } catch (e) {
                 _this.message.sip.logger("Parse : " + headName, "ERROR");
+
                 throw e;
               }
             }
           }
         });
+
         if (!this["Content-Type"]) {
           this.message.contentType = null;
         } else {
@@ -27351,13 +20175,13 @@ module.exports = function (stage) {
         }
       }
     }, {
-      key: 'setFrom',
+      key: "setFrom",
       value: function setFrom(value) {
         parsefromTo.call(this, "from", value);
         return value;
       }
     }, {
-      key: 'setTo',
+      key: "setTo",
       value: function setTo(value) {
         parsefromTo.call(this, "to", value);
         return value;
@@ -27376,6 +20200,7 @@ module.exports = function (stage) {
         ele[headName] = headValue.replace(/"/g,"");
         }
         this.message.authenticate = ele ;*/
+
         return value;
       }
     }, {
@@ -27397,13 +20222,14 @@ module.exports = function (stage) {
         return value;
       }
     }, {
-      key: 'setDate',
+      key: "setDate",
       value: function setDate(value) {
         try {
           this.message.date = new Date(value);
         } catch (e) {
           this.message.date = value;
         }
+
         return value;
       }
     }, {
@@ -27422,7 +20248,7 @@ module.exports = function (stage) {
         }*/
       }
     }, {
-      key: 'setCSeq',
+      key: "setCSeq",
       value: function setCSeq(value) {
         var res = value.split(" ");
         this.message.cseq = parseInt(res[0], 10);
@@ -27430,20 +20256,26 @@ module.exports = function (stage) {
         return value;
       }
     }, {
-      key: 'setContact',
+      key: "setContact",
       value: function setContact(value) {
         var parseValue = regHeaders.contact.exec(value);
+
         if (parseValue) {
           this.message.contact = parseValue[1];
+
           if (parseValue[2]) {
             var clean = parseValue[2].replace(/^;(.*)/, "$1");
             var sp = clean.split(";");
+
             for (var i = 0; i < sp.length; i++) {
               var res = sp[i].split("=");
+
               if (!res) {
                 continue;
               }
+
               var name = res[0].toLowerCase();
+
               if (name === "expires") {
                 this["contact-" + name] = res[1];
               }
@@ -27452,10 +20284,11 @@ module.exports = function (stage) {
         } else {
           throw new Error("Contact parse error : " + value);
         }
+
         return value;
       }
     }, {
-      key: 'setAllow',
+      key: "setAllow",
       value: function setAllow(value) {
         if (value) {
           return this.Allow.split(regHeaders.Allow);
@@ -27464,7 +20297,7 @@ module.exports = function (stage) {
         }
       }
     }, {
-      key: 'setSupported',
+      key: "setSupported",
       value: function setSupported(value) {
         if (value) {
           return this.Supported.split(regHeaders.Allow);
@@ -27473,7 +20306,7 @@ module.exports = function (stage) {
         }
       }
     }, {
-      key: 'setVia',
+      key: "setVia",
       value: function setVia(value, raw) {
         if (value) {
           var res = value.split(regHeaders.Via);
@@ -27481,17 +20314,21 @@ module.exports = function (stage) {
             line: Array.prototype.shift.call(res),
             raw: raw
           };
+
           for (var i = 0; i < res.length; i++) {
             var tab = res[i].split('=');
+
             if (tab) {
               if (tab[0] === "branch") {
                 if (!this.branch) {
                   this.branch = tab[1];
                 }
               }
+
               obj[tab[0]] = tab[1];
             }
           }
+
           return obj;
         } else {
           return value;
@@ -27501,7 +20338,6 @@ module.exports = function (stage) {
 
     return headerSip;
   }();
-
   /*
    *
    * CLASS PARSER BODY SIP
@@ -27509,66 +20345,77 @@ module.exports = function (stage) {
    *
    *
    */
-  var bodySip = function () {
+
+
+  var bodySip =
+  /*#__PURE__*/
+  function () {
     function bodySip(message, body) {
       _classCallCheck(this, bodySip);
 
       this.message = message;
       this.message.rawBody = body;
       this.size = this.message.contentLength;
+
       if (this.size !== body.length) {
         throw new Error("BAD SIZE SIP BODY ");
       }
+
       if (body) {
         this.parse(this.message.contentType, body);
       }
     }
 
     _createClass(bodySip, [{
-      key: 'parse',
+      key: "parse",
       value: function parse(type, body) {
         switch (type) {
           case "application/sdp":
             this.sdpParser(body);
             break;
+
           case "application/dtmf-relay":
             this.dtmfParser(body);
             break;
+
           default:
             this.body = body;
         }
       }
     }, {
-      key: 'sdpParser',
+      key: "sdpParser",
       value: function sdpParser(body) {
         // Parser SDP
         this.body = body || "";
+
         if (!body) {
           this.sdp = null;
         } else {
           try {
-            this.sdp = new stage.io.protocols.sdp(body);
-            //console.log(this.sdp)
+            this.sdp = new stage.io.protocols.sdp(body); //console.log(this.sdp)
           } catch (e) {
             throw e;
           }
         }
       }
     }, {
-      key: 'dtmfParser',
+      key: "dtmfParser",
       value: function dtmfParser(body) {
         // Parser DTMF
         this.body = body || "";
+
         if (!body) {
           this.dtmf = null;
         } else {
           // Parser dtmf
           var obj = {};
           var line = body.split("\n");
+
           for (var i = 0; i < line.length; i++) {
             var res = line[i].split("=");
             obj[res[0].replace(/ |\n|\r/g, "")] = res[1];
           }
+
           this.dtmf = obj;
         }
       }
@@ -27576,7 +20423,6 @@ module.exports = function (stage) {
 
     return bodySip;
   }();
-
   /*
    *
    * CLASS REQUEST
@@ -27584,39 +20430,41 @@ module.exports = function (stage) {
    *
    *
    */
+
+
   var endline = "\r\n";
   var endHeader = "\r\n\r\n";
 
-  var sipRequest = function () {
+  var sipRequest =
+  /*#__PURE__*/
+  function () {
     function sipRequest(transaction, bodyMessage, typeBody) {
       _classCallCheck(this, sipRequest);
 
       this.transaction = transaction;
       this["request-port"] = this.transaction.dialog.sip.serverPort;
-
       this.type = "request";
       this.requestLine = {};
       this.buildRequestline();
-
       this.header = {};
       this.buildHeader();
-
       this.buildBody(bodyMessage || "", typeBody);
     }
 
     _createClass(sipRequest, [{
-      key: 'buildRequestline',
+      key: "buildRequestline",
       value: function buildRequestline() {
         this.requestLine.method = this.transaction.method.toUpperCase();
         this.requestLine.version = this.transaction.dialog.sip.version;
       }
     }, {
-      key: 'getRequestline',
+      key: "getRequestline",
       value: function getRequestline(uri) {
         switch (this.transaction.method) {
           case "REGISTER":
             this["request-uri"] = "sip:" + this.transaction.dialog.sip.server;
             return this.transaction.method + " " + this["request-uri"] + " " + this.requestLine.version + endline;
+
           case "INVITE":
           case "BYE":
           case "NOTIFY":
@@ -27628,81 +20476,82 @@ module.exports = function (stage) {
         }
       }
     }, {
-      key: 'buildHeader',
+      key: "buildHeader",
       value: function buildHeader() {
         //FIXE ME RPORT IN VIA PARSER
-
         var rport = this.transaction.dialog.sip.rport;
         var ip = this.transaction.dialog.sip.publicAddress;
-
-        this.header.via = "Via: " + this.transaction.dialog.sip.via + ";" + "branch=" + this.transaction.branch;
-        //if ( rport ){
+        this.header.via = "Via: " + this.transaction.dialog.sip.via + ";" + "branch=" + this.transaction.branch; //if ( rport ){
         //this.header.via  = "Via: "+this.transaction.dialog.sip.version+"/"+this.transaction.dialog.sip.settings.transport+" " +ip+":"+rport+";"+"branch="+this.transaction.branch;
         //}else{
         //this.header.via  = "Via: "+this.transaction.dialog.sip.version+"/"+this.transaction.dialog.sip.settings.transport+" " +ip+":"+this["request-port"]+";"+"branch="+this.transaction.branch;
         //}
+
         this.header.cseq = "CSeq: " + this.transaction.dialog.cseq + " " + this.transaction.method;
-
         this.header.from = "From: " + this.transaction.dialog.from + ";tag=" + this.transaction.dialog.tagFrom;
-
         var tagTo = this.transaction.dialog.tagTo ? ";tag=" + this.transaction.dialog.tagTo : "";
         this.header.to = "To: " + this.transaction.to + tagTo;
-
         this.header.callId = "Call-ID: " + this.transaction.dialog.callId;
         this.header.expires = "Expires: " + this.transaction.dialog.expires;
         this.header.maxForward = "Max-Forwards: " + this.transaction.dialog.maxForward;
         this.header.userAgent = "User-Agent: " + this.transaction.dialog.sip.settings.userAgent;
-
         this.header.contact = "Contact: " + this.transaction.dialog.contact;
 
         if (this.transaction.dialog.routes && this.transaction.dialog.routes.length) {
           this.header.routes = [];
+
           for (var i = this.transaction.dialog.routes.length - 1; i >= 0; i--) {
             this.header.routes.push("Route: " + this.transaction.dialog.routes[i]);
           }
         }
       }
     }, {
-      key: 'getHeader',
+      key: "getHeader",
       value: function getHeader() {
         var head = "";
+
         for (var line in this.header) {
           switch (stage.typeOf(this.header[line])) {
             case "string":
               head += this.header[line] + endline;
               break;
+
             case "array":
               for (var i = 0; i < this.header[line].length; i++) {
                 head += this.header[line][i] + endline;
               }
+
               break;
           }
         }
+
         return head;
       }
     }, {
-      key: 'buildBody',
+      key: "buildBody",
       value: function buildBody(body, type) {
         this.header.contentLength = "Content-Length: " + body.length;
+
         if (type) {
           this.header.contentType = "Content-Type: " + type;
         }
+
         this.body = body || "";
       }
     }, {
-      key: 'getBody',
+      key: "getBody",
       value: function getBody() {
         return this.body;
       }
     }, {
-      key: 'getMessage',
+      key: "getMessage",
       value: function getMessage() {
         //console.log(this.getRequestline() + this.getHeader() + endline + this.getBody())
         //console.log(this.getRequestline() + this.getHeader() + endline + this.getBody())
         return this.rawResponse = this.getRequestline() + this.getHeader() + endline + this.getBody();
       }
     }, {
-      key: 'send',
+      key: "send",
       value: function send() {
         return this.transaction.send(this.getMessage());
       }
@@ -27710,7 +20559,6 @@ module.exports = function (stage) {
 
     return sipRequest;
   }();
-
   /*
    *
    * CLASS RESPONSE
@@ -27718,11 +20566,15 @@ module.exports = function (stage) {
    *
    *
    */
+
+
   var codeMessage = {
     200: "OK"
   };
 
-  var sipResponse = function () {
+  var sipResponse =
+  /*#__PURE__*/
+  function () {
     function sipResponse(message, code, messageCode, bodyMessage, typeBody) {
       _classCallCheck(this, sipResponse);
 
@@ -27732,19 +20584,22 @@ module.exports = function (stage) {
       this.responseLine = {};
       this.buildResponseLine(code, messageCode);
       this.header = []; // message.header.messageHeaders;
+
       this.buildHeader(message);
       this.buildBody(bodyMessage || "", typeBody);
     }
 
     _createClass(sipResponse, [{
-      key: 'buildHeader',
+      key: "buildHeader",
       value: function buildHeader(message) {
         for (var head in message.rawHeader) {
           var i = 0;
+
           switch (head) {
             case "Allow":
             case "Supported":
               var ptr = "";
+
               for (i = 0; i < message.header[head].length; i++) {
                 if (i < message.header[head].length - 1) {
                   ptr += message.header[head][i] + ",";
@@ -27752,8 +20607,10 @@ module.exports = function (stage) {
                   ptr += message.header[head][i];
                 }
               }
+
               this.header.push(head + ": " + ptr);
               break;
+
             case "Via":
               if (this.responseLine.code == "487") {
                 for (i = 0; i < this.dialog[head].length; i++) {
@@ -27764,10 +20621,13 @@ module.exports = function (stage) {
                   this.header.push(message.header[head][i].raw);
                 }
               }
+
               break;
+
             case "User-Agent":
               this.header.push("User-Agent: " + this.transaction.dialog.sip.settings.userAgent);
               break;
+
             case "Contact":
               /*var rport = this.transaction.dialog.sip.rport ;
               var ip = this.transaction.dialog.sip.publicAddress;
@@ -27778,69 +20638,82 @@ module.exports = function (stage) {
               }*/
               this.header.push("Contact: " + this.dialog.contact);
               break;
+
             case "To":
               //console.log(message.header[head] )
               //console.log(this.dialog.sip.displayName )
-              var ret = regHeaders.fromToG.exec(message.header[head]);
-              //console.log(ret)
+              var ret = regHeaders.fromToG.exec(message.header[head]); //console.log(ret)
+
               if (ret && !ret[1]) {
                 //console.log("traff to")
                 message.header[head] = '"' + this.dialog.sip.displayName + '"' + message.header[head];
-              }
-              //console.log(message.header[head])
+              } //console.log(message.header[head])
+
+
               if (!message.header[head].match(/;tag=/)) {
                 this.header.push(head + ": " + message.header[head] + (this.transaction.dialog.tagFrom ? ";tag=" + this.transaction.dialog.tagFrom : ""));
               } else {
                 this.header.push(head + ": " + message.header[head]);
               }
+
               break;
+
             case "Record-Route":
               for (i = this.message.dialog.routes.length - 1; i >= 0; i--) {
                 this.header.push(head + ": " + this.message.header.recordRoutes[i]);
               }
+
               break;
+
             case "CSeq":
               if (this.responseLine.code == "487" && this.dialog.method === "CANCEL") {
                 this.header.push(head + ": " + message.header[head].replace("CANCEL", "INVITE"));
               } else {
                 this.header.push(head + ": " + message.header[head]);
               }
+
               break;
+
             case "Content-Type":
             case "Organization":
             case "Server":
             case "Content-Length":
               break;
+
             default:
               this.header.push(head + ": " + message.header[head]);
           }
         }
       }
     }, {
-      key: 'getHeader',
+      key: "getHeader",
       value: function getHeader() {
         var head = "";
+
         for (var line in this.header) {
           head += this.header[line] + endline;
         }
+
         return head;
       }
     }, {
-      key: 'buildBody',
+      key: "buildBody",
       value: function buildBody(body, type) {
         this.header.contentLength = "Content-Length: " + body.length;
+
         if (type) {
           this.header.contentType = "Content-Type: " + type;
         }
+
         this.body = body || "";
       }
     }, {
-      key: 'getBody',
+      key: "getBody",
       value: function getBody() {
         return this.body;
       }
     }, {
-      key: 'buildResponseLine',
+      key: "buildResponseLine",
       value: function buildResponseLine(code, messageCode) {
         this.responseLine.method = this.transaction.method.toUpperCase();
         this.responseLine.version = this.transaction.dialog.sip.version;
@@ -27848,21 +20721,22 @@ module.exports = function (stage) {
         this.responseLine.message = messageCode || codeMessage[code];
       }
     }, {
-      key: 'getResponseline',
+      key: "getResponseline",
       value: function getResponseline() {
         if (this.responseLine.method === "ACK") {
           return this.responseLine.method + " " + "sip:" + this.transaction.from + "@" + this.transaction.dialog.sip.server + " " + this.responseLine.version + endline;
         }
+
         return this.responseLine.version + " " + this.responseLine.code + " " + this.responseLine.message + endline;
       }
     }, {
-      key: 'getMessage',
+      key: "getMessage",
       value: function getMessage() {
         //console.log("RESPONSE : " +this.getResponseline() + this.getHeader() + endline + this.getBody())
         return this.rawResponse = this.getResponseline() + this.getHeader() + endline + this.getBody();
       }
     }, {
-      key: 'send',
+      key: "send",
       value: function send() {
         return this.transaction.send(this.getMessage());
       }
@@ -27870,22 +20744,26 @@ module.exports = function (stage) {
 
     return sipResponse;
   }();
-
   /*
    *
    * CLASS TRANSACTION
    *
    *
    */
+
+
   var generateHex = function generateHex() {
     return Math.floor(Math.random() * 167772150000000).toString(16);
   };
 
-  var Transaction = function () {
+  var Transaction =
+  /*#__PURE__*/
+  function () {
     function Transaction(to, dialog) {
       _classCallCheck(this, Transaction);
 
       this.dialog = dialog;
+
       if (to instanceof Message) {
         this.hydrate(to);
       } else {
@@ -27894,21 +20772,24 @@ module.exports = function (stage) {
         this.method = dialog.method;
         this.branch = this.generateBranchId();
       }
+
       this.responses = {};
       this.requests = {};
       this.interval = null;
     }
 
     _createClass(Transaction, [{
-      key: 'hydrate',
+      key: "hydrate",
       value: function hydrate(message) {
         this.message = message;
+
         if (message.type === "REQUEST") {
           this.to = this.dialog.to;
           this.from = this.dialog.from;
           this.method = this.dialog.method;
           this.branch = this.message.header.branch;
         }
+
         if (message.type === "RESPONSE") {
           this.to = this.dialog.to;
           this.from = this.dialog.from;
@@ -27917,9 +20798,10 @@ module.exports = function (stage) {
         }
       }
     }, {
-      key: 'generateBranchId',
+      key: "generateBranchId",
       value: function generateBranchId() {
         var hex = generateHex();
+
         if (hex.length === 12) {
           return "z9hG4bK" + hex;
         } else {
@@ -27927,40 +20809,44 @@ module.exports = function (stage) {
         }
       }
     }, {
-      key: 'createRequest',
+      key: "createRequest",
       value: function createRequest(body, typeBody) {
         if (this.method !== "ACK" && this.method !== "CANCEL") {
           this.dialog.incCseq();
         }
+
         this.request = new sipRequest(this, body || "", typeBody);
         this.message = null;
         return this.request;
       }
     }, {
-      key: 'createResponse',
+      key: "createResponse",
       value: function createResponse(code, message, body, typeBody) {
         if (this.method === "INVITE" || this.method === "ACK") {
           switch (true) {
             case code < 200:
               this.dialog.status = this.dialog.statusCode.EARLY;
               break;
+
             case code < 300:
               this.dialog.status = this.dialog.statusCode.ESTABLISHED;
               break;
+
             default:
               this.dialog.status = this.dialog.statusCode.TERMINATED;
           }
         }
+
         this.response = new sipResponse(this.message, code, message, body, typeBody);
         return this.response;
       }
     }, {
-      key: 'send',
+      key: "send",
       value: function send(message) {
         return this.dialog.sip.send(message);
       }
     }, {
-      key: 'cancel',
+      key: "cancel",
       value: function cancel() {
         this.method = "CANCEL";
         this.dialog.routes = null;
@@ -27971,14 +20857,14 @@ module.exports = function (stage) {
         return request;
       }
     }, {
-      key: 'decline',
+      key: "decline",
       value: function decline() {
         var ret = this.createResponse(603, "Declined");
         ret.send();
         return ret;
       }
     }, {
-      key: 'clear',
+      key: "clear",
       value: function clear() {
         // CLEAR INTERVAL
         if (this.interval) {
@@ -27989,21 +20875,28 @@ module.exports = function (stage) {
 
     return Transaction;
   }();
-
   /*
    *
    * CLASS DIALOG
    *
    */
+
+
   var statusCode = {
     INITIAL: 0,
-    EARLY: 1, // on 1xx
-    ESTABLISHED: 2, // on 200 ok
-    TERMINATED: 3, // on by
+    EARLY: 1,
+    // on 1xx
+    ESTABLISHED: 2,
+    // on 200 ok
+    TERMINATED: 3,
+    // on by
     CANCEL: 4 // cancel
+
   };
 
-  var Dialog = function () {
+  var Dialog =
+  /*#__PURE__*/
+  function () {
     function Dialog(method, sip) {
       _classCallCheck(this, Dialog);
 
@@ -28018,6 +20911,7 @@ module.exports = function (stage) {
       this.tagFrom = this.generateTag();
       this.cseq = this.generateCseq();
       this.unregisterSended = false;
+
       if (method instanceof Message) {
         this.hydrate(method);
       } else {
@@ -28026,53 +20920,57 @@ module.exports = function (stage) {
         this.status = this.statusCode.INITIAL;
         this.to = null;
         this.tagTo = null;
-      }
-      //this.contact = this.sip.generateContact( null, null, true) ;
+      } //this.contact = this.sip.generateContact( null, null, true) ;
+
+
       this.contact = this.sip.contact;
     }
 
     _createClass(Dialog, [{
-      key: 'hydrate',
+      key: "hydrate",
       value: function hydrate(message) {
-
         if (message.type === "REQUEST") {
           this.cseq = message.cseq;
           this.method = message.method;
-          this.callId = message.callId;
+          this.callId = message.callId; // to
 
-          // to
           if (message.fromNameDisplay) {
             this.to = '"' + message.fromNameDisplay + '"' + "<sip:" + message.from + ">";
           } else {
             this.to = "<sip:" + message.from + ">";
           }
+
           this.toName = message.fromName;
-          this.tagTo = message.fromTag || this.generateTag();
-          //from
+          this.tagTo = message.fromTag || this.generateTag(); //from
+
           this.tagFrom = message.toTag || this.tagFrom;
+
           if (message.toNameDisplay) {
             this.from = '"' + message.toNameDisplay + '"' + '<sip:' + message.to + '>';
           } else {
             this.from = "<sip:" + message.to + ">";
           }
-          this.fromName = message.toName;
 
-          // manage routes
+          this.fromName = message.toName; // manage routes
+
           if (message.header.recordRoutes.length) {
             this.routes = message.header.recordRoutes.reverse();
-          }
+          } // FIXME if (  ! this["request-uri"] &&  message.contact )
 
-          // FIXME if (  ! this["request-uri"] &&  message.contact )
+
           if (message.contact) {
             //this["request-uri"] =  message.contact + ":" + message.rport
             this["request-uri"] = message.contact;
           }
         }
+
         if (message.type === "RESPONSE") {
           this.cseq = message.cseq;
+
           if (!this.callId) {
             this.callId = message.callId;
           }
+
           if (!this.to) {
             if (message.toNameDisplay) {
               this.to = '"' + message.toNameDisplay + '"' + "<sip:" + message.to + ">";
@@ -28088,52 +20986,55 @@ module.exports = function (stage) {
           if (message.toTag) {
             this.tagTo = message.toTag;
           }
+
           if (message.fromTag) {
             this.tagFrom = message.fromTag;
-          }
-          // FIXME if (  ! this["request-uri"] &&  message.contact )
+          } // FIXME if (  ! this["request-uri"] &&  message.contact )
+
+
           if (message.contact) {
             //this["request-uri"] =  message.contact + ":" + message.rport
             this["request-uri"] = message.contact;
-          }
+          } // manage routes
 
-          // manage routes
+
           if (message.header.recordRoutes.length) {
             this.routes = message.header.recordRoutes;
           }
         }
       }
     }, {
-      key: 'generateCallId',
+      key: "generateCallId",
       value: function generateCallId() {
         return generateId() + "@nodefony";
       }
     }, {
-      key: 'generateTag',
+      key: "generateTag",
       value: function generateTag() {
         return "nodefony" + parseInt(Math.random() * 1000000000, 10);
       }
     }, {
-      key: 'generateCseq',
+      key: "generateCseq",
       value: function generateCseq() {
         return 1;
       }
     }, {
-      key: 'incCseq',
+      key: "incCseq",
       value: function incCseq() {
         this.cseq = this.cseq + 1;
         return this.cseq;
       }
     }, {
-      key: 'getTransaction',
+      key: "getTransaction",
       value: function getTransaction(id) {
         if (id in this.transactions) {
           return this.transactions[id];
         }
+
         return null;
       }
     }, {
-      key: 'createTransaction',
+      key: "createTransaction",
       value: function createTransaction(to) {
         this.currentTransaction = new Transaction(to || this.to, this);
         this.sip.logger("SIP NEW TRANSACTION :" + this.currentTransaction.branch, "DEBUG");
@@ -28141,7 +21042,7 @@ module.exports = function (stage) {
         return this.currentTransaction;
       }
     }, {
-      key: 'register',
+      key: "register",
       value: function register() {
         var trans = this.createTransaction(this.from);
         this.to = this.from;
@@ -28150,7 +21051,7 @@ module.exports = function (stage) {
         return trans;
       }
     }, {
-      key: 'unregister',
+      key: "unregister",
       value: function unregister() {
         this.expires = 0;
         this.contact = "*";
@@ -28163,12 +21064,15 @@ module.exports = function (stage) {
         return trans;
       }
     }, {
-      key: 'ack',
-      value: function ack() /*message*/{
+      key: "ack",
+      value: function ack()
+      /*message*/
+      {
         if (!this["request-uri"]) {
           this["request-uri"] = this.sip["request-uri"];
-        }
-        //this.method = "ACK" ;
+        } //this.method = "ACK" ;
+
+
         var trans = this.createTransaction();
         trans.method = "ACK";
         var request = trans.createRequest();
@@ -28176,17 +21080,20 @@ module.exports = function (stage) {
         return request;
       }
     }, {
-      key: 'invite',
+      key: "invite",
       value: function invite(userTo, description, type) {
-
         if (this.status === this.statusCode.CANCEL) {
           return null;
         }
+
         this.sip.logger("SIP INVITE DIALOG");
+
         if (userTo) {
           this.to = "<sip:" + userTo + ">";
         }
+
         this.method = "INVITE";
+
         if (!this["request-uri"]) {
           this["request-uri"] = "sip:" + userTo;
         }
@@ -28198,50 +21105,58 @@ module.exports = function (stage) {
           this.bodyType = type;
           this.body = description;
         }
+
         var trans = this.createTransaction(this.to);
         var request = trans.createRequest(this.body, this.bodyType);
         request.send();
         return trans;
       }
     }, {
-      key: 'notify',
+      key: "notify",
       value: function notify(userTo, _notify, typeNotify) {
         this.method = "NOTIFY";
+
         if (userTo) {
           this.to = "<sip:" + userTo + ">";
         }
+
         if (!this["request-uri"]) {
           this["request-uri"] = "sip:" + userTo;
         }
+
         if (typeNotify) {
           this.bodyType = typeNotify;
         }
+
         if (_notify) {
           this.body = _notify;
         }
+
         var trans = this.createTransaction(this.to);
         var request = trans.createRequest(this.body, this.bodyType);
         request.send();
         return this;
       }
     }, {
-      key: 'info',
+      key: "info",
       value: function info(_info, typeInfo) {
         this.method = "INFO";
 
         if (typeInfo) {
           this.bodyType = typeInfo;
         }
+
         if (_info) {
           this.body = _info;
         }
+
         var trans = this.createTransaction(this.to);
         var request = trans.createRequest(this.body, this.bodyType);
         request.send();
         return this;
       }
     }, {
-      key: 'bye',
+      key: "bye",
       value: function bye() {
         this.method = "BYE";
         var trans = this.createTransaction();
@@ -28250,7 +21165,7 @@ module.exports = function (stage) {
         return this;
       }
     }, {
-      key: 'clear',
+      key: "clear",
       value: function clear(id) {
         if (id) {
           if (this.transactions[id]) {
@@ -28270,23 +21185,28 @@ module.exports = function (stage) {
 
     return Dialog;
   }();
-
   /*
    *
    *	MESSAGE SIP
    *
    *
    */
+
+
   var firstline = function firstline(firstLine) {
     var method = firstLine[0];
     var code = firstLine[1];
+
     if (method === "BYE" && !code) {
       code = 200;
     }
+
     var message = "";
+
     for (var i = 2; i < firstLine.length; i++) {
       message += firstLine[i] + " ";
     }
+
     return {
       method: method,
       code: code,
@@ -28295,11 +21215,15 @@ module.exports = function (stage) {
   };
 
   var regSIP = /\r\n\r\n/;
-  var Message = function () {
+
+  var Message =
+  /*#__PURE__*/
+  function () {
     function Message(message, sip) {
       _classCallCheck(this, Message);
 
       this.sip = sip;
+
       if (message) {
         this.rawMessage = message;
         this.header = null;
@@ -28309,6 +21233,7 @@ module.exports = function (stage) {
         this.code = null;
         this.statusLine = "";
         this.split = message.split(regSIP);
+
         if (this.split.length && this.split.length <= 2) {
           try {
             this.parseHeader();
@@ -28321,9 +21246,9 @@ module.exports = function (stage) {
             throw e;
           }
 
-          this.rawHeader = this.header.rawHeader;
-          //console.log(this.rawHeader)
+          this.rawHeader = this.header.rawHeader; //console.log(this.rawHeader)
         }
+
         this.getDialog();
         this.getTransaction();
       } else {
@@ -28332,7 +21257,7 @@ module.exports = function (stage) {
     }
 
     _createClass(Message, [{
-      key: 'getType',
+      key: "getType",
       value: function getType() {
         if (this.code) {
           if (typeof this.code === "number" && !isNaN(this.code)) {
@@ -28350,7 +21275,7 @@ module.exports = function (stage) {
         }
       }
     }, {
-      key: 'parseBody',
+      key: "parseBody",
       value: function parseBody() {
         try {
           if (this.split[1]) {
@@ -28364,7 +21289,7 @@ module.exports = function (stage) {
         }
       }
     }, {
-      key: 'parseHeader',
+      key: "parseHeader",
       value: function parseHeader() {
         if (this.split[0]) {
           try {
@@ -28378,55 +21303,59 @@ module.exports = function (stage) {
         }
       }
     }, {
-      key: 'getContact',
+      key: "getContact",
       value: function getContact() {
         return this.contact;
       }
     }, {
-      key: 'getHeader',
+      key: "getHeader",
       value: function getHeader() {
         return this.header;
       }
     }, {
-      key: 'getBody',
+      key: "getBody",
       value: function getBody() {
         return this.body;
       }
     }, {
-      key: 'getStatusLine',
+      key: "getStatusLine",
       value: function getStatusLine() {
         return this.statusLine;
       }
     }, {
-      key: 'getCode',
+      key: "getCode",
       value: function getCode() {
         return this.code;
       }
     }, {
-      key: 'getDialog',
+      key: "getDialog",
       value: function getDialog() {
         if (this.header["Call-ID"]) {
           this.dialog = this.sip.getDialog(this.header["Call-ID"]);
+
           if (!this.dialog) {
             this.dialog = this.sip.createDialog(this);
           } else {
             this.sip.logger("SIP HYDRATE DIALOG :" + this.dialog.callId, "DEBUG");
             this.dialog.hydrate(this);
           }
+
           return this.dialog;
         } else {
           throw new Error("BAD FORMAT SIP MESSAGE no Call-ID", 500);
         }
       }
     }, {
-      key: 'getTransaction',
+      key: "getTransaction",
       value: function getTransaction() {
         if (this.header.branch) {
           if (!this.dialog) {
             this.getDialog();
           }
+
           if (this.dialog) {
             this.transaction = this.dialog.getTransaction(this.header.branch);
+
             if (!this.transaction) {
               this.transaction = this.dialog.createTransaction(this);
             } else {
@@ -28436,6 +21365,7 @@ module.exports = function (stage) {
           } else {
             this.transaction = null;
           }
+
           return this.transaction;
         } else {
           // TODO CSEQ mandatory
@@ -28447,7 +21377,6 @@ module.exports = function (stage) {
 
     return Message;
   }();
-
   /*
    *
    *
@@ -28456,20 +21385,23 @@ module.exports = function (stage) {
    *
    */
   // entry point response transport
+
+
   var onMessage = function onMessage(response) {
     var _this2 = this;
 
     this.logger(response, "INFO", "RECIEVE");
     var message = null;
     var res = null;
+
     try {
       //console.log(this.fragment)
       if (this.fragment) {
-        this.lastResponse += response;
-        //console.log(this.lastResponse);
+        this.lastResponse += response; //console.log(this.lastResponse);
       } else {
         this.lastResponse = response;
       }
+
       message = new Message(this.lastResponse, this);
       this.fragment = false;
     } catch (e) {
@@ -28487,22 +21419,27 @@ module.exports = function (stage) {
           }
         }
       }
+
       this.logger(e, "ERROR");
       this.logger("SIP DROP : " + response, "ERROR");
       this.notificationsCenter.fire("onDrop", response);
       return;
     }
+
     this.fire("onMessage", message.rawMessage);
 
     switch (message.method) {
       case "REGISTER":
         this.rport = message.header.Via[0].rport;
+
         if (message.dialog) {
           this.clearDialogTimeout(message.dialog);
         }
+
         if (this.rport) {
           this["request-uri"] = "sip:" + this.userName + "@" + this.publicAddress + ":" + this.rport + ";transport=" + this.transportType;
         }
+
         switch (message.code) {
           case 401:
           case 407:
@@ -28510,93 +21447,112 @@ module.exports = function (stage) {
               if (this.registerInterval) {
                 clearInterval(this.registerInterval);
               }
+
               this.registerInterval = null;
             } else {
-
               if (this.registered === 401 || this.registered === 407) {
                 if (this.registerInterval) {
                   clearInterval(this.registerInterval);
                 }
+
                 this.registerInterval = null;
                 this.registered = null;
                 this.notificationsCenter.fire("onError", this, message);
                 break;
               }
+
               this.registered = message.code;
             }
+
             delete this.authenticateRegister;
             this.authenticateRegister = null;
             this.authenticateRegister = new authenticate(message.dialog, this.userName, this.settings.password);
             this.authenticateRegister.register(message, message.code === 407 ? "proxy" : null);
             break;
+
           case 403:
             if (this.registerInterval) {
               clearInterval(this.registerInterval);
             }
-            this.registered = message.code;
-            //console.log("Forbidden (bad auth)")
+
+            this.registered = message.code; //console.log("Forbidden (bad auth)")
+
             delete this.authenticateRegister;
             this.authenticateRegister = null;
             this.notificationsCenter.fire("onError", this, message);
             break;
+
           case 404:
             if (this.registerInterval) {
               clearInterval(this.registerInterval);
             }
+
             this.registered = message.code;
             delete this.authenticateRegister;
             this.authenticateRegister = null;
             this.notificationsCenter.fire("onError", this, message);
             break;
+
           case 200:
             if (this.registerInterval) {
               clearInterval(this.registerInterval);
             }
+
             if (this.authenticateRegister && this.authenticateRegister.unregisterSended) {
               this.registered = "404";
               this.notificationsCenter.fire("onUnRegister", this, message);
               this.clear();
               return;
             }
+
             if (message.dialog.unregisterSended) {
               this.registered = "404";
               this.notificationsCenter.fire("onUnRegister", this, message);
               this.clear();
               return;
             }
+
             if (this.registered === 401 || this.registered === null) {
               this.notificationsCenter.fire("onRegister", this, message);
             }
-            this.registered = message.code;
 
+            this.registered = message.code;
             var expires = message.header["contact-expires"] || this.settings.expires;
             expires = parseInt(expires, 10) * 900; // 10% (ms)
+
             this.registerInterval = setInterval(function () {
               _this2.authenticateRegister.register(message);
+
               _this2.notificationsCenter.fire("onRenew", _this2, _this2.authenticateRegister, message);
             }, expires);
             break;
+
           default:
             this.registered = message.code;
             delete this.authenticateRegister;
-            this.authenticateRegister = null;
-            //console.log(message);
+            this.authenticateRegister = null; //console.log(message);
+
             this.notificationsCenter.fire("on" + message.code, this, message);
             break;
         }
+
         break;
+
       case "INVITE":
         //this.rport = message.rport || this.rport;
         if (message.dialog) {
           this.clearDialogTimeout(message.dialog);
         }
+
         switch (message.type) {
           case "REQUEST":
             if (message.dialog.status === message.dialog.statusCode.INITIAL) {
               this.fire("onInitCall", message.dialog.toName, message.dialog, message.transaction);
+
               if (message.header.Via) {
                 message.dialog.Via = message.header.Via;
               }
+
               this.notificationsCenter.fire("onInvite", message, message.dialog);
             } else {
               //console.log(message.dialog.statusCode[message.dialog.status])
@@ -28607,11 +21563,14 @@ module.exports = function (stage) {
                 ret.send();
               }
             }
+
             break;
+
           case "RESPONSE":
             if (message.code >= 200) {
               message.dialog.ack(message);
             }
+
             switch (message.code) {
               case 407:
               case 401:
@@ -28621,26 +21580,32 @@ module.exports = function (stage) {
                 var transaction = this.authenticate.register(message, message.code === 407 ? "proxy" : null);
                 this.fire("onInitCall", message.dialog.toName, message.dialog, transaction);
                 break;
+
               case 180:
                 this.notificationsCenter.fire("onRinging", this, message);
                 message.dialog.status = message.dialog.statusCode.EARLY;
                 break;
+
               case 100:
                 this.notificationsCenter.fire("onTrying", this, message);
                 message.dialog.status = message.dialog.statusCode.EARLY;
                 break;
+
               case 200:
                 this.notificationsCenter.fire("onCall", message);
                 message.dialog.status = message.dialog.statusCode.ESTABLISHED;
                 break;
+
               case 486:
               case 603:
                 this.notificationsCenter.fire("onDecline", message);
                 break;
+
               case 403:
                 this.authenticate = false;
                 this.notificationsCenter.fire("onError", this, message);
                 break;
+
               case 487:
               case 404:
               case 477:
@@ -28649,39 +21614,52 @@ module.exports = function (stage) {
               case 488:
                 this.notificationsCenter.fire("onError", this, message);
                 break;
+
               case 408:
                 this.notificationsCenter.fire("onTimeout", this, message);
                 break;
+
               case 500:
                 this.notificationsCenter.fire("onError", this, message);
                 break;
+
               default:
                 this.notificationsCenter.fire("on" + message.code, this, message);
                 break;
             }
+
             break;
-          default:
-          // error BAD FORMAT
+
+          default: // error BAD FORMAT
+
         }
+
         break;
+
       case "ACK":
         //console.log("ACK");
         //TODO manage interval messages timer retransmission
         break;
+
       case "BYE":
         switch (message.code) {
           case 200:
             //console.log("200")
             this.notificationsCenter.fire("onBye", message);
             break;
+
           default:
             this.notificationsCenter.fire("onBye", message);
+
             if (message.type === "REQUEST") {
               res = message.transaction.createResponse(200, "OK");
               res.send();
             }
+
         }
+
         break;
+
       case "INFO":
         switch (message.type) {
           case "REQUEST":
@@ -28690,11 +21668,13 @@ module.exports = function (stage) {
             res = message.transaction.createResponse(200, "OK");
             res.send();
             break;
+
           case "RESPONSE":
             //console.log("SIP   :"+ message.method + " "+" code:"+message.code );
             this.notificationsCenter.fire("onDrop", message);
             break;
         }
+
         break;
 
       case "CANCEL":
@@ -28707,18 +21687,20 @@ module.exports = function (stage) {
             res = message.transaction.createResponse(487, "Request Terminated");
             res.send();
             message.dialog.status = message.dialog.statusCode.TERMINATED;
-
             break;
-          case "RESPONSE":
 
+          case "RESPONSE":
             this.notificationsCenter.fire("onDrop", message);
             break;
         }
+
         break;
+
       case "REFER":
         this.logger("SIP REFER NOT ALLOWED :" + message.method, "WARNING");
         this.notificationsCenter.fire("onDrop", message);
         break;
+
       default:
         this.logger("SIP DROP :" + message.method + " " + " code:" + message.code, "WARNING");
         this.notificationsCenter.fire("onDrop", message);
@@ -28735,7 +21717,8 @@ module.exports = function (stage) {
   };
 
   var defaultSettings = {
-    expires: 200, // en secondes
+    expires: 200,
+    // en secondes
     maxForward: 70,
     version: "SIP/2.0",
     userAgent: "nodefony",
@@ -28744,59 +21727,58 @@ module.exports = function (stage) {
     displayName: "",
     pwd: "password",
     transport: "TCP"
-  };
+  }; // CLASS
 
-  // CLASS
-  var SIP = function (_stage$Service) {
+  var SIP =
+  /*#__PURE__*/
+  function (_stage$Service) {
     _inherits(SIP, _stage$Service);
 
     function SIP(server, transport, settings) {
+      var _this3;
+
       _classCallCheck(this, SIP);
 
-      var _this3 = _possibleConstructorReturn(this, (SIP.__proto__ || Object.getPrototypeOf(SIP)).call(this, "SIP", null, null, settings));
-
+      _this3 = _possibleConstructorReturn(this, _getPrototypeOf(SIP).call(this, "SIP", null, null, settings));
       _this3.settings = stage.extend({}, defaultSettings, settings);
       _this3.dialogs = {};
-      _this3.version = _this3.settings.version;
+      _this3.version = _this3.settings.version; //
 
-      //
       _this3.server = server;
       _this3.serverPort = _this3.settings.portServer;
-
       _this3.authenticate = false;
-      _this3.authenticateRegister = null;
+      _this3.authenticateRegister = null; // REGISTER
 
-      // REGISTER
       _this3.registerInterval = null;
       _this3.registerTimeout = {};
       _this3.registered = null;
-      _this3.diagRegister = null;
+      _this3.diagRegister = null; // TRANSPORT
 
-      // TRANSPORT
       _this3.transport = transport;
+
       if (_this3.transport) {
         _this3.initTransport();
       }
-      _this3.transportType = _this3.settings.transport.toLowerCase();
 
+      _this3.transportType = _this3.settings.transport.toLowerCase();
       _this3.contact = null;
-      _this3.via = null;
-      // IDENTIFIANT
+      _this3.via = null; // IDENTIFIANT
       //  USER
       //this.userName = this.settings.userName ;
       //this.from = "<sip:"+this.userName+"@"+this.publicAddress+">" ;
       //this.contact = this.generateContact();
       //this["request-uri"] =  "sip:"+this.userName+"@"+this.publicAddress+";transport="+this.transportType ;
+
       return _this3;
     }
 
     _createClass(SIP, [{
-      key: 'generateInvalid',
+      key: "generateInvalid",
       value: function generateInvalid() {
         return parseInt(Math.random() * 1000000000, 10) + ".nodefony.invalid";
       }
     }, {
-      key: 'generateVia',
+      key: "generateVia",
       value: function generateVia(addr) {
         if (this.rport) {
           return this.version + "/" + this.settings.transport + " " + addr + ";rport";
@@ -28805,17 +21787,20 @@ module.exports = function (stage) {
         }
       }
     }, {
-      key: 'generateContact',
+      key: "generateContact",
       value: function generateContact(userName, password, force, settings) {
         if (userName) {
           this.userName = userName;
+
           if (settings && settings.displayName) {
             this.displayName = settings.displayName;
           } else {
             this.displayName = userName;
           }
+
           this.from = '"' + this.displayName + '"' + '<sip:' + this.userName + '@' + this.publicAddress + '>';
           this["request-uri"] = "sip:" + this.userName + "@" + this.publicAddress + ";transport=" + this.transportType;
+
           if (password) {
             this.settings.password = password;
           }
@@ -28823,50 +21808,58 @@ module.exports = function (stage) {
 
         if (!this.contact || force) {
           var invalid = null;
+
           switch (this.transportType) {
             case "ws":
             case "wss":
               invalid = this.generateInvalid();
               this.via = this.generateVia(invalid);
+
               if (this.rport) {
                 return '"' + this.displayName + '"' + "<sip:" + this.userName + "@" + invalid + ":" + this.rport + ";transport=" + this.transportType + ">";
               } else {
                 return '"' + this.displayName + '"' + "<sip:" + this.userName + "@" + invalid + ";transport=" + this.transportType + ">";
               }
+
               break;
+
             case "tcp":
             case "udp":
               invalid = this.generateInvalid();
-              this.via = this.generateVia(invalid);
-              //this.via = this.generateVia(this.publicAddress);
+              this.via = this.generateVia(invalid); //this.via = this.generateVia(this.publicAddress);
+
               if (this.rport) {
                 return '"' + this.displayName + '"' + "<sip:" + this.userName + "@" + invalid + ":" + this.rport + ";transport=" + this.transportType + ">";
               } else {
                 return '"' + this.displayName + '"' + "<sip:" + this.userName + "@" + invalid + ";transport=" + this.transportType + ">";
               }
+
               break;
+
             default:
               throw new Error("SIP TRANSPORT TYPE NOT ALLOWED");
           }
         }
+
         return this.contact;
       }
     }, {
-      key: 'getDialog',
+      key: "getDialog",
       value: function getDialog(id) {
         if (id in this.dialogs) {
           return this.dialogs[id];
         }
+
         return null;
       }
     }, {
-      key: 'initTransport',
+      key: "initTransport",
       value: function initTransport(transport) {
         if (transport) {
           this.transport = transport;
-        }
+        } // GET REMOTE IP
 
-        // GET REMOTE IP
+
         if (this.transport.publicAddress) {
           this.publicAddress = this.transport.domain.hostname;
           this.publicAddress = this.server;
@@ -28883,7 +21876,6 @@ module.exports = function (stage) {
                 onStart.call(this, message);
               }
             });
-
             this.transport.listen(this, "onUnsubscribe", function (service, message) {
               if (service === "SIP" || service === "OPENSIP") {
                 onStop.call(this, message);
@@ -28894,11 +21886,11 @@ module.exports = function (stage) {
                 onMessage.call(this, message);
               }
             });
-
             this.transport.listen(this, "onClose", function (message) {
               this.quit(message);
             });
             break;
+
           case "WS":
           case "WSS":
             this.transport.listen(this, "onMessage", function (message) {
@@ -28915,42 +21907,46 @@ module.exports = function (stage) {
               this.quit(message);
             });
             break;
+
           default:
             this.fire("onError", new Error("TRANSPORT LAYER NOT DEFINED"));
         }
       }
     }, {
-      key: 'clear',
+      key: "clear",
       value: function clear() {
         if (this.registerInterval) {
           clearInterval(this.registerInterval);
         }
+
         if (this.registerTimeout) {
           this.clearDialogTimeout();
           delete this.registerTimeout;
-        }
-        //TODO
+        } //TODO
         //clean all setinterval
+
+
         for (var dia in this.dialogs) {
           //this.dialogs[dia].unregister();
           this.dialogs[dia].clear();
         }
+
         this.notificationsCenter.clearNotifications();
       }
     }, {
-      key: 'quit',
+      key: "quit",
       value: function quit(message) {
-        this.fire("onQuit", this, message);
-        //this.unregister();
+        this.fire("onQuit", this, message); //this.unregister();
+
         this.clear();
       }
     }, {
-      key: 'connect',
+      key: "connect",
       value: function connect(message) {
         this.fire("onConnect", this, message);
       }
     }, {
-      key: 'createDialog',
+      key: "createDialog",
       value: function createDialog(method) {
         var dialog = new Dialog(method, this);
         this.logger("SIP NEW DIALOG :" + dialog.callId, "DEBUG");
@@ -28958,23 +21954,26 @@ module.exports = function (stage) {
         return dialog;
       }
     }, {
-      key: 'createDialogTimeout',
+      key: "createDialogTimeout",
       value: function createDialogTimeout(dialog) {
         var _this4 = this;
 
         if (dialog) {
           this.registerTimeout[dialog.callId] = setTimeout(function () {
             var error = new Error(" DIALOG ID : " + dialog.callId + " TIMEOUT : " + dialog.method + "  no response ");
+
             _this4.logger(error, "ERROR");
+
             _this4.fire("onError", _this4, error);
           }, parseInt(this.settings.expires, 10) * 900);
         }
       }
     }, {
-      key: 'clearDialogTimeout',
+      key: "clearDialogTimeout",
       value: function clearDialogTimeout(dialog) {
         if (dialog) {
           var id = dialog.callId;
+
           if (this.registerTimeout[id]) {
             clearTimeout(this.registerTimeout[id]);
             delete this.registerTimeout[id];
@@ -28987,7 +21986,7 @@ module.exports = function (stage) {
         }
       }
     }, {
-      key: 'register',
+      key: "register",
       value: function register(userName, password, settings) {
         this.logger("TRY TO REGISTER SIP : " + userName + password, "DEBUG");
         this.contact = this.generateContact(userName, password, false, settings);
@@ -28997,17 +21996,18 @@ module.exports = function (stage) {
         return this.diagRegister;
       }
     }, {
-      key: 'unregister',
+      key: "unregister",
       value: function unregister() {
         if (this.authenticateRegister && this.registered === 200) {
           return this.authenticateRegister.unregister();
         }
+
         if (this.diagRegister && this.registered === 200) {
           return this.diagRegister.unregister();
         }
       }
     }, {
-      key: 'invite',
+      key: "invite",
       value: function invite(userTo, description) {
         var diagInv = this.createDialog("INVITE");
         var transaction = diagInv.invite(userTo + "@" + this.publicAddress, description);
@@ -29016,21 +22016,21 @@ module.exports = function (stage) {
         return diagInv;
       }
     }, {
-      key: 'notify',
+      key: "notify",
       value: function notify(userTo, description, type) {
         var diagNotify = this.createDialog("NOTIFY");
         diagNotify.notify(userTo + "@" + this.publicAddress, description, type);
         return diagNotify;
       }
     }, {
-      key: 'send',
+      key: "send",
       value: function send(data) {
         this.logger(data, "INFO", "SEND");
         this.fire("onSend", data);
         this.transport.send(data);
       }
     }, {
-      key: 'bye',
+      key: "bye",
       value: function bye(callId) {
         for (var dialog in this.dialogs) {
           if (callId) {
@@ -29062,19 +22062,16 @@ module.exports = function (stage) {
 /*! no static exports found */
 /***/ (function(module, exports, __webpack_require__) {
 
-"use strict";
-/* WEBPACK VAR INJECTION */(function($) {
+/* WEBPACK VAR INJECTION */(function($) {function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError("Cannot call a class as a function"); } }
 
-var _createClass = function () { function defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ("value" in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } } return function (Constructor, protoProps, staticProps) { if (protoProps) defineProperties(Constructor.prototype, protoProps); if (staticProps) defineProperties(Constructor, staticProps); return Constructor; }; }();
+function _defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ("value" in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } }
 
-function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError("Cannot call a class as a function"); } }
+function _createClass(Constructor, protoProps, staticProps) { if (protoProps) _defineProperties(Constructor.prototype, protoProps); if (staticProps) _defineProperties(Constructor, staticProps); return Constructor; }
 
 module.exports = function (stage) {
-
   'use strict';
 
   var defaultSettings = {};
-
   var settingsSyslog = {
     moduleName: "REALTIME",
     defaultSeverity: "INFO"
@@ -29084,18 +22081,21 @@ module.exports = function (stage) {
     this.protocol.send(data);
   };
 
-  var realtime = function () {
+  var realtime =
+  /*#__PURE__*/
+  function () {
     function realtime(urlServer, settings) {
       _classCallCheck(this, realtime);
 
       if (!urlServer) {
         throw new Error("realtime url server is not defined");
       }
+
       this.settings = stage.extend({}, defaultSettings, settings);
       this.notificationCenter = stage.notificationsCenter.create(this.settings, this);
       this.syslog = new stage.syslog(settingsSyslog);
-      this.url = stage.io.urlToOject(urlServer);
-      //this.crossDomain =  ! stage.io.isSameOrigin(this.url.href);
+      this.url = stage.io.urlToOject(urlServer); //this.crossDomain =  ! stage.io.isSameOrigin(this.url.href);
+
       this.protocol = new stage.io.protocols.bayeux(this.url);
       this.services = null;
       this.subscribedService = {};
@@ -29103,17 +22103,17 @@ module.exports = function (stage) {
       this.connected = false;
       this.publicAddress = null;
       this.domain = null;
-
       /*
        *	EVENT REALTIME
        */
+
       this.notificationCenter.listen(this, "onAuthorized", function () {
         this.protocol.handshake(this.url.href);
       });
-
       /*
        *	EVENTS PROTOCOL BAYEUX
        */
+
       this.protocol.notificationCenter.listen(this, "onMessage", this.onMessage);
       this.protocol.notificationCenter.listen(this, "onHandshake", function (message, socket) {
         if (message.ext && message.ext.address) {
@@ -29121,16 +22121,19 @@ module.exports = function (stage) {
           this.publicAddress = addr.remoteAddress;
           this.domain = addr.host;
         }
+
         this.notificationCenter.fire("onHandshake", message, socket, this);
       });
       this.protocol.notificationCenter.listen(this, "onConnect", function (message) {
         this.services = message.data;
         this.connected = true;
+
         if (message.ext && message.ext.address) {
           var addr = JSON.parse(message.ext.address);
           this.publicAddress = addr.remoteAddress;
           this.domain = addr.host;
         }
+
         this.notificationCenter.fire("onConnect", message, this);
       });
       this.protocol.notificationCenter.listen(this, "onDisconnect", function (message) {
@@ -29163,12 +22166,12 @@ module.exports = function (stage) {
       this.protocol.notificationCenter.listen(this, "onClose", function (message) {
         this.connected = false;
         this.notificationCenter.fire("onClose", message);
+
         for (var service in this.subscribedService) {
           //this.unSubscribe(service);
           delete this.subscribedService[service];
         }
-      });
-      //this.start();
+      }); //this.start();
     }
 
     _createClass(realtime, [{
@@ -29191,8 +22194,8 @@ module.exports = function (stage) {
           this.notificationCenter.fire("onError", 500, this, "connection already started");
           return false;
         }
-        var statusCode = {
 
+        var statusCode = {
           401: function _(request, type, message) {
             var auth = request.getResponseHeader("WWW-Authenticate");
             var res = request.responseText;
@@ -29207,6 +22210,7 @@ module.exports = function (stage) {
               },
               onError: function onError(obj, type, message) {
                 var res = stage.io.getHeaderJSON(obj);
+
                 if (res) {
                   _this2.notificationCenter.fire('onError', 401, obj, res);
                 } else {
@@ -29214,6 +22218,7 @@ module.exports = function (stage) {
                 }
               }
             });
+
             _this2.notificationCenter.fire('onUnauthorized', _this2.authenticate, _this2);
           },
           404: function _(obj, type, message) {
@@ -29225,7 +22230,6 @@ module.exports = function (stage) {
             _this2.notificationCenter.fire('onError', 503, obj, message);
           }
         };
-
         return $.ajax({
           method: 'GET',
           cache: false,
@@ -29238,6 +22242,7 @@ module.exports = function (stage) {
             if (obj.status in statusCode) {
               return;
             }
+
             _this2.notificationCenter.fire('onError', obj.status, obj, message);
           }
         });
@@ -29249,13 +22254,16 @@ module.exports = function (stage) {
           this.notificationCenter.fire('onError', 500, this, "Not connected");
           return false;
         }
+
         if (name in this.services) {
           if (name in this.subscribedService) {
             this.notificationCenter.fire('onError', 500, this, "already subscribed");
             return false;
           }
+
           return send.call(this, this.protocol.subscribe(name, data));
         }
+
         this.notificationCenter.fire('onError', 500, this, "service : " + name + " not exist");
         return false;
       }
@@ -29266,8 +22274,8 @@ module.exports = function (stage) {
           this.notificationCenter.fire('onError', 500, this, "Not connected");
           return false;
         }
-        if (name in this.services) {
 
+        if (name in this.services) {
           if (name in this.subscribedService) {
             var clientId = this.subscribedService[name].clientId;
             return send.call(this, this.protocol.unSubscribe(name, clientId, data));
@@ -29276,6 +22284,7 @@ module.exports = function (stage) {
             return false;
           }
         }
+
         this.notificationCenter.fire('onError', 404, this, "service : " + name + " not exist");
         return false;
       }
@@ -29286,9 +22295,11 @@ module.exports = function (stage) {
           this.notificationCenter.fire('onError', 500, this, "Not connected");
           return false;
         }
+
         if (service in this.services) {
           if (service in this.subscribedService) {
             var clientId = this.subscribedService[service].clientId;
+
             try {
               var proto = this.protocol.sendMessage(service, data, clientId);
               send.call(this, proto);
@@ -29303,6 +22314,7 @@ module.exports = function (stage) {
         } else {
           this.fire("onError", 404, this, "service :" + service + " not exit");
         }
+
         return false;
       }
     }, {
@@ -29310,12 +22322,15 @@ module.exports = function (stage) {
       value: function stop() {
         if (this.connected) {
           this.protocol.stopReConnect();
+
           for (var service in this.subscribedService) {
             //this.unSubscribe(service);
             delete this.subscribedService[service];
           }
+
           return send.call(this, this.protocol.disconnect());
         }
+
         throw new Error("connection already stoped");
       }
     }, {
@@ -29354,94 +22369,105 @@ module.exports = function (stage) {
 /*! no static exports found */
 /***/ (function(module, exports, __webpack_require__) {
 
-"use strict";
-/* WEBPACK VAR INJECTION */(function(jQuery) {
-
-var _createClass = function () { function defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ("value" in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } } return function (Constructor, protoProps, staticProps) { if (protoProps) defineProperties(Constructor.prototype, protoProps); if (staticProps) defineProperties(Constructor, staticProps); return Constructor; }; }();
+/* WEBPACK VAR INJECTION */(function(jQuery) {function _typeof(obj) { if (typeof Symbol === "function" && typeof Symbol.iterator === "symbol") { _typeof = function _typeof(obj) { return typeof obj; }; } else { _typeof = function _typeof(obj) { return obj && typeof Symbol === "function" && obj.constructor === Symbol && obj !== Symbol.prototype ? "symbol" : typeof obj; }; } return _typeof(obj); }
 
 function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError("Cannot call a class as a function"); } }
 
-function _possibleConstructorReturn(self, call) { if (!self) { throw new ReferenceError("this hasn't been initialised - super() hasn't been called"); } return call && (typeof call === "object" || typeof call === "function") ? call : self; }
+function _defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ("value" in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } }
 
-function _inherits(subClass, superClass) { if (typeof superClass !== "function" && superClass !== null) { throw new TypeError("Super expression must either be null or a function, not " + typeof superClass); } subClass.prototype = Object.create(superClass && superClass.prototype, { constructor: { value: subClass, enumerable: false, writable: true, configurable: true } }); if (superClass) Object.setPrototypeOf ? Object.setPrototypeOf(subClass, superClass) : subClass.__proto__ = superClass; }
+function _createClass(Constructor, protoProps, staticProps) { if (protoProps) _defineProperties(Constructor.prototype, protoProps); if (staticProps) _defineProperties(Constructor, staticProps); return Constructor; }
+
+function _possibleConstructorReturn(self, call) { if (call && (_typeof(call) === "object" || typeof call === "function")) { return call; } return _assertThisInitialized(self); }
+
+function _assertThisInitialized(self) { if (self === void 0) { throw new ReferenceError("this hasn't been initialised - super() hasn't been called"); } return self; }
+
+function _getPrototypeOf(o) { _getPrototypeOf = Object.setPrototypeOf ? Object.getPrototypeOf : function _getPrototypeOf(o) { return o.__proto__ || Object.getPrototypeOf(o); }; return _getPrototypeOf(o); }
+
+function _inherits(subClass, superClass) { if (typeof superClass !== "function" && superClass !== null) { throw new TypeError("Super expression must either be null or a function"); } subClass.prototype = Object.create(superClass && superClass.prototype, { constructor: { value: subClass, writable: true, configurable: true } }); if (superClass) _setPrototypeOf(subClass, superClass); }
+
+function _setPrototypeOf(o, p) { _setPrototypeOf = Object.setPrototypeOf || function _setPrototypeOf(o, p) { o.__proto__ = p; return o; }; return _setPrototypeOf(o, p); }
 
 module.exports = function (stage) {
+  var defaultSettings = {
+    delay: 0,
+    async: false,
+    ajax: {
+      cache: true,
+      dataType: 'json',
+      type: 'GET',
+      contentType: 'application/x-www-form-urlencoded; charset=UTF-8'
+    }
+  };
 
-	var defaultSettings = {
-		delay: 0,
-		async: false,
+  var pollAction = function pollAction(ajaxConfig) {
+    ajaxConfig.data = this.data.get();
+    this.transport = jQuery.ajax(ajaxConfig);
+  };
 
-		ajax: {
-			cache: true,
-			dataType: 'json',
-			type: 'GET',
-			contentType: 'application/x-www-form-urlencoded; charset=UTF-8'
-		}
-	};
+  var pollling = function pollling(ajaxConfig) {
+    if (this.settings.delay) {
+      this.timer = setTimeout(pollAction.bind(this, ajaxConfig), this.settings.delay);
+    } else {
+      pollAction.call(this, ajaxConfig);
+    }
+  };
+  /*
+  	 *
+  	 *
+  	 */
 
-	var pollAction = function pollAction(ajaxConfig) {
-		ajaxConfig.data = this.data.get();
-		this.transport = jQuery.ajax(ajaxConfig);
-	};
 
-	var pollling = function pollling(ajaxConfig) {
+  var longPoll =
+  /*#__PURE__*/
+  function (_stage$io$transports$) {
+    _inherits(longPoll, _stage$io$transports$);
 
-		if (this.settings.delay) {
-			this.timer = setTimeout(pollAction.bind(this, ajaxConfig), this.settings.delay);
-		} else {
-			pollAction.call(this, ajaxConfig);
-		}
-	};
+    function longPoll(url, settings) {
+      var _this;
 
-	/*
- 	 *
- 	 *
- 	 */
-	var longPoll = function (_stage$io$transports$) {
-		_inherits(longPoll, _stage$io$transports$);
+      _classCallCheck(this, longPoll);
 
-		function longPoll(url, settings) {
-			_classCallCheck(this, longPoll);
+      _this = _possibleConstructorReturn(this, _getPrototypeOf(longPoll).call(this, url, settings));
+      _this.settings = stage.extend(true, {}, defaultSettings, settings);
+      return _this;
+    }
 
-			var _this = _possibleConstructorReturn(this, (longPoll.__proto__ || Object.getPrototypeOf(longPoll)).call(this, url, settings));
+    _createClass(longPoll, [{
+      key: "start",
+      value: function start() {
+        var _this2 = this;
 
-			_this.settings = stage.extend(true, {}, defaultSettings, settings);
-			return _this;
-		}
+        var ajaxConfig = this.buildAjaxSettings();
+        this.transport = null;
 
-		_createClass(longPoll, [{
-			key: 'start',
-			value: function start() {
-				var _this2 = this;
+        ajaxConfig.complete = function (xhr, status) {
+          pollling.call(_this2, ajaxConfig);
+        };
 
-				var ajaxConfig = this.buildAjaxSettings();
-				this.transport = null;
-				ajaxConfig.complete = function (xhr, status) {
-					pollling.call(_this2, ajaxConfig);
-				};
-				pollling.call(this, ajaxConfig);
-				return this;
-			}
-		}, {
-			key: 'stop',
-			value: function stop() {
-				this.transport.abort();
-				this.transport = null;
+        pollling.call(this, ajaxConfig);
+        return this;
+      }
+    }, {
+      key: "stop",
+      value: function stop() {
+        this.transport.abort();
+        this.transport = null;
 
-				if (this.timer) {
-					clearTimeout(this.timer);
-				}
-				this.connectState = false;
-				this.fire('onStop', this);
-				return this;
-			}
-		}]);
+        if (this.timer) {
+          clearTimeout(this.timer);
+        }
 
-		return longPoll;
-	}(stage.io.transports.poll);
+        this.connectState = false;
+        this.fire('onStop', this);
+        return this;
+      }
+    }]);
 
-	stage.io.transports.longPoll = longPoll;
-	return longPoll;
+    return longPoll;
+  }(stage.io.transports.poll);
+
+  stage.io.transports.longPoll = longPoll;
+  return longPoll;
 };
 /* WEBPACK VAR INJECTION */}.call(this, __webpack_require__(/*! jquery */ "./node_modules/jquery/dist/jquery.js-exposed")))
 
@@ -29454,203 +22480,210 @@ module.exports = function (stage) {
 /*! no static exports found */
 /***/ (function(module, exports, __webpack_require__) {
 
-"use strict";
-/* WEBPACK VAR INJECTION */(function(jQuery) {
+/* WEBPACK VAR INJECTION */(function(jQuery) {function _possibleConstructorReturn(self, call) { if (call && (_typeof(call) === "object" || typeof call === "function")) { return call; } return _assertThisInitialized(self); }
 
-var _typeof = typeof Symbol === "function" && typeof Symbol.iterator === "symbol" ? function (obj) { return typeof obj; } : function (obj) { return obj && typeof Symbol === "function" && obj.constructor === Symbol && obj !== Symbol.prototype ? "symbol" : typeof obj; };
+function _assertThisInitialized(self) { if (self === void 0) { throw new ReferenceError("this hasn't been initialised - super() hasn't been called"); } return self; }
 
-var _createClass = function () { function defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ("value" in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } } return function (Constructor, protoProps, staticProps) { if (protoProps) defineProperties(Constructor.prototype, protoProps); if (staticProps) defineProperties(Constructor, staticProps); return Constructor; }; }();
+function _getPrototypeOf(o) { _getPrototypeOf = Object.setPrototypeOf ? Object.getPrototypeOf : function _getPrototypeOf(o) { return o.__proto__ || Object.getPrototypeOf(o); }; return _getPrototypeOf(o); }
 
-function _possibleConstructorReturn(self, call) { if (!self) { throw new ReferenceError("this hasn't been initialised - super() hasn't been called"); } return call && (typeof call === "object" || typeof call === "function") ? call : self; }
+function _inherits(subClass, superClass) { if (typeof superClass !== "function" && superClass !== null) { throw new TypeError("Super expression must either be null or a function"); } subClass.prototype = Object.create(superClass && superClass.prototype, { constructor: { value: subClass, writable: true, configurable: true } }); if (superClass) _setPrototypeOf(subClass, superClass); }
 
-function _inherits(subClass, superClass) { if (typeof superClass !== "function" && superClass !== null) { throw new TypeError("Super expression must either be null or a function, not " + typeof superClass); } subClass.prototype = Object.create(superClass && superClass.prototype, { constructor: { value: subClass, enumerable: false, writable: true, configurable: true } }); if (superClass) Object.setPrototypeOf ? Object.setPrototypeOf(subClass, superClass) : subClass.__proto__ = superClass; }
+function _setPrototypeOf(o, p) { _setPrototypeOf = Object.setPrototypeOf || function _setPrototypeOf(o, p) { o.__proto__ = p; return o; }; return _setPrototypeOf(o, p); }
+
+function _typeof(obj) { if (typeof Symbol === "function" && typeof Symbol.iterator === "symbol") { _typeof = function _typeof(obj) { return typeof obj; }; } else { _typeof = function _typeof(obj) { return obj && typeof Symbol === "function" && obj.constructor === Symbol && obj !== Symbol.prototype ? "symbol" : typeof obj; }; } return _typeof(obj); }
 
 function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError("Cannot call a class as a function"); } }
 
+function _defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ("value" in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } }
+
+function _createClass(Constructor, protoProps, staticProps) { if (protoProps) _defineProperties(Constructor.prototype, protoProps); if (staticProps) _defineProperties(Constructor, staticProps); return Constructor; }
+
 module.exports = function (stage) {
+  var defaultSettings = {
+    delay: 1000,
+    async: true,
+    ajax: {
+      cache: true,
+      dataType: 'json',
+      type: 'GET',
+      contentType: 'application/x-www-form-urlencoded; charset=UTF-8'
+    }
+  };
 
-	var defaultSettings = {
-		delay: 1000,
-		async: true,
+  var pollling = function pollling(ajaxConfig) {
+    var tokenKey = new Date().getTime();
+    ajaxConfig.data = this.data.get();
+    var transport = jQuery.ajax(ajaxConfig);
+    transport.tokenKey = tokenKey;
+    this.transport[tokenKey] = transport;
+  };
+  /*
+  	 *
+  	 */
 
-		ajax: {
-			cache: true,
-			dataType: 'json',
-			type: 'GET',
-			contentType: 'application/x-www-form-urlencoded; charset=UTF-8'
-		}
-	};
 
-	var pollling = function pollling(ajaxConfig) {
+  var httpData =
+  /*#__PURE__*/
+  function () {
+    function httpData(contentType, method) {
+      _classCallCheck(this, httpData);
 
-		var tokenKey = new Date().getTime();
-		ajaxConfig.data = this.data.get();
-		var transport = jQuery.ajax(ajaxConfig);
-		transport.tokenKey = tokenKey;
-		this.transport[tokenKey] = transport;
-	};
+      this.reset();
 
-	/*
- 	 *
- 	 */
-	var httpData = function () {
-		function httpData(contentType, method) {
-			_classCallCheck(this, httpData);
+      if (contentType) {
+        this.contentType = contentType;
+      }
 
-			this.reset();
-			if (contentType) {
-				this.contentType = contentType;
-			}
-			if (method) {
-				this.method = method;
-			}
-		}
+      if (method) {
+        this.method = method;
+      }
+    }
 
-		_createClass(httpData, [{
-			key: 'add',
-			value: function add(data, permanent) {
-				this[permanent ? "permanent" : "transient"] = data;
-			}
-		}, {
-			key: 'get',
-			value: function get() {
+    _createClass(httpData, [{
+      key: "add",
+      value: function add(data, permanent) {
+        this[permanent ? "permanent" : "transient"] = data;
+      }
+    }, {
+      key: "get",
+      value: function get() {
+        var data = this.transient ? this.transient : this.permanent;
+        this.transient = ''; //return this.contentType.search('json') >= 0 && typeof(data) == 'object' && this.method.toUpperCase() != 'GET' ? JSON.stringify(data) : data;
 
-				var data = this.transient ? this.transient : this.permanent;
-				this.transient = '';
-				//return this.contentType.search('json') >= 0 && typeof(data) == 'object' && this.method.toUpperCase() != 'GET' ? JSON.stringify(data) : data;
-				switch (this.contentType.split(';')[0].replace(/ /g, '')) {
-					case 'application/json':
-					case 'text/json':
-						if (this.method.toUpperCase() != 'GET' && (typeof data === 'undefined' ? 'undefined' : _typeof(data)) == 'object') {
-							data = JSON.stringify(data);
-						}
-						break;
-				}
+        switch (this.contentType.split(';')[0].replace(/ /g, '')) {
+          case 'application/json':
+          case 'text/json':
+            if (this.method.toUpperCase() != 'GET' && _typeof(data) == 'object') {
+              data = JSON.stringify(data);
+            }
 
-				return data;
-			}
-		}, {
-			key: 'reset',
-			value: function reset() {
-				this.contentType = '';
-				this.method = 'GET';
-				this.permanent = '';
-				this.transient = '';
-			}
-		}]);
+            break;
+        }
 
-		return httpData;
-	}();
+        return data;
+      }
+    }, {
+      key: "reset",
+      value: function reset() {
+        this.contentType = '';
+        this.method = 'GET';
+        this.permanent = '';
+        this.transient = '';
+      }
+    }]);
 
-	/*
-  *	EVENT :
-  *		onStart
-  *		onStop
-  *		onMessage
-  *		onError 
-  */
-	var poll = function (_stage$io$transport) {
-		_inherits(poll, _stage$io$transport);
+    return httpData;
+  }();
+  /*
+   *	EVENT :
+   *		onStart
+   *		onStop
+   *		onMessage
+   *		onError 
+   */
 
-		function poll(url, settings) {
-			_classCallCheck(this, poll);
 
-			var _this = _possibleConstructorReturn(this, (poll.__proto__ || Object.getPrototypeOf(poll)).call(this, url, settings));
+  var poll =
+  /*#__PURE__*/
+  function (_stage$io$transport) {
+    _inherits(poll, _stage$io$transport);
 
-			_this.settings = jQuery.extend(true, {}, defaultSettings, settings);
-			_this.data = new httpData(_this.settings.ajax.contentType, _this.settings.ajax.type);
-			_this.connectState = false;
-			return _this;
-		}
+    function poll(url, settings) {
+      var _this;
 
-		_createClass(poll, [{
-			key: 'buildAjaxSettings',
-			value: function buildAjaxSettings() {
+      _classCallCheck(this, poll);
 
-				var settings = jQuery.extend(true, {}, this.settings.ajax, {
-					url: this.url.href,
-					crossDomain: this.crossDomain,
-					beforeSend: function (xhr) {
-						if (!this.connectState) {
-							this.fire.call(this, "onStart", this);
-							this.connectState = true;
-						}
-					}.bind(this),
-					success: function (data, state, xhr) {
-						this.fire("onMessage", data, this, xhr);
-					}.bind(this),
-					error: function (xhr, status, error) {
-						switch (status) {
-							case 'abort':
-								this.fire("onAbort", error, this, xhr);
-								break;
+      _this = _possibleConstructorReturn(this, _getPrototypeOf(poll).call(this, url, settings));
+      _this.settings = jQuery.extend(true, {}, defaultSettings, settings);
+      _this.data = new httpData(_this.settings.ajax.contentType, _this.settings.ajax.type);
+      _this.connectState = false;
+      return _this;
+    }
 
-							case 'timeout':
-								this.fire("onTimeout", error, this, xhr);
-								break;
+    _createClass(poll, [{
+      key: "buildAjaxSettings",
+      value: function buildAjaxSettings() {
+        var settings = jQuery.extend(true, {}, this.settings.ajax, {
+          url: this.url.href,
+          crossDomain: this.crossDomain,
+          beforeSend: function (xhr) {
+            if (!this.connectState) {
+              this.fire.call(this, "onStart", this);
+              this.connectState = true;
+            }
+          }.bind(this),
+          success: function (data, state, xhr) {
+            this.fire("onMessage", data, this, xhr);
+          }.bind(this),
+          error: function (xhr, status, error) {
+            switch (status) {
+              case 'abort':
+                this.fire("onAbort", error, this, xhr);
+                break;
 
-							default:
-								this.fire("onError", error, this, xhr);
-						}
-					}.bind(this)
-				});
-				return settings;
-			}
-		}, {
-			key: 'start',
-			value: function start() {
+              case 'timeout':
+                this.fire("onTimeout", error, this, xhr);
+                break;
 
-				var ajaxConfig = this.buildAjaxSettings();
+              default:
+                this.fire("onError", error, this, xhr);
+            }
+          }.bind(this)
+        });
+        return settings;
+      }
+    }, {
+      key: "start",
+      value: function start() {
+        var ajaxConfig = this.buildAjaxSettings();
+        this.transport = {};
 
-				this.transport = {};
-				ajaxConfig.complete = function (xhr, status) {
-					if (this.transport[xhr.tokenKey]) delete this.transport[xhr.tokenKey];
-				}.bind(this);
-				pollling.call(this, ajaxConfig);
-				this.idInterval = setInterval(pollling.bind(this, ajaxConfig), this.settings.delay);
+        ajaxConfig.complete = function (xhr, status) {
+          if (this.transport[xhr.tokenKey]) delete this.transport[xhr.tokenKey];
+        }.bind(this);
 
-				return this;
-			}
-		}, {
-			key: 'setData',
-			value: function setData(data, permanent) {
-				this.data.add(data, permanent);
-				return this;
-			}
-		}, {
-			key: 'stop',
-			value: function stop() {
+        pollling.call(this, ajaxConfig);
+        this.idInterval = setInterval(pollling.bind(this, ajaxConfig), this.settings.delay);
+        return this;
+      }
+    }, {
+      key: "setData",
+      value: function setData(data, permanent) {
+        this.data.add(data, permanent);
+        return this;
+      }
+    }, {
+      key: "stop",
+      value: function stop() {
+        if (Object.keys(this.transport).length > 0) {
+          for (var tokenKey in this.transport) {
+            this.transport[tokenKey].abort();
+            delete this.transport[tokenKey];
+          }
+        }
 
-				if (Object.keys(this.transport).length > 0) {
-					for (var tokenKey in this.transport) {
-						this.transport[tokenKey].abort();
-						delete this.transport[tokenKey];
-					}
-				}
+        if (this.idInterval) {
+          clearInterval(this.idInterval);
+          this.idInterval = null;
+        }
 
-				if (this.idInterval) {
-					clearInterval(this.idInterval);
-					this.idInterval = null;
-				}
+        this.connectState = false;
+        this.fire('onStop', this);
+        return this;
+      }
+    }, {
+      key: "destroy",
+      value: function destroy() {
+        this.close();
+        return this;
+      }
+    }]);
 
-				this.connectState = false;
+    return poll;
+  }(stage.io.transport);
 
-				this.fire('onStop', this);
-				return this;
-			}
-		}, {
-			key: 'destroy',
-			value: function destroy() {
-				this.close();
-				return this;
-			}
-		}]);
-
-		return poll;
-	}(stage.io.transport);
-
-	stage.io.transports.poll = poll;
-	return poll;
+  stage.io.transports.poll = poll;
+  return poll;
 };
 /* WEBPACK VAR INJECTION */}.call(this, __webpack_require__(/*! jquery */ "./node_modules/jquery/dist/jquery.js-exposed")))
 
@@ -29661,56 +22694,72 @@ module.exports = function (stage) {
   !*** ./src/io/transports/socket.es6 ***!
   \**************************************/
 /*! no static exports found */
-/***/ (function(module, exports, __webpack_require__) {
+/***/ (function(module, exports) {
 
-"use strict";
-
-
-var _createClass = function () { function defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ("value" in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } } return function (Constructor, protoProps, staticProps) { if (protoProps) defineProperties(Constructor.prototype, protoProps); if (staticProps) defineProperties(Constructor, staticProps); return Constructor; }; }();
+function _typeof(obj) { if (typeof Symbol === "function" && typeof Symbol.iterator === "symbol") { _typeof = function _typeof(obj) { return typeof obj; }; } else { _typeof = function _typeof(obj) { return obj && typeof Symbol === "function" && obj.constructor === Symbol && obj !== Symbol.prototype ? "symbol" : typeof obj; }; } return _typeof(obj); }
 
 function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError("Cannot call a class as a function"); } }
 
-function _possibleConstructorReturn(self, call) { if (!self) { throw new ReferenceError("this hasn't been initialised - super() hasn't been called"); } return call && (typeof call === "object" || typeof call === "function") ? call : self; }
+function _defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ("value" in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } }
 
-function _inherits(subClass, superClass) { if (typeof superClass !== "function" && superClass !== null) { throw new TypeError("Super expression must either be null or a function, not " + typeof superClass); } subClass.prototype = Object.create(superClass && superClass.prototype, { constructor: { value: subClass, enumerable: false, writable: true, configurable: true } }); if (superClass) Object.setPrototypeOf ? Object.setPrototypeOf(subClass, superClass) : subClass.__proto__ = superClass; }
+function _createClass(Constructor, protoProps, staticProps) { if (protoProps) _defineProperties(Constructor.prototype, protoProps); if (staticProps) _defineProperties(Constructor, staticProps); return Constructor; }
+
+function _possibleConstructorReturn(self, call) { if (call && (_typeof(call) === "object" || typeof call === "function")) { return call; } return _assertThisInitialized(self); }
+
+function _getPrototypeOf(o) { _getPrototypeOf = Object.setPrototypeOf ? Object.getPrototypeOf : function _getPrototypeOf(o) { return o.__proto__ || Object.getPrototypeOf(o); }; return _getPrototypeOf(o); }
+
+function _inherits(subClass, superClass) { if (typeof superClass !== "function" && superClass !== null) { throw new TypeError("Super expression must either be null or a function"); } subClass.prototype = Object.create(superClass && superClass.prototype, { constructor: { value: subClass, writable: true, configurable: true } }); if (superClass) _setPrototypeOf(subClass, superClass); }
+
+function _setPrototypeOf(o, p) { _setPrototypeOf = Object.setPrototypeOf || function _setPrototypeOf(o, p) { o.__proto__ = p; return o; }; return _setPrototypeOf(o, p); }
+
+function _assertThisInitialized(self) { if (self === void 0) { throw new ReferenceError("this hasn't been initialised - super() hasn't been called"); } return self; }
 
 module.exports = function (stage) {
-
   var defaultSettings = {
     type: "websocket" //   websocket | poll | longPoll
+
   };
 
   var bestTransport = function bestTransport() {};
 
-  var socket = function (_stage$notificationsC) {
+  var socket =
+  /*#__PURE__*/
+  function (_stage$notificationsC) {
     _inherits(socket, _stage$notificationsC);
 
     function socket(url, localSettings) {
+      var _this;
+
       _classCallCheck(this, socket);
 
       var settings = stage.extend({}, defaultSettings, localSettings);
-
-      var _this = _possibleConstructorReturn(this, (socket.__proto__ || Object.getPrototypeOf(socket)).call(this, settings));
-
+      _this = _possibleConstructorReturn(this, _getPrototypeOf(socket).call(this, settings));
       _this.settings = settings;
 
       switch (_this.settings.type) {
         case "websocket":
           _this.socket = stage.io.transports.websocket;
           break;
+
         case "poll":
           _this.socket = stage.io.transports.ajax;
           break;
+
         case "longPoll":
           _this.socket = stage.io.transports.ajax;
           break;
       }
 
-      _this.listen(_this, "onConnect");
-      _this.listen(_this, "onClose");
-      _this.listen(_this, "onError");
-      _this.listen(_this, "onMessage");
-      _this.listen(_this, "onTimeout");
+      _this.listen(_assertThisInitialized(_assertThisInitialized(_this)), "onConnect");
+
+      _this.listen(_assertThisInitialized(_assertThisInitialized(_this)), "onClose");
+
+      _this.listen(_assertThisInitialized(_assertThisInitialized(_this)), "onError");
+
+      _this.listen(_assertThisInitialized(_assertThisInitialized(_this)), "onMessage");
+
+      _this.listen(_assertThisInitialized(_assertThisInitialized(_this)), "onTimeout");
+
       return _this;
     }
 
@@ -29752,39 +22801,49 @@ module.exports = function (stage) {
   !*** ./src/io/transports/websockets/websocket.es6 ***!
   \****************************************************/
 /*! no static exports found */
-/***/ (function(module, exports, __webpack_require__) {
+/***/ (function(module, exports) {
 
-"use strict";
-
-
-var _createClass = function () { function defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ("value" in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } } return function (Constructor, protoProps, staticProps) { if (protoProps) defineProperties(Constructor.prototype, protoProps); if (staticProps) defineProperties(Constructor, staticProps); return Constructor; }; }();
+function _typeof(obj) { if (typeof Symbol === "function" && typeof Symbol.iterator === "symbol") { _typeof = function _typeof(obj) { return typeof obj; }; } else { _typeof = function _typeof(obj) { return obj && typeof Symbol === "function" && obj.constructor === Symbol && obj !== Symbol.prototype ? "symbol" : typeof obj; }; } return _typeof(obj); }
 
 function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError("Cannot call a class as a function"); } }
 
-function _possibleConstructorReturn(self, call) { if (!self) { throw new ReferenceError("this hasn't been initialised - super() hasn't been called"); } return call && (typeof call === "object" || typeof call === "function") ? call : self; }
+function _defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ("value" in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } }
 
-function _inherits(subClass, superClass) { if (typeof superClass !== "function" && superClass !== null) { throw new TypeError("Super expression must either be null or a function, not " + typeof superClass); } subClass.prototype = Object.create(superClass && superClass.prototype, { constructor: { value: subClass, enumerable: false, writable: true, configurable: true } }); if (superClass) Object.setPrototypeOf ? Object.setPrototypeOf(subClass, superClass) : subClass.__proto__ = superClass; }
+function _createClass(Constructor, protoProps, staticProps) { if (protoProps) _defineProperties(Constructor.prototype, protoProps); if (staticProps) _defineProperties(Constructor, staticProps); return Constructor; }
+
+function _possibleConstructorReturn(self, call) { if (call && (_typeof(call) === "object" || typeof call === "function")) { return call; } return _assertThisInitialized(self); }
+
+function _assertThisInitialized(self) { if (self === void 0) { throw new ReferenceError("this hasn't been initialised - super() hasn't been called"); } return self; }
+
+function _getPrototypeOf(o) { _getPrototypeOf = Object.setPrototypeOf ? Object.getPrototypeOf : function _getPrototypeOf(o) { return o.__proto__ || Object.getPrototypeOf(o); }; return _getPrototypeOf(o); }
+
+function _inherits(subClass, superClass) { if (typeof superClass !== "function" && superClass !== null) { throw new TypeError("Super expression must either be null or a function"); } subClass.prototype = Object.create(superClass && superClass.prototype, { constructor: { value: subClass, writable: true, configurable: true } }); if (superClass) _setPrototypeOf(subClass, superClass); }
+
+function _setPrototypeOf(o, p) { _setPrototypeOf = Object.setPrototypeOf || function _setPrototypeOf(o, p) { o.__proto__ = p; return o; }; return _setPrototypeOf(o, p); }
 
 module.exports = function (stage) {
-
   /*
    *
    */
-  var websocket = function (_stage$io$transport) {
+  var websocket =
+  /*#__PURE__*/
+  function (_stage$io$transport) {
     _inherits(websocket, _stage$io$transport);
 
     function websocket(url, settings) {
+      var _this;
+
       _classCallCheck(this, websocket);
 
       if (url) {
-        var _this = _possibleConstructorReturn(this, (websocket.__proto__ || Object.getPrototypeOf(websocket)).call(this, url, settings));
+        _this = _possibleConstructorReturn(this, _getPrototypeOf(websocket).call(this, url, settings));
 
         _this.connect(url, settings);
       } else {
-        var _this = _possibleConstructorReturn(this, (websocket.__proto__ || Object.getPrototypeOf(websocket)).call(this));
-
+        _this = _possibleConstructorReturn(this, _getPrototypeOf(websocket).call(this));
         _this.socket = null;
       }
+
       return _possibleConstructorReturn(_this);
     }
 
@@ -29797,6 +22856,7 @@ module.exports = function (stage) {
           this.fire("onError", e);
           throw e;
         }
+
         this.socket.onmessage = this.listen(this, "onMessage");
         this.socket.onerror = this.listen(this, "onError");
         this.socket.onopen = this.listen(this, "onConnect");
@@ -29825,7 +22885,6 @@ module.exports = function (stage) {
   }(stage.io.transport);
 
   stage.io.transports.websocket = websocket;
-
   return websocket;
 };
 
@@ -29836,61 +22895,72 @@ module.exports = function (stage) {
   !*** ./src/kernel/appKernel.es6 ***!
   \**********************************/
 /*! no static exports found */
-/***/ (function(module, exports, __webpack_require__) {
+/***/ (function(module, exports) {
 
-"use strict";
-
+function _typeof(obj) { if (typeof Symbol === "function" && typeof Symbol.iterator === "symbol") { _typeof = function _typeof(obj) { return typeof obj; }; } else { _typeof = function _typeof(obj) { return obj && typeof Symbol === "function" && obj.constructor === Symbol && obj !== Symbol.prototype ? "symbol" : typeof obj; }; } return _typeof(obj); }
 
 function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError("Cannot call a class as a function"); } }
 
-function _possibleConstructorReturn(self, call) { if (!self) { throw new ReferenceError("this hasn't been initialised - super() hasn't been called"); } return call && (typeof call === "object" || typeof call === "function") ? call : self; }
+function _possibleConstructorReturn(self, call) { if (call && (_typeof(call) === "object" || typeof call === "function")) { return call; } return _assertThisInitialized(self); }
 
-function _inherits(subClass, superClass) { if (typeof superClass !== "function" && superClass !== null) { throw new TypeError("Super expression must either be null or a function, not " + typeof superClass); } subClass.prototype = Object.create(superClass && superClass.prototype, { constructor: { value: subClass, enumerable: false, writable: true, configurable: true } }); if (superClass) Object.setPrototypeOf ? Object.setPrototypeOf(subClass, superClass) : subClass.__proto__ = superClass; }
+function _getPrototypeOf(o) { _getPrototypeOf = Object.setPrototypeOf ? Object.getPrototypeOf : function _getPrototypeOf(o) { return o.__proto__ || Object.getPrototypeOf(o); }; return _getPrototypeOf(o); }
+
+function _inherits(subClass, superClass) { if (typeof superClass !== "function" && superClass !== null) { throw new TypeError("Super expression must either be null or a function"); } subClass.prototype = Object.create(superClass && superClass.prototype, { constructor: { value: subClass, writable: true, configurable: true } }); if (superClass) _setPrototypeOf(subClass, superClass); }
+
+function _setPrototypeOf(o, p) { _setPrototypeOf = Object.setPrototypeOf || function _setPrototypeOf(o, p) { o.__proto__ = p; return o; }; return _setPrototypeOf(o, p); }
+
+function _assertThisInitialized(self) { if (self === void 0) { throw new ReferenceError("this hasn't been initialised - super() hasn't been called"); } return self; }
 
 module.exports = function (stage) {
+  'use strict';
 
-	'use strict';
+  var appKernel =
+  /*#__PURE__*/
+  function (_stage$kernel) {
+    _inherits(appKernel, _stage$kernel);
 
-	var appKernel = function (_stage$kernel) {
-		_inherits(appKernel, _stage$kernel);
+    function appKernel(url, environnement, settings) {
+      var _this;
 
-		function appKernel(url, environnement, settings) {
-			_classCallCheck(this, appKernel);
+      _classCallCheck(this, appKernel);
 
-			switch (arguments.length) {
-				case 0:
-					url = null;
-					environnement = "prod";
-					settings = {};
-					break;
-				case 1:
-					environnement = url;
-					settings = {};
-					break;
-				case 2:
-					settings = environnement;
-					environnement = url;
-					url = null;
-					break;
-			}
+      switch (arguments.length) {
+        case 0:
+          url = null;
+          environnement = "prod";
+          settings = {};
+          break;
 
-			var _this = _possibleConstructorReturn(this, (appKernel.__proto__ || Object.getPrototypeOf(appKernel)).call(this, environnement, settings));
+        case 1:
+          environnement = url;
+          settings = {};
+          break;
 
-			if (url) {
-				_this.loadModule(url, {
-					async: false
-				});
-			} else {
-				_this.fire("onBoot", _this);
-			}
-			return _this;
-		}
+        case 2:
+          settings = environnement;
+          environnement = url;
+          url = null;
+          break;
+      }
 
-		return appKernel;
-	}(stage.kernel);
+      _this = _possibleConstructorReturn(this, _getPrototypeOf(appKernel).call(this, environnement, settings));
 
-	stage.appKernel = appKernel;
-	return appKernel;
+      if (url) {
+        _this.loadModule(url, {
+          async: false
+        });
+      } else {
+        _this.fire("onBoot", _assertThisInitialized(_assertThisInitialized(_this)));
+      }
+
+      return _this;
+    }
+
+    return appKernel;
+  }(stage.kernel);
+
+  stage.appKernel = appKernel;
+  return appKernel;
 };
 
 /***/ }),
@@ -29902,213 +22972,228 @@ module.exports = function (stage) {
 /*! no static exports found */
 /***/ (function(module, exports, __webpack_require__) {
 
-"use strict";
-/* WEBPACK VAR INJECTION */(function($, jQuery) {
+/* WEBPACK VAR INJECTION */(function($, jQuery) {function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError("Cannot call a class as a function"); } }
 
-var _createClass = function () { function defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ("value" in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } } return function (Constructor, protoProps, staticProps) { if (protoProps) defineProperties(Constructor.prototype, protoProps); if (staticProps) defineProperties(Constructor, staticProps); return Constructor; }; }();
+function _defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ("value" in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } }
 
-function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError("Cannot call a class as a function"); } }
+function _createClass(Constructor, protoProps, staticProps) { if (protoProps) _defineProperties(Constructor.prototype, protoProps); if (staticProps) _defineProperties(Constructor, staticProps); return Constructor; }
 
 var shortId = __webpack_require__(/*! shortid */ "./node_modules/shortid/index.js");
 
 module.exports = function (stage) {
+  'use strict';
 
-	'use strict';
+  var generateId = function generateId() {
+    return shortId.generate();
+  };
 
-	var generateId = function generateId() {
-		return shortId.generate();
-	};
+  var loader = function () {
+    var AJAX = {
+      css: {
+        mineType: "text/css",
+        tag: "style",
+        media: "screen",
+        type: "stylesheet",
+        position: "HEAD"
+      },
+      js: {
+        mineType: "text/javascript",
+        tag: "script",
+        position: "BODY"
+      }
+    };
+    var SCRIPT = {
+      css: {
+        mineType: "text/css",
+        tag: "link",
+        media: "screen",
+        type: "stylesheet",
+        position: "HEAD"
+      },
+      js: {
+        mineType: "text/javascript",
+        tag: "script",
+        position: "BODY"
+      }
+    };
 
-	var loader = function () {
+    var insert = function insert(position, script) {
+      switch (position) {
+        case "HEAD":
+          var head = document.getElementsByTagName('head')[0];
+          head.appendChild(script);
+          break;
 
-		var AJAX = {
-			css: {
-				mineType: "text/css",
-				tag: "style",
-				media: "screen",
-				type: "stylesheet",
-				position: "HEAD"
-			},
-			js: {
-				mineType: "text/javascript",
-				tag: "script",
-				position: "BODY"
-			}
-		};
+        case "BODY":
+          var body = document.getElementsByTagName('body')[0];
+          body.appendChild(script);
+          break;
+      }
+    };
 
-		var SCRIPT = {
-			css: {
-				mineType: "text/css",
-				tag: "link",
-				media: "screen",
-				type: "stylesheet",
-				position: "HEAD"
-			},
-			js: {
-				mineType: "text/javascript",
-				tag: "script",
-				position: "BODY"
-			}
-		};
+    return function (src, tag, id, transport, callback) {
+      var _this = this;
 
-		var insert = function insert(position, script) {
-			switch (position) {
-				case "HEAD":
-					var head = document.getElementsByTagName('head')[0];
-					head.appendChild(script);
-					break;
-				case "BODY":
-					var body = document.getElementsByTagName('body')[0];
-					body.appendChild(script);
-					break;
-			}
-		};
+      //if (tag == "js") transport = "ajax";
+      //if (tag == "css") transport = "ajax";
+      switch (tag) {
+        case "js":
+          /*var def = AJAX[tag];
+          var script = document.createElement(def.tag);
+          script.setAttribute('type', def.mineType);
+          script.setAttribute('id', id + '_'+tag);
+          if ( tag === "css" ){
+          	script.setAttribute('media', def.media);
+          }
+          $.ajax(src, {
+          	async:false,
+          	//cache:true,
+          	dataType:"text",
+          	success:function(data, status, xhr){
+          		this.cache[id] = script ;
+          		insert(def.position, script);
+          		$(script).text(data);
+          		this.logger("LOAD FILE :" + src,"DEBUG");
+          		callback(null, xhr);
+          	}.bind(this),
+          	error:function(xhr, status, message){
+          		this.logger(src+" :" +message,"ERROR");
+          		callback(message, xhr);
+          	}.bind(this)
+          });*/
+          return $.ajax({
+            url: src,
+            async: false,
+            dataType: "script",
+            success: function success(data, status, xhr) {
+              //this.logger("LOAD FILE :" + src,"DEBUG");
+              callback(null, xhr);
+            },
+            error: function error(xhr, status, message) {
+              _this.logger(src + " :" + message, "ERROR");
 
-		return function (src, tag, id, transport, callback) {
-			var _this = this;
+              callback(message, xhr);
+            }
+          });
+          break;
 
-			//if (tag == "js") transport = "ajax";
-			//if (tag == "css") transport = "ajax";
-			switch (tag) {
-				case "js":
-					/*var def = AJAX[tag];
-     var script = document.createElement(def.tag);
-     script.setAttribute('type', def.mineType);
-     script.setAttribute('id', id + '_'+tag);
-     if ( tag === "css" ){
-     	script.setAttribute('media', def.media);
-     }
-     $.ajax(src, {
-     	async:false,
-     	//cache:true,
-     	dataType:"text",
-     	success:function(data, status, xhr){
-     		this.cache[id] = script ;
-     		insert(def.position, script);
-     		$(script).text(data);
-     		this.logger("LOAD FILE :" + src,"DEBUG");
-     		callback(null, xhr);
-     	}.bind(this),
-     	error:function(xhr, status, message){
-     		this.logger(src+" :" +message,"ERROR");
-     		callback(message, xhr);
-     	}.bind(this)
-     });*/
+        case "css":
+          var def = SCRIPT[tag];
+          var script = document.createElement(def.tag);
+          script.setAttribute('type', def.mineType);
+          script.setAttribute('id', id + '_' + tag);
 
-					return $.ajax({
-						url: src,
-						async: false,
-						dataType: "script",
-						success: function success(data, status, xhr) {
-							//this.logger("LOAD FILE :" + src,"DEBUG");
-							callback(null, xhr);
-						},
-						error: function error(xhr, status, message) {
-							_this.logger(src + " :" + message, "ERROR");
-							callback(message, xhr);
-						}
-					});
+          if (tag === "css") {
+            script.setAttribute('media', def.media);
+            script.href = src;
+            /*+ '?time=' + id;*/
 
-					break;
-				case "css":
-					var def = SCRIPT[tag];
-					var script = document.createElement(def.tag);
-					script.setAttribute('type', def.mineType);
-					script.setAttribute('id', id + '_' + tag);
-					if (tag === "css") {
-						script.setAttribute('media', def.media);
-						script.href = src; /*+ '?time=' + id;*/
-						script.rel = def.type;
-						script.async = false;
-					}
-					if (tag === "js") {
-						script.src = src; /*+ '?time=' + id;*/
-						script.async = false;
-					}
-					script.onload = function () {
-						_this.cache[id] = script;
-						_this.logger("LOAD FILE :" + src, "DEBUG");
-						callback(null, script);
-					};
-					script.onerror = function (error) {
-						_this.logger(src, "ERROR");
-						callback(error, script);
-					};
-					insert(def.position, script);
-					break;
-				default:
-					this.logger(new Error("autoload  type transport error "), "ERROR");
-					return null;
-			}
-			return script;
-		};
-	}();
+            script.rel = def.type;
+            script.async = false;
+          }
 
-	/*
- 	 *
- 	 * CLASS AUTOLOAD
- 	 *
- 	 */
-	var defaultSetting = {
-		transport: "script",
-		prefix: null
-	};
+          if (tag === "js") {
+            script.src = src;
+            /*+ '?time=' + id;*/
 
-	var regType = /(.*)\.(js)$|(.*)\.(css)$/;
+            script.async = false;
+          }
 
-	var autoload = function () {
-		function autoload(kernel, settings) {
-			_classCallCheck(this, autoload);
+          script.onload = function () {
+            _this.cache[id] = script;
 
-			this.settings = jQuery.extend({}, defaultSetting, settings);
-			this.cache = {};
-			this.prefix = this.settings.prefix;
-			this.syslog = kernel.syslog || null;
-			this.transport = this.settings.transport;
-			this.logger("INITIALIZE AUTOLOAD SERVICE", "DEBUG");
-		}
+            _this.logger("LOAD FILE :" + src, "DEBUG");
 
-		_createClass(autoload, [{
-			key: 'load',
-			value: function load(file, callback) {
-				var id = generateId();
-				var res = regType.exec(file);
-				if (!res) {
-					this.logger("autoload error type file  ", "ERROR");
-					return null;
-				}
-				var script = loader.call(this, file, res[2] || res[4], id, this.transport, callback);
-				return id;
-			}
-		}, {
-			key: 'logger',
-			value: function logger(pci, severity, msgid, msg) {
-				if (this.syslog) {
-					if (!msgid) msgid = "AUTOLOADER  ";
-					return this.syslog.logger(pci, severity, msgid, msg);
-				} else {
-					console.log(pci);
-				}
-			}
-		}, {
-			key: 'unLoad',
-			value: function unLoad(id, callback) {
-				if (id in this.cache) {
-					var tag = this.cache[id];
-					tag.parentNode.removeChild(tag);
-					delete this.cache[id];
-					return callback(id);
-				} else {
-					this.logger("Autoload unLoad no tag find :" + id, "ERROR");
-				}
-			}
-		}]);
+            callback(null, script);
+          };
 
-		return autoload;
-	}();
+          script.onerror = function (error) {
+            _this.logger(src, "ERROR");
 
-	stage.autoload = autoload;
-	return autoload;
+            callback(error, script);
+          };
+
+          insert(def.position, script);
+          break;
+
+        default:
+          this.logger(new Error("autoload  type transport error "), "ERROR");
+          return null;
+      }
+
+      return script;
+    };
+  }();
+  /*
+  	 *
+  	 * CLASS AUTOLOAD
+  	 *
+  	 */
+
+
+  var defaultSetting = {
+    transport: "script",
+    prefix: null
+  };
+  var regType = /(.*)\.(js)$|(.*)\.(css)$/;
+
+  var autoload =
+  /*#__PURE__*/
+  function () {
+    function autoload(kernel, settings) {
+      _classCallCheck(this, autoload);
+
+      this.settings = jQuery.extend({}, defaultSetting, settings);
+      this.cache = {};
+      this.prefix = this.settings.prefix;
+      this.syslog = kernel.syslog || null;
+      this.transport = this.settings.transport;
+      this.logger("INITIALIZE AUTOLOAD SERVICE", "DEBUG");
+    }
+
+    _createClass(autoload, [{
+      key: "load",
+      value: function load(file, callback) {
+        var id = generateId();
+        var res = regType.exec(file);
+
+        if (!res) {
+          this.logger("autoload error type file  ", "ERROR");
+          return null;
+        }
+
+        var script = loader.call(this, file, res[2] || res[4], id, this.transport, callback);
+        return id;
+      }
+    }, {
+      key: "logger",
+      value: function logger(pci, severity, msgid, msg) {
+        if (this.syslog) {
+          if (!msgid) msgid = "AUTOLOADER  ";
+          return this.syslog.logger(pci, severity, msgid, msg);
+        } else {
+          console.log(pci);
+        }
+      }
+    }, {
+      key: "unLoad",
+      value: function unLoad(id, callback) {
+        if (id in this.cache) {
+          var tag = this.cache[id];
+          tag.parentNode.removeChild(tag);
+          delete this.cache[id];
+          return callback(id);
+        } else {
+          this.logger("Autoload unLoad no tag find :" + id, "ERROR");
+        }
+      }
+    }]);
+
+    return autoload;
+  }();
+
+  stage.autoload = autoload;
+  return autoload;
 };
 /* WEBPACK VAR INJECTION */}.call(this, __webpack_require__(/*! jquery */ "./node_modules/jquery/dist/jquery.js-exposed"), __webpack_require__(/*! jquery */ "./node_modules/jquery/dist/jquery.js-exposed")))
 
@@ -30121,317 +23206,357 @@ module.exports = function (stage) {
 /*! no static exports found */
 /***/ (function(module, exports, __webpack_require__) {
 
-"use strict";
+function _possibleConstructorReturn(self, call) { if (call && (_typeof(call) === "object" || typeof call === "function")) { return call; } return _assertThisInitialized(self); }
 
+function _assertThisInitialized(self) { if (self === void 0) { throw new ReferenceError("this hasn't been initialised - super() hasn't been called"); } return self; }
 
-var _get = function get(object, property, receiver) { if (object === null) object = Function.prototype; var desc = Object.getOwnPropertyDescriptor(object, property); if (desc === undefined) { var parent = Object.getPrototypeOf(object); if (parent === null) { return undefined; } else { return get(parent, property, receiver); } } else if ("value" in desc) { return desc.value; } else { var getter = desc.get; if (getter === undefined) { return undefined; } return getter.call(receiver); } };
+function _get(target, property, receiver) { if (typeof Reflect !== "undefined" && Reflect.get) { _get = Reflect.get; } else { _get = function _get(target, property, receiver) { var base = _superPropBase(target, property); if (!base) return; var desc = Object.getOwnPropertyDescriptor(base, property); if (desc.get) { return desc.get.call(receiver); } return desc.value; }; } return _get(target, property, receiver || target); }
 
-var _typeof = typeof Symbol === "function" && typeof Symbol.iterator === "symbol" ? function (obj) { return typeof obj; } : function (obj) { return obj && typeof Symbol === "function" && obj.constructor === Symbol && obj !== Symbol.prototype ? "symbol" : typeof obj; };
+function _superPropBase(object, property) { while (!Object.prototype.hasOwnProperty.call(object, property)) { object = _getPrototypeOf(object); if (object === null) break; } return object; }
 
-var _createClass = function () { function defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ("value" in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } } return function (Constructor, protoProps, staticProps) { if (protoProps) defineProperties(Constructor.prototype, protoProps); if (staticProps) defineProperties(Constructor, staticProps); return Constructor; }; }();
+function _getPrototypeOf(o) { _getPrototypeOf = Object.setPrototypeOf ? Object.getPrototypeOf : function _getPrototypeOf(o) { return o.__proto__ || Object.getPrototypeOf(o); }; return _getPrototypeOf(o); }
 
-function _possibleConstructorReturn(self, call) { if (!self) { throw new ReferenceError("this hasn't been initialised - super() hasn't been called"); } return call && (typeof call === "object" || typeof call === "function") ? call : self; }
+function _inherits(subClass, superClass) { if (typeof superClass !== "function" && superClass !== null) { throw new TypeError("Super expression must either be null or a function"); } subClass.prototype = Object.create(superClass && superClass.prototype, { constructor: { value: subClass, writable: true, configurable: true } }); if (superClass) _setPrototypeOf(subClass, superClass); }
 
-function _inherits(subClass, superClass) { if (typeof superClass !== "function" && superClass !== null) { throw new TypeError("Super expression must either be null or a function, not " + typeof superClass); } subClass.prototype = Object.create(superClass && superClass.prototype, { constructor: { value: subClass, enumerable: false, writable: true, configurable: true } }); if (superClass) Object.setPrototypeOf ? Object.setPrototypeOf(subClass, superClass) : subClass.__proto__ = superClass; }
+function _setPrototypeOf(o, p) { _setPrototypeOf = Object.setPrototypeOf || function _setPrototypeOf(o, p) { o.__proto__ = p; return o; }; return _setPrototypeOf(o, p); }
+
+function _typeof(obj) { if (typeof Symbol === "function" && typeof Symbol.iterator === "symbol") { _typeof = function _typeof(obj) { return typeof obj; }; } else { _typeof = function _typeof(obj) { return obj && typeof Symbol === "function" && obj.constructor === Symbol && obj !== Symbol.prototype ? "symbol" : typeof obj; }; } return _typeof(obj); }
 
 function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError("Cannot call a class as a function"); } }
+
+function _defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ("value" in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } }
+
+function _createClass(Constructor, protoProps, staticProps) { if (protoProps) _defineProperties(Constructor.prototype, protoProps); if (staticProps) _defineProperties(Constructor, staticProps); return Constructor; }
 
 var shortId = __webpack_require__(/*! shortid */ "./node_modules/shortid/index.js");
 
 module.exports = function (stage) {
+  'use strict';
 
-	'use strict';
+  var ISDefined = function ISDefined(ele) {
+    if (ele !== null && ele !== undefined) {
+      return true;
+    }
 
-	var ISDefined = function ISDefined(ele) {
-		if (ele !== null && ele !== undefined) {
-			return true;
-		}
-		return false;
-	};
+    return false;
+  };
 
-	var generateId = function generateId() {
-		return shortId.generate();
-	};
+  var generateId = function generateId() {
+    return shortId.generate();
+  };
 
-	var parseParameterString = function parseParameterString(str, value) {
-		var ns = null;
-		switch (stage.typeOf(str)) {
-			case "string":
-				return parseParameterString.call(this, str.split("."), value);
-			case "array":
-				switch (str.length) {
-					case 1:
-						ns = Array.prototype.shift.call(str);
-						if (!this[ns]) {
-							this[ns] = value;
-						} else {
-							if (ISDefined(value)) {
-								this[ns] = value;
-							} else {
-								return this[ns];
-							}
-						}
-						return value;
-					default:
-						ns = Array.prototype.shift.call(str);
-						if (!this[ns] && ISDefined(value)) {
-							this[ns] = {};
-						}
-						return parseParameterString.call(this[ns], str, value);
-				}
-				break;
-			default:
-				return false;
-		}
-	};
+  var parseParameterString = function parseParameterString(str, value) {
+    var ns = null;
 
-	/*
- 	 *
- 	 *	CONTAINER CLASS
- 	 *
- 	 */
-	var Container = function () {
-		function Container(services, parameters) {
-			_classCallCheck(this, Container);
+    switch (stage.typeOf(str)) {
+      case "string":
+        return parseParameterString.call(this, str.split("."), value);
 
-			this.protoService = function () {};
-			this.protoParameters = function () {};
-			this.scope = {};
-			this.services = new this.protoService();
-			if (services && (typeof services === 'undefined' ? 'undefined' : _typeof(services)) === "object") {
-				for (var service in services) {
-					this.set(service, services[service]);
-				}
-			}
-			this.parameters = new this.protoParameters();
-			if (parameters && (typeof parameters === 'undefined' ? 'undefined' : _typeof(parameters)) === "object") {
-				for (var parameter in parameters) {
-					this.set(parameter, parameters[parameter]);
-				}
-			}
-		}
+      case "array":
+        switch (str.length) {
+          case 1:
+            ns = Array.prototype.shift.call(str);
 
-		_createClass(Container, [{
-			key: 'logger',
-			value: function logger(pci, severity, msgid, msg) {
-				var syslog = this.get("syslog");
-				if (!msgid) {
-					msgid = "CONTAINER SERVICES ";
-				}
-				return syslog.logger(pci, severity, msgid, msg);
-			}
-		}, {
-			key: 'set',
-			value: function set(name, object) {
-				return this.protoService.prototype[name] = object;
-			}
-		}, {
-			key: 'get',
-			value: function get(name) {
-				if (name in this.services) {
-					return this.services[name];
-				}
-				return null;
-				//this.logger("GET : " + name+" don't exist", "WARNING");	
-			}
-		}, {
-			key: 'has',
-			value: function has(name) {
-				return this.services[name];
-			}
-		}, {
-			key: 'addScope',
-			value: function addScope(name) {
-				if (!this.scope[name]) {
-					return this.scope[name] = {};
-				}
-				return this.scope[name];
-			}
-		}, {
-			key: 'enterScope',
-			value: function enterScope(name) {
-				var sc = new Scope(name, this);
-				this.scope[name][sc.id] = sc;
-				return sc;
-			}
-		}, {
-			key: 'enterScopeExtended',
-			value: function enterScopeExtended(name) {
-				var sc = new ExtendedScope(name, this);
-				this.scope[name][sc.id] = sc;
-				return sc;
-			}
-		}, {
-			key: 'leaveScope',
-			value: function leaveScope(scope) {
-				if (this.scope[scope.name]) {
-					var sc = this.scope[scope.name][scope.id];
-					if (sc) {
-						sc.clean();
-						//console.log("pass leaveScope "+ scope.id)
-						delete this.scope[scope.name][scope.id];
-						sc = null;
-					}
-					//console.log(this.scope)
-				}
-			}
-		}, {
-			key: 'removeScope',
-			value: function removeScope(name) {
-				if (this.scope[name]) {
-					for (var scope in this.scope[name]) {
-						this.leaveScope(this.scope[name][scope]);
-					}
-					delete this.scope[name];
-				}
-			}
-		}, {
-			key: 'setParameters',
-			value: function setParameters(name, str) {
-				if (typeof name !== "string") {
-					this.logger(new Error("setParameters : container parameter name must be a string"));
-					return false;
-				}
-				if (!ISDefined(str)) {
-					this.logger(new Error("setParameters : " + name + " container parameter value must be define"));
-					return false;
-				}
-				if (parseParameterString.call(this.protoParameters.prototype, name, str) === str) {
-					return str;
-				} else {
-					this.logger(new Error("container parameter " + name + " parse error"));
-					return false;
-				}
-			}
-		}, {
-			key: 'getParameters',
-			value: function getParameters(name) {
-				if (typeof name !== "string") {
-					this.logger(new Error("container parameter name must be a string"));
-					return false;
-				}
-				//return parseParameterString.call(this.protoParameters.prototype, name, null);  
-				return parseParameterString.call(this.parameters, name, null);
-			}
-		}]);
+            if (!this[ns]) {
+              this[ns] = value;
+            } else {
+              if (ISDefined(value)) {
+                this[ns] = value;
+              } else {
+                return this[ns];
+              }
+            }
 
-		return Container;
-	}();
+            return value;
 
-	/*
- 	 *
- 	 *	SCOPE CLASS
- 	 *
- 	 */
+          default:
+            ns = Array.prototype.shift.call(str);
 
-	var Scope = function (_Container) {
-		_inherits(Scope, _Container);
+            if (!this[ns] && ISDefined(value)) {
+              this[ns] = {};
+            }
 
-		function Scope(name, parent) {
-			_classCallCheck(this, Scope);
+            return parseParameterString.call(this[ns], str, value);
+        }
 
-			var _this = _possibleConstructorReturn(this, (Scope.__proto__ || Object.getPrototypeOf(Scope)).call(this));
+        break;
 
-			_this.name = name;
-			_this.parent = parent;
-			_this.services = new parent.protoService();
-			_this.parameters = new parent.protoParameters();
-			_this.scope = parent.scope;
-			_this.id = generateId();
+      default:
+        return false;
+    }
+  };
+  /*
+  	 *
+  	 *	CONTAINER CLASS
+  	 *
+  	 */
 
-			return _this;
-		}
 
-		_createClass(Scope, [{
-			key: 'set',
-			value: function set(name, obj) {
-				this.services[name] = obj;
-				return _get(Scope.prototype.__proto__ || Object.getPrototypeOf(Scope.prototype), 'set', this).call(this, name, obj);
-			}
-		}, {
-			key: 'clean',
-			value: function clean() {
-				this.services = null;
-				delete this.services;
-				this.parameters = null;
-				delete this.parameters;
-			}
-		}, {
-			key: 'setParameters',
-			value: function setParameters(name, str) {
-				if (parseParameterString.call(this.parameters, name, str) === str) {
-					return _get(Scope.prototype.__proto__ || Object.getPrototypeOf(Scope.prototype), 'setParameters', this).call(this, name, str);
-				} else {
-					this.logger(new Error("container parameter " + name + " parse error"));
-					return false;
-				}
-			}
-		}]);
+  var Container =
+  /*#__PURE__*/
+  function () {
+    function Container(services, parameters) {
+      _classCallCheck(this, Container);
 
-		return Scope;
-	}(Container);
+      this.protoService = function () {};
 
-	/*
- 	 *
- 	 *	ExtendedScope CLASS
- 	 *
- 	 */
-	var ExtendedScope = function (_Container2) {
-		_inherits(ExtendedScope, _Container2);
+      this.protoParameters = function () {};
 
-		function ExtendedScope(name, parent) {
-			_classCallCheck(this, ExtendedScope);
+      this.scope = {};
+      this.services = new this.protoService();
 
-			var _this2 = _possibleConstructorReturn(this, (ExtendedScope.__proto__ || Object.getPrototypeOf(ExtendedScope)).call(this));
+      if (services && _typeof(services) === "object") {
+        for (var service in services) {
+          this.set(service, services[service]);
+        }
+      }
 
-			_this2.name = name;
-			_this2.parent = parent;
-			_this2.services = new parent.protoService();
-			_this2.parameters = new parent.protoParameters();
-			_this2.scope = parent.scope;
-			_this2.id = generateId();
+      this.parameters = new this.protoParameters();
 
-			_this2.protoService = function () {};
-			_this2.protoService.prototype = stage.extend({}, _this2.parent.protoService.prototype);
+      if (parameters && _typeof(parameters) === "object") {
+        for (var parameter in parameters) {
+          this.set(parameter, parameters[parameter]);
+        }
+      }
+    }
 
-			_this2.protoParameters = function () {};
-			_this2.protoParameters.prototype = stage.extend({}, _this2.parent.protoParameters.prototype);
-			return _this2;
-		}
+    _createClass(Container, [{
+      key: "logger",
+      value: function logger(pci, severity, msgid, msg) {
+        var syslog = this.get("syslog");
 
-		_createClass(ExtendedScope, [{
-			key: 'clean',
-			value: function clean() {
-				this.services = null;
-				delete this.services;
-				this.parameters = null;
-				delete this.parameters;
-				this.protoService = null;
-				this.protoParameters = null;
-			}
-		}, {
-			key: 'set',
-			value: function set(name, obj) {
-				this.services[name] = obj;
-				return _get(ExtendedScope.prototype.__proto__ || Object.getPrototypeOf(ExtendedScope.prototype), 'set', this).call(this, name, obj);
-			}
-		}, {
-			key: 'setParameters',
-			value: function setParameters(name, str) {
-				if (parseParameterString.call(this.parameters, name, str) === str) {
-					return _get(ExtendedScope.prototype.__proto__ || Object.getPrototypeOf(ExtendedScope.prototype), 'setParameters', this).call(this, name, str);
-				} else {
-					this.logger(new Error("container parameter " + name + " parse error"));
-					return false;
-				}
-			}
-		}]);
+        if (!msgid) {
+          msgid = "CONTAINER SERVICES ";
+        }
 
-		return ExtendedScope;
-	}(Container);
+        return syslog.logger(pci, severity, msgid, msg);
+      }
+    }, {
+      key: "set",
+      value: function set(name, object) {
+        return this.protoService.prototype[name] = object;
+      }
+    }, {
+      key: "get",
+      value: function get(name) {
+        if (name in this.services) {
+          return this.services[name];
+        }
 
-	stage.Container = Container;
-	return Container;
+        return null; //this.logger("GET : " + name+" don't exist", "WARNING");	
+      }
+    }, {
+      key: "has",
+      value: function has(name) {
+        return this.services[name];
+      }
+    }, {
+      key: "addScope",
+      value: function addScope(name) {
+        if (!this.scope[name]) {
+          return this.scope[name] = {};
+        }
+
+        return this.scope[name];
+      }
+    }, {
+      key: "enterScope",
+      value: function enterScope(name) {
+        var sc = new Scope(name, this);
+        this.scope[name][sc.id] = sc;
+        return sc;
+      }
+    }, {
+      key: "enterScopeExtended",
+      value: function enterScopeExtended(name) {
+        var sc = new ExtendedScope(name, this);
+        this.scope[name][sc.id] = sc;
+        return sc;
+      }
+    }, {
+      key: "leaveScope",
+      value: function leaveScope(scope) {
+        if (this.scope[scope.name]) {
+          var sc = this.scope[scope.name][scope.id];
+
+          if (sc) {
+            sc.clean(); //console.log("pass leaveScope "+ scope.id)
+
+            delete this.scope[scope.name][scope.id];
+            sc = null;
+          } //console.log(this.scope)
+
+        }
+      }
+    }, {
+      key: "removeScope",
+      value: function removeScope(name) {
+        if (this.scope[name]) {
+          for (var scope in this.scope[name]) {
+            this.leaveScope(this.scope[name][scope]);
+          }
+
+          delete this.scope[name];
+        }
+      }
+    }, {
+      key: "setParameters",
+      value: function setParameters(name, str) {
+        if (typeof name !== "string") {
+          this.logger(new Error("setParameters : container parameter name must be a string"));
+          return false;
+        }
+
+        if (!ISDefined(str)) {
+          this.logger(new Error("setParameters : " + name + " container parameter value must be define"));
+          return false;
+        }
+
+        if (parseParameterString.call(this.protoParameters.prototype, name, str) === str) {
+          return str;
+        } else {
+          this.logger(new Error("container parameter " + name + " parse error"));
+          return false;
+        }
+      }
+    }, {
+      key: "getParameters",
+      value: function getParameters(name) {
+        if (typeof name !== "string") {
+          this.logger(new Error("container parameter name must be a string"));
+          return false;
+        } //return parseParameterString.call(this.protoParameters.prototype, name, null);  
+
+
+        return parseParameterString.call(this.parameters, name, null);
+      }
+    }]);
+
+    return Container;
+  }();
+  /*
+  	 *
+  	 *	SCOPE CLASS
+  	 *
+  	 */
+
+
+  var Scope =
+  /*#__PURE__*/
+  function (_Container) {
+    _inherits(Scope, _Container);
+
+    function Scope(name, parent) {
+      var _this;
+
+      _classCallCheck(this, Scope);
+
+      _this = _possibleConstructorReturn(this, _getPrototypeOf(Scope).call(this));
+      _this.name = name;
+      _this.parent = parent;
+      _this.services = new parent.protoService();
+      _this.parameters = new parent.protoParameters();
+      _this.scope = parent.scope;
+      _this.id = generateId();
+      return _this;
+    }
+
+    _createClass(Scope, [{
+      key: "set",
+      value: function set(name, obj) {
+        this.services[name] = obj;
+        return _get(_getPrototypeOf(Scope.prototype), "set", this).call(this, name, obj);
+      }
+    }, {
+      key: "clean",
+      value: function clean() {
+        this.services = null;
+        delete this.services;
+        this.parameters = null;
+        delete this.parameters;
+      }
+    }, {
+      key: "setParameters",
+      value: function setParameters(name, str) {
+        if (parseParameterString.call(this.parameters, name, str) === str) {
+          return _get(_getPrototypeOf(Scope.prototype), "setParameters", this).call(this, name, str);
+        } else {
+          this.logger(new Error("container parameter " + name + " parse error"));
+          return false;
+        }
+      }
+    }]);
+
+    return Scope;
+  }(Container);
+  /*
+  	 *
+  	 *	ExtendedScope CLASS
+  	 *
+  	 */
+
+
+  var ExtendedScope =
+  /*#__PURE__*/
+  function (_Container2) {
+    _inherits(ExtendedScope, _Container2);
+
+    function ExtendedScope(name, parent) {
+      var _this2;
+
+      _classCallCheck(this, ExtendedScope);
+
+      _this2 = _possibleConstructorReturn(this, _getPrototypeOf(ExtendedScope).call(this));
+      _this2.name = name;
+      _this2.parent = parent;
+      _this2.services = new parent.protoService();
+      _this2.parameters = new parent.protoParameters();
+      _this2.scope = parent.scope;
+      _this2.id = generateId();
+
+      _this2.protoService = function () {};
+
+      _this2.protoService.prototype = stage.extend({}, _this2.parent.protoService.prototype);
+
+      _this2.protoParameters = function () {};
+
+      _this2.protoParameters.prototype = stage.extend({}, _this2.parent.protoParameters.prototype);
+      return _this2;
+    }
+
+    _createClass(ExtendedScope, [{
+      key: "clean",
+      value: function clean() {
+        this.services = null;
+        delete this.services;
+        this.parameters = null;
+        delete this.parameters;
+        this.protoService = null;
+        this.protoParameters = null;
+      }
+    }, {
+      key: "set",
+      value: function set(name, obj) {
+        this.services[name] = obj;
+        return _get(_getPrototypeOf(ExtendedScope.prototype), "set", this).call(this, name, obj);
+      }
+    }, {
+      key: "setParameters",
+      value: function setParameters(name, str) {
+        if (parseParameterString.call(this.parameters, name, str) === str) {
+          return _get(_getPrototypeOf(ExtendedScope.prototype), "setParameters", this).call(this, name, str);
+        } else {
+          this.logger(new Error("container parameter " + name + " parse error"));
+          return false;
+        }
+      }
+    }]);
+
+    return ExtendedScope;
+  }(Container);
+
+  stage.Container = Container;
+  return Container;
 };
 
 /***/ }),
@@ -30443,170 +23568,185 @@ module.exports = function (stage) {
 /*! no static exports found */
 /***/ (function(module, exports, __webpack_require__) {
 
-"use strict";
-/* WEBPACK VAR INJECTION */(function(jQuery, $) {
-
-var _createClass = function () { function defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ("value" in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } } return function (Constructor, protoProps, staticProps) { if (protoProps) defineProperties(Constructor.prototype, protoProps); if (staticProps) defineProperties(Constructor, staticProps); return Constructor; }; }();
+/* WEBPACK VAR INJECTION */(function(jQuery, $) {function _typeof(obj) { if (typeof Symbol === "function" && typeof Symbol.iterator === "symbol") { _typeof = function _typeof(obj) { return typeof obj; }; } else { _typeof = function _typeof(obj) { return obj && typeof Symbol === "function" && obj.constructor === Symbol && obj !== Symbol.prototype ? "symbol" : typeof obj; }; } return _typeof(obj); }
 
 function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError("Cannot call a class as a function"); } }
 
-function _possibleConstructorReturn(self, call) { if (!self) { throw new ReferenceError("this hasn't been initialised - super() hasn't been called"); } return call && (typeof call === "object" || typeof call === "function") ? call : self; }
+function _defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ("value" in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } }
 
-function _inherits(subClass, superClass) { if (typeof superClass !== "function" && superClass !== null) { throw new TypeError("Super expression must either be null or a function, not " + typeof superClass); } subClass.prototype = Object.create(superClass && superClass.prototype, { constructor: { value: subClass, enumerable: false, writable: true, configurable: true } }); if (superClass) Object.setPrototypeOf ? Object.setPrototypeOf(subClass, superClass) : subClass.__proto__ = superClass; }
+function _createClass(Constructor, protoProps, staticProps) { if (protoProps) _defineProperties(Constructor.prototype, protoProps); if (staticProps) _defineProperties(Constructor, staticProps); return Constructor; }
+
+function _possibleConstructorReturn(self, call) { if (call && (_typeof(call) === "object" || typeof call === "function")) { return call; } return _assertThisInitialized(self); }
+
+function _assertThisInitialized(self) { if (self === void 0) { throw new ReferenceError("this hasn't been initialised - super() hasn't been called"); } return self; }
+
+function _getPrototypeOf(o) { _getPrototypeOf = Object.setPrototypeOf ? Object.getPrototypeOf : function _getPrototypeOf(o) { return o.__proto__ || Object.getPrototypeOf(o); }; return _getPrototypeOf(o); }
+
+function _inherits(subClass, superClass) { if (typeof superClass !== "function" && superClass !== null) { throw new TypeError("Super expression must either be null or a function"); } subClass.prototype = Object.create(superClass && superClass.prototype, { constructor: { value: subClass, writable: true, configurable: true } }); if (superClass) _setPrototypeOf(subClass, superClass); }
+
+function _setPrototypeOf(o, p) { _setPrototypeOf = Object.setPrototypeOf || function _setPrototypeOf(o, p) { o.__proto__ = p; return o; }; return _setPrototypeOf(o, p); }
 
 module.exports = function (stage) {
+  'use strict';
+  /*
+  	 *
+  	 *	CLASS CONTROLLER
+  	 *
+  	 */
 
-	'use strict';
+  var tabFxEvent = ["stage-click", "stage-dblclick", "stage-focus", "stage-blur", "stage-mouseover", "stage-mouseout", "stage-mouseenter", "stage-mouseleave", "stage-change"];
 
-	/*
- 	 *
- 	 *	CLASS CONTROLLER
- 	 *
- 	 */
+  var Controller =
+  /*#__PURE__*/
+  function (_stage$Service) {
+    _inherits(Controller, _stage$Service);
 
-	var tabFxEvent = ["stage-click", "stage-dblclick", "stage-focus", "stage-blur", "stage-mouseover", "stage-mouseout", "stage-mouseenter", "stage-mouseleave", "stage-change"];
+    function Controller(name, container, module) {
+      var _this;
 
-	var Controller = function (_stage$Service) {
-		_inherits(Controller, _stage$Service);
+      _classCallCheck(this, Controller);
 
-		function Controller(name, container, module) {
-			_classCallCheck(this, Controller);
+      _this = _possibleConstructorReturn(this, _getPrototypeOf(Controller).call(this, name, container, container.get("notificationsCenter")));
+      _this.module = module;
+      _this.i18n = _this.kernel.i18n;
+      _this.router = _this.kernel.router;
+      return _this;
+    }
 
-			var _this = _possibleConstructorReturn(this, (Controller.__proto__ || Object.getPrototypeOf(Controller)).call(this, name, container, container.get("notificationsCenter")));
+    _createClass(Controller, [{
+      key: "redirect",
+      value: function redirect(url) {
+        return this.router.redirect.apply(this.router, arguments);
+      }
+      /*
+      	*
+      	*
+      	*/
 
-			_this.module = module;
-			_this.i18n = _this.kernel.i18n;
-			_this.router = _this.kernel.router;
-			return _this;
-		}
+    }, {
+      key: "forward",
+      value: function forward(pattern, args) {
+        return this.router.forward(pattern, args);
+      }
+      /*
+      	*
+      	*
+      	*/
 
-		_createClass(Controller, [{
-			key: "redirect",
-			value: function redirect(url) {
-				return this.router.redirect.apply(this.router, arguments);
-			}
+    }, {
+      key: "generateUrl",
+      value: function generateUrl(name, variables, absolute) {
+        if (absolute === true) {
+          var url = this.router.url().split("#");
+          absolute = this.router.url[0];
+        }
 
-			/*
-   	*
-   	*
-   	*/
+        return this.router.generateUrl.apply(this.router, arguments);
+      }
+    }, {
+      key: "evalInContext",
+      value: function evalInContext(js, context) {
+        var func = function (context) {
+          var $controller = context;
+          return function (js) {
+            "use strict";
 
-		}, {
-			key: "forward",
-			value: function forward(pattern, args) {
-				return this.router.forward(pattern, args);
-			}
+            return eval(js);
+          };
+        }(this);
 
-			/*
-   	*
-   	*
-   	*/
+        try {
+          return func.call(context || this, jQuery.trim(js));
+        } catch (e) {
+          this.logger("DOM PARSER TWIG ERROR " + e, "ERROR");
+        }
+      }
+    }, {
+      key: "domParser",
+      value: function domParser(domElement) {
+        var _this2 = this;
 
-		}, {
-			key: "generateUrl",
-			value: function generateUrl(name, variables, absolute) {
-				if (absolute === true) {
-					var url = this.router.url().split("#");
-					absolute = this.router.url[0];
-				}
-				return this.router.generateUrl.apply(this.router, arguments);
-			}
-		}, {
-			key: "evalInContext",
-			value: function evalInContext(js, context) {
-				var func = function (context) {
-					var $controller = context;
-					return function (js) {
-						"use strict";
+        domElement.find('[' + tabFxEvent.join('],[') + ']').each(function (index, ele) {
+          var attributes = ele.attributes;
+          var jElement = $(ele);
+          var ctrl = jElement.closest('[stage-ctrl]');
+          var scope = null;
 
-						return eval(js);
-					};
-				}(this);
-				try {
-					return func.call(context || this, jQuery.trim(js));
-				} catch (e) {
-					this.logger("DOM PARSER TWIG ERROR " + e, "ERROR");
-				}
-			}
-		}, {
-			key: "domParser",
-			value: function domParser(domElement) {
-				var _this2 = this;
+          if (ctrl.length) {
+            var pattern = $(ctrl).attr("stage-ctrl");
 
-				domElement.find('[' + tabFxEvent.join('],[') + ']').each(function (index, ele) {
-					var attributes = ele.attributes;
-					var jElement = $(ele);
-					var ctrl = jElement.closest('[stage-ctrl]');
-					var scope = null;
-					if (ctrl.length) {
-						var pattern = $(ctrl).attr("stage-ctrl");
-						try {
-							scope = _this2.router.resolvePattern(pattern).controller;
-						} catch (e) {
-							_this2.logger("DOM PARSER ERROR : " + e, "ERROR");
-							return;
-						}
-					} else {
-						scope = _this2;
-					}
-					for (var i = 0; i < attributes.length; i++) {
-						var attribute = attributes[i];
-						if (tabFxEvent.indexOf(attribute.name) > -1) {
-							var ele = function () {
-								var content = attribute.value;
-								jElement.on(attribute.name.replace('stage-', ''), function () {
-									scope.evalInContext(content, this);
-								});
-							}();
-						}
-					}
-				});
-			}
+            try {
+              scope = _this2.router.resolvePattern(pattern).controller;
+            } catch (e) {
+              _this2.logger("DOM PARSER ERROR : " + e, "ERROR");
 
-			/*
-   	*
-   	*
-   	*/
+              return;
+            }
+          } else {
+            scope = _this2;
+          }
 
-		}, {
-			key: "render",
-			value: function render(element, partial, type) {
-				var ele = $(element);
-				try {
-					switch (type) {
-						case "append":
-							ele.append(partial);
-							break;
-						case "prepend":
-							ele.prepend(partial);
-							break;
-						default:
-							ele.empty();
-							ele.html(partial);
+          for (var i = 0; i < attributes.length; i++) {
+            var attribute = attributes[i];
 
-					}
-					return this.domParser(ele);
-				} catch (e) {
-					this.logger("DOM PARSER TWIG ERROR : " + e, "ERROR");
-				}
-			}
-		}, {
-			key: "renderPartial",
-			value: function renderPartial(pattern, obj) {
-				try {
-					var template = this.module.getTemplatePattern(pattern);
-					return template.render(obj);
-				} catch (e) {
-					this.logger(e, "ERROR");
-				}
-			}
-		}]);
+            if (tabFxEvent.indexOf(attribute.name) > -1) {
+              var ele = function () {
+                var content = attribute.value;
+                jElement.on(attribute.name.replace('stage-', ''), function () {
+                  scope.evalInContext(content, this);
+                });
+              }();
+            }
+          }
+        });
+      }
+      /*
+      	*
+      	*
+      	*/
 
-		return Controller;
-	}(stage.Service);
+    }, {
+      key: "render",
+      value: function render(element, partial, type) {
+        var ele = $(element);
 
-	stage.Controller = Controller;
-	return Controller;
+        try {
+          switch (type) {
+            case "append":
+              ele.append(partial);
+              break;
+
+            case "prepend":
+              ele.prepend(partial);
+              break;
+
+            default:
+              ele.empty();
+              ele.html(partial);
+          }
+
+          return this.domParser(ele);
+        } catch (e) {
+          this.logger("DOM PARSER TWIG ERROR : " + e, "ERROR");
+        }
+      }
+    }, {
+      key: "renderPartial",
+      value: function renderPartial(pattern, obj) {
+        try {
+          var template = this.module.getTemplatePattern(pattern);
+          return template.render(obj);
+        } catch (e) {
+          this.logger(e, "ERROR");
+        }
+      }
+    }]);
+
+    return Controller;
+  }(stage.Service);
+
+  stage.Controller = Controller;
+  return Controller;
 };
 /* WEBPACK VAR INJECTION */}.call(this, __webpack_require__(/*! jquery */ "./node_modules/jquery/dist/jquery.js-exposed"), __webpack_require__(/*! jquery */ "./node_modules/jquery/dist/jquery.js-exposed")))
 
@@ -30619,453 +23759,491 @@ module.exports = function (stage) {
 /*! no static exports found */
 /***/ (function(module, exports, __webpack_require__) {
 
-"use strict";
-/* WEBPACK VAR INJECTION */(function($) {
-
-var _createClass = function () { function defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ("value" in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } } return function (Constructor, protoProps, staticProps) { if (protoProps) defineProperties(Constructor.prototype, protoProps); if (staticProps) defineProperties(Constructor, staticProps); return Constructor; }; }();
+/* WEBPACK VAR INJECTION */(function($) {function _typeof(obj) { if (typeof Symbol === "function" && typeof Symbol.iterator === "symbol") { _typeof = function _typeof(obj) { return typeof obj; }; } else { _typeof = function _typeof(obj) { return obj && typeof Symbol === "function" && obj.constructor === Symbol && obj !== Symbol.prototype ? "symbol" : typeof obj; }; } return _typeof(obj); }
 
 function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError("Cannot call a class as a function"); } }
 
-function _possibleConstructorReturn(self, call) { if (!self) { throw new ReferenceError("this hasn't been initialised - super() hasn't been called"); } return call && (typeof call === "object" || typeof call === "function") ? call : self; }
+function _defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ("value" in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } }
 
-function _inherits(subClass, superClass) { if (typeof superClass !== "function" && superClass !== null) { throw new TypeError("Super expression must either be null or a function, not " + typeof superClass); } subClass.prototype = Object.create(superClass && superClass.prototype, { constructor: { value: subClass, enumerable: false, writable: true, configurable: true } }); if (superClass) Object.setPrototypeOf ? Object.setPrototypeOf(subClass, superClass) : subClass.__proto__ = superClass; }
+function _createClass(Constructor, protoProps, staticProps) { if (protoProps) _defineProperties(Constructor.prototype, protoProps); if (staticProps) _defineProperties(Constructor, staticProps); return Constructor; }
+
+function _possibleConstructorReturn(self, call) { if (call && (_typeof(call) === "object" || typeof call === "function")) { return call; } return _assertThisInitialized(self); }
+
+function _getPrototypeOf(o) { _getPrototypeOf = Object.setPrototypeOf ? Object.getPrototypeOf : function _getPrototypeOf(o) { return o.__proto__ || Object.getPrototypeOf(o); }; return _getPrototypeOf(o); }
+
+function _inherits(subClass, superClass) { if (typeof superClass !== "function" && superClass !== null) { throw new TypeError("Super expression must either be null or a function"); } subClass.prototype = Object.create(superClass && superClass.prototype, { constructor: { value: subClass, writable: true, configurable: true } }); if (superClass) _setPrototypeOf(subClass, superClass); }
+
+function _setPrototypeOf(o, p) { _setPrototypeOf = Object.setPrototypeOf || function _setPrototypeOf(o, p) { o.__proto__ = p; return o; }; return _setPrototypeOf(o, p); }
+
+function _assertThisInitialized(self) { if (self === void 0) { throw new ReferenceError("this hasn't been initialised - super() hasn't been called"); } return self; }
 
 var Twig = __webpack_require__(/*! twig */ "./node_modules/twig/twig.js");
 
 module.exports = function (stage) {
+  'use strict';
 
-	'use strict';
+  var settingsSyslog = {
+    //rateLimit:100,
+    //burstLimit:10,
+    moduleName: "KERNEL",
+    defaultSeverity: "INFO"
+  };
+  var defaultSettings = {
+    debug: false,
+    router: true,
+    i18n: true,
+    location: {
+      html5Mode: false,
+      hashPrefix: "/"
+    }
+  };
+  var defaultEnvEnable = {
+    dev: true,
+    development: true,
+    prod: true,
+    production: true
+  };
+  /*
+  	 *	OVERRIDE TWIG IMPORT TEMPLATE
+  	 */
 
-	var settingsSyslog = {
-		//rateLimit:100,
-		//burstLimit:10,
-		moduleName: "KERNEL",
-		defaultSeverity: "INFO"
-	};
+  var loadRemoteTwig = function loadRemoteTwig(Twig, location, params, callback, error_callback) {
+    var _this = this;
 
-	var defaultSettings = {
-		debug: false,
-		router: true,
-		i18n: true,
-		location: {
-			html5Mode: false,
-			hashPrefix: "/"
-		}
-	};
+    var id = params.id,
+        method = params.method,
+        async = params.async,
+        precompiled = params.precompiled,
+        template = null; // Default to async
 
-	var defaultEnvEnable = {
-		dev: true,
-		development: true,
-		prod: true,
-		production: true
-	};
+    if (async === undefined) async = true; // Default to the URL so the template is cached.
 
-	/*
- 	 *	OVERRIDE TWIG IMPORT TEMPLATE
- 	 */
-	var loadRemoteTwig = function loadRemoteTwig(Twig, location, params, callback, error_callback) {
-		var _this = this;
+    if (id === undefined) {
+      id = location;
+    }
 
-		var id = params.id,
-		    method = params.method,
-		    async = params.async,
-		    precompiled = params.precompiled,
-		    template = null;
+    params.id = id; // Check for existing template
 
-		// Default to async
-		if (async === undefined) async = true;
-
-		// Default to the URL so the template is cached.
-		if (id === undefined) {
-			id = location;
-		}
-		params.id = id;
-
-		// Check for existing template
-		if (Twig.cache && Twig.Templates.registry.hasOwnProperty(id)) {
-			// A template is already saved with the given id.
-			if (callback) {
-				callback(Twig.Templates.registry[id]);
-			}
-			return Twig.Templates.registry[id];
-		}
-		//console.log(params.async)
-		$.ajax({
-			url: location,
-			async: async,
-			success: function success(mydata, status, xhr) {
-				var moduleName = _this.getModuleName(location);
-				if (precompiled === true) {
-					mydata = JSON.parse(mydata);
-				}
-				params.url = location;
-				params.data = mydata;
-				template = new Twig.Template(params);
-				if (_this.modules[moduleName]) {
-					var module = _this.modules[moduleName];
-					var name = module.getTemplateName(location);
-					module.registerTemplate(name, template, "template");
-				}
-				if (callback) {
-					callback(template);
-				}
-			},
-			error: function error(xrh, status, message) {
-				error_callback(xrh, status, message);
-			}
-		});
-		if (async === false) {
-			return template;
-		} else {
-			// placeholder for now, should eventually return a deferred object.
-			return true;
-		}
-	};
-
-	/*
- *
- *	KERNEL CLASS	
- */
-
-	var Kernel = function (_stage$Service) {
-		_inherits(Kernel, _stage$Service);
-
-		function Kernel(environment, settings) {
-			_classCallCheck(this, Kernel);
-
-			var _this2 = _possibleConstructorReturn(this, (Kernel.__proto__ || Object.getPrototypeOf(Kernel)).call(this, "KERNEL", null, null, {
-				syslog: settingsSyslog
-			}));
-
-			_this2.container.set("kernel", _this2);
-
-			_this2.modules = {};
-			_this2.settings = stage.extend(true, {}, defaultSettings, settings);
-
-			if (environment in defaultEnvEnable) {
-				switch (environment) {
-					case "dev":
-					case "development":
-						_this2.environment = "dev";
-						break;
-					case "prod":
-					case "production":
-						_this2.environment = "prod";
-						break;
-				}
-			} else {
-				_this2.logger("Bad Variable environment :" + environment, "WARNING");
-				_this2.environment = "prod";
-			}
-
-			_this2.debug = _this2.settings.debug;
-			_this2.booted = false;
-			_this2.isDomReady = false;
-			_this2.uiContainer = null;
-
-			// syslog
-			_this2.initializeLog(settingsSyslog);
-
-			// autoloader
-			_this2.autoloader = new stage.autoload(_this2, {
-				transport: "script"
-			});
-			_this2.container.set("autoloader", _this2.autoloader);
-
-			// Router
-			_this2.initRouter();
-
-			// template
-			_this2.initTwig();
-
-			// translation i18n
-			_this2.initTranslation();
-
-			// Service REST
-			_this2.initRest();
-
-			// EVENT NATIF
-			$(document).ready(_this2.listen(_this2, "onDomReady", _this2.domReady));
-			$(window).resize(_this2.listen(_this2, "onResize"));
-			$(window).on("unload", _this2.unLoad.bind(_this2));
-			$(window).on("load", _this2.onLoad.bind(_this2));
-
-			//BOOT	
-			_this2.listen(_this2, "onBoot", _this2.boot);
-			//READY
-			_this2.listen(_this2, "onReady", _this2.ready);
-
-			_this2.notificationsCenter.settingsToListen(_this2.settings, _this2);
-			return _this2;
-		}
-
-		_createClass(Kernel, [{
-			key: "initRouter",
-			value: function initRouter() {
-				if (this.settings.router) {
-					// location
-					this.initLocation();
-					this.router = new stage.router(this, this.container);
-					this.container.set("router", this.router);
-				}
-			}
-		}, {
-			key: "initLocation",
-			value: function initLocation() {
-				this.locationService = new stage.location(this, this.settings.location);
-				this.container.set("location", this.locationService);
-			}
-		}, {
-			key: "initRest",
-			value: function initRest() {
-				if (stage.Rest) {
-					this.restService = new stage.Rest(this.container);
-					this.set("rest", this.restService);
-				}
-			}
-		}, {
-			key: "initTranslation",
-			value: function initTranslation() {
-				if (this.settings.i18n) {
-					if (!stage.i18n) {
-						this.logger("you must load transation i18n services js file !!!!!", "ERROR");
-						return;
-					}
-					this.i18n = new stage.i18n(this, this.container);
-					this.container.set("i18n", this.i18n);
-				}
-			}
-		}, {
-			key: "initTwig",
-			value: function initTwig() {
-				var _this3 = this;
-
-				this.logger("INITIALIZE TWIG SERVICE", "DEBUG");
-				if (this.environment === "dev") {
-					Twig.cache = false;
-				}
-				this.templateEngine = Twig.twig;
-				//extended log error traf
-				Twig.extend(function (Twig) {
-					Twig.log.error = function (message) {
-						_this3.logger(message, "ERROR");
-					};
-				});
-
-				Twig.extend(function (Twig) {
-					Twig.Templates.loadRemote = loadRemoteTwig.bind(_this3, Twig);
-				});
-
-				//extended FUNCTION
-				Twig.extendFunction("controller", function () {
-					var pattern = Array.prototype.shift.call(arguments);
-					var sp = pattern.split(":");
-					var module = this.getModule(sp[0]);
-					if (module) {
-						var controller = module.getController(sp[1]);
-						if (controller) {
-							var action = sp[2];
-							if (controller[action]) {
-								return controller[action].apply(controller, arguments);
-							}
-						}
-					}
-				}.bind(this));
-				this.container.set("twig", this.templateEngine);
-				return this.templateEngine;
-			}
-		}, {
-			key: "domReady",
-			value: function domReady() {
-				if (!this.booted) return;
-				this.logger("domReady", "DEBUG");
-				this.fire("onDomLoad", this);
-				var element = this.uiContainer ? $(this.uiContainer) : $("body");
-				try {
-					if (this.modules.app) {
-						this.modules.app.initialize(element);
-					}
-					for (var module in this.modules) {
-						if (module === "app") continue;
-						this.modules[module].initialize(element);
-					}
-					this.fire("onReady", this);
-					this.isDomReady = true;
-				} catch (e) {
-					this.logger(e, "ERROR");
-				}
-			}
-		}, {
-			key: "onLoad",
-			value: function onLoad(event) {
-				this.fire("onLoad", this, event);
-			}
-		}, {
-			key: "unLoad",
-			value: function unLoad(event) {
-				this.fire("onUnLoad", this, event);
-			}
-		}, {
-			key: "getModule",
-			value: function getModule(name) {
-				return this.modules[name];
-			}
-		}, {
-			key: "initializeLog",
-			value: function initializeLog(settings) {
-				if (this.environment === "dev") {
-					// CRITIC ERROR
-					this.syslog.listenWithConditions(this, {
-						severity: {
-							data: "CRITIC,ERROR"
-						}
-					}, function (pdu) {
-						if (pdu.payload.stack) {
-							console.error("SYSLOG " + pdu.severityName + " " + pdu.msgid + " " + new Date(pdu.timeStamp) + " " + pdu.msg + " : " + pdu.payload.stack);
-						} else {
-							console.error("SYSLOG " + pdu.severityName + " " + pdu.msgid + " " + new Date(pdu.timeStamp) + " " + pdu.msg + " : " + pdu.payload);
-						}
-						/*if (pdu.typePayload === "Error" ){
-      	if (pdu.payload.stack ){
-      		console.error( "SYSLOG " + pdu.severityName +" " + pdu.msgid + " "+new Date(pdu.timeStamp) + " " + pdu.msg+" : "+  pdu.payload.stack);
-      	}
-      	return;
+    if (Twig.cache && Twig.Templates.registry.hasOwnProperty(id)) {
+      // A template is already saved with the given id.
+      if (callback) {
+        callback(Twig.Templates.registry[id]);
       }
-      console.error( "SYSLOG " + pdu.severityName +" " + pdu.msgid + " "+new Date(pdu.timeStamp) + " " + pdu.msg+" : "+  pdu.payload);*/
-					});
 
-					// INFO DEBUG
-					var data;
-					this.debug ? data = "INFO,DEBUG" : data = "INFO";
-					this.syslog.listenWithConditions(this, {
-						severity: {
-							data: data
-						}
-					}, function (pdu) {
-						console.info("SYSLOG " + pdu.severityName + " " + pdu.msgid + " " + new Date(pdu.timeStamp) + " " + pdu.msg + " : " + pdu.payload);
-					});
-					this.syslog.listenWithConditions(this, {
-						severity: {
-							data: "WARNING"
-						}
-					}, function (pdu) {
-						console.warn("SYSLOG " + pdu.severityName + " " + pdu.msgid + " " + new Date(pdu.timeStamp) + " " + pdu.msg + " : " + pdu.payload);
-					});
-				}
-				return this.syslog;
-			}
-		}, {
-			key: "boot",
-			value: function boot() {
-				this.booted = true;
-			}
-		}, {
-			key: "ready",
-			value: function ready() {
-				//this.fire("onUrlChange", this.router.url() )
-			}
-		}, {
-			key: "loadModule",
-			value: function loadModule(url, settings) {
-				var _this4 = this;
+      return Twig.Templates.registry[id];
+    } //console.log(params.async)
 
-				var res = stage.io.urlToOject(url);
-				var moduleName = res.basename;
 
-				return $.ajax(url, stage.extend({
-					cache: false,
-					method: "GET",
-					//async:false,
-					dataType: "xml",
-					success: function success(data, status, xhr) {
-						try {
-							//FIXME try to parse with url
-							var res = stage.xml.parseXml(data);
-							var moduleName = res.module["@id"];
-							var type = res.module["@type"];
-							var moduleSrc = res.module["@src"];
+    $.ajax({
+      url: location,
+      async: async,
+      success: function success(mydata, status, xhr) {
+        var moduleName = _this.getModuleName(location);
 
-							switch (type) {
-								case "application/javascript":
-									if (moduleSrc) {
-										if (moduleName in _this4.modules) {
-											_this4.modules[moduleName].initialize();
-											_this4.modules[moduleName].fire("onInitialize", moduleName);
-											_this4.fire("onInitializeModule", moduleName);
-										} else {
-											_this4.autoloader.load(moduleSrc, function (error, transport) {
-												if (error) {
-													_this4.fire("onError", error);
-													throw error;
-												}
-												_this4.registerModule(moduleName, res);
-												if (moduleName === "app") _this4.fire("onBoot", _this4);
-											});
-										}
-									}
-									break;
-							}
-						} catch (e) {
-							_this4.logger(e, "ERROR");
-							_this4.fire("onError", e);
-							throw e;
-						}
-					},
-					error: function error(xhr, status, message) {
-						_this4.fire("onGetConfigError", moduleName);
-						_this4.fire("onError", message);
-					}
-				}, settings));
-			}
-		}, {
-			key: "registerModule",
-			value: function registerModule(name, xml) {
-				var _this5 = this;
+        if (precompiled === true) {
+          mydata = JSON.parse(mydata);
+        }
 
-				if (name in stage.modules) {
-					var kernelcontext = this;
-					var Class = stage.modules[name]; //.herite(stage.Module);
-					this.container.addScope(name);
-					Class.prototype.name = name;
-					try {
-						if (this.isDomReady) {
-							this.modules[name] = new Class(this, xml, {
-								onReady: function onReady() {
-									if (_this5.initialize) {
-										try {
-											_this5.initialize();
-											_this5.fire("onInitialize", name);
-											kernelcontext.fire("onInitializeModule", name);
-										} catch (e) {
-											_this5.logger("INITIALIZE MODULE : " + name + " " + e, "ERRROR");
-											throw e;
-										}
-									}
-								} });
-						} else {
-							this.modules[name] = new Class(this, xml);
-						}
-						this.container.set(name, this.modules[name]);
-					} catch (e) {
-						this.logger("INSTANCE MODULE : " + name + " " + e, "ERRROR");
-						throw e;
-					}
-				}
-			}
-		}, {
-			key: "getModuleName",
-			value: function getModuleName(url) {
-				var module = stage.dirname(url);
-				var tab = module.split("/");
-				return tab[tab.indexOf("Resources") - 1];
-			}
-		}]);
+        params.url = location;
+        params.data = mydata;
+        template = new Twig.Template(params);
 
-		return Kernel;
-	}(stage.Service);
+        if (_this.modules[moduleName]) {
+          var module = _this.modules[moduleName];
+          var name = module.getTemplateName(location);
+          module.registerTemplate(name, template, "template");
+        }
 
-	stage.kernel = Kernel;
-	return Kernel;
+        if (callback) {
+          callback(template);
+        }
+      },
+      error: function error(xrh, status, message) {
+        error_callback(xrh, status, message);
+      }
+    });
+
+    if (async === false) {
+      return template;
+    } else {
+      // placeholder for now, should eventually return a deferred object.
+      return true;
+    }
+  };
+  /*
+  *
+  *	KERNEL CLASS	
+  */
+
+
+  var Kernel =
+  /*#__PURE__*/
+  function (_stage$Service) {
+    _inherits(Kernel, _stage$Service);
+
+    function Kernel(environment, settings) {
+      var _this2;
+
+      _classCallCheck(this, Kernel);
+
+      _this2 = _possibleConstructorReturn(this, _getPrototypeOf(Kernel).call(this, "KERNEL", null, null, {
+        syslog: settingsSyslog
+      }));
+
+      _this2.container.set("kernel", _assertThisInitialized(_assertThisInitialized(_this2)));
+
+      _this2.modules = {};
+      _this2.settings = stage.extend(true, {}, defaultSettings, settings);
+
+      if (environment in defaultEnvEnable) {
+        switch (environment) {
+          case "dev":
+          case "development":
+            _this2.environment = "dev";
+            break;
+
+          case "prod":
+          case "production":
+            _this2.environment = "prod";
+            break;
+        }
+      } else {
+        _this2.logger("Bad Variable environment :" + environment, "WARNING");
+
+        _this2.environment = "prod";
+      }
+
+      _this2.debug = _this2.settings.debug;
+      _this2.booted = false;
+      _this2.isDomReady = false;
+      _this2.uiContainer = null; // syslog
+
+      _this2.initializeLog(settingsSyslog); // autoloader
+
+
+      _this2.autoloader = new stage.autoload(_assertThisInitialized(_assertThisInitialized(_this2)), {
+        transport: "script"
+      });
+
+      _this2.container.set("autoloader", _this2.autoloader); // Router
+
+
+      _this2.initRouter(); // template
+
+
+      _this2.initTwig(); // translation i18n
+
+
+      _this2.initTranslation(); // Service REST
+
+
+      _this2.initRest(); // EVENT NATIF
+
+
+      $(document).ready(_this2.listen(_assertThisInitialized(_assertThisInitialized(_this2)), "onDomReady", _this2.domReady));
+      $(window).resize(_this2.listen(_assertThisInitialized(_assertThisInitialized(_this2)), "onResize"));
+      $(window).on("unload", _this2.unLoad.bind(_assertThisInitialized(_assertThisInitialized(_this2))));
+      $(window).on("load", _this2.onLoad.bind(_assertThisInitialized(_assertThisInitialized(_this2)))); //BOOT	
+
+      _this2.listen(_assertThisInitialized(_assertThisInitialized(_this2)), "onBoot", _this2.boot); //READY
+
+
+      _this2.listen(_assertThisInitialized(_assertThisInitialized(_this2)), "onReady", _this2.ready);
+
+      _this2.notificationsCenter.settingsToListen(_this2.settings, _assertThisInitialized(_assertThisInitialized(_this2)));
+
+      return _this2;
+    }
+
+    _createClass(Kernel, [{
+      key: "initRouter",
+      value: function initRouter() {
+        if (this.settings.router) {
+          // location
+          this.initLocation();
+          this.router = new stage.router(this, this.container);
+          this.container.set("router", this.router);
+        }
+      }
+    }, {
+      key: "initLocation",
+      value: function initLocation() {
+        this.locationService = new stage.location(this, this.settings.location);
+        this.container.set("location", this.locationService);
+      }
+    }, {
+      key: "initRest",
+      value: function initRest() {
+        if (stage.Rest) {
+          this.restService = new stage.Rest(this.container);
+          this.set("rest", this.restService);
+        }
+      }
+    }, {
+      key: "initTranslation",
+      value: function initTranslation() {
+        if (this.settings.i18n) {
+          if (!stage.i18n) {
+            this.logger("you must load transation i18n services js file !!!!!", "ERROR");
+            return;
+          }
+
+          this.i18n = new stage.i18n(this, this.container);
+          this.container.set("i18n", this.i18n);
+        }
+      }
+    }, {
+      key: "initTwig",
+      value: function initTwig() {
+        var _this3 = this;
+
+        this.logger("INITIALIZE TWIG SERVICE", "DEBUG");
+
+        if (this.environment === "dev") {
+          Twig.cache = false;
+        }
+
+        this.templateEngine = Twig.twig; //extended log error traf
+
+        Twig.extend(function (Twig) {
+          Twig.log.error = function (message) {
+            _this3.logger(message, "ERROR");
+          };
+        });
+        Twig.extend(function (Twig) {
+          Twig.Templates.loadRemote = loadRemoteTwig.bind(_this3, Twig);
+        }); //extended FUNCTION
+
+        Twig.extendFunction("controller", function () {
+          var pattern = Array.prototype.shift.call(arguments);
+          var sp = pattern.split(":");
+          var module = this.getModule(sp[0]);
+
+          if (module) {
+            var controller = module.getController(sp[1]);
+
+            if (controller) {
+              var action = sp[2];
+
+              if (controller[action]) {
+                return controller[action].apply(controller, arguments);
+              }
+            }
+          }
+        }.bind(this));
+        this.container.set("twig", this.templateEngine);
+        return this.templateEngine;
+      }
+    }, {
+      key: "domReady",
+      value: function domReady() {
+        if (!this.booted) return;
+        this.logger("domReady", "DEBUG");
+        this.fire("onDomLoad", this);
+        var element = this.uiContainer ? $(this.uiContainer) : $("body");
+
+        try {
+          if (this.modules.app) {
+            this.modules.app.initialize(element);
+          }
+
+          for (var module in this.modules) {
+            if (module === "app") continue;
+            this.modules[module].initialize(element);
+          }
+
+          this.fire("onReady", this);
+          this.isDomReady = true;
+        } catch (e) {
+          this.logger(e, "ERROR");
+        }
+      }
+    }, {
+      key: "onLoad",
+      value: function onLoad(event) {
+        this.fire("onLoad", this, event);
+      }
+    }, {
+      key: "unLoad",
+      value: function unLoad(event) {
+        this.fire("onUnLoad", this, event);
+      }
+    }, {
+      key: "getModule",
+      value: function getModule(name) {
+        return this.modules[name];
+      }
+    }, {
+      key: "initializeLog",
+      value: function initializeLog(settings) {
+        if (this.environment === "dev") {
+          // CRITIC ERROR
+          this.syslog.listenWithConditions(this, {
+            severity: {
+              data: "CRITIC,ERROR"
+            }
+          }, function (pdu) {
+            if (pdu.payload.stack) {
+              console.error("SYSLOG " + pdu.severityName + " " + pdu.msgid + " " + new Date(pdu.timeStamp) + " " + pdu.msg + " : " + pdu.payload.stack);
+            } else {
+              console.error("SYSLOG " + pdu.severityName + " " + pdu.msgid + " " + new Date(pdu.timeStamp) + " " + pdu.msg + " : " + pdu.payload);
+            }
+            /*if (pdu.typePayload === "Error" ){
+            	if (pdu.payload.stack ){
+            		console.error( "SYSLOG " + pdu.severityName +" " + pdu.msgid + " "+new Date(pdu.timeStamp) + " " + pdu.msg+" : "+  pdu.payload.stack);
+            	}
+            	return;
+            }
+            console.error( "SYSLOG " + pdu.severityName +" " + pdu.msgid + " "+new Date(pdu.timeStamp) + " " + pdu.msg+" : "+  pdu.payload);*/
+
+          }); // INFO DEBUG
+
+          var data;
+          this.debug ? data = "INFO,DEBUG" : data = "INFO";
+          this.syslog.listenWithConditions(this, {
+            severity: {
+              data: data
+            }
+          }, function (pdu) {
+            console.info("SYSLOG " + pdu.severityName + " " + pdu.msgid + " " + new Date(pdu.timeStamp) + " " + pdu.msg + " : " + pdu.payload);
+          });
+          this.syslog.listenWithConditions(this, {
+            severity: {
+              data: "WARNING"
+            }
+          }, function (pdu) {
+            console.warn("SYSLOG " + pdu.severityName + " " + pdu.msgid + " " + new Date(pdu.timeStamp) + " " + pdu.msg + " : " + pdu.payload);
+          });
+        }
+
+        return this.syslog;
+      }
+    }, {
+      key: "boot",
+      value: function boot() {
+        this.booted = true;
+      }
+    }, {
+      key: "ready",
+      value: function ready() {//this.fire("onUrlChange", this.router.url() )
+      }
+    }, {
+      key: "loadModule",
+      value: function loadModule(url, settings) {
+        var _this4 = this;
+
+        var res = stage.io.urlToOject(url);
+        var moduleName = res.basename;
+        return $.ajax(url, stage.extend({
+          cache: false,
+          method: "GET",
+          //async:false,
+          dataType: "xml",
+          success: function success(data, status, xhr) {
+            try {
+              //FIXME try to parse with url
+              var res = stage.xml.parseXml(data);
+              var moduleName = res.module["@id"];
+              var type = res.module["@type"];
+              var moduleSrc = res.module["@src"];
+
+              switch (type) {
+                case "application/javascript":
+                  if (moduleSrc) {
+                    if (moduleName in _this4.modules) {
+                      _this4.modules[moduleName].initialize();
+
+                      _this4.modules[moduleName].fire("onInitialize", moduleName);
+
+                      _this4.fire("onInitializeModule", moduleName);
+                    } else {
+                      _this4.autoloader.load(moduleSrc, function (error, transport) {
+                        if (error) {
+                          _this4.fire("onError", error);
+
+                          throw error;
+                        }
+
+                        _this4.registerModule(moduleName, res);
+
+                        if (moduleName === "app") _this4.fire("onBoot", _this4);
+                      });
+                    }
+                  }
+
+                  break;
+              }
+            } catch (e) {
+              _this4.logger(e, "ERROR");
+
+              _this4.fire("onError", e);
+
+              throw e;
+            }
+          },
+          error: function error(xhr, status, message) {
+            _this4.fire("onGetConfigError", moduleName);
+
+            _this4.fire("onError", message);
+          }
+        }, settings));
+      }
+    }, {
+      key: "registerModule",
+      value: function registerModule(name, xml) {
+        var _this5 = this;
+
+        if (name in stage.modules) {
+          var kernelcontext = this;
+          var Class = stage.modules[name]; //.herite(stage.Module);
+
+          this.container.addScope(name);
+          Class.prototype.name = name;
+
+          try {
+            if (this.isDomReady) {
+              this.modules[name] = new Class(this, xml, {
+                onReady: function onReady() {
+                  if (_this5.initialize) {
+                    try {
+                      _this5.initialize();
+
+                      _this5.fire("onInitialize", name);
+
+                      kernelcontext.fire("onInitializeModule", name);
+                    } catch (e) {
+                      _this5.logger("INITIALIZE MODULE : " + name + " " + e, "ERRROR");
+
+                      throw e;
+                    }
+                  }
+                }
+              });
+            } else {
+              this.modules[name] = new Class(this, xml);
+            }
+
+            this.container.set(name, this.modules[name]);
+          } catch (e) {
+            this.logger("INSTANCE MODULE : " + name + " " + e, "ERRROR");
+            throw e;
+          }
+        }
+      }
+    }, {
+      key: "getModuleName",
+      value: function getModuleName(url) {
+        var module = stage.dirname(url);
+        var tab = module.split("/");
+        return tab[tab.indexOf("Resources") - 1];
+      }
+    }]);
+
+    return Kernel;
+  }(stage.Service);
+
+  stage.kernel = Kernel;
+  return Kernel;
 };
 /* WEBPACK VAR INJECTION */}.call(this, __webpack_require__(/*! jquery */ "./node_modules/jquery/dist/jquery.js-exposed")))
 
@@ -31078,492 +24256,525 @@ module.exports = function (stage) {
 /*! no static exports found */
 /***/ (function(module, exports, __webpack_require__) {
 
-"use strict";
-/* WEBPACK VAR INJECTION */(function($) {
+/* WEBPACK VAR INJECTION */(function($) {function _typeof(obj) { if (typeof Symbol === "function" && typeof Symbol.iterator === "symbol") { _typeof = function _typeof(obj) { return typeof obj; }; } else { _typeof = function _typeof(obj) { return obj && typeof Symbol === "function" && obj.constructor === Symbol && obj !== Symbol.prototype ? "symbol" : typeof obj; }; } return _typeof(obj); }
 
-var _createClass = function () { function defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ("value" in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } } return function (Constructor, protoProps, staticProps) { if (protoProps) defineProperties(Constructor.prototype, protoProps); if (staticProps) defineProperties(Constructor, staticProps); return Constructor; }; }();
+function _possibleConstructorReturn(self, call) { if (call && (_typeof(call) === "object" || typeof call === "function")) { return call; } return _assertThisInitialized(self); }
 
-function _possibleConstructorReturn(self, call) { if (!self) { throw new ReferenceError("this hasn't been initialised - super() hasn't been called"); } return call && (typeof call === "object" || typeof call === "function") ? call : self; }
+function _assertThisInitialized(self) { if (self === void 0) { throw new ReferenceError("this hasn't been initialised - super() hasn't been called"); } return self; }
 
-function _inherits(subClass, superClass) { if (typeof superClass !== "function" && superClass !== null) { throw new TypeError("Super expression must either be null or a function, not " + typeof superClass); } subClass.prototype = Object.create(superClass && superClass.prototype, { constructor: { value: subClass, enumerable: false, writable: true, configurable: true } }); if (superClass) Object.setPrototypeOf ? Object.setPrototypeOf(subClass, superClass) : subClass.__proto__ = superClass; }
+function _getPrototypeOf(o) { _getPrototypeOf = Object.setPrototypeOf ? Object.getPrototypeOf : function _getPrototypeOf(o) { return o.__proto__ || Object.getPrototypeOf(o); }; return _getPrototypeOf(o); }
+
+function _inherits(subClass, superClass) { if (typeof superClass !== "function" && superClass !== null) { throw new TypeError("Super expression must either be null or a function"); } subClass.prototype = Object.create(superClass && superClass.prototype, { constructor: { value: subClass, writable: true, configurable: true } }); if (superClass) _setPrototypeOf(subClass, superClass); }
+
+function _setPrototypeOf(o, p) { _setPrototypeOf = Object.setPrototypeOf || function _setPrototypeOf(o, p) { o.__proto__ = p; return o; }; return _setPrototypeOf(o, p); }
 
 function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError("Cannot call a class as a function"); } }
 
+function _defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ("value" in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } }
+
+function _createClass(Constructor, protoProps, staticProps) { if (protoProps) _defineProperties(Constructor.prototype, protoProps); if (staticProps) _defineProperties(Constructor, staticProps); return Constructor; }
+
 module.exports = function (stage) {
+  'use strict';
 
-	'use strict';
+  var nativeHistory = !!(window.history && window.history.pushState);
+  var PATH_MATCH = /^([^\?#]*)(\?([^#]*))?(#(.*))?$/;
+  var DEFAULT_PORTS = {
+    'http': 80,
+    'https': 443
+  };
+  /*
+  	 *	CLASS BROWSER
+  	 *
+  	 */
 
-	var nativeHistory = !!(window.history && window.history.pushState);
-	var PATH_MATCH = /^([^\?#]*)(\?([^#]*))?(#(.*))?$/;
-	var DEFAULT_PORTS = { 'http': 80, 'https': 443 };
+  var changeUrl = function changeUrl(event) {
+    var cache = null;
+    var location = this.kernel.locationService;
+    var url = this.url();
 
-	/*
- 	 *	CLASS BROWSER
- 	 *
- 	 */
+    if (url === this.lastUrl && url === this.location.href && this.lastUrl !== location.initialUrl) {
+      //console.log(" changeUrl PASS SAME")
+      return;
+    }
 
-	var changeUrl = function changeUrl(event) {
-		var cache = null;
-		var location = this.kernel.locationService;
-		var url = this.url();
+    if (!event) {
+      this.kernel.logger(" FORCE URL CHANGE BROWER EVENT NOT FIRE", "WARNING"); //console.log(location.url())
 
-		if (url === this.lastUrl && url === this.location.href && this.lastUrl !== location.initialUrl) {
-			//console.log(" changeUrl PASS SAME")
-			return;
-		}
+      var newUrl = location.url();
+      this.kernel.notificationsCenter.fire("onUrlChange", newUrl, this.lastHash, url, cache);
+      this.lastUrlr = url;
+      this.lastHash = newUrl;
+      return;
+    } //console.log("change URL :" + url +" IINIT "+location.initialUrl)
+    //console.log("change LAST URL :" + this.lastUrl)
 
-		if (!event) {
-			this.kernel.logger(" FORCE URL CHANGE BROWER EVENT NOT FIRE", "WARNING");
-			//console.log(location.url())
-			var newUrl = location.url();
-			this.kernel.notificationsCenter.fire("onUrlChange", newUrl, this.lastHash, url, cache);
-			this.lastUrlr = url;
-			this.lastHash = newUrl;
-			return;
-		}
-		//console.log("change URL :" + url +" IINIT "+location.initialUrl)
-		//console.log("change LAST URL :" + this.lastUrl)
-		var parse = location.parse(url);
-		//console.log(location)
-		if (!parse) {
-			this.kernel.notificationsCenter.fire("onUrlChange", "", this.lastHash, url, cache);
-			this.lastUrl = "";
-			this.lastHash = "";
-			return;
-		}
 
-		var newUrl = location.url();
+    var parse = location.parse(url); //console.log(location)
 
-		this.kernel.notificationsCenter.fire("onUrlChange", newUrl, this.lastHash, url, cache);
-		this.lastUrl = url;
-		this.lastHash = newUrl;
-	};
+    if (!parse) {
+      this.kernel.notificationsCenter.fire("onUrlChange", "", this.lastHash, url, cache);
+      this.lastUrl = "";
+      this.lastHash = "";
+      return;
+    }
 
-	var myurl = function myurl(options) {
-		if (nativeHistory && options.html5Mode) {
-			return function (url, replace, state) {
-				//TODO
-				/*if (this.location !== window.location) this.location = window.location;
-    if (this.history !== window.History) this.history = window.History;
-    	if (url){
-    	this.kernel.logger(replace ? "REPLACE URL : " + url : "CHANGE URL : " + url,"WARNING")
-    		this.history[replace ? 'replaceState' : 'pushState'](state, '', url);
-    }else{
-    	return this.location.href.replace(/%27/g,"'");	
-    }*/
-			};
-		} else {
-			return function (url, replace, state) {
-				if (url) {
-					if (this.kernel && this.kernel.get("location")) if (this.location !== window.location) this.location = window.location;
-					var same = url === this.lastUrl && url === this.location.href ? true : false;
-					if (this.history !== window.history) this.history = window.history;
-					this.kernel.logger(replace ? "REPLACE URL : " + url : "CHANGE URL : " + url, "WARNING");
-					if (same) {
-						if (url === this.kernel.locationService.initialUrl) {
-							//FORCE changeUrl 
-							changeUrl.call(this);
-						}
-						return url;
-					}
-					//console.log(url)
-					if (replace) {
-						this.location.replace(url);
-						return url;
-					}
-					return this.location.href = url;
-				} else {
-					return this.location.href.replace(/%27/g, "'");
-				}
-			};
-		}
-	};
+    var newUrl = location.url();
+    this.kernel.notificationsCenter.fire("onUrlChange", newUrl, this.lastHash, url, cache);
+    this.lastUrl = url;
+    this.lastHash = newUrl;
+  };
 
-	var urlBrowser = null;
-	var browser = function () {
-		function browser(kernel, settings) {
-			_classCallCheck(this, browser);
+  var myurl = function myurl(options) {
+    if (nativeHistory && options.html5Mode) {
+      return function (url, replace, state) {//TODO
 
-			this.location = window.location;
-			this.history = window.History;
-			urlBrowser = myurl.call(this, settings);
-			this.lastUrl = this.url();
-			this.kernel = kernel;
-			$(window).bind('hashchange', changeUrl.bind(this));
-			//if (nativeHistory){
-			//	$(window).bind('popstate', changeUrl.bind(this))
-			//}
-		}
+        /*if (this.location !== window.location) this.location = window.location;
+        if (this.history !== window.History) this.history = window.History;
+        	if (url){
+        	this.kernel.logger(replace ? "REPLACE URL : " + url : "CHANGE URL : " + url,"WARNING")
+        		this.history[replace ? 'replaceState' : 'pushState'](state, '', url);
+        }else{
+        	return this.location.href.replace(/%27/g,"'");	
+        }*/
+      };
+    } else {
+      return function (url, replace, state) {
+        if (url) {
+          if (this.kernel && this.kernel.get("location")) if (this.location !== window.location) this.location = window.location;
+          var same = url === this.lastUrl && url === this.location.href ? true : false;
+          if (this.history !== window.history) this.history = window.history;
+          this.kernel.logger(replace ? "REPLACE URL : " + url : "CHANGE URL : " + url, "WARNING");
 
-		_createClass(browser, [{
-			key: 'url',
-			value: function url(_url, replace, state) {
-				return urlBrowser.call(this, _url, replace, state);
-			}
-		}]);
+          if (same) {
+            if (url === this.kernel.locationService.initialUrl) {
+              //FORCE changeUrl 
+              changeUrl.call(this);
+            }
 
-		return browser;
-	}();
+            return url;
+          } //console.log(url)
 
-	/*
- 	 *	CLASS LOCATION
- 	 *
- 	 */
 
-	var beginsWith = function beginsWith(begin, whole) {
-		if (whole.indexOf(begin) === 0) {
-			return whole.substr(begin.length);
-		}
-	};
+          if (replace) {
+            this.location.replace(url);
+            return url;
+          }
 
-	var stripHash = function stripHash(url) {
-		var index = url.indexOf('#');
-		return index == -1 ? url : url.substr(0, index);
-	};
+          return this.location.href = url;
+        } else {
+          return this.location.href.replace(/%27/g, "'");
+        }
+      };
+    }
+  };
 
-	var Location = function (_stage$Service) {
-		_inherits(Location, _stage$Service);
+  var urlBrowser = null;
 
-		function Location(browser, base, kernel, settings) {
-			_classCallCheck(this, Location);
+  var browser =
+  /*#__PURE__*/
+  function () {
+    function browser(kernel, settings) {
+      _classCallCheck(this, browser);
 
-			var _this = _possibleConstructorReturn(this, (Location.__proto__ || Object.getPrototypeOf(Location)).call(this, "LOCATION", kernel.container, kernel.notificationsCenter));
+      this.location = window.location;
+      this.history = window.History;
+      urlBrowser = myurl.call(this, settings);
+      this.lastUrl = this.url();
+      this.kernel = kernel;
+      $(window).bind('hashchange', changeUrl.bind(this)); //if (nativeHistory){
+      //	$(window).bind('popstate', changeUrl.bind(this))
+      //}
+    }
 
-			_this.settings = settings;
-			_this.browser = browser;
-			_this.replace = false;
+    _createClass(browser, [{
+      key: "url",
+      value: function url(_url, replace, state) {
+        return urlBrowser.call(this, _url, replace, state);
+      }
+    }]);
 
-			_this.initialUrl = _this.browser.url();
-			_this.base = base;
-			_this.hashPrefix = "#" + _this.settings.hashPrefix;
-			_this.proto = _this.stripFile(_this.base);
-			_this.parseAbsoluteUrl(_this.initialUrl);
-			_this.parse(_this.initialUrl);
-			_this.logger("INITIALIZE LOCATION SERVICE", "DEBUG");
+    return browser;
+  }();
+  /*
+  	 *	CLASS LOCATION
+  	 *
+  	 */
 
-			// rewrite hashbang url <> html5 url
-			//var abs = this.absUrl();
-			//if ( abs != this.initialUrl) {
-			//	this.browser.url(abs, true);
-			//}
-			return _this;
-		}
 
-		_createClass(Location, [{
-			key: 'absUrl',
-			value: function absUrl() {
-				return this._absUrl;
-			}
-		}, {
-			key: 'url',
-			value: function url(_url2) {
-				if (typeof _url2 === "undefined") return this._url;
-				var match = PATH_MATCH.exec(_url2);
-				if (match[1]) this.path(decodeURIComponent(match[1]));
-				if (match[2] || match[1]) this.search(match[3] || '');
-				this.hash(match[5] || '');
-			}
-		}, {
-			key: 'protocol',
-			value: function protocol() {
-				return this._protocol;
-			}
-		}, {
-			key: 'host',
-			value: function host() {
-				return this._host;
-			}
-		}, {
-			key: 'port',
-			value: function port() {
-				return this._port;
-			}
-		}, {
-			key: 'path',
-			value: function path(_path) {
-				if (typeof _path === "undefined") {
-					return this._path;
-				}
-				this._path = _path;
-				try {
-					this.change();
-				} catch (e) {
-					this.logger(e, "ERROR");
-					throw e;
-				}
-				return this._path;
-			}
-		}, {
-			key: 'search',
-			value: function search(_search) {
-				if (typeof _search === "undefined") {
-					return this._search;
-				}
-				this._search = _search;
-				try {
-					this.change();
-				} catch (e) {
-					this.logger(e, "ERROR");
-					throw e;
-				}
-				return this._search;
-			}
-		}, {
-			key: 'hash',
-			value: function hash(_hash) {
-				if (typeof _hash === "undefined") {
-					return this._hash;
-				}
-				this._hash = _hash;
-				try {
-					this.change();
-				} catch (e) {
-					this.logger(e, "ERROR");
-					throw e;
-				}
-				return this._hash;
-			}
-		}, {
-			key: 'state',
-			value: function state() {}
-		}, {
-			key: 'replace',
-			value: function replace(value) {
-				if (value) return this.replace = value;
-				return this.replace;
-			}
-		}, {
-			key: 'encodePath',
-			value: function encodePath(path) {
-				var segments = path.split('/');
-				var i = segments.length;
+  var beginsWith = function beginsWith(begin, whole) {
+    if (whole.indexOf(begin) === 0) {
+      return whole.substr(begin.length);
+    }
+  };
 
-				while (i--) {
-					segments[i] = stage.io.encodeUriSegment(segments[i]);
-				}
+  var stripHash = function stripHash(url) {
+    var index = url.indexOf('#');
+    return index == -1 ? url : url.substr(0, index);
+  };
 
-				return segments.join('/');
-			}
-		}, {
-			key: 'stripFile',
-			value: function stripFile(url) {
-				return url.substr(0, stripHash(url).lastIndexOf('/') + 1);
-			}
+  var Location =
+  /*#__PURE__*/
+  function (_stage$Service) {
+    _inherits(Location, _stage$Service);
 
-			// parsing end URL ex : http://domain.com:port(/path)(?search)(#hash)
+    function Location(browser, base, kernel, settings) {
+      var _this;
 
-		}, {
-			key: 'parseRelativeUrl',
-			value: function parseRelativeUrl(relativeUrl) {
-				//console.log("relative :" + relativeUrl)
-				var prefixed = relativeUrl.charAt(0) !== '/';
-				if (prefixed) {
-					relativeUrl = '/' + relativeUrl;
-				}
-				var resolve = stage.io.urlToOject(relativeUrl);
-				//console.log(resolve)
-				this._path = decodeURIComponent(prefixed && resolve.pathname.charAt(0) === '/' ? resolve.pathname.substring(1) : resolve.pathname);
-				this._search = stage.io.parseKeyValue(resolve.search);
-				this._hash = decodeURIComponent(resolve.hash);
+      _classCallCheck(this, Location);
 
-				// make sure path starts with '/';
-				if (typeof this._path !== "undefined" && this._path.charAt(0) != '/') {
-					this._path = '/' + this._path;
-				}
-				//console.log("PATH:" + this._path)
-			}
+      _this = _possibleConstructorReturn(this, _getPrototypeOf(Location).call(this, "LOCATION", kernel.container, kernel.notificationsCenter));
+      _this.settings = settings;
+      _this.browser = browser;
+      _this.replace = false;
+      _this.initialUrl = _this.browser.url();
+      _this.base = base;
+      _this.hashPrefix = "#" + _this.settings.hashPrefix;
+      _this.proto = _this.stripFile(_this.base);
 
-			// parsing begin URL ex : (http)://(domain.com):(port)
+      _this.parseAbsoluteUrl(_this.initialUrl);
 
-		}, {
-			key: 'parseAbsoluteUrl',
-			value: function parseAbsoluteUrl(absoluteUrl) {
-				var resolve = stage.io.urlToOject(absoluteUrl);
-				this._protocol = resolve.protocol.replace(":", "");
-				this._host = resolve.hostname;
-				this._port = parseInt(resolve.port, 10) || DEFAULT_PORTS[this._protocol] || null;
-			}
-		}]);
+      _this.parse(_this.initialUrl);
 
-		return Location;
-	}(stage.Service);
+      _this.logger("INITIALIZE LOCATION SERVICE", "DEBUG"); // rewrite hashbang url <> html5 url
+      //var abs = this.absUrl();
+      //if ( abs != this.initialUrl) {
+      //	this.browser.url(abs, true);
+      //}
 
-	/**
- 	 * LocationHashbangUrl represents url
- 	 * This object is exposed as $location service when developer doesn't opt into html5 mode.
- 	 * It also serves as the base class for html5 mode fallback on legacy browsers.
- 	 *
- 	 * @constructor
- 	 * @param {string} appBase application base URL
- 	 * @param {string} hashPrefix hashbang prefix
- 	*/
-	var LocationHashbangUrl = function (_Location) {
-		_inherits(LocationHashbangUrl, _Location);
 
-		function LocationHashbangUrl(browser, base, kernel, settings) {
-			_classCallCheck(this, LocationHashbangUrl);
+      return _this;
+    }
 
-			return _possibleConstructorReturn(this, (LocationHashbangUrl.__proto__ || Object.getPrototypeOf(LocationHashbangUrl)).call(this, browser, base, kernel, settings));
-		}
+    _createClass(Location, [{
+      key: "absUrl",
+      value: function absUrl() {
+        return this._absUrl;
+      }
+    }, {
+      key: "url",
+      value: function url(_url2) {
+        if (typeof _url2 === "undefined") return this._url;
+        var match = PATH_MATCH.exec(_url2);
+        if (match[1]) this.path(decodeURIComponent(match[1]));
+        if (match[2] || match[1]) this.search(match[3] || '');
+        this.hash(match[5] || '');
+      }
+    }, {
+      key: "protocol",
+      value: function protocol() {
+        return this._protocol;
+      }
+    }, {
+      key: "host",
+      value: function host() {
+        return this._host;
+      }
+    }, {
+      key: "port",
+      value: function port() {
+        return this._port;
+      }
+    }, {
+      key: "path",
+      value: function path(_path) {
+        if (typeof _path === "undefined") {
+          return this._path;
+        }
 
-		_createClass(LocationHashbangUrl, [{
-			key: 'parse',
-			value: function parse(url) {
-				//console.log("URL to parse LocationHashbangUrl  :" + url)
-				//console.log("base : " + this.base)
-				//console.log("beginsWith BASE : "+beginsWith(this.base, url))
-				//console.log("beginsWith PROTO  :"+beginsWith(this.proto, url))
-				var withoutBaseUrl = beginsWith(this.base, url) || beginsWith(this.proto, url);
-				//console.log("withoutBaseUrl : " +withoutBaseUrl)
-				var withoutHashUrl = withoutBaseUrl.charAt(0) == '#' ? beginsWith(this.hashPrefix, withoutBaseUrl) : "";
+        this._path = _path;
 
-				if (typeof withoutHashUrl !== "string") {
-					this.logger('Invalid url ' + url + ', missing hash prefix ' + this.hashPrefix, "ERROR");
-					return null;
-				}
-				//console.log("withoutHashUrl : " +withoutHashUrl)
-				this.parseRelativeUrl(withoutHashUrl);
-				return this.change();
-			}
-		}, {
-			key: 'change',
-			value: function change() {
-				var search = stage.io.toKeyValue(this._search);
-				//console.log(this._search)
-				//var hash = this._hash ? '#' + stage.io.encodeUriSegment(this._hash) : '';
+        try {
+          this.change();
+        } catch (e) {
+          this.logger(e, "ERROR");
+          throw e;
+        }
 
-				var hash = this._hash ? '#' + this._hash : '';
+        return this._path;
+      }
+    }, {
+      key: "search",
+      value: function search(_search) {
+        if (typeof _search === "undefined") {
+          return this._search;
+        }
 
-				//console.log(this._path)
-				this._url = this.encodePath(this._path) + (search ? '?' + search : '') + hash;
-				//console.log(this._url)
-				//var temp = (this._url ? this.hashPrefix + this._url : '').replace("//","/");
-				//this._absUrl = this.base + temp;	
-				//console.log( this.hashPrefix)
-				//console.log( this._url)
-				this._absUrl = this.base + (this._url ? "#" + this._url : '');
-				//console.log("URL :"+ this._url)
-				//console.log("HASH :"+ this._hash)
-				//console.log("ABSURL :"+ this._absUrl)
-				//console.log("PATH :"+ this._path)
-				return this;
-			}
-		}]);
+        this._search = _search;
 
-		return LocationHashbangUrl;
-	}(Location);
+        try {
+          this.change();
+        } catch (e) {
+          this.logger(e, "ERROR");
+          throw e;
+        }
 
-	/**
- 	 * LocationHashbangInHtml5Url represents url
- 	 * This object is exposed as location service when html5 history api is enabled but the browser
- 	 * does not support it.
- 	 *
- 	 * @constructor
- 	 * @param {string} appBase application base URL
- 	 * @param {string} hashPrefix hashbang prefix
- 	*/
-	var LocationHashbangInHtml5Url = function (_LocationHashbangUrl) {
-		_inherits(LocationHashbangInHtml5Url, _LocationHashbangUrl);
+        return this._search;
+      }
+    }, {
+      key: "hash",
+      value: function hash(_hash) {
+        if (typeof _hash === "undefined") {
+          return this._hash;
+        }
 
-		function LocationHashbangInHtml5Url(browser, base, kernel, settings) {
-			_classCallCheck(this, LocationHashbangInHtml5Url);
+        this._hash = _hash;
 
-			return _possibleConstructorReturn(this, (LocationHashbangInHtml5Url.__proto__ || Object.getPrototypeOf(LocationHashbangInHtml5Url)).call(this, browser, base, kernel, settings));
-		}
+        try {
+          this.change();
+        } catch (e) {
+          this.logger(e, "ERROR");
+          throw e;
+        }
 
-		_createClass(LocationHashbangInHtml5Url, [{
-			key: 'parse',
-			value: function parse(url) {
-				return this.change();
-			}
-		}, {
-			key: 'change',
-			value: function change() {
-				return this;
-			}
-		}]);
+        return this._hash;
+      }
+    }, {
+      key: "state",
+      value: function state() {}
+    }, {
+      key: "replace",
+      value: function replace(value) {
+        if (value) return this.replace = value;
+        return this.replace;
+      }
+    }, {
+      key: "encodePath",
+      value: function encodePath(path) {
+        var segments = path.split('/');
+        var i = segments.length;
 
-		return LocationHashbangInHtml5Url;
-	}(LocationHashbangUrl);
+        while (i--) {
+          segments[i] = stage.io.encodeUriSegment(segments[i]);
+        }
 
-	/**
- 	 * LocationHtml5Url represents an url
- 	 * This object is exposed as location service when HTML5 mode is enabled and supported
- 	 *
- 	 * @constructor
- 	 * @param {string} appBase application base URL
- 	 * @param {string} basePrefix url path prefix
- 	*/
-	var LocationHtml5Url = function (_Location2) {
-		_inherits(LocationHtml5Url, _Location2);
+        return segments.join('/');
+      }
+    }, {
+      key: "stripFile",
+      value: function stripFile(url) {
+        return url.substr(0, stripHash(url).lastIndexOf('/') + 1);
+      } // parsing end URL ex : http://domain.com:port(/path)(?search)(#hash)
 
-		function LocationHtml5Url(browser, base, kernel, settings) {
-			_classCallCheck(this, LocationHtml5Url);
+    }, {
+      key: "parseRelativeUrl",
+      value: function parseRelativeUrl(relativeUrl) {
+        //console.log("relative :" + relativeUrl)
+        var prefixed = relativeUrl.charAt(0) !== '/';
 
-			return _possibleConstructorReturn(this, (LocationHtml5Url.__proto__ || Object.getPrototypeOf(LocationHtml5Url)).call(this, browser, base, kernel, settings));
-		}
+        if (prefixed) {
+          relativeUrl = '/' + relativeUrl;
+        }
 
-		_createClass(LocationHtml5Url, [{
-			key: 'parse',
-			value: function parse(url) {
-				var pathUrl = beginsWith(this.proto, url);
-				if (pathUrl) {
-					this.parseRelativeUrl(pathUrl);
-				}
-				if (!this._path) this._path = "/";
-				return this.change();
-			}
-		}, {
-			key: 'change',
-			value: function change() {
-				var search = stage.io.toKeyValue(this._search);
-				var hash = this._hash ? '#' + stage.io.encodeUriSegment(this._hash) : '';
-				this._url = this.encodePath(this._path) + (search ? '?' + search : '') + hash;
-				this._absUrl = this.proto + this._url.substr(1);
-				return this;
-			}
-		}]);
+        var resolve = stage.io.urlToOject(relativeUrl); //console.log(resolve)
 
-		return LocationHtml5Url;
-	}(Location);
+        this._path = decodeURIComponent(prefixed && resolve.pathname.charAt(0) === '/' ? resolve.pathname.substring(1) : resolve.pathname);
+        this._search = stage.io.parseKeyValue(resolve.search);
+        this._hash = decodeURIComponent(resolve.hash); // make sure path starts with '/';
 
-	/*
- 	 *	SERVICE LOCATION
- 	 */
+        if (typeof this._path !== "undefined" && this._path.charAt(0) != '/') {
+          this._path = '/' + this._path;
+        } //console.log("PATH:" + this._path)
 
-	var defaultSettings = {
-		html5Mode: true,
-		hashPrefix: "/"
-	};
+      } // parsing begin URL ex : (http)://(domain.com):(port)
 
-	var serverBase = function serverBase(url) {
-		return url.substring(0, url.indexOf('/', url.indexOf('//') + 2));
-	};
+    }, {
+      key: "parseAbsoluteUrl",
+      value: function parseAbsoluteUrl(absoluteUrl) {
+        var resolve = stage.io.urlToOject(absoluteUrl);
+        this._protocol = resolve.protocol.replace(":", "");
+        this._host = resolve.hostname;
+        this._port = parseInt(resolve.port, 10) || DEFAULT_PORTS[this._protocol] || null;
+      }
+    }]);
 
-	var service = function service(kernel, settings) {
+    return Location;
+  }(stage.Service);
+  /**
+  	 * LocationHashbangUrl represents url
+  	 * This object is exposed as $location service when developer doesn't opt into html5 mode.
+  	 * It also serves as the base class for html5 mode fallback on legacy browsers.
+  	 *
+  	 * @constructor
+  	 * @param {string} appBase application base URL
+  	 * @param {string} hashPrefix hashbang prefix
+  	*/
 
-		var options = $.extend(defaultSettings, settings);
 
-		var browserService = new browser(kernel, options);
-		kernel.set("browser", browserService);
-		var initialUrl = browserService.url();
-		var baseHref = options.base || "";
-		var mode = null;
-		var base = null;
+  var LocationHashbangUrl =
+  /*#__PURE__*/
+  function (_Location) {
+    _inherits(LocationHashbangUrl, _Location);
 
-		if (options.html5Mode) {
-			mode = nativeHistory ? LocationHtml5Url : LocationHashbangInHtml5Url;
-			base = serverBase(initialUrl) + (baseHref || '/');
-		} else {
-			mode = LocationHashbangUrl;
-			base = stripHash(initialUrl);
-		}
+    function LocationHashbangUrl(browser, base, kernel, settings) {
+      _classCallCheck(this, LocationHashbangUrl);
 
-		return new mode(browserService, base, kernel, options);
-	};
+      return _possibleConstructorReturn(this, _getPrototypeOf(LocationHashbangUrl).call(this, browser, base, kernel, settings));
+    }
 
-	stage.location = service;
-	return service;
+    _createClass(LocationHashbangUrl, [{
+      key: "parse",
+      value: function parse(url) {
+        //console.log("URL to parse LocationHashbangUrl  :" + url)
+        //console.log("base : " + this.base)
+        //console.log("beginsWith BASE : "+beginsWith(this.base, url))
+        //console.log("beginsWith PROTO  :"+beginsWith(this.proto, url))
+        var withoutBaseUrl = beginsWith(this.base, url) || beginsWith(this.proto, url); //console.log("withoutBaseUrl : " +withoutBaseUrl)
+
+        var withoutHashUrl = withoutBaseUrl.charAt(0) == '#' ? beginsWith(this.hashPrefix, withoutBaseUrl) : "";
+
+        if (typeof withoutHashUrl !== "string") {
+          this.logger('Invalid url ' + url + ', missing hash prefix ' + this.hashPrefix, "ERROR");
+          return null;
+        } //console.log("withoutHashUrl : " +withoutHashUrl)
+
+
+        this.parseRelativeUrl(withoutHashUrl);
+        return this.change();
+      }
+    }, {
+      key: "change",
+      value: function change() {
+        var search = stage.io.toKeyValue(this._search); //console.log(this._search)
+        //var hash = this._hash ? '#' + stage.io.encodeUriSegment(this._hash) : '';
+
+        var hash = this._hash ? '#' + this._hash : ''; //console.log(this._path)
+
+        this._url = this.encodePath(this._path) + (search ? '?' + search : '') + hash; //console.log(this._url)
+        //var temp = (this._url ? this.hashPrefix + this._url : '').replace("//","/");
+        //this._absUrl = this.base + temp;	
+        //console.log( this.hashPrefix)
+        //console.log( this._url)
+
+        this._absUrl = this.base + (this._url ? "#" + this._url : ''); //console.log("URL :"+ this._url)
+        //console.log("HASH :"+ this._hash)
+        //console.log("ABSURL :"+ this._absUrl)
+        //console.log("PATH :"+ this._path)
+
+        return this;
+      }
+    }]);
+
+    return LocationHashbangUrl;
+  }(Location);
+  /**
+  	 * LocationHashbangInHtml5Url represents url
+  	 * This object is exposed as location service when html5 history api is enabled but the browser
+  	 * does not support it.
+  	 *
+  	 * @constructor
+  	 * @param {string} appBase application base URL
+  	 * @param {string} hashPrefix hashbang prefix
+  	*/
+
+
+  var LocationHashbangInHtml5Url =
+  /*#__PURE__*/
+  function (_LocationHashbangUrl) {
+    _inherits(LocationHashbangInHtml5Url, _LocationHashbangUrl);
+
+    function LocationHashbangInHtml5Url(browser, base, kernel, settings) {
+      _classCallCheck(this, LocationHashbangInHtml5Url);
+
+      return _possibleConstructorReturn(this, _getPrototypeOf(LocationHashbangInHtml5Url).call(this, browser, base, kernel, settings));
+    }
+
+    _createClass(LocationHashbangInHtml5Url, [{
+      key: "parse",
+      value: function parse(url) {
+        return this.change();
+      }
+    }, {
+      key: "change",
+      value: function change() {
+        return this;
+      }
+    }]);
+
+    return LocationHashbangInHtml5Url;
+  }(LocationHashbangUrl);
+  /**
+  	 * LocationHtml5Url represents an url
+  	 * This object is exposed as location service when HTML5 mode is enabled and supported
+  	 *
+  	 * @constructor
+  	 * @param {string} appBase application base URL
+  	 * @param {string} basePrefix url path prefix
+  	*/
+
+
+  var LocationHtml5Url =
+  /*#__PURE__*/
+  function (_Location2) {
+    _inherits(LocationHtml5Url, _Location2);
+
+    function LocationHtml5Url(browser, base, kernel, settings) {
+      _classCallCheck(this, LocationHtml5Url);
+
+      return _possibleConstructorReturn(this, _getPrototypeOf(LocationHtml5Url).call(this, browser, base, kernel, settings));
+    }
+
+    _createClass(LocationHtml5Url, [{
+      key: "parse",
+      value: function parse(url) {
+        var pathUrl = beginsWith(this.proto, url);
+
+        if (pathUrl) {
+          this.parseRelativeUrl(pathUrl);
+        }
+
+        if (!this._path) this._path = "/";
+        return this.change();
+      }
+    }, {
+      key: "change",
+      value: function change() {
+        var search = stage.io.toKeyValue(this._search);
+        var hash = this._hash ? '#' + stage.io.encodeUriSegment(this._hash) : '';
+        this._url = this.encodePath(this._path) + (search ? '?' + search : '') + hash;
+        this._absUrl = this.proto + this._url.substr(1);
+        return this;
+      }
+    }]);
+
+    return LocationHtml5Url;
+  }(Location);
+  /*
+  	 *	SERVICE LOCATION
+  	 */
+
+
+  var defaultSettings = {
+    html5Mode: true,
+    hashPrefix: "/"
+  };
+
+  var serverBase = function serverBase(url) {
+    return url.substring(0, url.indexOf('/', url.indexOf('//') + 2));
+  };
+
+  var service = function service(kernel, settings) {
+    var options = $.extend(defaultSettings, settings);
+    var browserService = new browser(kernel, options);
+    kernel.set("browser", browserService);
+    var initialUrl = browserService.url();
+    var baseHref = options.base || "";
+    var mode = null;
+    var base = null;
+
+    if (options.html5Mode) {
+      mode = nativeHistory ? LocationHtml5Url : LocationHashbangInHtml5Url;
+      base = serverBase(initialUrl) + (baseHref || '/');
+    } else {
+      mode = LocationHashbangUrl;
+      base = stripHash(initialUrl);
+    }
+
+    return new mode(browserService, base, kernel, options);
+  };
+
+  stage.location = service;
+  return service;
 };
 /* WEBPACK VAR INJECTION */}.call(this, __webpack_require__(/*! jquery */ "./node_modules/jquery/dist/jquery.js-exposed")))
 
@@ -31576,649 +24787,750 @@ module.exports = function (stage) {
 /*! no static exports found */
 /***/ (function(module, exports, __webpack_require__) {
 
-"use strict";
-/* WEBPACK VAR INJECTION */(function($) {
+/* WEBPACK VAR INJECTION */(function($) {function _typeof(obj) { if (typeof Symbol === "function" && typeof Symbol.iterator === "symbol") { _typeof = function _typeof(obj) { return typeof obj; }; } else { _typeof = function _typeof(obj) { return obj && typeof Symbol === "function" && obj.constructor === Symbol && obj !== Symbol.prototype ? "symbol" : typeof obj; }; } return _typeof(obj); }
 
-var _createClass = function () { function defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ("value" in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } } return function (Constructor, protoProps, staticProps) { if (protoProps) defineProperties(Constructor.prototype, protoProps); if (staticProps) defineProperties(Constructor, staticProps); return Constructor; }; }();
+function _possibleConstructorReturn(self, call) { if (call && (_typeof(call) === "object" || typeof call === "function")) { return call; } return _assertThisInitialized(self); }
 
-function _possibleConstructorReturn(self, call) { if (!self) { throw new ReferenceError("this hasn't been initialised - super() hasn't been called"); } return call && (typeof call === "object" || typeof call === "function") ? call : self; }
+function _getPrototypeOf(o) { _getPrototypeOf = Object.setPrototypeOf ? Object.getPrototypeOf : function _getPrototypeOf(o) { return o.__proto__ || Object.getPrototypeOf(o); }; return _getPrototypeOf(o); }
 
-function _inherits(subClass, superClass) { if (typeof superClass !== "function" && superClass !== null) { throw new TypeError("Super expression must either be null or a function, not " + typeof superClass); } subClass.prototype = Object.create(superClass && superClass.prototype, { constructor: { value: subClass, enumerable: false, writable: true, configurable: true } }); if (superClass) Object.setPrototypeOf ? Object.setPrototypeOf(subClass, superClass) : subClass.__proto__ = superClass; }
+function _inherits(subClass, superClass) { if (typeof superClass !== "function" && superClass !== null) { throw new TypeError("Super expression must either be null or a function"); } subClass.prototype = Object.create(superClass && superClass.prototype, { constructor: { value: subClass, writable: true, configurable: true } }); if (superClass) _setPrototypeOf(subClass, superClass); }
+
+function _setPrototypeOf(o, p) { _setPrototypeOf = Object.setPrototypeOf || function _setPrototypeOf(o, p) { o.__proto__ = p; return o; }; return _setPrototypeOf(o, p); }
+
+function _assertThisInitialized(self) { if (self === void 0) { throw new ReferenceError("this hasn't been initialised - super() hasn't been called"); } return self; }
 
 function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError("Cannot call a class as a function"); } }
 
+function _defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ("value" in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } }
+
+function _createClass(Constructor, protoProps, staticProps) { if (protoProps) _defineProperties(Constructor.prototype, protoProps); if (staticProps) _defineProperties(Constructor, staticProps); return Constructor; }
+
 module.exports = function (stage) {
+  'use strict';
+  /*
+  	 *
+  	 *	Model
+  	 *
+  	 */
 
-	'use strict';
+  var urlParser = function urlParser(container, url, name, template, obj) {
+    var index = url.indexOf("views");
 
-	/*
- 	 *
- 	 *	Model
- 	 *
- 	 */
+    if (index < 0) {
+      var text = "URL TEMPLATE BAD PATH :" + url;
+      this.logger(text, "ERROR");
+      throw new Error(text);
+    }
 
-	var urlParser = function urlParser(container, url, name, template, obj) {
-		var index = url.indexOf("views");
-		if (index < 0) {
-			var text = "URL TEMPLATE BAD PATH :" + url;
-			this.logger(text, "ERROR");
-			throw new Error(text);
-		}
-		var res = url.slice(index + "views".length + 1).split("/");
-		res.pop();
-		if (res.length) {
-			var obj = container;
-			for (var i = 0; i < res.length; i++) {
-				if (obj[res[i]]) {
-					if (i !== res.length - 1) {
-						obj = obj[res[i]];
-					} else {
-						obj[res[i]][name] = template;
-					}
-				} else {
-					if (i !== res.length - 1) {
-						obj[res[i]] = {};
-						obj = obj[res[i]];
-					} else {
-						obj[res[i]] = {};
-						obj[res[i]][name] = template;
-					}
-				}
-			}
-		} else {
-			container[name] = template;
-		}
-	};
+    var res = url.slice(index + "views".length + 1).split("/");
+    res.pop();
 
-	var regI18n = new RegExp("^(.*)\.(.._..)\.(.*)$");
+    if (res.length) {
+      var obj = container;
 
-	var modelModule = function () {
-		function modelModule(config) {
-			_classCallCheck(this, modelModule);
+      for (var i = 0; i < res.length; i++) {
+        if (obj[res[i]]) {
+          if (i !== res.length - 1) {
+            obj = obj[res[i]];
+          } else {
+            obj[res[i]][name] = template;
+          }
+        } else {
+          if (i !== res.length - 1) {
+            obj[res[i]] = {};
+            obj = obj[res[i]];
+          } else {
+            obj[res[i]] = {};
+            obj[res[i]][name] = template;
+          }
+        }
+      }
+    } else {
+      container[name] = template;
+    }
+  };
 
-			this.rootName = "module";
-			var documentXml = this.parser(config);
-			//this.name = this.config.name["@short"];
-			this.name = documentXml.module['@id'];
-		}
+  var regI18n = new RegExp("^(.*)\.(.._..)\.(.*)$");
 
-		_createClass(modelModule, [{
-			key: "parser",
-			value: function parser(ele) {
-				switch (stage.typeOf(ele)) {
-					case "document":
-						var res = stage.xml.parseXml(ele);
-						break;
-					case "object":
-						res = ele;
-						break;
-				}
-				if (!res[this.rootName]) {
-					throw new Error("BAD MODULE CONFIG ");
-				}
-				this.config = res[this.rootName];
-				return res;
-			}
-		}, {
-			key: "registerScript",
-			value: function registerScript(src) {
-				var _this = this;
+  var modelModule =
+  /*#__PURE__*/
+  function () {
+    function modelModule(config) {
+      _classCallCheck(this, modelModule);
 
-				this.autoloader.load(src, function (error, transport) {
-					if (error) {
-						_this.logger(error, "ERROR");
-						return;
-					}
-					_this.logger("LOAD SCRIPT : " + src, "DEBUG");
-				});
-			}
-		}, {
-			key: "registerStyle",
-			value: function registerStyle(src) {
-				var _this2 = this;
+      this.rootName = "module";
+      var documentXml = this.parser(config); //this.name = this.config.name["@short"];
 
-				this.autoloader.load(src, function (error, transport) {
-					if (error) {
-						_this2.logger(error, "ERROR");
-						return;
-					}
-					_this2.logger("LOAD STYLE : " + src, "DEBUG");
-				});
-			}
-		}, {
-			key: "cacheFont",
-			value: function cacheFont(src) {
-				var _this3 = this;
+      this.name = documentXml.module['@id'];
+    }
 
-				$.ajax({
-					async: false,
-					cache: true,
-					url: src,
-					beforeSend: function beforeSend(xhr) {
-						xhr.overrideMimeType("application/octet-stream");
-					},
-					success: function success() {
-						_this3.logger("LOAD FONT : " + src, "DEBUG");
-					},
-					error: function error(e) {
-						console.log(e);
-						_this3.logger(src + " : " + message, "ERROR");
-					}
-				});
-			}
-		}, {
-			key: "registerTemplate",
-			value: function registerTemplate(name, src, type) {
-				var _this4 = this;
+    _createClass(modelModule, [{
+      key: "parser",
+      value: function parser(ele) {
+        switch (stage.typeOf(ele)) {
+          case "document":
+            var res = stage.xml.parseXml(ele);
+            break;
 
-				//console.log("NAME :" + name)
-				switch (type) {
-					case "application/twig":
-						//var obj = urlParser.call(this, this.templates, src, name);
-						this.twig({
-							id: this.name + ":" + name,
-							href: src,
-							async: false,
-							//debug:true,
-							load: function load(template) {
-								urlParser.call(_this4, _this4.templates, src, name, template);
-								_this4.logger("LOAD TEMPLATE : " + name + " ==>" + src, "DEBUG");
-								//console.log(this.templates)
-								//obj[name] = template;
-								//console.log(template.extend)
-								//this.templateEngine
-							},
-							error: function error(xrh, status, message) {
-								_this4.logger("TEMPLATE :" + src + " : " + message, "ERROR");
-							}
-						});
-						break;
-					case "text/html":
-						break;
-					case "application/xml":
-					case "text/xml":
-						break;
-					case "template":
-						var obj = urlParser.call(this, this.templates, src.url, name, src);
-						//obj[name] = src;
-						this.logger("LOAD IMPORT TEMPLATE : " + name + " ==>" + src.url, "DEBUG");
-						break;
-					default:
-						this.registerTemplate(name, src, "application/twig");
-						break;
-				}
-			}
-		}, {
-			key: "registerView",
-			value: function registerView(name, src, type) {
-				var _this5 = this;
+          case "object":
+            res = ele;
+            break;
+        }
 
-				switch (type) {
-					case "text/javascript":
-					case "application/javascript":
-						this.autoloader.load(src, function (error, transport) {
-							if (error) {
-								_this5.logger(error, "ERROR");
-								return;
-							}
-							//this.views[name] = new ;
-							var Class = stage.views[name];
-							_this5.views[name] = new Class(_this5.container, _this5);
-							_this5.logger("LOAD VIEW : " + src, "DEBUG");
-						});
-						break;
-					default:
-				}
-			}
-		}, {
-			key: "registerController",
-			value: function registerController(name, src) {
-				var _this6 = this;
+        if (!res[this.rootName]) {
+          throw new Error("BAD MODULE CONFIG ");
+        }
 
-				this.autoloader.load(src, function (error, transport) {
-					if (error) {
-						_this6.logger(error, "ERROR");
-						throw error;
-					}
-					try {
-						var Class = stage.controllers[name];
-						_this6.controllers[name] = new Class(name, _this6.container, _this6);
-						_this6.logger("LOAD CONTROLLER : " + name + " ==>" + src, "DEBUG");
-					} catch (e) {
-						throw e;
-					}
-				});
-			}
-		}, {
-			key: "initialiseRest",
-			value: function initialiseRest(name, url, optionsGlobal) {
-				var rest = this.kernel.restService;
-				var ele = rest.addApi(name, url, optionsGlobal);
-				this.kernel.set(name, ele);
-			}
-		}, {
-			key: "registerTranslation",
-			value: function registerTranslation(src, type) {
-				var _this7 = this;
+        this.config = res[this.rootName];
+        return res;
+      }
+    }, {
+      key: "registerScript",
+      value: function registerScript(src) {
+        var _this = this;
 
-				var service = this.get("i18n");
-				if (!service) {
-					this.logger("SERVICE I18N not loaded abort load Translation : " + src, "WARNING");
-					return;
-				}
-				$.ajax({
-					url: src,
-					async: false,
-					success: function success(data, status, xhr) {
-						var name = stage.basename(src);
-						_this7.logger("LOAD TRANSLATION " + type + " : " + name + " URL = " + src, "DEBUG");
-						var res = regI18n.exec(name);
-						if (!res) {
-							_this7.logger("SERVICE I18N  abort load Translation : " + src + " Bad File name format", "WARNING");
-							return;
-						}
-						var domain = res[1];
-						var locale = res[2];
-						service.registerI18n(name, locale, domain, data);
-					},
-					dataType: type || "json",
-					error: function error(xhr, status, err) {
-						_this7.logger(err, "ERROR");
-					}
-				});
-			}
-		}, {
-			key: "reader",
-			value: function reader() {
-				var root = this.config;
-				for (var node in this.config) {
-					switch (node) {
-						case "content":
-							break;
-						case "controllers":
+        this.autoloader.load(src, function (error, transport) {
+          if (error) {
+            _this.logger(error, "ERROR");
 
-							var controllers = root[node].controller;
-							if (controllers) {
-								var tab = stage.typeOf(controllers) === "object" ? [controllers] : controllers;
-								for (var i = 0; i < tab.length; i++) {
-									var name = tab[i]["@name"];
-									var src = tab[i]["@src"];
-									this.registerController(name, src);
-								}
-							}
+            return;
+          }
 
-							break;
-						case "views":
-							var views = root[node].view;
-							if (views) {
-								var tab = stage.typeOf(views) === "object" ? [views] : views;
-								for (var i = 0; i < tab.length; i++) {
-									var name = tab[i]["@name"];
-									var src = tab[i]["@src"];
-									var type = tab[i]["@type"];
-									this.registerView(name, src, type);
-								}
-							}
+          _this.logger("LOAD SCRIPT : " + src, "DEBUG");
+        });
+      }
+    }, {
+      key: "registerStyle",
+      value: function registerStyle(src) {
+        var _this2 = this;
 
-							break;
-						case "modules":
-							var modules = root[node].module;
-							if (modules) {
-								var tab = stage.typeOf(modules) === "object" ? [modules] : modules;
-								for (var i = 0; i < tab.length; i++) {
-									//var name = tab[i]["@name"];
-									var url = tab[i]["@href"];
-									if (!this.isDomReady) {
-										this.kernel.listen(this, "onBoot", function (url) {
-											this.kernel.loadModule(url, {
-												async: false
-											});
-										}.bind(this, url));
-									} else {
-										this.kernel.loadModule(url);
-									}
-								}
-							}
+        this.autoloader.load(src, function (error, transport) {
+          if (error) {
+            _this2.logger(error, "ERROR");
 
-							break;
-						case "templates":
-							var templates = root[node].template;
-							if (templates) {
-								var tab = stage.typeOf(templates) === "object" ? [templates] : templates;
-								for (var i = 0; i < tab.length; i++) {
-									var name = tab[i]["@name"];
+            return;
+          }
 
-									var src = tab[i]["@src"];
-									var type = tab[i]["@type"];
-									if (!name) {
-										name = this.getTemplateName(src);
-									}
-									this.registerTemplate(name, src, type);
-								}
-							}
+          _this2.logger("LOAD STYLE : " + src, "DEBUG");
+        });
+      }
+    }, {
+      key: "cacheFont",
+      value: function cacheFont(src) {
+        var _this3 = this;
 
-							break;
-						case "styles":
-							var styles = root[node].style;
-							if (styles) {
-								var tab = stage.typeOf(styles) === "object" ? [styles] : styles;
-								for (var i = 0; i < tab.length; i++) {
-									var src = tab[i]["@src"];
-									this.registerStyle(src);
-								}
-							}
+        $.ajax({
+          async: false,
+          cache: true,
+          url: src,
+          beforeSend: function beforeSend(xhr) {
+            xhr.overrideMimeType("application/octet-stream");
+          },
+          success: function success() {
+            _this3.logger("LOAD FONT : " + src, "DEBUG");
+          },
+          error: function error(e) {
+            console.log(e);
 
-							break;
-						case "scripts":
-							var scripts = root[node].script;
-							if (scripts) {
-								var tab = stage.typeOf(scripts) === "object" ? [scripts] : scripts;
-								for (var i = 0; i < tab.length; i++) {
-									var src = tab[i]["@src"];
-									this.registerScript(src);
-								}
-							}
+            _this3.logger(src + " : " + message, "ERROR");
+          }
+        });
+      }
+    }, {
+      key: "registerTemplate",
+      value: function registerTemplate(name, src, type) {
+        var _this4 = this;
 
-							break;
-						case "fonts":
-							var fonts = root[node].font;
-							if (fonts) {
-								var tab = stage.typeOf(fonts) === "object" ? [fonts] : fonts;
-								for (var i = 0; i < tab.length; i++) {
-									var src = tab[i]["@src"];
-									this.cacheFont(src);
-								}
-							}
+        //console.log("NAME :" + name)
+        switch (type) {
+          case "application/twig":
+            //var obj = urlParser.call(this, this.templates, src, name);
+            this.twig({
+              id: this.name + ":" + name,
+              href: src,
+              async: false,
+              //debug:true,
+              load: function load(template) {
+                urlParser.call(_this4, _this4.templates, src, name, template);
 
-							break;
-						case "translations":
-							var translations = root[node].translation;
-							if (translations) {
-								var tab = stage.typeOf(translations) === "object" ? [translations] : translations;
-								for (var i = 0; i < tab.length; i++) {
-									var src = tab[i]["@src"];
-									var type = tab[i]["@type"];
-									this.registerTranslation(src, type);
-								}
-							}
+                _this4.logger("LOAD TEMPLATE : " + name + " ==>" + src, "DEBUG"); //console.log(this.templates)
+                //obj[name] = template;
+                //console.log(template.extend)
+                //this.templateEngine
 
-							break;
-						case "icon":
-							this.icon = root[node]["@src"];
-							break;
-						/*case "name" :
-        console.log(root[node])
-        this.name = root[node]["@short"];
-        break;*/
-						case "preference":
-							break;
-						case "author":
-							var author = root[node];
-							this.author = author["#text"];
-							this.emailAuthor = author["@email"];
-							this.authorLink = author["@href"];
-							break;
-						case "description":
-							this.description = root[node];
-							break;
-						case "api":
-							//console.log(root[node]);
-							for (var ele in root[node]) {
-								var mvc = root[node][ele];
-								var tab = stage.typeOf(mvc) === "object" ? [mvc] : mvc;
-								for (var i = 0; i < tab.length; i++) {
-									if (ele === "rest") {
-										if (this.kernel.restService) this.initialiseRest(tab[i]["@name"], tab[i]["@url"]);else this.logger("Api " + ele + " SERVICE REST NOT FOUND", "ERROR");
-									} else {
-										this.logger("Api " + ele + " not exist for modules", "ERROR");
-									}
-								}
-							}
-							break;
-							break;
-						case "routes":
-							var routes = root[node].route;
-							switch (stage.typeOf(routes)) {
-								case "array":
-									for (var i = 0; i < routes.length; i++) {
-										var id = routes[i]["@id"];
-										var path = routes[i]["@path"];
-										var defaultParam = {};
-										switch (stage.typeOf(routes[i]["default"])) {
-											case "array":
-												for (var j = 0; j < routes[i]["default"].length; j++) {
-													defaultParam[routes[i]["default"][j]["@key"]] = routes[i]["default"][j]["#text"];
-													//console.log(defaultParam)
-												}
-												break;
-											case "object":
-												if (routes[i]["default"]["@key"]) defaultParam[routes[i]["default"]["@key"]] = routes[i]["default"]["#text"];
-												break;
-										}
-										this.routes[id] = this.router.createRoute(id, path, defaultParam);
-									}
-									break;
-								case "object":
-									for (var route in routes) {
-										switch (route) {
-											case "@id":
-												var id = routes[route];
-												break;
-											case "@path":
-												var path = routes[route];
-												break;
-											case "default":
-												var defaultParam = {};
-												switch (stage.typeOf(routes[route])) {
-													case "array":
-														for (var j = 0; j < routes[route].length; j++) {
-															defaultParam[routes[route][j]["@key"]] = routes[route][j]["#text"];
-														}
-														break;
-													case "object":
-														defaultParam[routes[route]["@key"]] = routes[route]["#text"];
-														break;
-												}
-												break;
-										}
-									}
-									this.routes[id] = this.router.createRoute(id, path, defaultParam);
-									break;
-							}
-							break;
-					}
-				}
-			}
-		}]);
+              },
+              error: function error(xrh, status, message) {
+                _this4.logger("TEMPLATE :" + src + " : " + message, "ERROR");
+              }
+            });
+            break;
 
-		return modelModule;
-	}();
+          case "text/html":
+            break;
 
-	/*
- 	*
- 	*	CLASS Module
- 	*
- 	*/
-	var regPattern = /(.*)Module:(.*):(.*)$/;
+          case "application/xml":
+          case "text/xml":
+            break;
 
-	var Module = function (_modelModule) {
-		_inherits(Module, _modelModule);
+          case "template":
+            var obj = urlParser.call(this, this.templates, src.url, name, src); //obj[name] = src;
 
-		function Module(kernel, config, settings) {
-			_classCallCheck(this, Module);
+            this.logger("LOAD IMPORT TEMPLATE : " + name + " ==>" + src.url, "DEBUG");
+            break;
 
-			var _this8 = _possibleConstructorReturn(this, (Module.__proto__ || Object.getPrototypeOf(Module)).call(this, config));
+          default:
+            this.registerTemplate(name, src, "application/twig");
+            break;
+        }
+      }
+    }, {
+      key: "registerView",
+      value: function registerView(name, src, type) {
+        var _this5 = this;
 
-			_this8.kernel = kernel;
-			_this8.container = kernel.container;
-			_this8.syslog = _this8.get("syslog");
-			_this8.logger("REGISTER MODULE " + _this8.name, "DEBUG");
-			_this8.autoloader = new stage.autoload(_this8, {
-				transport: "script"
-			});
-			_this8.views = {};
-			_this8.controllers = {};
-			_this8.templates = {};
-			_this8.routes = {};
+        switch (type) {
+          case "text/javascript":
+          case "application/javascript":
+            this.autoloader.load(src, function (error, transport) {
+              if (error) {
+                _this5.logger(error, "ERROR");
 
-			_this8.twig = _this8.get("twig");
+                return;
+              } //this.views[name] = new ;
 
-			_this8.setParameters("module." + _this8.name, _this8.config);
-			_this8.set(_this8.name, _this8);
-			_this8.boot(settings);
-			return _this8;
-		}
 
-		_createClass(Module, [{
-			key: "listen",
-			value: function listen() {
-				return this.notificationsCenter.listen.apply(this.notificationsCenter, arguments);
-			}
-		}, {
-			key: "fire",
-			value: function fire(event) {
-				this.logger(event + " : " + this.name, "DEBUG", "EVENT MODULE");
-				return this.notificationsCenter.fire.apply(this.notificationsCenter, arguments);
-			}
-		}, {
-			key: "logger",
-			value: function logger(pci, severity, msgid, msg) {
-				if (!msgid) msgid = "MODULE  " + this.name;
-				return this.syslog.logger(pci, severity, msgid, msg);
-			}
+              var Class = stage.views[name];
+              _this5.views[name] = new Class(_this5.container, _this5);
 
-			/**
-   		*	@method get
-   		*	@param {String} name of service
-          		*/
+              _this5.logger("LOAD VIEW : " + src, "DEBUG");
+            });
+            break;
 
-		}, {
-			key: "get",
-			value: function get(name) {
-				return this.container.get(name);
-			}
+          default:
+        }
+      }
+    }, {
+      key: "registerController",
+      value: function registerController(name, src) {
+        var _this6 = this;
 
-			/**
-   		*	@method set
-   		*	@param {String} name of service
-   		*	@param {Object} instance of service
-          		*/
+        this.autoloader.load(src, function (error, transport) {
+          if (error) {
+            _this6.logger(error, "ERROR");
 
-		}, {
-			key: "set",
-			value: function set(name, obj) {
-				return this.container.set(name, obj);
-			}
-		}, {
-			key: "setParameters",
-			value: function setParameters(name, value) {
-				return this.container.setParameters(name, value);
-			}
-		}, {
-			key: "getParameters",
-			value: function getParameters(name) {
-				return this.container.getParameters(name);
-			}
-		}, {
-			key: "getController",
-			value: function getController(name) {
-				return this.controllers[name];
-			}
-		}, {
-			key: "getTemplate",
-			value: function getTemplate(name) {
-				return this.templates[name];
-			}
-		}, {
-			key: "getTemplateName",
-			value: function getTemplateName(url) {
-				var name = stage.basename(url);
-				var index = name.indexOf(".");
-				if (index < 0) return url;
-				return name.slice(0, name.indexOf("."));
-			}
-		}, {
-			key: "getTemplatePattern",
-			value: function getTemplatePattern(pattern) {
-				var res = regPattern.exec(pattern);
-				if (!res) {
-					var txt = "IN PATTERN :" + pattern + " BAD FORMAT ";
-					this.logger(txt, "ERROR");
-					throw new Error(txt);
-				}
-				var moduleName = res[1];
-				var pathName = res[2];
-				var templateName = res[3];
-				var module = this.kernel.getModule(moduleName);
-				if (!module) {
-					var txt = "IN PATTERN :" + pattern + " MODULE :" + moduleName + " not defined";
-					this.logger(txt, "ERROR");
-					throw new Error(txt);
-				}
-				var obj = module.templates;
-				if (pathName !== "") {
-					var tab = pathName.split("/");
-					for (var i = 0; i < tab.length; i++) {
-						if (tab[i]) {
-							if (tab[i] in obj) {
-								obj = obj[tab[i]];
-							} else {
-								var txt = "IN PATTERN :" + pattern + " pathName :" + pathName + " not defined";
-								this.logger(txt, "ERROR");
-								throw new Error(txt);
-							}
-						}
-					}
-				}
-				if (templateName !== "") {
-					var name = this.getTemplateName(templateName);
-					if (obj[name]) {
-						return obj[name];
-					} else {
-						var txt = "IN PATTERN :" + pattern + " MODULE :" + moduleName + "  template : " + templateName + " not defined";
-						this.logger(txt, "ERROR");
-						throw new Error(txt);
-					}
-				} else {
-					if (obj["index"]) {
-						return obj["index"];
-					} else {
-						var txt = "IN PATTERN :" + pattern + " MODULE :" + moduleName + " default template not defined";
-						this.logger(txt, "ERROR");
-						throw new Error(txt);
-					}
-				}
-			}
-		}, {
-			key: "getView",
-			value: function getView(name) {
-				return this.views[name];
-			}
-		}, {
-			key: "boot",
-			value: function boot(settings) {
-				this.logger("BOOT " + this.name, "DEBUG");
-				this.container = this.kernel.container.enterScope(this.name);
-				this.notificationsCenter = stage.notificationsCenter.create(settings, this);
-				this.set("notificationsCenter", this.notificationsCenter);
-				this.router = this.kernel.router;
+            throw error;
+          }
 
-				try {
-					this.fire("onBoot", this);
-					this.reader();
-					this.fire("onReady", this);
-				} catch (e) {
-					this.logger("MODULE : " + this.name + "  " + e, "ERROR");
-					throw e;
-				}
-			}
-		}]);
+          try {
+            var Class = stage.controllers[name];
+            _this6.controllers[name] = new Class(name, _this6.container, _this6);
 
-		return Module;
-	}(modelModule);
+            _this6.logger("LOAD CONTROLLER : " + name + " ==>" + src, "DEBUG");
+          } catch (e) {
+            throw e;
+          }
+        });
+      }
+    }, {
+      key: "initialiseRest",
+      value: function initialiseRest(name, url, optionsGlobal) {
+        var rest = this.kernel.restService;
+        var ele = rest.addApi(name, url, optionsGlobal);
+        this.kernel.set(name, ele);
+      }
+    }, {
+      key: "registerTranslation",
+      value: function registerTranslation(src, type) {
+        var _this7 = this;
 
-	stage.Module = Module;
-	return Module;
+        var service = this.get("i18n");
+
+        if (!service) {
+          this.logger("SERVICE I18N not loaded abort load Translation : " + src, "WARNING");
+          return;
+        }
+
+        $.ajax({
+          url: src,
+          async: false,
+          success: function success(data, status, xhr) {
+            var name = stage.basename(src);
+
+            _this7.logger("LOAD TRANSLATION " + type + " : " + name + " URL = " + src, "DEBUG");
+
+            var res = regI18n.exec(name);
+
+            if (!res) {
+              _this7.logger("SERVICE I18N  abort load Translation : " + src + " Bad File name format", "WARNING");
+
+              return;
+            }
+
+            var domain = res[1];
+            var locale = res[2];
+            service.registerI18n(name, locale, domain, data);
+          },
+          dataType: type || "json",
+          error: function error(xhr, status, err) {
+            _this7.logger(err, "ERROR");
+          }
+        });
+      }
+    }, {
+      key: "reader",
+      value: function reader() {
+        var root = this.config;
+
+        for (var node in this.config) {
+          switch (node) {
+            case "content":
+              break;
+
+            case "controllers":
+              var controllers = root[node].controller;
+
+              if (controllers) {
+                var tab = stage.typeOf(controllers) === "object" ? [controllers] : controllers;
+
+                for (var i = 0; i < tab.length; i++) {
+                  var name = tab[i]["@name"];
+                  var src = tab[i]["@src"];
+                  this.registerController(name, src);
+                }
+              }
+
+              break;
+
+            case "views":
+              var views = root[node].view;
+
+              if (views) {
+                var tab = stage.typeOf(views) === "object" ? [views] : views;
+
+                for (var i = 0; i < tab.length; i++) {
+                  var name = tab[i]["@name"];
+                  var src = tab[i]["@src"];
+                  var type = tab[i]["@type"];
+                  this.registerView(name, src, type);
+                }
+              }
+
+              break;
+
+            case "modules":
+              var modules = root[node].module;
+
+              if (modules) {
+                var tab = stage.typeOf(modules) === "object" ? [modules] : modules;
+
+                for (var i = 0; i < tab.length; i++) {
+                  //var name = tab[i]["@name"];
+                  var url = tab[i]["@href"];
+
+                  if (!this.isDomReady) {
+                    this.kernel.listen(this, "onBoot", function (url) {
+                      this.kernel.loadModule(url, {
+                        async: false
+                      });
+                    }.bind(this, url));
+                  } else {
+                    this.kernel.loadModule(url);
+                  }
+                }
+              }
+
+              break;
+
+            case "templates":
+              var templates = root[node].template;
+
+              if (templates) {
+                var tab = stage.typeOf(templates) === "object" ? [templates] : templates;
+
+                for (var i = 0; i < tab.length; i++) {
+                  var name = tab[i]["@name"];
+                  var src = tab[i]["@src"];
+                  var type = tab[i]["@type"];
+
+                  if (!name) {
+                    name = this.getTemplateName(src);
+                  }
+
+                  this.registerTemplate(name, src, type);
+                }
+              }
+
+              break;
+
+            case "styles":
+              var styles = root[node].style;
+
+              if (styles) {
+                var tab = stage.typeOf(styles) === "object" ? [styles] : styles;
+
+                for (var i = 0; i < tab.length; i++) {
+                  var src = tab[i]["@src"];
+                  this.registerStyle(src);
+                }
+              }
+
+              break;
+
+            case "scripts":
+              var scripts = root[node].script;
+
+              if (scripts) {
+                var tab = stage.typeOf(scripts) === "object" ? [scripts] : scripts;
+
+                for (var i = 0; i < tab.length; i++) {
+                  var src = tab[i]["@src"];
+                  this.registerScript(src);
+                }
+              }
+
+              break;
+
+            case "fonts":
+              var fonts = root[node].font;
+
+              if (fonts) {
+                var tab = stage.typeOf(fonts) === "object" ? [fonts] : fonts;
+
+                for (var i = 0; i < tab.length; i++) {
+                  var src = tab[i]["@src"];
+                  this.cacheFont(src);
+                }
+              }
+
+              break;
+
+            case "translations":
+              var translations = root[node].translation;
+
+              if (translations) {
+                var tab = stage.typeOf(translations) === "object" ? [translations] : translations;
+
+                for (var i = 0; i < tab.length; i++) {
+                  var src = tab[i]["@src"];
+                  var type = tab[i]["@type"];
+                  this.registerTranslation(src, type);
+                }
+              }
+
+              break;
+
+            case "icon":
+              this.icon = root[node]["@src"];
+              break;
+
+            /*case "name" :
+              console.log(root[node])
+              this.name = root[node]["@short"];
+              break;*/
+
+            case "preference":
+              break;
+
+            case "author":
+              var author = root[node];
+              this.author = author["#text"];
+              this.emailAuthor = author["@email"];
+              this.authorLink = author["@href"];
+              break;
+
+            case "description":
+              this.description = root[node];
+              break;
+
+            case "api":
+              //console.log(root[node]);
+              for (var ele in root[node]) {
+                var mvc = root[node][ele];
+                var tab = stage.typeOf(mvc) === "object" ? [mvc] : mvc;
+
+                for (var i = 0; i < tab.length; i++) {
+                  if (ele === "rest") {
+                    if (this.kernel.restService) this.initialiseRest(tab[i]["@name"], tab[i]["@url"]);else this.logger("Api " + ele + " SERVICE REST NOT FOUND", "ERROR");
+                  } else {
+                    this.logger("Api " + ele + " not exist for modules", "ERROR");
+                  }
+                }
+              }
+
+              break;
+              break;
+
+            case "routes":
+              var routes = root[node].route;
+
+              switch (stage.typeOf(routes)) {
+                case "array":
+                  for (var i = 0; i < routes.length; i++) {
+                    var id = routes[i]["@id"];
+                    var path = routes[i]["@path"];
+                    var defaultParam = {};
+
+                    switch (stage.typeOf(routes[i]["default"])) {
+                      case "array":
+                        for (var j = 0; j < routes[i]["default"].length; j++) {
+                          defaultParam[routes[i]["default"][j]["@key"]] = routes[i]["default"][j]["#text"]; //console.log(defaultParam)
+                        }
+
+                        break;
+
+                      case "object":
+                        if (routes[i]["default"]["@key"]) defaultParam[routes[i]["default"]["@key"]] = routes[i]["default"]["#text"];
+                        break;
+                    }
+
+                    this.routes[id] = this.router.createRoute(id, path, defaultParam);
+                  }
+
+                  break;
+
+                case "object":
+                  for (var route in routes) {
+                    switch (route) {
+                      case "@id":
+                        var id = routes[route];
+                        break;
+
+                      case "@path":
+                        var path = routes[route];
+                        break;
+
+                      case "default":
+                        var defaultParam = {};
+
+                        switch (stage.typeOf(routes[route])) {
+                          case "array":
+                            for (var j = 0; j < routes[route].length; j++) {
+                              defaultParam[routes[route][j]["@key"]] = routes[route][j]["#text"];
+                            }
+
+                            break;
+
+                          case "object":
+                            defaultParam[routes[route]["@key"]] = routes[route]["#text"];
+                            break;
+                        }
+
+                        break;
+                    }
+                  }
+
+                  this.routes[id] = this.router.createRoute(id, path, defaultParam);
+                  break;
+              }
+
+              break;
+          }
+        }
+      }
+    }]);
+
+    return modelModule;
+  }();
+  /*
+  	*
+  	*	CLASS Module
+  	*
+  	*/
+
+
+  var regPattern = /(.*)Module:(.*):(.*)$/;
+
+  var Module =
+  /*#__PURE__*/
+  function (_modelModule) {
+    _inherits(Module, _modelModule);
+
+    function Module(kernel, config, settings) {
+      var _this8;
+
+      _classCallCheck(this, Module);
+
+      _this8 = _possibleConstructorReturn(this, _getPrototypeOf(Module).call(this, config));
+      _this8.kernel = kernel;
+      _this8.container = kernel.container;
+      _this8.syslog = _this8.get("syslog");
+
+      _this8.logger("REGISTER MODULE " + _this8.name, "DEBUG");
+
+      _this8.autoloader = new stage.autoload(_assertThisInitialized(_assertThisInitialized(_this8)), {
+        transport: "script"
+      });
+      _this8.views = {};
+      _this8.controllers = {};
+      _this8.templates = {};
+      _this8.routes = {};
+      _this8.twig = _this8.get("twig");
+
+      _this8.setParameters("module." + _this8.name, _this8.config);
+
+      _this8.set(_this8.name, _assertThisInitialized(_assertThisInitialized(_this8)));
+
+      _this8.boot(settings);
+
+      return _this8;
+    }
+
+    _createClass(Module, [{
+      key: "listen",
+      value: function listen() {
+        return this.notificationsCenter.listen.apply(this.notificationsCenter, arguments);
+      }
+    }, {
+      key: "fire",
+      value: function fire(event) {
+        this.logger(event + " : " + this.name, "DEBUG", "EVENT MODULE");
+        return this.notificationsCenter.fire.apply(this.notificationsCenter, arguments);
+      }
+    }, {
+      key: "logger",
+      value: function logger(pci, severity, msgid, msg) {
+        if (!msgid) msgid = "MODULE  " + this.name;
+        return this.syslog.logger(pci, severity, msgid, msg);
+      }
+      /**
+      		*	@method get
+      		*	@param {String} name of service
+             		*/
+
+    }, {
+      key: "get",
+      value: function get(name) {
+        return this.container.get(name);
+      }
+      /**
+      		*	@method set
+      		*	@param {String} name of service
+      		*	@param {Object} instance of service
+             		*/
+
+    }, {
+      key: "set",
+      value: function set(name, obj) {
+        return this.container.set(name, obj);
+      }
+    }, {
+      key: "setParameters",
+      value: function setParameters(name, value) {
+        return this.container.setParameters(name, value);
+      }
+    }, {
+      key: "getParameters",
+      value: function getParameters(name) {
+        return this.container.getParameters(name);
+      }
+    }, {
+      key: "getController",
+      value: function getController(name) {
+        return this.controllers[name];
+      }
+    }, {
+      key: "getTemplate",
+      value: function getTemplate(name) {
+        return this.templates[name];
+      }
+    }, {
+      key: "getTemplateName",
+      value: function getTemplateName(url) {
+        var name = stage.basename(url);
+        var index = name.indexOf(".");
+        if (index < 0) return url;
+        return name.slice(0, name.indexOf("."));
+      }
+    }, {
+      key: "getTemplatePattern",
+      value: function getTemplatePattern(pattern) {
+        var res = regPattern.exec(pattern);
+
+        if (!res) {
+          var txt = "IN PATTERN :" + pattern + " BAD FORMAT ";
+          this.logger(txt, "ERROR");
+          throw new Error(txt);
+        }
+
+        var moduleName = res[1];
+        var pathName = res[2];
+        var templateName = res[3];
+        var module = this.kernel.getModule(moduleName);
+
+        if (!module) {
+          var txt = "IN PATTERN :" + pattern + " MODULE :" + moduleName + " not defined";
+          this.logger(txt, "ERROR");
+          throw new Error(txt);
+        }
+
+        var obj = module.templates;
+
+        if (pathName !== "") {
+          var tab = pathName.split("/");
+
+          for (var i = 0; i < tab.length; i++) {
+            if (tab[i]) {
+              if (tab[i] in obj) {
+                obj = obj[tab[i]];
+              } else {
+                var txt = "IN PATTERN :" + pattern + " pathName :" + pathName + " not defined";
+                this.logger(txt, "ERROR");
+                throw new Error(txt);
+              }
+            }
+          }
+        }
+
+        if (templateName !== "") {
+          var name = this.getTemplateName(templateName);
+
+          if (obj[name]) {
+            return obj[name];
+          } else {
+            var txt = "IN PATTERN :" + pattern + " MODULE :" + moduleName + "  template : " + templateName + " not defined";
+            this.logger(txt, "ERROR");
+            throw new Error(txt);
+          }
+        } else {
+          if (obj["index"]) {
+            return obj["index"];
+          } else {
+            var txt = "IN PATTERN :" + pattern + " MODULE :" + moduleName + " default template not defined";
+            this.logger(txt, "ERROR");
+            throw new Error(txt);
+          }
+        }
+      }
+    }, {
+      key: "getView",
+      value: function getView(name) {
+        return this.views[name];
+      }
+    }, {
+      key: "boot",
+      value: function boot(settings) {
+        this.logger("BOOT " + this.name, "DEBUG");
+        this.container = this.kernel.container.enterScope(this.name);
+        this.notificationsCenter = stage.notificationsCenter.create(settings, this);
+        this.set("notificationsCenter", this.notificationsCenter);
+        this.router = this.kernel.router;
+
+        try {
+          this.fire("onBoot", this);
+          this.reader();
+          this.fire("onReady", this);
+        } catch (e) {
+          this.logger("MODULE : " + this.name + "  " + e, "ERROR");
+          throw e;
+        }
+      }
+    }]);
+
+    return Module;
+  }(modelModule);
+
+  stage.Module = Module;
+  return Module;
 };
 /* WEBPACK VAR INJECTION */}.call(this, __webpack_require__(/*! jquery */ "./node_modules/jquery/dist/jquery.js-exposed")))
 
@@ -32231,427 +25543,496 @@ module.exports = function (stage) {
 /*! no static exports found */
 /***/ (function(module, exports, __webpack_require__) {
 
-"use strict";
+function _typeof(obj) { if (typeof Symbol === "function" && typeof Symbol.iterator === "symbol") { _typeof = function _typeof(obj) { return typeof obj; }; } else { _typeof = function _typeof(obj) { return obj && typeof Symbol === "function" && obj.constructor === Symbol && obj !== Symbol.prototype ? "symbol" : typeof obj; }; } return _typeof(obj); }
 
+function _possibleConstructorReturn(self, call) { if (call && (_typeof(call) === "object" || typeof call === "function")) { return call; } return _assertThisInitialized(self); }
 
-var _createClass = function () { function defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ("value" in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } } return function (Constructor, protoProps, staticProps) { if (protoProps) defineProperties(Constructor.prototype, protoProps); if (staticProps) defineProperties(Constructor, staticProps); return Constructor; }; }();
+function _getPrototypeOf(o) { _getPrototypeOf = Object.setPrototypeOf ? Object.getPrototypeOf : function _getPrototypeOf(o) { return o.__proto__ || Object.getPrototypeOf(o); }; return _getPrototypeOf(o); }
 
-function _possibleConstructorReturn(self, call) { if (!self) { throw new ReferenceError("this hasn't been initialised - super() hasn't been called"); } return call && (typeof call === "object" || typeof call === "function") ? call : self; }
+function _inherits(subClass, superClass) { if (typeof superClass !== "function" && superClass !== null) { throw new TypeError("Super expression must either be null or a function"); } subClass.prototype = Object.create(superClass && superClass.prototype, { constructor: { value: subClass, writable: true, configurable: true } }); if (superClass) _setPrototypeOf(subClass, superClass); }
 
-function _inherits(subClass, superClass) { if (typeof superClass !== "function" && superClass !== null) { throw new TypeError("Super expression must either be null or a function, not " + typeof superClass); } subClass.prototype = Object.create(superClass && superClass.prototype, { constructor: { value: subClass, enumerable: false, writable: true, configurable: true } }); if (superClass) Object.setPrototypeOf ? Object.setPrototypeOf(subClass, superClass) : subClass.__proto__ = superClass; }
+function _setPrototypeOf(o, p) { _setPrototypeOf = Object.setPrototypeOf || function _setPrototypeOf(o, p) { o.__proto__ = p; return o; }; return _setPrototypeOf(o, p); }
+
+function _assertThisInitialized(self) { if (self === void 0) { throw new ReferenceError("this hasn't been initialised - super() hasn't been called"); } return self; }
 
 function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError("Cannot call a class as a function"); } }
+
+function _defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ("value" in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } }
+
+function _createClass(Constructor, protoProps, staticProps) { if (protoProps) _defineProperties(Constructor.prototype, protoProps); if (staticProps) _defineProperties(Constructor, staticProps); return Constructor; }
 
 var Twig = __webpack_require__(/*! twig */ "./node_modules/twig/twig.js");
 
 module.exports = function (stage) {
+  'use strict';
+  /*
+  	 *
+  	 *	ROUTE
+  	 *
+  	 */
 
-	'use strict';
+  var decode = function decode(str) {
+    try {
+      return decodeURIComponent(str);
+    } catch (err) {
+      return str;
+    }
+  };
 
-	/*
- 	 *
- 	 *	ROUTE
- 	 *
- 	 */
+  var Route =
+  /*#__PURE__*/
+  function () {
+    function Route(id, path, defaultParams) {
+      _classCallCheck(this, Route);
 
-	var decode = function decode(str) {
-		try {
-			return decodeURIComponent(str);
-		} catch (err) {
-			return str;
-		}
-	};
-	var Route = function () {
-		function Route(id, path, defaultParams) {
-			_classCallCheck(this, Route);
+      this.id = id;
+      this.path = path;
+      this.template = null;
+      this.controller = null;
+      this.defaults = defaultParams;
+      this.variables = [];
+      this.pattern = this.compile();
+    }
 
-			this.id = id;
-			this.path = path;
-			this.template = null;
-			this.controller = null;
-			this.defaults = defaultParams;
-			this.variables = [];
-			this.pattern = this.compile();
-		}
+    _createClass(Route, [{
+      key: "compile",
+      value: function compile() {
+        var _this = this;
 
-		_createClass(Route, [{
-			key: 'compile',
-			value: function compile() {
-				var _this = this;
+        var pattern = this.path.replace(/(\/)?(\.)?\{([^}]+)\}(?:\(([^)]*)\))?(\?)?/g, function (match, slash, dot, key, capture, opt, offset) {
+          var incl = (_this.path[match.length + offset] || '/') === '/';
 
-				var pattern = this.path.replace(/(\/)?(\.)?\{([^}]+)\}(?:\(([^)]*)\))?(\?)?/g, function (match, slash, dot, key, capture, opt, offset) {
-					var incl = (_this.path[match.length + offset] || '/') === '/';
-					_this.variables.push(key);
-					return (incl ? '(?:' : '') + (slash || '') + (incl ? '' : '(?:') + (dot || '') + '(' + (capture || '[^/]+') + '))' + (opt || '');
-				});
-				pattern = pattern.replace(/([\/.])/g, '\\$1').replace(/\*/g, '(.+)');
-				this.pattern = new RegExp('^' + pattern + '[\\/]?$', 'i');
-				return this.pattern;
-			}
-		}, {
-			key: 'match',
-			value: function match(url) {
-				var res = url.match(this.pattern);
-				//console.log(res)
-				if (!res) {
-					return res;
-				}
-				var map = [];
-				var tab = res.slice(1);
-				for (var i = 0; i < tab.length; i++) {
-					var k = this.variables[i] || 'wildcard';
-					var param = tab[i] && decode(tab[i]);
-					//var index = map.push( map[k] ? [].concat(map[k]).concat(param) : param );
-					var index = map.push(param);
-					map[k] = map[index - 1];
-				}
-				if (map && map.wildcard) {
-					map['*'] = map.wildcard;
-				}
-				return map;
-			}
-		}]);
+          _this.variables.push(key);
 
-		return Route;
-	}();
+          return (incl ? '(?:' : '') + (slash || '') + (incl ? '' : '(?:') + (dot || '') + '(' + (capture || '[^/]+') + '))' + (opt || '');
+        });
+        pattern = pattern.replace(/([\/.])/g, '\\$1').replace(/\*/g, '(.+)');
+        this.pattern = new RegExp('^' + pattern + '[\\/]?$', 'i');
+        return this.pattern;
+      }
+    }, {
+      key: "match",
+      value: function match(url) {
+        var res = url.match(this.pattern); //console.log(res)
 
-	/*
- 	 *
- 	 *	RESOLVER
- 	 *
- 	 */
-	var regModuleName = /^(.*)Module[\.js]{0,3}$/;
-	var Resolver = function () {
-		function Resolver(container) {
-			_classCallCheck(this, Resolver);
+        if (!res) {
+          return res;
+        }
 
-			this.container = container;
-			this.resolve = false;
-			this.kernel = this.container.get("kernel");
-			this.defaultAction = null;
-			this.defaultView = null;
-			this.variables = new Array();
-			this.router = this.container.get("router");
-			this.browser = this.container.get("browser");
-			//this.notificationsCenter = this.container.get("notificationsCenter") ;
-		}
+        var map = [];
+        var tab = res.slice(1);
 
-		_createClass(Resolver, [{
-			key: 'match',
-			value: function match(route, url) {
-				var match = route.match(url);
-				if (match) {
-					this.variables = match;
-					this.url = url;
-					this.route = route;
-					this.parsePathernController(route.defaults.controller);
-				}
-				return match;
-			}
-		}, {
-			key: 'getModuleName',
-			value: function getModuleName(str) {
-				var ret = regModuleName.exec(str);
-				if (ret) {
-					return ret[1];
-				} else {
-					throw "BAD MODULE PATTERN ";
-				}
-			}
-		}, {
-			key: 'getController',
-			value: function getController(name) {
-				return this.module.controllers[name + "Controller"];
-			}
-		}, {
-			key: 'getAction',
-			value: function getAction(name) {
-				var ele = name + "Action";
-				if (ele in this.controller) {
-					return this.controller[ele];
-				}
-				return null;
-			}
-		}, {
-			key: 'getDefaultView',
-			value: function getDefaultView(controller, action) {
-				var res = this.module.name + "Module" + ":" + controller + ":" + action + ".html.twig";
-				return res;
-			}
-		}, {
-			key: 'parsePathernController',
-			value: function parsePathernController(pattern) {
-				if (typeof pattern !== "string") {
-					throw new Error("Resolver : pattern : " + pattern + " MUST be a string");
-				}
-				this.route = this.router.getRouteByPattern(pattern);
-				var tab = pattern.split(":");
-				try {
-					this.module = this.kernel.getModule(this.getModuleName(tab[0]));
-				} catch (e) {
-					throw new Error("Resolver pattern error module :  " + pattern + " : " + e);
-				}
-				if (this.module) {
-					this.controller = this.getController(tab[1]);
-					if (this.controller) {
-						if (tab[2]) {
-							this.action = this.getAction(tab[2]);
-							if (!this.action) {
-								throw new Error("Resolver :In CONTROLLER: " + tab[1] + " ACTION  :" + tab[2] + " not exist");
-							}
-						} else {
-							this.action = null;
-						}
-					} else {
-						throw new Error("Resolver :controller not exist :" + tab[1]);
-					}
-					this.defaultView = this.getDefaultView(tab[1], tab[2]);
-					this.resolve = true;
-				} else {
-					//this.logger("Resolver : not exist :"+tab[0] , "ERROR")
-					throw new Error("Resolver : module not exist :" + tab[0]);
-				}
-			}
-		}, {
-			key: 'callController',
-			value: function callController(arg) {
-				try {
-					var ret = this.action.apply(this.controller, arg || []);
-				} catch (e) {
-					this.controller.logger.call(this.controller, e, "ERROR");
-					throw e;
-				}
-				return ret;
-			}
-		}]);
+        for (var i = 0; i < tab.length; i++) {
+          var k = this.variables[i] || 'wildcard';
+          var param = tab[i] && decode(tab[i]); //var index = map.push( map[k] ? [].concat(map[k]).concat(param) : param );
 
-		return Resolver;
-	}();
+          var index = map.push(param);
+          map[k] = map[index - 1];
+        }
 
-	/*
-  *	ROUTER
-  */
+        if (map && map.wildcard) {
+          map['*'] = map.wildcard;
+        }
 
-	var cacheState = function cacheState() {
-		var cacheState = window.history.state === undefined ? null : window.history.state;
-		return cacheState;
-	};
+        return map;
+      }
+    }]);
 
-	var nativeHistory = !!(window.history && window.history.pushState);
-	var regSerch = /(.*)\?.*$/;
+    return Route;
+  }();
+  /*
+  	 *
+  	 *	RESOLVER
+  	 *
+  	 */
 
-	var service = function (_stage$Service) {
-		_inherits(service, _stage$Service);
 
-		function service(kernel, container) {
-			_classCallCheck(this, service);
+  var regModuleName = /^(.*)Module[\.js]{0,3}$/;
 
-			//this.kernel = kernel ;
-			//this.container = container ;
-			//this.notificationsCenter = this.container.get("notificationsCenter");
-			//this.syslog = kernel.syslog ;	
-			var _this2 = _possibleConstructorReturn(this, (service.__proto__ || Object.getPrototypeOf(service)).call(this, "ROUTER", container));
+  var Resolver =
+  /*#__PURE__*/
+  function () {
+    function Resolver(container) {
+      _classCallCheck(this, Resolver);
 
-			_this2.routes = {};
-			_this2.routePattern = {};
-			_this2.location = _this2.get("location");
-			_this2.browser = _this2.get("browser");
-			_this2.logger("INITIALIZE ROUTER SERVICE", "DEBUG");
+      this.container = container;
+      this.resolve = false;
+      this.kernel = this.container.get("kernel");
+      this.defaultAction = null;
+      this.defaultView = null;
+      this.variables = new Array();
+      this.router = this.container.get("router");
+      this.browser = this.container.get("browser"); //this.notificationsCenter = this.container.get("notificationsCenter") ;
+    }
 
-			/*
-    	* Extend Twig js	
-    	*/
-			Twig.extendFunction("path", function (name, variables, host) {
-				try {
-					if (host) {
-						return _this2.generateUrl.call(_this2, name, variables, host);
-					} else {
-						var generatedPath = _this2.generateUrl.call(_this2, name, variables, host);
-						return generatedPath ? "#" + generatedPath : "";
-					}
-				} catch (e) {
-					_this2.logger(e.error);
-					throw e.error;
-				}
-			});
+    _createClass(Resolver, [{
+      key: "match",
+      value: function match(route, url) {
+        var match = route.match(url);
 
-			_this2.notificationsCenter.listen(_this2, "onUrlChange", function (url, lastUrl, absUrl, cache) {
-				try {
-					var res = _this2.resolve(url);
-					if (!res.resolve) {
-						_this2.forward("appModule:app:404");
-						return;
-					}
-					var last = _this2.resolveRoute(lastUrl);
-					if (last) {
-						_this2.notificationsCenter.fire("onRouteChange", { id: res.route.id, route: res.route, args: res.variables }, { id: last.route.id, route: last.route, args: last.variables });
-					}
-				} catch (e) {
-					_this2.logger(e, "ERROR");
-				}
-			});
-			return _this2;
-		}
+        if (match) {
+          this.variables = match;
+          this.url = url;
+          this.route = route;
+          this.parsePathernController(route.defaults.controller);
+        }
 
-		_createClass(service, [{
-			key: 'createRoute',
-			value: function createRoute(id, path, defaultParams) {
-				if (id in this.routes) {
-					this.logger("CREATE ROUTE : " + id + "Already exist ", "ERROR");
-				}
-				var route = new Route(id, path, defaultParams);
-				this.routes[id] = route;
-				this.routePattern[this.routes[id].defaults.controller] = {
-					route: this.routes[id],
-					path: path
-				};
-				this.logger("CREATE ROUTE : " + id, "DEBUG");
-				return route;
-			}
-		}, {
-			key: 'getRoute',
-			value: function getRoute(name) {
-				if (this.routes[name]) return this.routes[name];
-				return null;
-			}
-		}, {
-			key: 'resolveRoute',
-			value: function resolveRoute(url) {
-				var resolver = new Resolver(this.container);
-				var res = [];
-				for (var routes in this.routes) {
-					var route = this.routes[routes];
-					try {
-						res = resolver.match(route, url);
-						if (res) {
-							return resolver;
-						}
-					} catch (e) {
-						continue;
-					}
-				}
-				return null;
-			}
-		}, {
-			key: 'resolve',
-			value: function resolve(url) {
-				//console.log("RESOLVE " +url)
-				//console.log(regSerch.exec(url) );
-				var test = regSerch.exec(url);
-				if (test) url = test[1];
-				var resolver = new Resolver(this.container);
-				var res = [];
-				for (var routes in this.routes) {
-					var route = this.routes[routes];
-					try {
-						res = resolver.match(route, url);
-						if (res) {
-							this.notificationsCenter.fire("onBeforeAction", url, resolver);
-							var ret = resolver.callController(res);
-							this.notificationsCenter.fire("onAfterAction", url, resolver, ret);
-							break;
-						}
-					} catch (e) {
-						this.logger("RESOLVE URL : " + url + " " + e, "ERROR");
-						this.forward("appModule:app:500", [e]);
-					}
-				}
-				return resolver;
-			}
-		}, {
-			key: 'getRouteByPattern',
-			value: function getRouteByPattern(pattern, args) {
-				//console.log(pattern)
-				//console.log(this.routePattern)
-				if (pattern in this.routePattern) {
-					//console.log("FIND")
-					var route = this.routePattern[pattern].route;
-					return route;
-				}
-				//console.log("NOT FIND")
-				return null;
-			}
-		}, {
-			key: 'resolvePattern',
-			value: function resolvePattern(pattern) {
-				var resolver = new Resolver(this.container);
-				var route = resolver.parsePathernController(pattern);
-				return resolver;
-			}
-		}, {
-			key: 'forward',
-			value: function forward(pattern, args) {
-				var resolver = this.resolvePattern(pattern);
-				if (resolver.resolve) {
-					try {
-						if (resolver.route) {
-							this.logger("FORWARD PATTERN : " + pattern + "  FIND ROUTE ==> REDIRECT ", "DEBUG");
-							this.redirect(resolver.route.path);
-							//this.location.url(resolver.route.path);
-							//this.logger("FORWARD PATTERN : "+ pattern + " find ROUTE : "+resolver.route.path +" redirect to URL :" + this.location.absUrl(),"DEBUG")
-							//this.browser.url(this.location.absUrl(), true);
-						} else {
-							this.logger("FORWARD PATTERN : " + pattern + "  NO ROUTE FIND  ==> CALL CONTROLLER", "DEBUG");
-							var ret = resolver.callController(args);
-						}
-					} catch (e) {
-						this.logger("FORWARD " + pattern + " CALL CONTROLER  " + resolver.controller.name + " : " + e, "ERROR");
-						this.forward("appModule:app:500", [e]);
-					}
-				} else {
-					this.logger("Router Can't resolve : " + pattern, "ERROR");
-				}
-				return false;
-			}
-		}, {
-			key: 'redirect',
-			value: function redirect(url) {
-				this.location.url(url);
-				this.logger("REDIRECT URL : " + url + " BROWSER  URL :" + this.location.absUrl(), "DEBUG");
-				this.browser.url(this.location.absUrl(), true);
-			}
-		}, {
-			key: 'generateUrl',
-			value: function generateUrl(name, variables, host) {
-				var route = this.getRoute(name);
-				if (!route) {
-					this.logger("no route to host  :" + name, "WARNING");
-					//throw {error:"no route to host  "+ name};
-					return null;
-				}
-				var path = route.path;
-				if (route.variables.length) {
-					if (!variables) {
-						var txt = "";
-						for (var i = 0; i < route.variables.length; i++) {
-							txt += "{" + route.variables[i] + "} ";
-						}
-						this.logger("router generate path route '" + name + "' must have variable " + txt, "ERROR");
-						return null;
-					}
-					for (var ele in variables) {
-						if (ele === "_keys") continue;
-						var index = route.variables.indexOf(ele);
-						if (index >= 0) {
-							path = path.replace("{" + ele + "}", variables[ele]);
-						} else {
-							this.logger("router generate path route '" + name + "' don't  have variable " + ele, "WARNING");
-							return null;
-						}
-					}
-				}
-				if (host) {
-					return host + "#" + path;
-				}
-				return path;
-			}
-		}]);
+        return match;
+      }
+    }, {
+      key: "getModuleName",
+      value: function getModuleName(str) {
+        var ret = regModuleName.exec(str);
 
-		return service;
-	}(stage.Service);
+        if (ret) {
+          return ret[1];
+        } else {
+          throw "BAD MODULE PATTERN ";
+        }
+      }
+    }, {
+      key: "getController",
+      value: function getController(name) {
+        return this.module.controllers[name + "Controller"];
+      }
+    }, {
+      key: "getAction",
+      value: function getAction(name) {
+        var ele = name + "Action";
 
-	stage.router = service;
-	return service;
+        if (ele in this.controller) {
+          return this.controller[ele];
+        }
+
+        return null;
+      }
+    }, {
+      key: "getDefaultView",
+      value: function getDefaultView(controller, action) {
+        var res = this.module.name + "Module" + ":" + controller + ":" + action + ".html.twig";
+        return res;
+      }
+    }, {
+      key: "parsePathernController",
+      value: function parsePathernController(pattern) {
+        if (typeof pattern !== "string") {
+          throw new Error("Resolver : pattern : " + pattern + " MUST be a string");
+        }
+
+        this.route = this.router.getRouteByPattern(pattern);
+        var tab = pattern.split(":");
+
+        try {
+          this.module = this.kernel.getModule(this.getModuleName(tab[0]));
+        } catch (e) {
+          throw new Error("Resolver pattern error module :  " + pattern + " : " + e);
+        }
+
+        if (this.module) {
+          this.controller = this.getController(tab[1]);
+
+          if (this.controller) {
+            if (tab[2]) {
+              this.action = this.getAction(tab[2]);
+
+              if (!this.action) {
+                throw new Error("Resolver :In CONTROLLER: " + tab[1] + " ACTION  :" + tab[2] + " not exist");
+              }
+            } else {
+              this.action = null;
+            }
+          } else {
+            throw new Error("Resolver :controller not exist :" + tab[1]);
+          }
+
+          this.defaultView = this.getDefaultView(tab[1], tab[2]);
+          this.resolve = true;
+        } else {
+          //this.logger("Resolver : not exist :"+tab[0] , "ERROR")
+          throw new Error("Resolver : module not exist :" + tab[0]);
+        }
+      }
+    }, {
+      key: "callController",
+      value: function callController(arg) {
+        try {
+          var ret = this.action.apply(this.controller, arg || []);
+        } catch (e) {
+          this.controller.logger.call(this.controller, e, "ERROR");
+          throw e;
+        }
+
+        return ret;
+      }
+    }]);
+
+    return Resolver;
+  }();
+  /*
+   *	ROUTER
+   */
+
+
+  var cacheState = function cacheState() {
+    var cacheState = window.history.state === undefined ? null : window.history.state;
+    return cacheState;
+  };
+
+  var nativeHistory = !!(window.history && window.history.pushState);
+  var regSerch = /(.*)\?.*$/;
+
+  var service =
+  /*#__PURE__*/
+  function (_stage$Service) {
+    _inherits(service, _stage$Service);
+
+    function service(kernel, container) {
+      var _this2;
+
+      _classCallCheck(this, service);
+
+      _this2 = _possibleConstructorReturn(this, _getPrototypeOf(service).call(this, "ROUTER", container)); //this.kernel = kernel ;
+      //this.container = container ;
+      //this.notificationsCenter = this.container.get("notificationsCenter");
+      //this.syslog = kernel.syslog ;	
+
+      _this2.routes = {};
+      _this2.routePattern = {};
+      _this2.location = _this2.get("location");
+      _this2.browser = _this2.get("browser");
+
+      _this2.logger("INITIALIZE ROUTER SERVICE", "DEBUG");
+      /*
+       	* Extend Twig js	
+       	*/
+
+
+      Twig.extendFunction("path", function (name, variables, host) {
+        try {
+          if (host) {
+            return _this2.generateUrl.call(_assertThisInitialized(_assertThisInitialized(_this2)), name, variables, host);
+          } else {
+            var generatedPath = _this2.generateUrl.call(_assertThisInitialized(_assertThisInitialized(_this2)), name, variables, host);
+
+            return generatedPath ? "#" + generatedPath : "";
+          }
+        } catch (e) {
+          _this2.logger(e.error);
+
+          throw e.error;
+        }
+      });
+
+      _this2.notificationsCenter.listen(_assertThisInitialized(_assertThisInitialized(_this2)), "onUrlChange", function (url, lastUrl, absUrl, cache) {
+        try {
+          var res = _this2.resolve(url);
+
+          if (!res.resolve) {
+            _this2.forward("appModule:app:404");
+
+            return;
+          }
+
+          var last = _this2.resolveRoute(lastUrl);
+
+          if (last) {
+            _this2.notificationsCenter.fire("onRouteChange", {
+              id: res.route.id,
+              route: res.route,
+              args: res.variables
+            }, {
+              id: last.route.id,
+              route: last.route,
+              args: last.variables
+            });
+          }
+        } catch (e) {
+          _this2.logger(e, "ERROR");
+        }
+      });
+
+      return _this2;
+    }
+
+    _createClass(service, [{
+      key: "createRoute",
+      value: function createRoute(id, path, defaultParams) {
+        if (id in this.routes) {
+          this.logger("CREATE ROUTE : " + id + "Already exist ", "ERROR");
+        }
+
+        var route = new Route(id, path, defaultParams);
+        this.routes[id] = route;
+        this.routePattern[this.routes[id].defaults.controller] = {
+          route: this.routes[id],
+          path: path
+        };
+        this.logger("CREATE ROUTE : " + id, "DEBUG");
+        return route;
+      }
+    }, {
+      key: "getRoute",
+      value: function getRoute(name) {
+        if (this.routes[name]) return this.routes[name];
+        return null;
+      }
+    }, {
+      key: "resolveRoute",
+      value: function resolveRoute(url) {
+        var resolver = new Resolver(this.container);
+        var res = [];
+
+        for (var routes in this.routes) {
+          var route = this.routes[routes];
+
+          try {
+            res = resolver.match(route, url);
+
+            if (res) {
+              return resolver;
+            }
+          } catch (e) {
+            continue;
+          }
+        }
+
+        return null;
+      }
+    }, {
+      key: "resolve",
+      value: function resolve(url) {
+        //console.log("RESOLVE " +url)
+        //console.log(regSerch.exec(url) );
+        var test = regSerch.exec(url);
+        if (test) url = test[1];
+        var resolver = new Resolver(this.container);
+        var res = [];
+
+        for (var routes in this.routes) {
+          var route = this.routes[routes];
+
+          try {
+            res = resolver.match(route, url);
+
+            if (res) {
+              this.notificationsCenter.fire("onBeforeAction", url, resolver);
+              var ret = resolver.callController(res);
+              this.notificationsCenter.fire("onAfterAction", url, resolver, ret);
+              break;
+            }
+          } catch (e) {
+            this.logger("RESOLVE URL : " + url + " " + e, "ERROR");
+            this.forward("appModule:app:500", [e]);
+          }
+        }
+
+        return resolver;
+      }
+    }, {
+      key: "getRouteByPattern",
+      value: function getRouteByPattern(pattern, args) {
+        //console.log(pattern)
+        //console.log(this.routePattern)
+        if (pattern in this.routePattern) {
+          //console.log("FIND")
+          var route = this.routePattern[pattern].route;
+          return route;
+        } //console.log("NOT FIND")
+
+
+        return null;
+      }
+    }, {
+      key: "resolvePattern",
+      value: function resolvePattern(pattern) {
+        var resolver = new Resolver(this.container);
+        var route = resolver.parsePathernController(pattern);
+        return resolver;
+      }
+    }, {
+      key: "forward",
+      value: function forward(pattern, args) {
+        var resolver = this.resolvePattern(pattern);
+
+        if (resolver.resolve) {
+          try {
+            if (resolver.route) {
+              this.logger("FORWARD PATTERN : " + pattern + "  FIND ROUTE ==> REDIRECT ", "DEBUG");
+              this.redirect(resolver.route.path); //this.location.url(resolver.route.path);
+              //this.logger("FORWARD PATTERN : "+ pattern + " find ROUTE : "+resolver.route.path +" redirect to URL :" + this.location.absUrl(),"DEBUG")
+              //this.browser.url(this.location.absUrl(), true);
+            } else {
+              this.logger("FORWARD PATTERN : " + pattern + "  NO ROUTE FIND  ==> CALL CONTROLLER", "DEBUG");
+              var ret = resolver.callController(args);
+            }
+          } catch (e) {
+            this.logger("FORWARD " + pattern + " CALL CONTROLER  " + resolver.controller.name + " : " + e, "ERROR");
+            this.forward("appModule:app:500", [e]);
+          }
+        } else {
+          this.logger("Router Can't resolve : " + pattern, "ERROR");
+        }
+
+        return false;
+      }
+    }, {
+      key: "redirect",
+      value: function redirect(url) {
+        this.location.url(url);
+        this.logger("REDIRECT URL : " + url + " BROWSER  URL :" + this.location.absUrl(), "DEBUG");
+        this.browser.url(this.location.absUrl(), true);
+      }
+    }, {
+      key: "generateUrl",
+      value: function generateUrl(name, variables, host) {
+        var route = this.getRoute(name);
+
+        if (!route) {
+          this.logger("no route to host  :" + name, "WARNING"); //throw {error:"no route to host  "+ name};
+
+          return null;
+        }
+
+        var path = route.path;
+
+        if (route.variables.length) {
+          if (!variables) {
+            var txt = "";
+
+            for (var i = 0; i < route.variables.length; i++) {
+              txt += "{" + route.variables[i] + "} ";
+            }
+
+            this.logger("router generate path route '" + name + "' must have variable " + txt, "ERROR");
+            return null;
+          }
+
+          for (var ele in variables) {
+            if (ele === "_keys") continue;
+            var index = route.variables.indexOf(ele);
+
+            if (index >= 0) {
+              path = path.replace("{" + ele + "}", variables[ele]);
+            } else {
+              this.logger("router generate path route '" + name + "' don't  have variable " + ele, "WARNING");
+              return null;
+            }
+          }
+        }
+
+        if (host) {
+          return host + "#" + path;
+        }
+
+        return path;
+      }
+    }]);
+
+    return service;
+  }(stage.Service);
+
+  stage.router = service;
+  return service;
 };
 
 /***/ }),
@@ -32661,213 +26042,217 @@ module.exports = function (stage) {
   !*** ./src/kernel/service.es6 ***!
   \********************************/
 /*! no static exports found */
-/***/ (function(module, exports, __webpack_require__) {
-
-"use strict";
-
-
-var _createClass = function () { function defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ("value" in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } } return function (Constructor, protoProps, staticProps) { if (protoProps) defineProperties(Constructor.prototype, protoProps); if (staticProps) defineProperties(Constructor, staticProps); return Constructor; }; }();
+/***/ (function(module, exports) {
 
 function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError("Cannot call a class as a function"); } }
 
+function _defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ("value" in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } }
+
+function _createClass(Constructor, protoProps, staticProps) { if (protoProps) _defineProperties(Constructor.prototype, protoProps); if (staticProps) _defineProperties(Constructor, staticProps); return Constructor; }
+
 module.exports = function (stage) {
+  'use strict';
 
-	'use strict';
+  var settingsSyslog = {
+    //rateLimit:100,
+    //burstLimit:10,
+    moduleName: "SERVICE ",
+    defaultSeverity: "INFO"
+  };
+  var defaultOptions = {};
 
-	var settingsSyslog = {
-		//rateLimit:100,
-		//burstLimit:10,
-		moduleName: "SERVICE ",
-		defaultSeverity: "INFO"
-	};
+  var Service =
+  /*#__PURE__*/
+  function () {
+    function Service(name, container, notificationsCenter, options) {
+      _classCallCheck(this, Service);
 
-	var defaultOptions = {};
+      if (name) {
+        this.name = name;
+      }
 
-	var Service = function () {
-		function Service(name, container, notificationsCenter, options) {
-			_classCallCheck(this, Service);
+      options = stage.extend({}, defaultOptions, options);
 
-			if (name) {
-				this.name = name;
-			}
-			options = stage.extend({}, defaultOptions, options);
+      if (container instanceof stage.Container) {
+        this.container = container;
+      } else {
+        if (container) {
+          throw new Error("Service stage container not valid must be instance of stage.Container");
+        }
 
-			if (container instanceof stage.Container) {
-				this.container = container;
-			} else {
-				if (container) {
-					throw new Error("Service stage container not valid must be instance of stage.Container");
-				}
-				this.container = new stage.Container();
-				this.container.set("container", this.container);
-			}
-			this.kernel = this.container.get("kernel");
-			this.syslog = this.container.get("syslog");
-			if (!this.syslog) {
-				this.settingsSyslog = stage.extend({}, settingsSyslog, {
-					moduleName: this.name
-				}, options.syslog || {});
-				this.syslog = new stage.syslog(this.settingsSyslog);
-				this.set("syslog", this.syslog);
-			} else {
-				this.settingsSyslog = this.syslog.settings;
-			}
-			if (notificationsCenter instanceof stage.notificationsCenter.notification) {
-				this.notificationsCenter = notificationsCenter;
-			} else {
-				if (notificationsCenter) {
-					throw new Error("Service stage notificationsCenter not valid must be instance of stage.notificationsCenter.notification");
-				}
-				this.notificationsCenter = this.container.get("notificationsCenter");
-				if (!this.notificationsCenter) {
-					this.notificationsCenter = stage.notificationsCenter.create(options, this);
-					if (!this.kernel) {
-						this.set("notificationsCenter", this.notificationsCenter);
-					} else {
-						if (this.kernel.container !== this.container) {
-							this.set("notificationsCenter", this.notificationsCenter);
-						}
-					}
-				}
-			}
-		}
+        this.container = new stage.Container();
+        this.container.set("container", this.container);
+      }
 
-		_createClass(Service, [{
-			key: "getName",
-			value: function getName() {
-				return this.name;
-			}
-		}, {
-			key: "clean",
-			value: function clean() {
-				this.settingsSyslog = null;
-				delete this.settingsSyslog;
-				this.syslog = null;
-				delete this.syslog;
-				this.removeAllListeners();
-				this.notificationsCenter = null;
-				delete this.notificationsCenter;
-				this.container = null;
-				delete this.container;
-				this.kernel = null;
-				delete this.kernel;
-			}
-		}, {
-			key: "logger",
-			value: function logger(pci, severity, msgid, msg) {
-				try {
-					if (!msgid) {
-						msgid = "SERVICE " + this.name + " ";
-					}
-					return this.syslog.logger(pci, severity, msgid, msg);
-				} catch (e) {
-					console.log(pci);
-				}
-			}
+      this.kernel = this.container.get("kernel");
+      this.syslog = this.container.get("syslog");
 
-			/**
-   	*	@method fire
-   	*	@param {String} event name 
-   	*	@param {Arguments} ... arguments to inject  
-          	*/
+      if (!this.syslog) {
+        this.settingsSyslog = stage.extend({}, settingsSyslog, {
+          moduleName: this.name
+        }, options.syslog || {});
+        this.syslog = new stage.syslog(this.settingsSyslog);
+        this.set("syslog", this.syslog);
+      } else {
+        this.settingsSyslog = this.syslog.settings;
+      }
 
-		}, {
-			key: "fire",
-			value: function fire() {
-				//this.logger(ev, "DEBUG", "EVENT KERNEL")
-				return this.notificationsCenter.fire.apply(this.notificationsCenter, arguments);
-			}
+      if (notificationsCenter instanceof stage.notificationsCenter.notification) {
+        this.notificationsCenter = notificationsCenter;
+      } else {
+        if (notificationsCenter) {
+          throw new Error("Service stage notificationsCenter not valid must be instance of stage.notificationsCenter.notification");
+        }
 
-			/**
-   	*	@method listen
-   	*	@param {Oject} context
-   	*	@param {String} eventName
-   	*	@param {Function} listener
-          	*/
+        this.notificationsCenter = this.container.get("notificationsCenter");
 
-		}, {
-			key: "listen",
-			value: function listen() {
-				return this.notificationsCenter.listen.apply(this.notificationsCenter, arguments);
-			}
+        if (!this.notificationsCenter) {
+          this.notificationsCenter = stage.notificationsCenter.create(options, this);
 
-			/**
-   	*	@method removeListener
-   	*	@param {Oject} eventName 
-   	*	@param {String} listener
-          	*/
+          if (!this.kernel) {
+            this.set("notificationsCenter", this.notificationsCenter);
+          } else {
+            if (this.kernel.container !== this.container) {
+              this.set("notificationsCenter", this.notificationsCenter);
+            }
+          }
+        }
+      }
+    }
 
-		}, {
-			key: "removeListener",
-			value: function removeListener() {
-				return this.notificationsCenter.unListen.apply(this.notificationsCenter, arguments);
-			}
-		}, {
-			key: "unListen",
-			value: function unListen() {
-				return this.notificationsCenter.unListen.apply(this.notificationsCenter, arguments);
-			}
+    _createClass(Service, [{
+      key: "getName",
+      value: function getName() {
+        return this.name;
+      }
+    }, {
+      key: "clean",
+      value: function clean() {
+        this.settingsSyslog = null;
+        delete this.settingsSyslog;
+        this.syslog = null;
+        delete this.syslog;
+        this.removeAllListeners();
+        this.notificationsCenter = null;
+        delete this.notificationsCenter;
+        this.container = null;
+        delete this.container;
+        this.kernel = null;
+        delete this.kernel;
+      }
+    }, {
+      key: "logger",
+      value: function logger(pci, severity, msgid, msg) {
+        try {
+          if (!msgid) {
+            msgid = "SERVICE " + this.name + " ";
+          }
 
-			/**
-   	*	@method removeAllListeners
-          	*/
+          return this.syslog.logger(pci, severity, msgid, msg);
+        } catch (e) {
+          console.log(pci);
+        }
+      }
+      /**
+      	*	@method fire
+      	*	@param {String} event name 
+      	*	@param {Arguments} ... arguments to inject  
+             	*/
 
-		}, {
-			key: "removeAllListeners",
-			value: function removeAllListeners() {
-				return this.notificationsCenter.clearNotifications.apply(this.notificationsCenter, arguments);
-			}
+    }, {
+      key: "fire",
+      value: function fire() {
+        //this.logger(ev, "DEBUG", "EVENT KERNEL")
+        return this.notificationsCenter.fire.apply(this.notificationsCenter, arguments);
+      }
+      /**
+      	*	@method listen
+      	*	@param {Oject} context
+      	*	@param {String} eventName
+      	*	@param {Function} listener
+             	*/
 
-			/**
-   	 *	@method get
-   	 *	@param {String} name of service
-          	 */
+    }, {
+      key: "listen",
+      value: function listen() {
+        return this.notificationsCenter.listen.apply(this.notificationsCenter, arguments);
+      }
+      /**
+      	*	@method removeListener
+      	*	@param {Oject} eventName 
+      	*	@param {String} listener
+             	*/
 
-		}, {
-			key: "get",
-			value: function get(name) {
-				if (this.container) {
-					return this.container.get(name);
-				}
-				return null;
-			}
+    }, {
+      key: "removeListener",
+      value: function removeListener() {
+        return this.notificationsCenter.unListen.apply(this.notificationsCenter, arguments);
+      }
+    }, {
+      key: "unListen",
+      value: function unListen() {
+        return this.notificationsCenter.unListen.apply(this.notificationsCenter, arguments);
+      }
+      /**
+      	*	@method removeAllListeners
+             	*/
 
-			/**
-   	*	@method set
-   	*	@param {String} name of service
-   	*	@param {Object} instance of service
-          	*/
+    }, {
+      key: "removeAllListeners",
+      value: function removeAllListeners() {
+        return this.notificationsCenter.clearNotifications.apply(this.notificationsCenter, arguments);
+      }
+      /**
+      	 *	@method get
+      	 *	@param {String} name of service
+             	 */
 
-		}, {
-			key: "set",
-			value: function set(name, obj) {
-				if (this.container) {
-					return this.container.set(name, obj);
-				}
-				return null;
-			}
-		}, {
-			key: "getParameters",
-			value: function getParameters() {
-				return this.container.getParameters.apply(this.container, arguments);
-			}
-		}, {
-			key: "setParameters",
-			value: function setParameters() {
-				return this.container.setParameters.apply(this.container, arguments);
-			}
-		}, {
-			key: "has",
-			value: function has() {
-				return this.container.has.apply(this.container, arguments);
-			}
-		}]);
+    }, {
+      key: "get",
+      value: function get(name) {
+        if (this.container) {
+          return this.container.get(name);
+        }
 
-		return Service;
-	}();
+        return null;
+      }
+      /**
+      	*	@method set
+      	*	@param {String} name of service
+      	*	@param {Object} instance of service
+             	*/
 
-	stage.Service = Service;
-	return Service;
+    }, {
+      key: "set",
+      value: function set(name, obj) {
+        if (this.container) {
+          return this.container.set(name, obj);
+        }
+
+        return null;
+      }
+    }, {
+      key: "getParameters",
+      value: function getParameters() {
+        return this.container.getParameters.apply(this.container, arguments);
+      }
+    }, {
+      key: "setParameters",
+      value: function setParameters() {
+        return this.container.setParameters.apply(this.container, arguments);
+      }
+    }, {
+      key: "has",
+      value: function has() {
+        return this.container.has.apply(this.container, arguments);
+      }
+    }]);
+
+    return Service;
+  }();
+
+  stage.Service = Service;
+  return Service;
 };
 
 /***/ }),
@@ -32879,147 +26264,163 @@ module.exports = function (stage) {
 /*! no static exports found */
 /***/ (function(module, exports, __webpack_require__) {
 
-"use strict";
-
-
-var _createClass = function () { function defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ("value" in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } } return function (Constructor, protoProps, staticProps) { if (protoProps) defineProperties(Constructor.prototype, protoProps); if (staticProps) defineProperties(Constructor, staticProps); return Constructor; }; }();
+function _typeof(obj) { if (typeof Symbol === "function" && typeof Symbol.iterator === "symbol") { _typeof = function _typeof(obj) { return typeof obj; }; } else { _typeof = function _typeof(obj) { return obj && typeof Symbol === "function" && obj.constructor === Symbol && obj !== Symbol.prototype ? "symbol" : typeof obj; }; } return _typeof(obj); }
 
 function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError("Cannot call a class as a function"); } }
 
-function _possibleConstructorReturn(self, call) { if (!self) { throw new ReferenceError("this hasn't been initialised - super() hasn't been called"); } return call && (typeof call === "object" || typeof call === "function") ? call : self; }
+function _defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ("value" in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } }
 
-function _inherits(subClass, superClass) { if (typeof superClass !== "function" && superClass !== null) { throw new TypeError("Super expression must either be null or a function, not " + typeof superClass); } subClass.prototype = Object.create(superClass && superClass.prototype, { constructor: { value: subClass, enumerable: false, writable: true, configurable: true } }); if (superClass) Object.setPrototypeOf ? Object.setPrototypeOf(subClass, superClass) : subClass.__proto__ = superClass; }
+function _createClass(Constructor, protoProps, staticProps) { if (protoProps) _defineProperties(Constructor.prototype, protoProps); if (staticProps) _defineProperties(Constructor, staticProps); return Constructor; }
+
+function _possibleConstructorReturn(self, call) { if (call && (_typeof(call) === "object" || typeof call === "function")) { return call; } return _assertThisInitialized(self); }
+
+function _getPrototypeOf(o) { _getPrototypeOf = Object.setPrototypeOf ? Object.getPrototypeOf : function _getPrototypeOf(o) { return o.__proto__ || Object.getPrototypeOf(o); }; return _getPrototypeOf(o); }
+
+function _inherits(subClass, superClass) { if (typeof superClass !== "function" && superClass !== null) { throw new TypeError("Super expression must either be null or a function"); } subClass.prototype = Object.create(superClass && superClass.prototype, { constructor: { value: subClass, writable: true, configurable: true } }); if (superClass) _setPrototypeOf(subClass, superClass); }
+
+function _setPrototypeOf(o, p) { _setPrototypeOf = Object.setPrototypeOf || function _setPrototypeOf(o, p) { o.__proto__ = p; return o; }; return _setPrototypeOf(o, p); }
+
+function _assertThisInitialized(self) { if (self === void 0) { throw new ReferenceError("this hasn't been initialised - super() hasn't been called"); } return self; }
 
 var Twig = __webpack_require__(/*! twig */ "./node_modules/twig/twig.js");
 
 module.exports = function (stage) {
+  'use strict';
 
-	'use strict';
+  var translate = {};
+  var translateDispo = {
+    fr_FR: "français",
+    en_EN: "english"
+  };
+  var regNavLang = /(..)-?.*/;
 
-	var translate = {};
+  var service =
+  /*#__PURE__*/
+  function (_stage$Service) {
+    _inherits(service, _stage$Service);
 
-	var translateDispo = {
-		fr_FR: "français",
-		en_EN: "english"
-	};
+    function service(kernel, container) {
+      var _this;
 
-	var regNavLang = /(..)-?.*/;
+      _classCallCheck(this, service);
 
-	var service = function (_stage$Service) {
-		_inherits(service, _stage$Service);
+      _this = _possibleConstructorReturn(this, _getPrototypeOf(service).call(this, "I18N", container, container.get("notificationsCenter")));
 
-		function service(kernel, container) {
-			_classCallCheck(this, service);
+      _this.logger("INITIALIZE I18N SERVICE", "DEBUG");
 
-			var _this = _possibleConstructorReturn(this, (service.__proto__ || Object.getPrototypeOf(service)).call(this, "I18N", container, container.get("notificationsCenter")));
+      _this.container.setParameters("translate", translate);
 
-			_this.logger("INITIALIZE I18N SERVICE", "DEBUG");
+      _this.defaultDomain = _this.trans_default_domain();
+      var locale = navigator.language || navigator.userLanguage;
+      var res = regNavLang.exec(locale);
 
-			_this.container.setParameters("translate", translate);
-			_this.defaultDomain = _this.trans_default_domain();
-			var locale = navigator.language || navigator.userLanguage;
-			var res = regNavLang.exec(locale);
-			if (res) {
-				_this.defaultLocale = res[1] + "_" + locale.toUpperCase();
-			} else {
-				_this.defaultLocale = "fr_FR";
-			}
+      if (res) {
+        _this.defaultLocale = res[1] + "_" + locale.toUpperCase();
+      } else {
+        _this.defaultLocale = "fr_FR";
+      }
 
-			translate[_this.defaultLocale] = {};
+      translate[_this.defaultLocale] = {};
 
-			_this.listen(_this, "onBoot", function () {
-				_this.boot();
-			});
-			return _this;
-		}
+      _this.listen(_assertThisInitialized(_assertThisInitialized(_this)), "onBoot", function () {
+        _this.boot();
+      });
 
-		_createClass(service, [{
-			key: "boot",
-			value: function boot() {
-				//GET APP locale
-				if (this.kernel.modules.app && this.container.getParameters("module.app")) {
-					this.defaultLocale = this.container.getParameters("module.app").locale || this.defaultLocale;
-				}
+      return _this;
+    }
 
-				if (!translate[this.defaultLocale]) {
-					translate[this.defaultLocale] = {};
-				}
+    _createClass(service, [{
+      key: "boot",
+      value: function boot() {
+        //GET APP locale
+        if (this.kernel.modules.app && this.container.getParameters("module.app")) {
+          this.defaultLocale = this.container.getParameters("module.app").locale || this.defaultLocale;
+        }
 
-				this.logger("DEFAULT LOCALE APPLICATION ==> " + this.defaultLocale, "DEBUG");
-				if (Twig) {
-					Twig.extendFunction("getLangs", this.getLangs.bind(this));
-					Twig.extendFunction("trans_default_domain", this.trans_default_domain.bind(this));
-					Twig.extendFilter("trans", this.translation.bind(this));
-					Twig.extendFunction("trans", this.translation.bind(this));
-					Twig.extendFilter("getLangs", this.getLangs.bind(this));
-				}
-			}
-		}, {
-			key: "getLangs",
-			value: function getLangs(locale, data) {
-				var obj = [];
-				for (var ele in translateDispo) {
-					obj.push({
-						name: translateDispo[ele],
-						value: ele
-					});
-				}
-				return obj;
-			}
-		}, {
-			key: "registerI18n",
-			value: function registerI18n(name, locale, domain, data) {
-				if (locale) {
-					if (!translate[locale]) translate[locale] = stage.extend(true, {}, translate[this.defaultLocale]);
-				}
-				if (domain) {
-					if (!translate[locale][domain]) {
-						translate[locale][domain] = stage.extend(true, {}, translate[this.defaultLocale][domain]);
-					}
-					stage.extend(true, translate[locale][domain], data);
-				} else {
-					stage.extend(true, translate[locale], data);
-				}
-			}
-		}, {
-			key: "trans_default_domain",
-			value: function trans_default_domain(domain) {
-				if (!domain) {
-					return this.defaultDomain = "messages";
-				}
-				return this.defaultDomain = domain;
-			}
+        if (!translate[this.defaultLocale]) {
+          translate[this.defaultLocale] = {};
+        }
 
-			/*
-    	*
-    	*
-    	*
-    	*
-    	*/
+        this.logger("DEFAULT LOCALE APPLICATION ==> " + this.defaultLocale, "DEBUG");
 
-		}, {
-			key: "translation",
-			value: function translation(value, args) {
+        if (Twig) {
+          Twig.extendFunction("getLangs", this.getLangs.bind(this));
+          Twig.extendFunction("trans_default_domain", this.trans_default_domain.bind(this));
+          Twig.extendFilter("trans", this.translation.bind(this));
+          Twig.extendFunction("trans", this.translation.bind(this));
+          Twig.extendFilter("getLangs", this.getLangs.bind(this));
+        }
+      }
+    }, {
+      key: "getLangs",
+      value: function getLangs(locale, data) {
+        var obj = [];
 
-				var defaulDomain = args && args[1] ? args[1] : this.defaultDomain;
-				var str = this.container.getParameters("translate." + this.defaultLocale + "." + defaulDomain + "." + value) || value;
-				if (args) {
-					if (args[0]) {
-						for (var ele in args[0]) {
-							str = str.replace(ele, args[0][ele]);
-						}
-					}
-				}
-				return str;
-			}
-		}]);
+        for (var ele in translateDispo) {
+          obj.push({
+            name: translateDispo[ele],
+            value: ele
+          });
+        }
 
-		return service;
-	}(stage.Service);
+        return obj;
+      }
+    }, {
+      key: "registerI18n",
+      value: function registerI18n(name, locale, domain, data) {
+        if (locale) {
+          if (!translate[locale]) translate[locale] = stage.extend(true, {}, translate[this.defaultLocale]);
+        }
 
-	stage.i18n = service;
+        if (domain) {
+          if (!translate[locale][domain]) {
+            translate[locale][domain] = stage.extend(true, {}, translate[this.defaultLocale][domain]);
+          }
 
-	return service;
+          stage.extend(true, translate[locale][domain], data);
+        } else {
+          stage.extend(true, translate[locale], data);
+        }
+      }
+    }, {
+      key: "trans_default_domain",
+      value: function trans_default_domain(domain) {
+        if (!domain) {
+          return this.defaultDomain = "messages";
+        }
+
+        return this.defaultDomain = domain;
+      }
+      /*
+       	*
+       	*
+       	*
+       	*
+       	*/
+
+    }, {
+      key: "translation",
+      value: function translation(value, args) {
+        var defaulDomain = args && args[1] ? args[1] : this.defaultDomain;
+        var str = this.container.getParameters("translate." + this.defaultLocale + "." + defaulDomain + "." + value) || value;
+
+        if (args) {
+          if (args[0]) {
+            for (var ele in args[0]) {
+              str = str.replace(ele, args[0][ele]);
+            }
+          }
+        }
+
+        return str;
+      }
+    }]);
+
+    return service;
+  }(stage.Service);
+
+  stage.i18n = service;
+  return service;
 };
 
 /***/ }),
@@ -33029,20 +26430,16 @@ module.exports = function (stage) {
   !*** ./src/media/media.es6 ***!
   \*****************************/
 /*! no static exports found */
-/***/ (function(module, exports, __webpack_require__) {
-
-"use strict";
-
-
-var _createClass = function () { function defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ("value" in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } } return function (Constructor, protoProps, staticProps) { if (protoProps) defineProperties(Constructor.prototype, protoProps); if (staticProps) defineProperties(Constructor, staticProps); return Constructor; }; }();
+/***/ (function(module, exports) {
 
 function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError("Cannot call a class as a function"); } }
 
+function _defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ("value" in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } }
+
+function _createClass(Constructor, protoProps, staticProps) { if (protoProps) _defineProperties(Constructor.prototype, protoProps); if (staticProps) _defineProperties(Constructor, staticProps); return Constructor; }
+
 module.exports = function (stage) {
-
-  'use strict';
-
-  // UDPATER
+  'use strict'; // UDPATER
 
   var mediaStream = null;
   var getMediaStream = null;
@@ -33054,69 +26451,84 @@ module.exports = function (stage) {
         getMediaStream = function getMediaStream(stream) {
           return URL.createObjectURL(stream);
         };
-        mediaStream = webkitMediaStream;
-        // The representation of tracks in a stream is changed in M26.
+
+        mediaStream = webkitMediaStream; // The representation of tracks in a stream is changed in M26.
         // Unify them for earlier Chrome versions in the coexisting period.
+
         if (!webkitMediaStream.prototype.getVideoTracks) {
           webkitMediaStream.prototype.getVideoTracks = function () {
             return this.videoTracks;
           };
+
           webkitMediaStream.prototype.getAudioTracks = function () {
             return this.audioTracks;
           };
         }
+
         return true;
       }
-      if (stage.browser.Gecko) {
 
+      if (stage.browser.Gecko) {
         getMediaStream = function getMediaStream(stream) {
           return window.URL.createObjectURL(stream);
         };
+
         mediaStream = MediaStream;
+
         if (MediaStream && !MediaStream.prototype.getVideoTracks) {
           MediaStream.prototype.getVideoTracks = function () {
             return [];
           };
         }
+
         if (MediaStream && !MediaStream.prototype.getAudioTracks) {
           MediaStream.prototype.getAudioTracks = function () {
             return [];
           };
         }
+
         return true;
       }
+
       if (stage.browser.Opera) {
         getMediaStream = function getMediaStream(stream) {
           return stream;
         };
+
         if (!MediaStream.prototype.getVideoTracks) {
           MediaStream.prototype.getVideoTracks = function () {
             return [];
           };
         }
+
         if (!MediaStream.prototype.getAudioTracks) {
           MediaStream.prototype.getAudioTracks = function () {
             return [];
           };
         }
+
         return true;
       }
+
       console.error("Browser does not appear to be mediaStream-capable");
     } catch (e) {
       console.error(e);
     }
   }();
-
   /*
    *	MEDIA STREAM
    *
    */
+
+
   var defaultSettingsStream = {
     audio: true,
     video: true
   };
 
-  var MediaStream = function () {
+  var MediaStream =
+  /*#__PURE__*/
+  function () {
     function mediaStream(mediaElement, settings) {
       _classCallCheck(this, mediaStream);
 
@@ -33137,19 +26549,23 @@ module.exports = function (stage) {
           this.settings = stage.extend({}, defaultSettingsStream, settings);
           this.notificationsCenter.settingsToListen(settings);
         }
+
         return navigator.getUserMedia({
           video: this.settings.video,
           audio: this.settings.audio
         }, function (stream) {
           _this.setStream(stream);
+
           if (success) {
             success(_this);
           }
+
           _this.notificationsCenter.fire("onSucces", stream, _this);
         }, function (e) {
           if (error) {
             error(e);
           }
+
           _this.notificationsCenter.listen(_this, "onError");
         });
       }
@@ -33198,7 +26614,6 @@ module.exports = function (stage) {
       value: function getAudioTracks() {
         return this.stream.getAudioTracks();
       }
-
       /*startRecording (stream){
       	var mediaStreamSource = this.audioContext.createMediaStreamSource(stream);
       	console.log(mediaStreamSource);
@@ -33220,7 +26635,6 @@ module.exports = function (stage) {
   stage.extend(stage.media, {
     mediaStream: MediaStream
   });
-
   return stage.media;
 };
 
@@ -33231,29 +26645,28 @@ module.exports = function (stage) {
   !*** ./src/media/webAudio/webaudio.es6 ***!
   \*****************************************/
 /*! no static exports found */
-/***/ (function(module, exports, __webpack_require__) {
-
-"use strict";
-
-
-var _createClass = function () { function defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ("value" in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } } return function (Constructor, protoProps, staticProps) { if (protoProps) defineProperties(Constructor.prototype, protoProps); if (staticProps) defineProperties(Constructor, staticProps); return Constructor; }; }();
+/***/ (function(module, exports) {
 
 function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError("Cannot call a class as a function"); } }
 
-module.exports = function (stage) {
+function _defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ("value" in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } }
 
+function _createClass(Constructor, protoProps, staticProps) { if (protoProps) _defineProperties(Constructor.prototype, protoProps); if (staticProps) _defineProperties(Constructor, staticProps); return Constructor; }
+
+module.exports = function (stage) {
   'use strict';
 
   var audioContext = null;
 
   var webAudioApi = function () {
     audioContext = window.AudioContext || window.webkitAudioContext;
+
     if (audioContext) {
       return true;
     }
+
     return false;
   }();
-
   /*
    *
    *
@@ -33261,9 +26674,13 @@ module.exports = function (stage) {
    *
    *
    */
+
+
   var mixSettings = {};
 
-  var mediaMix = function () {
+  var mediaMix =
+  /*#__PURE__*/
+  function () {
     function mediaMix(settings) {
       _classCallCheck(this, mediaMix);
 
@@ -33271,13 +26688,11 @@ module.exports = function (stage) {
       this.nbBus = 0;
       this.settings = stage.extend({}, mixSettings, settings);
       this.eventsManager = new stage.notificationsCenter.create(this.settings, this);
-
       this.createAudioBus("MASTER", {
         panner: true,
         analyser: true
       });
       this.masterBus = this.audioBus.MASTER;
-
       this.tracks = this.masterBus.tracks;
       this.audioContext = this.masterBus.audioContext;
       this.muted = this.masterBus.muted;
@@ -33285,7 +26700,6 @@ module.exports = function (stage) {
       this.analyserLeft = this.masterBus.audioNodes.analyserLeft;
       this.analyserRight = this.masterBus.audioNodes.analyserRight;
       this.gain = this.masterBus.audioNodes.gain;
-
       this.connect(this.audioContext.destination);
     }
 
@@ -33308,11 +26722,13 @@ module.exports = function (stage) {
       key: "createAudioBus",
       value: function createAudioBus(name, settings) {
         var bus = null;
+
         try {
           bus = new audioBus(name, this, settings);
         } catch (e) {
           throw e;
         }
+
         this.audioBus[name] = bus;
         this.nbBus++;
         bus.listen(this, "onCreateTrack", function (track, bus) {
@@ -33327,18 +26743,20 @@ module.exports = function (stage) {
       key: "removeAudioBus",
       value: function removeAudioBus(bus) {
         var ele = null;
+
         switch (true) {
           case bus instanceof audioBus:
-
             break;
+
           case typeof track === "number":
           case typeof track === "string":
-
             break;
         }
+
         if (!ele) {
           throw new Error("remove bus : this bus doesn't exist in  mixer  ");
         }
+
         return true;
       }
     }, {
@@ -33442,18 +26860,21 @@ module.exports = function (stage) {
 
     return mediaMix;
   }();
-
   /*
    *
    *	CLASS AUDIOBUS
    *
    */
+
+
   var defaultAudioBusSettings = {
     panner: false,
     analyser: false
   };
 
-  var audioBus = function () {
+  var audioBus =
+  /*#__PURE__*/
+  function () {
     function audioBus(name, mixer, settings) {
       _classCallCheck(this, audioBus);
 
@@ -33492,27 +26913,24 @@ module.exports = function (stage) {
       value: function createNodes() {
         // mute
         this.audioNodes.mute = this.createGain();
-        this.in = this.audioNodes.mute;
+        this.in = this.audioNodes.mute; // gain
 
-        // gain
         this.audioNodes.gain = this.createGain();
         this.in.connect(this.audioNodes.gain);
-        this.out = this.audioNodes.gain;
+        this.out = this.audioNodes.gain; // analyseur stéreo
 
-        // analyseur stéreo
         if (this.settings.analyser) {
           this.audioNodes.splitter = this.createChannelSplitter(2);
           this.out.connect(this.audioNodes.splitter);
           this.audioNodes.analyserLeft = this.createAnalyser();
           this.audioNodes.analyserLeft.smoothingTimeConstant = 0.85;
           this.audioNodes.splitter.connect(this.audioNodes.analyserLeft, 0, 0);
-
           this.audioNodes.analyserRight = this.createAnalyser();
           this.audioNodes.analyserRight.smoothingTimeConstant = 0.85;
           this.audioNodes.splitter.connect(this.audioNodes.analyserRight, 1, 0);
-        }
+        } // panoramique
 
-        // panoramique
+
         if (this.settings.panner) {
           this.audioNodes.panner = this.createStereoPanner();
           this.out.connect(this.audioNodes.panner);
@@ -33553,7 +26971,6 @@ module.exports = function (stage) {
       value: function mute() {
         //this.audioNodes.mute.gain.value = 0;
         this.audioNodes.mute.gain.setValueAtTime(0, this.audioContext.currentTime + 1);
-
         this.muted = true;
         this.fire("onMute", this);
         return this;
@@ -33629,14 +27046,15 @@ module.exports = function (stage) {
       value: function removeTrack(track) {
         var ele = null;
         var name = null;
+
         switch (true) {
           case track instanceof Track:
             for (var i = 0; i < this.tracks.length; i++) {
               if (this.tracks[i] === track) {
                 name = track.name;
                 track.pause();
-                track.disconnect();
-                // remove from tab
+                track.disconnect(); // remove from tab
+
                 ele = this.tracks.splice(i, 1);
                 this.nbTracks--;
                 this.fire("onRemoveTrack", ele[0], this);
@@ -33644,15 +27062,20 @@ module.exports = function (stage) {
                 break;
               }
             }
+
             break;
+
           case typeof track === "number":
           case typeof track === "string":
             name = track;
+
             for (var _i = 0; _i < this.tracks.length; _i++) {
               if (this.tracks[_i].name === name) {
                 this.tracks[_i].pause();
-                this.tracks[_i].disconnect();
-                // remove from tab
+
+                this.tracks[_i].disconnect(); // remove from tab
+
+
                 ele = this.tracks.splice(_i, 1);
                 this.nbTracks--;
                 this.fire("onRemoveTrack", ele[0], this);
@@ -33660,24 +27083,28 @@ module.exports = function (stage) {
                 break;
               }
             }
+
             break;
         }
+
         if (!ele) {
           throw new Error("this track doesn't exist in  bus : " + this.name);
         }
+
         return true;
       }
     }]);
 
     return audioBus;
   }();
-
   /*
    *
    *	TRACK
    *
    *
    */
+
+
   var trackSettings = {
     gain: true,
     panner: true,
@@ -33686,7 +27113,9 @@ module.exports = function (stage) {
     connect: true
   };
 
-  var Track = function () {
+  var Track =
+  /*#__PURE__*/
+  function () {
     function Track(media, bus, settings) {
       var _this = this;
 
@@ -33699,15 +27128,12 @@ module.exports = function (stage) {
       this.audioBus = {};
       this.transport = null;
       this.context = bus.audioContext;
-
       this.source = null;
       this.buffer = null;
       this.out = null;
       this.in = null;
-
       this.name = this.settings.name;
       this.id = this.generateId();
-
       this.sync = 0;
       this.retry = 0;
       this.ready = false;
@@ -33723,9 +27149,9 @@ module.exports = function (stage) {
       this.listen(this, "onReady", function () {
         this.bus.mixer.fire('onReadyTrack', this.bus, this);
       });
-
       var type = stage.typeOf(media);
       var error = null;
+
       switch (type) {
         case "object":
           switch (true) {
@@ -33736,18 +27162,22 @@ module.exports = function (stage) {
               this.ready = true;
               this.fire("onReady", this);
               break;
+
             case media instanceof AudioNode:
               this.mediaType = "audioNode";
               this.buffer = media;
               this.ready = true;
               this.fire("onReady", this);
               break;
+
             default:
               error = new Error("media type not allowed ");
               this.fire("onError", error);
               throw error;
           }
+
           break;
+
         case "element":
           this.mediaType = "element";
           /*this.media.onloadstart = () => {
@@ -33756,16 +27186,22 @@ module.exports = function (stage) {
           this.media.onloadeddata = () => {
           	console.log("onloadeddata");
           }*/
+
           this.media.oncanplay = function () {
             _this.connectSource(_this.media);
+
             _this.ready = true;
+
             _this.fire("onReady", _this);
           };
+
           break;
+
         case "string":
           this.url = stage.io.urlToOject(media);
           this.load(media);
           break;
+
         default:
           error = new Error("Track media type error");
           this.fire("onError", error);
@@ -33801,7 +27237,6 @@ module.exports = function (stage) {
     }, {
       key: "createNodes",
       value: function createNodes() {
-
         this.audioNodes.mute = this.bus.createGain();
         this.in = this.audioNodes.mute;
         this.out = this.audioNodes.mute;
@@ -33811,6 +27246,7 @@ module.exports = function (stage) {
           this.out.connect(this.audioNodes.gain);
           this.out = this.audioNodes.gain;
         }
+
         if (this.settings.filter) {
           this.audioNodes.filter = this.bus.createFilter();
           this.out.connect(this.audioNodes.filter);
@@ -33822,6 +27258,7 @@ module.exports = function (stage) {
           this.out.connect(this.audioNodes.panner);
           this.out = this.audioNodes.panner;
         }
+
         if (this.settings.analyser) {
           this.audioNodes.analyser = this.bus.createAnalyser();
           this.audioNodes.analyser.smoothingTimeConstant = 0.85;
@@ -33867,15 +27304,19 @@ module.exports = function (stage) {
             this.media.pause();
             this.fire("onPause", this);
             break;
+
           default:
             if (this.source) {
               if (this.source.node && this.source.playbackState === this.source.node.PLAYING_STATE) {
                 this.source.node.stop(when || 0);
               }
+
               this.disconnectSource();
               this.fire("onPause", this);
             }
+
         }
+
         return this;
       }
     }, {
@@ -33886,18 +27327,24 @@ module.exports = function (stage) {
             this.media.play();
             this.fire("onPlay", this);
             break;
+
           default:
             this.pause().connectSource();
+
             if (loop) {
               this.source.loop = true;
             }
+
             if (this.source.noteOn) {
               this.source.noteOn(this.context.currentTime, time);
             }
+
             if (this.source.start) {
               this.source.start(this.context.currentTime, time);
             }
+
         }
+
         this.fire("onPlay", this);
         return this;
       }
@@ -33935,35 +27382,42 @@ module.exports = function (stage) {
 
         //console.log(arguments);
         var source = null;
+
         switch (this.mediaType) {
           case "audioNode":
             source = buffer || this.buffer;
             break;
+
           case "video":
           case "audio":
             source = this.context.createBufferSource();
             source.buffer = buffer || this.buffer;
             break;
+
           case "decode":
             this.rawBuffer = buffer;
             this.urlStream = URL.createObjectURL(new Blob([this.rawBuffer]));
             this.context.decodeAudioData(buffer, function (decoded) {
               _this2.buffer = decoded;
               _this2.ready = true;
+
               _this2.fire("onReady", _this2);
             }, function (error) {
-              _this2.eventsManager.fire("onError", _this2, error);
-              // only on error attempt to sync on frame boundary
+              _this2.eventsManager.fire("onError", _this2, error); // only on error attempt to sync on frame boundary
               //if(this.syncStream()) this.createSource(type, buffer);
+
             });
             break;
+
           case "stream":
             source = this.context.createMediaStreamSource(buffer || this.buffer);
             break;
+
           case "element":
             source = this.context.createMediaElementSource(this.media);
             break;
         }
+
         return source;
       }
     }, {
@@ -33973,23 +27427,29 @@ module.exports = function (stage) {
         Uint8Array.prototype.indexOf = Array.prototype.indexOf;
         var i = this.sync,
             b = buf8;
+
         while (1) {
-          this.retry++;
-          //nodeGain
+          this.retry++; //nodeGain
+
           i = b.indexOf(0xFF, i);
+
           if (i === -1 || b[i + 1] & 0xE0 === 0xE0) {
             break;
           }
+
           i++;
         }
+
         if (i !== -1) {
           var tmp = this.buffer.slice(i); //carefull there it returns copy
+
           delete this.buffer;
           this.buffer = null;
           this.buffer = tmp;
           this.sync = i;
           return true;
         }
+
         return false;
       }
     }, {
@@ -34000,15 +27460,20 @@ module.exports = function (stage) {
         this.transport = new XMLHttpRequest();
         this.transport.open("GET", url, true);
         this.transport.responseType = "arraybuffer";
+
         this.transport.onload = function () {
           // Asynchronously decode the audio file data in request.response
           _this3.mediaType = "decode";
+
           _this3.createSource(_this3.transport.response);
+
           _this3.contentType = _this3.transport.getResponseHeader("content-type").split(";")[0];
+
           switch (_this3.contentType) {
             case /audio\/.*/.test(_this3.contentType) ? _this3.contentType : null:
               _this3.mediaType = "audio";
               break;
+
             case /video\/.*/.test(_this3.contentType) ? _this3.contentType : null:
               _this3.mediaType = "video";
               break;
@@ -34032,7 +27497,6 @@ module.exports = function (stage) {
     Track: Track,
     audioBus: audioBus
   });
-
   return stage.media;
 };
 
@@ -34048,77 +27512,99 @@ module.exports = function (stage) {
 "use strict";
 
 
-var _createClass = function () { function defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ("value" in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } } return function (Constructor, protoProps, staticProps) { if (protoProps) defineProperties(Constructor.prototype, protoProps); if (staticProps) defineProperties(Constructor, staticProps); return Constructor; }; }();
+function _typeof(obj) { if (typeof Symbol === "function" && typeof Symbol.iterator === "symbol") { _typeof = function _typeof(obj) { return typeof obj; }; } else { _typeof = function _typeof(obj) { return obj && typeof Symbol === "function" && obj.constructor === Symbol && obj !== Symbol.prototype ? "symbol" : typeof obj; }; } return _typeof(obj); }
 
 function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError("Cannot call a class as a function"); } }
 
-function _possibleConstructorReturn(self, call) { if (!self) { throw new ReferenceError("this hasn't been initialised - super() hasn't been called"); } return call && (typeof call === "object" || typeof call === "function") ? call : self; }
+function _defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ("value" in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } }
 
-function _inherits(subClass, superClass) { if (typeof superClass !== "function" && superClass !== null) { throw new TypeError("Super expression must either be null or a function, not " + typeof superClass); } subClass.prototype = Object.create(superClass && superClass.prototype, { constructor: { value: subClass, enumerable: false, writable: true, configurable: true } }); if (superClass) Object.setPrototypeOf ? Object.setPrototypeOf(subClass, superClass) : subClass.__proto__ = superClass; }
+function _createClass(Constructor, protoProps, staticProps) { if (protoProps) _defineProperties(Constructor.prototype, protoProps); if (staticProps) _defineProperties(Constructor, staticProps); return Constructor; }
+
+function _possibleConstructorReturn(self, call) { if (call && (_typeof(call) === "object" || typeof call === "function")) { return call; } return _assertThisInitialized(self); }
+
+function _getPrototypeOf(o) { _getPrototypeOf = Object.setPrototypeOf ? Object.getPrototypeOf : function _getPrototypeOf(o) { return o.__proto__ || Object.getPrototypeOf(o); }; return _getPrototypeOf(o); }
+
+function _inherits(subClass, superClass) { if (typeof superClass !== "function" && superClass !== null) { throw new TypeError("Super expression must either be null or a function"); } subClass.prototype = Object.create(superClass && superClass.prototype, { constructor: { value: subClass, writable: true, configurable: true } }); if (superClass) _setPrototypeOf(subClass, superClass); }
+
+function _setPrototypeOf(o, p) { _setPrototypeOf = Object.setPrototypeOf || function _setPrototypeOf(o, p) { o.__proto__ = p; return o; }; return _setPrototypeOf(o, p); }
+
+function _assertThisInitialized(self) { if (self === void 0) { throw new ReferenceError("this hasn't been initialised - super() hasn't been called"); } return self; }
 
 module.exports = function (stage) {
-
   // CALLBACK SDP PARSER
   var parseSdp = function parseSdp(description) {
     var sdpLines = description.sdp.split('\r\n');
-    var newline = "";
-    // Search for m line.
+    var newline = ""; // Search for m line.
+
     for (var i = 0; i < sdpLines.length; i++) {
       var line = sdpLines[i];
+
       switch (description.type) {
         case "offer":
           /*if (line.search('a=crypto') !== -1) {
             console.log("PARSE SDP DELETE CRYPTO ");
             continue ;
           }*/
+
           /*if (line.search('a=setup:actpass') !== -1) {
             console.log("PARSE SDP REPLACE setup :  actpass by active  ");
             line = line.replace("a=setup:actpass", "a=setup:active")
           }*/
           break;
+
         case "answer":
           /*if (line.search('a=crypto') !== -1) {
             console.log("PARSE SDP DELETE CRYPTO ");
             continue ;
           }*/
+
           /*if (line.search('a=setup:actpass') !== -1) {
             console.log("PARSE SDP REPLACE setup :  actpass by active  ");
             line = line.replace("a=setup:actpass", "a=setup:active")
           }*/
           break;
       }
+
       if (i === sdpLines.length - 1) {
         newline += line;
       } else {
         newline += line + "\r\n";
       }
     }
+
     description.sdp = newline;
     return description;
   };
-
   /*
    *
    *  CLASS TRANSACTION WEBRTC
    *
    */
-  var Transaction = function (_stage$Service) {
+
+
+  var Transaction =
+  /*#__PURE__*/
+  function (_stage$Service) {
     _inherits(Transaction, _stage$Service);
 
     function Transaction(webrtc, from, to, dialog, settings) {
+      var _this;
+
       _classCallCheck(this, Transaction);
 
-      var _this = _possibleConstructorReturn(this, (Transaction.__proto__ || Object.getPrototypeOf(Transaction)).call(this, "WEBRTC TRANSACTION", webrtc.container, stage.notificationsCenter.create(settings || {})));
+      _this = _possibleConstructorReturn(this, _getPrototypeOf(Transaction).call(this, "WEBRTC TRANSACTION", webrtc.container, stage.notificationsCenter.create(settings || {})));
+      _this.webrtc = webrtc; //this.notificationsCenter = stage.notificationsCenter.create(settings || {}, this);
 
-      _this.webrtc = webrtc;
-      //this.notificationsCenter = stage.notificationsCenter.create(settings || {}, this);
       _this.dialog = dialog || null;
       _this.error = null;
+
       if (_this.dialog) {
         _this.callId = _this.dialog.callId;
       }
+
       _this.protocol = webrtc.protocol;
       _this.from = from;
+
       try {
         if (to instanceof stage.media.userMedia) {
           _this.to = to;
@@ -34128,34 +27614,43 @@ module.exports = function (stage) {
       } catch (e) {
         throw e;
       }
+
       _this.asyncCandidates = _this.webrtc.settings.asyncCandidates;
 
       _this.logger("CREATE TRANSATION WEBRTC", "DEBUG");
-      _this.RTCPeerConnection = _this.createPeerConnection();
-      _this.RTCPeerConnection.addStream(_this.from.stream);
 
-      // MANAGE DTMF
+      _this.RTCPeerConnection = _this.createPeerConnection();
+
+      _this.RTCPeerConnection.addStream(_this.from.stream); // MANAGE DTMF
+
+
       _this.dtmfSender = null;
+
       if (_this.webrtc.settings.dtmf) {
         try {
           _this.initDtmfSender(_this.from.stream);
-          _this.webrtc.listen(_this, "onKeyPress", _this.sendDtmf);
-          // FIXME TRY TO RECEIVE DTMF RTP-EVENT
+
+          _this.webrtc.listen(_assertThisInitialized(_assertThisInitialized(_this)), "onKeyPress", _this.sendDtmf); // FIXME TRY TO RECEIVE DTMF RTP-EVENT
+
           /*this.webrtc.listen(this, "onRemoteStream",function(event, mediaStream, transaction){
             this.logger( "DTMF setRemoteStream", "DEBUG")
             this.initDtmfReceiver( this.from.stream );
           });*/
+
         } catch (e) {
           _this.webrtc.logger(e, "ERROR");
+
           throw e;
         }
-      }
+      } // MANAGE CANDIDATES
 
-      // MANAGE CANDIDATES
+
       _this.candidates = [];
-      _this.listen(_this, "onIcecandidate", function (transaction, candidates, peerConnection) {
+
+      _this.listen(_assertThisInitialized(_assertThisInitialized(_this)), "onIcecandidate", function (transaction, candidates, peerConnection) {
         //console.log(" onIcecandidate : " + peerConnection.localDescription.type )
         var to = null;
+
         if (this.asyncCandidates && this.candidates.length) {
           //console.log( message.dailog)
           to = this.dialog.to.replace("<sip:", "").replace(">", "");
@@ -34165,6 +27660,7 @@ module.exports = function (stage) {
         } else {
           if (peerConnection.localDescription.type === "offer") {
             this.sessionDescription = parseSdp.call(this, peerConnection.localDescription);
+
             if (this.dialog) {
               to = this.dialog.to.replace("<sip:", "").replace(">", "");
               this.logger("CANDIDATE TO" + to, "DEBUG");
@@ -34176,8 +27672,10 @@ module.exports = function (stage) {
               this.webrtc.fire("onInvite", this, this.to, this.sessionDescription);
             }
           }
+
           if (peerConnection.localDescription.type === "answer") {
             this.sessionDescription = peerConnection.localDescription;
+
             if (this.sessionDescription && !this.error) {
               this.fire("onCreateAnwser", this.to, this.sessionDescription, this, this.dialog);
             }
@@ -34185,67 +27683,72 @@ module.exports = function (stage) {
         }
       });
 
-      _this.listen(_this, "onCreateAnwser", function (to, sessionDescription, webrtcTransaction, diag) {
+      _this.listen(_assertThisInitialized(_assertThisInitialized(_this)), "onCreateAnwser", function (to, sessionDescription, webrtcTransaction, diag) {
         var response = this.dialog.currentTransaction.createResponse(200, "OK", this.sessionDescription.sdp, "application/sdp");
         response.send();
       });
+
       return _this;
     }
 
     _createClass(Transaction, [{
-      key: 'createPeerConnection',
+      key: "createPeerConnection",
       value: function createPeerConnection() {
         var _this2 = this;
 
         try {
           // CREATE PeerConnection
-          this.logger(this.webrtc.settings.optional, "DEBUG");
-          //console.log(this.webrtc.settings.optional)
-          this.RTCPeerConnection = new RTCPeerConnection(this.webrtc.settings.optional);
+          this.logger(this.webrtc.settings.optional, "DEBUG"); //console.log(this.webrtc.settings.optional)
 
-          // MANAGE EVENT CANDIDATES
+          this.RTCPeerConnection = new RTCPeerConnection(this.webrtc.settings.optional); // MANAGE EVENT CANDIDATES
+
           this.RTCPeerConnection.onicecandidate = function (event) {
             // FIX firefox fire many time onicecandidate  iceGatheringState === complete
             var old = _this2.iceGatheringState;
+
             if (event.target) {
               _this2.iceGatheringState = event.target.iceGatheringState || _this2.RTCPeerConnection.iceGatheringState;
             } else {
               _this2.iceGatheringState = _this2.RTCPeerConnection.iceGatheringState;
             }
-            var type = _this2.RTCPeerConnection.localDescription.type;
-            //console.log(this.iceGatheringState)
+
+            var type = _this2.RTCPeerConnection.localDescription.type; //console.log(this.iceGatheringState)
             //console.log(type)
+
             if (type === "offer" && _this2.iceGatheringState === 'complete' && old !== "complete") {
               //console.log("PASSS CANDIDATE")
               _this2.fire("onIcecandidate", _this2, _this2.candidates, _this2.RTCPeerConnection);
-            } else if (event && event.candidate === null) {
-              // candidates null !!!
+            } else if (event && event.candidate === null) {// candidates null !!!
             } else {
               _this2.logger("WEBRTC : ADD CANDIDATE", "DEBUG");
+
               if (event.candidate) {
                 _this2.candidates.push(event.candidate);
               }
+
               if (type === "answer") {
                 _this2.fire("onIcecandidate", _this2, _this2.candidates, _this2.RTCPeerConnection);
+
                 _this2.RTCPeerConnection.onicecandidate = null;
               }
             }
-          };
+          }; // MANAGE STREAM
 
-          // MANAGE STREAM
+
           this.RTCPeerConnection.onaddstream = function (event) {
             //console.log(event)
             _this2.setRemoteStream(event);
+
             _this2.logger("WEBRTC : ADD STREAM ", "DEBUG");
           };
+
           return this.RTCPeerConnection;
         } catch (e) {
           this.logger(e, "ERROR");
           this.webrtc.fire("onError", this, e);
         }
-      }
+      } // FIXME TRY TO RECEIVE DTMF RTP-EVENT
 
-      // FIXME TRY TO RECEIVE DTMF RTP-EVENT
       /*initDtmfReceiver (mediaStream){
         console.log(this.RTCPeerConnection)
         if ( ! this.RTCPeerConnection.createDTMFSender ) {
@@ -34268,67 +27771,78 @@ module.exports = function (stage) {
       }*/
 
     }, {
-      key: 'initDtmfSender',
+      key: "initDtmfSender",
       value: function initDtmfSender(mediaStream) {
         var _this3 = this;
 
         switch (this.webrtc.settings.dtmf) {
           case "SIP-INFO":
             var func = function func() {};
+
             func.prototype.insertDTMF = function (key, duration, gap) {
               var description = "Signal=" + key + "\nDuration=" + duration;
               var type = "application/dtmf-relay";
+
               _this3.dialog.info(description, type);
             };
+
             this.dtmfSender = new func();
             break;
+
           case "RTP-EVENT":
             if (!this.RTCPeerConnection.createDTMFSender) {
               throw new Error(" RTCPeerConnection method createDTMFSender() !!!! which is not support by this browser", 500);
             }
+
             if (mediaStream !== null) {
               var localAudioTrack = mediaStream.getAudioTracks()[0];
               this.dtmfSender = this.RTCPeerConnection.createDTMFSender(localAudioTrack);
+
               this.dtmfSender.ontonechange = function (tone) {
                 _this3.webrtc.fire("dtmfOnToneChange", tone, _this3);
               };
             } else {
               throw new Error('No local stream to create DTMF Sender', 500);
             }
+
             break;
         }
       }
     }, {
-      key: 'sendDtmf',
+      key: "sendDtmf",
       value: function sendDtmf(code, key, event) {
         if (this.dialog.status !== this.dialog.statusCode.ESTABLISHED) {
           return;
         }
+
         if (this.dtmfSender) {
           var duration = 500;
           var gap = 50;
           this.logger('DTMF SEND ' + key + '  duration :  ' + duration + ' gap :  ' + gap, "DEBUG");
           return this.dtmfSender.insertDTMF(key, duration, gap);
         }
+
         throw new Error(" DTMF SENDER not ready");
       }
     }, {
-      key: 'createOffer',
+      key: "createOffer",
       value: function createOffer() {
         var _this4 = this;
 
         return this.RTCPeerConnection.createOffer(function (sessionDescription) {
           try {
             _this4.sessionDescription = parseSdp.call(_this4, sessionDescription);
+
             _this4.from.setDescription(_this4.RTCPeerConnection.setLocalDescription(_this4.sessionDescription, function () {
               // ASYNC CANDIDATES
               if (_this4.asyncCandidates) {
                 // INVITE
                 _this4.dialog = _this4.webrtc.protocol.invite(_this4.to.name, _this4.sessionDescription);
                 _this4.callId = _this4.dialog.callId;
+
                 _this4.webrtc.fire("onInvite", _this4, _this4.to, _this4.sessionDescription);
-              } else {
-                // SYNC CANDIDATES
+              } else {// SYNC CANDIDATES
+
                 /*this.webrtc.listen(this, "onIcecandidate" , function(transaction, candidates, peerConnection){
                   if ( peerConnection.localDescription.type == "offer" ){
                     this.sessionDescription = parseSdp.call(this, peerConnection.localDescription ) ;
@@ -34345,6 +27859,7 @@ module.exports = function (stage) {
               }
             }, function (error) {
               _this4.error = error;
+
               _this4.webrtc.fire("onError", _this4, error);
             }));
           } catch (e) {
@@ -34355,21 +27870,23 @@ module.exports = function (stage) {
         }, this.from.settings.constraintsOffer);
       }
     }, {
-      key: 'setRemoteStream',
+      key: "setRemoteStream",
       value: function setRemoteStream(event) {
         if (event) {
           //console.log(event.stream.getVideoTracks());
           this.to.createMediaStream(null, null);
           this.to.mediaStream.setStream(event.stream);
           var type = this.RTCPeerConnection.remoteDescription.type;
+
           if (event.type === "video" || event.type === "addstream") {
             this.webrtc.notificationsCenter.fire("onRemoteStream", type, event, this.to.mediaStream, this);
           }
         }
+
         return this.to.createMediaStream;
       }
     }, {
-      key: 'setRemoteDescription',
+      key: "setRemoteDescription",
       value: function setRemoteDescription(type, user, description, dialog) {
         var _this5 = this;
 
@@ -34378,119 +27895,136 @@ module.exports = function (stage) {
         var desc = {
           type: type,
           sdp: description
-        };
-        //console.log( desc );
+        }; //console.log( desc );
+
         var remoteDesc = parseSdp.call(this, desc);
         var ClassDesc = new RTCSessionDescription(remoteDesc);
-
         this.remoteDescription = this.RTCPeerConnection.setRemoteDescription(ClassDesc, function () {
           if (_this5.RTCPeerConnection.remoteDescription.type === "offer") {
             //console.log("WEBRTC : onRemoteDescription ");
             //this.doAnswer(dialog);
             _this5.webrtc.fire("onOffer", _this5.webrtc, _this5);
+
             _this5.webrtc.fire("onRemoteDescription", _this5.from, _this5, _this5.to);
           } else {
             _this5.webrtc.fire("onOffHook", _this5, dialog);
           }
         }, function (error) {
           _this5.error = error;
+
           _this5.webrtc.fire("onError", _this5, error);
         });
         return this.remoteDescription;
       }
     }, {
-      key: 'doAnswer',
+      key: "doAnswer",
       value: function doAnswer(dialog) {
         var _this6 = this;
 
         return this.RTCPeerConnection.createAnswer(function (sessionDescription) {
           _this6.from.setDescription(sessionDescription);
+
           _this6.RTCPeerConnection.setLocalDescription(sessionDescription, function () {
             _this6.sessionDescription = sessionDescription;
+
             if (_this6.asyncCandidates) {
               _this6.fire("onCreateAnwser", _this6.to, _this6.sessionDescription, _this6, dialog);
             }
+
             _this6.webrtc.fire("onOffHook", _this6, dialog);
           }, function (error) {
             _this6.error = error;
+
             _this6.webrtc.fire("onError", _this6, error);
           });
-        },
-        // error
+        }, // error
         function (e) {
           _this6.error = e;
+
           _this6.webrtc.fire("onError", _this6, e);
         }, this.from.settings.constraints);
       }
     }, {
-      key: 'bye',
+      key: "bye",
       value: function bye() {
         if (this.dialog) {
           this.dialog.bye();
         }
       }
     }, {
-      key: 'cancel',
+      key: "cancel",
       value: function cancel() {
         if (this.currentTransaction) {
           this.currentTransaction.cancel();
         }
+
         this.webrtc.closeTransaction(this, this.to.name);
       }
     }, {
-      key: 'decline',
+      key: "decline",
       value: function decline() {
         if (this.currentTransaction) {
           this.currentTransaction.decline();
         }
+
         this.webrtc.closeTransaction(this, this.to.name);
       }
     }, {
-      key: 'close',
+      key: "close",
       value: function close() {
         this.logger("WEBRTC CLOSE TRANSACTION  : " + this.callId, "DEBUG");
+
         if (this.RTCPeerConnection) {
           this.RTCPeerConnection.close();
         } else {
           this.logger("WEBRTC  TRANSACTION ALREADY CLOSED : " + this.callId, "WARNING");
         }
+
         if (this.webrtc) {
           this.webrtc.unListen("onKeyPress", this.sendDtmf);
         }
+
         this.clear();
         return this;
       }
     }, {
-      key: 'clear',
+      key: "clear",
       value: function clear() {
         if (this.RTCPeerConnection) {
           this.RTCPeerConnection = null;
           delete this.RTCPeerConnection;
         }
+
         if (this.webrtc) {
           this.webrtc = null;
           delete this.webrtc;
         }
+
         if (this.currentTransaction) {
           this.currentTransaction = null;
           delete this.currentTransaction;
         }
+
         if (this.candidates) {
           this.candidates = null;
           delete this.candidates;
         }
+
         if (this.dialog) {
           this.dialog = null;
           delete this.dialog;
         }
+
         if (this.from) {
           this.from = null;
           delete this.from;
         }
+
         if (this.to) {
           this.to = null;
           delete this.to;
         }
+
         if (this.error) {
           this.error = null;
           delete this.error;
@@ -34519,12 +28053,13 @@ module.exports = function (stage) {
 "use strict";
 
 
-var _createClass = function () { function defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ("value" in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } } return function (Constructor, protoProps, staticProps) { if (protoProps) defineProperties(Constructor.prototype, protoProps); if (staticProps) defineProperties(Constructor, staticProps); return Constructor; }; }();
-
 function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError("Cannot call a class as a function"); } }
 
-module.exports = function (stage) {
+function _defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ("value" in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } }
 
+function _createClass(Constructor, protoProps, staticProps) { if (protoProps) _defineProperties(Constructor.prototype, protoProps); if (staticProps) _defineProperties(Constructor, staticProps); return Constructor; }
+
+module.exports = function (stage) {
   /*
    *
    *  CLASS USER
@@ -34541,16 +28076,15 @@ module.exports = function (stage) {
     displayName: ""
   };
 
-  var User = function () {
+  var User =
+  /*#__PURE__*/
+  function () {
     function User(userName, settings) {
       _classCallCheck(this, User);
 
       this.name = userName;
-
       this.settings = stage.extend(true, {}, userSettings, settings);
-
       this.displayName = this.settings.displayName || userName;
-
       this.audio = this.settings.constraintsOffer.mandatory.OfferToReceiveAudio;
       this.video = this.settings.constraintsOffer.mandatory.OfferToReceiveVideo;
       this.mediaStream = null;
@@ -34558,7 +28092,7 @@ module.exports = function (stage) {
     }
 
     _createClass(User, [{
-      key: 'createMediaStream',
+      key: "createMediaStream",
       value: function createMediaStream(succesCallback, errorMedia) {
         this.mediaStream = new stage.media.mediaStream(null, {
           audio: this.audio,
@@ -34569,7 +28103,7 @@ module.exports = function (stage) {
         return this.mediaStream;
       }
     }, {
-      key: 'setDescription',
+      key: "setDescription",
       value: function setDescription(desc) {
         this.description = desc;
       }
@@ -34596,16 +28130,25 @@ module.exports = function (stage) {
 "use strict";
 
 
-var _createClass = function () { function defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ("value" in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } } return function (Constructor, protoProps, staticProps) { if (protoProps) defineProperties(Constructor.prototype, protoProps); if (staticProps) defineProperties(Constructor, staticProps); return Constructor; }; }();
+function _typeof(obj) { if (typeof Symbol === "function" && typeof Symbol.iterator === "symbol") { _typeof = function _typeof(obj) { return typeof obj; }; } else { _typeof = function _typeof(obj) { return obj && typeof Symbol === "function" && obj.constructor === Symbol && obj !== Symbol.prototype ? "symbol" : typeof obj; }; } return _typeof(obj); }
 
 function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError("Cannot call a class as a function"); } }
 
-function _possibleConstructorReturn(self, call) { if (!self) { throw new ReferenceError("this hasn't been initialised - super() hasn't been called"); } return call && (typeof call === "object" || typeof call === "function") ? call : self; }
+function _defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ("value" in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } }
 
-function _inherits(subClass, superClass) { if (typeof superClass !== "function" && superClass !== null) { throw new TypeError("Super expression must either be null or a function, not " + typeof superClass); } subClass.prototype = Object.create(superClass && superClass.prototype, { constructor: { value: subClass, enumerable: false, writable: true, configurable: true } }); if (superClass) Object.setPrototypeOf ? Object.setPrototypeOf(subClass, superClass) : subClass.__proto__ = superClass; }
+function _createClass(Constructor, protoProps, staticProps) { if (protoProps) _defineProperties(Constructor.prototype, protoProps); if (staticProps) _defineProperties(Constructor, staticProps); return Constructor; }
+
+function _possibleConstructorReturn(self, call) { if (call && (_typeof(call) === "object" || typeof call === "function")) { return call; } return _assertThisInitialized(self); }
+
+function _assertThisInitialized(self) { if (self === void 0) { throw new ReferenceError("this hasn't been initialised - super() hasn't been called"); } return self; }
+
+function _getPrototypeOf(o) { _getPrototypeOf = Object.setPrototypeOf ? Object.getPrototypeOf : function _getPrototypeOf(o) { return o.__proto__ || Object.getPrototypeOf(o); }; return _getPrototypeOf(o); }
+
+function _inherits(subClass, superClass) { if (typeof superClass !== "function" && superClass !== null) { throw new TypeError("Super expression must either be null or a function"); } subClass.prototype = Object.create(superClass && superClass.prototype, { constructor: { value: subClass, writable: true, configurable: true } }); if (superClass) _setPrototypeOf(subClass, superClass); }
+
+function _setPrototypeOf(o, p) { _setPrototypeOf = Object.setPrototypeOf || function _setPrototypeOf(o, p) { o.__proto__ = p; return o; }; return _setPrototypeOf(o, p); }
 
 module.exports = function (stage) {
-
   /*
    *
    *  CLASS WEBRTC
@@ -34617,13 +28160,14 @@ module.exports = function (stage) {
     protocol: "SIP",
     sipPort: 5060,
     sipTransport: "WSS",
-    dtmf: "SIP-INFO", // "SIP-INFO", "RTP-EVENT"
+    dtmf: "SIP-INFO",
+    // "SIP-INFO", "RTP-EVENT"
+
     /*
      * STUN  => { iceServers: [{ url: ! stage.browser.Gecko ? 'stun:stun.l.google.com:19302' : 'stun:23.21.150.121'}] }
      * TURN  => { iceServers: [{ url: "turn:webrtc%40live.com@numb.viagenie.ca", credential: ""}] }
      */
     iceServers: [],
-
     optional: stage.browser.Gecko ? {
       'DtlsSrtpKeyAgreement': 'true'
     } : {
@@ -34633,28 +28177,34 @@ module.exports = function (stage) {
     asyncCandidates: false
   };
 
-  var WebRtc = function (_stage$Service) {
+  var WebRtc =
+  /*#__PURE__*/
+  function (_stage$Service) {
     _inherits(WebRtc, _stage$Service);
 
     function WebRtc(server, transport, settings) {
+      var _this;
+
       _classCallCheck(this, WebRtc);
 
-      var _this = _possibleConstructorReturn(this, (WebRtc.__proto__ || Object.getPrototypeOf(WebRtc)).call(this, "WEBRTC", null, null, settings));
-
+      _this = _possibleConstructorReturn(this, _getPrototypeOf(WebRtc).call(this, "WEBRTC", null, null, settings));
       _this.settings = stage.extend(true, {}, defaultSettings, settings);
       _this.settings.optional.iceServers = _this.settings.iceServers;
       _this.protocol = null;
       _this.socketState = "close";
-      _this.transactions = {};
-      //this.users = {};
+      _this.transactions = {}; //this.users = {};
+
       _this.transport = _this.connect(transport);
+
       if (_this.transport && _this.transport.publicAddress) {
-        _this.publicAddress = _this.transport.publicAddress;
-        //this.publicAddress = server;
+        _this.publicAddress = _this.transport.publicAddress; //this.publicAddress = server;
         //this.publicAddress = this.transport.domain;
       }
+
       _this.server = server;
+
       _this.init();
+
       return _this;
     }
 
@@ -34662,43 +28212,35 @@ module.exports = function (stage) {
       key: "init",
       value: function init() {
         delete this.protocol;
-        this.protocol = null;
+        this.protocol = null; // EVENTS WEBRTC
 
-        // EVENTS WEBRTC
         this.listen(this, "onInvite", function (transaction, userTo, description) {
           this.transactions[transaction.callId] = transaction;
         });
-
         this.listen(this, "onOffer", function (webrtc, transaction) {
           this.transactions[transaction.callId] = transaction;
         });
-
         this.listen(this, "onAccept", function (webrtc, transac) {
-          transac.doAnswer(transac.dialog);
-          //transac.setRemoteDescription("offer", transac.to, transac.to.description, transac.dialog);
+          transac.doAnswer(transac.dialog); //transac.setRemoteDescription("offer", transac.to, transac.to.description, transac.dialog);
         });
-
         this.listen(this, "onDeclineOffer", function (webrtc, transac) {
-
           var ret = transac.dialog.currentTransaction.createResponse(603, "Declined");
           ret.send();
-
           /*var ret = message.transaction.createResponse(
             603,
             "Declined"
           );
           ret.send();*/
-          this.closeTransaction(transac);
-        });
 
-        // MANAGE PROTOCOL
+          this.closeTransaction(transac);
+        }); // MANAGE PROTOCOL
+
         switch (this.settings.protocol) {
           case "SIP":
             this.protocol = new stage.io.protocols.sip(this.server, this.transport, {
               portServer: this.settings.sipPort,
               transport: this.settings.sipTransport
             });
-
             this.protocol.listen(this, "onRegister", function (sip, message) {
               var _this2 = this;
 
@@ -34706,68 +28248,65 @@ module.exports = function (stage) {
                 case 200:
                   this.user.createMediaStream(function (stream) {
                     _this2.user.stream = stream;
+
                     _this2.notificationsCenter.fire("onMediaSucces", _this2.user.mediaStream, _this2.user);
                   }, function (e) {
                     _this2.notificationsCenter.fire("onError", _this2, e);
                   });
                   this.notificationsCenter.fire("onRegister", this.user, this);
                   break;
+
                 default:
                   this.notificationsCenter.fire("onError", this.protocol, message);
                   break;
               }
             });
-
             this.protocol.listen(this, "onUnRegister", function (sip, message) {
               this.fire("onUnRegister", sip, message);
             });
-
             this.protocol.listen(this, "onRinging", function (sip, message) {
               var transaction = this.transactions[message.callId];
+
               if (transaction) {
                 this.notificationsCenter.fire("onRinging", message.toName, transaction);
               }
             });
-
             this.protocol.listen(this, "onTrying", function (sip, message) {
               var transaction = this.transactions[message.callId];
+
               if (transaction) {
                 this.notificationsCenter.fire("onTrying", message.toName, transaction);
               }
             });
-
             this.protocol.listen(this, "onInfo", function (message) {
-              var transaction = this.transactions[message.callId];
-              //console.log(message);
+              var transaction = this.transactions[message.callId]; //console.log(message);
+
               if (message.contentType === "application/dtmf-relay") {
                 this.fire("onDtmf", message.body.dtmf, transaction);
               }
             });
-
             this.protocol.listen(this, "onCancel", function (message) {
               var transaction = this.transactions[message.callId];
+
               if (transaction) {
                 this.notificationsCenter.fire("onCancel", message.body.body, transaction);
                 this.closeTransaction(transaction, message.fromName);
               }
             });
-
             this.protocol.listen(this, "onInvite", function (message, dialog) {
               var _this3 = this;
 
               var res = null;
               var transac = null;
+
               switch (message.header["Content-Type"]) {
                 case "application/sdp":
                   if (message.rawBody) {
-
                     if (dialog.status === dialog.statusCode.INITIAL) {
-
                       // TODO MANAGE MULTI CALL
                       res = message.transaction.createResponse(100, "trying");
-                      res.send();
+                      res.send(); // transaction WEBRTC
 
-                      // transaction WEBRTC
                       try {
                         transac = this.createTransaction(message.fromName, dialog, {
                           displayName: message.fromNameDisplay || ""
@@ -34791,32 +28330,37 @@ module.exports = function (stage) {
 
                       return;
                     }
+
                     if (dialog.status === dialog.statusCode.ESTABLISHED) {
                       // HOLD THE LINE
                       message.transaction.decline();
                     }
                   }
+
                   break;
+
                 case "ice/candidate":
                   if (message.rawBody) {
                     var transaction = this.transactions[message.callId];
                     var ret = null;
+
                     if (!transaction) {
                       ret = message.transaction.createResponse(500, "no transaction ");
                       ret.send();
                       return;
                     }
+
                     res = JSON.parse(message.rawBody);
                     ret = message.transaction.createResponse(100, "trying");
                     ret.send();
 
                     var _loop = function _loop(i) {
                       candidate = new RTCIceCandidate(res[i]);
-
                       transaction.RTCPeerConnection.addIceCandidate(candidate, function () {
                         _this3.logger("WEBRTC remote CANDIDATES   " + res[i].candidate, "DEBUG");
                       }, function (e) {
                         console.log(e);
+
                         _this3.logger("WEBRTC Error CANDIDATES " + res[i].candidate, "ERROR");
                       });
                     };
@@ -34826,14 +28370,15 @@ module.exports = function (stage) {
 
                       _loop(i);
                     }
+
                     if (transaction.candidates.length) {
                       ret = message.transaction.createResponse(200, "OK", JSON.stringify(transaction.candidates), "ice/candidate");
                       ret.send();
                       transaction.candidates = [];
                     } else {
                       ret = message.transaction.createResponse(200, "OK");
-                      ret.send();
-                      //transaction.candidates= [];
+                      ret.send(); //transaction.candidates= [];
+
                       /*this.listen(this, "onIcecandidate" , function(transaction, candidates, peerConnection){
                         var ret = message.transaction.createResponse(200, "OK", JSON.stringify(transaction.candidates), "ice/candidate");
                         ret.send();
@@ -34841,21 +28386,21 @@ module.exports = function (stage) {
                       });*/
                     }
                   }
+
                   break;
+
                 default:
                   this.notificationsCenter.fire("onError", this.protocol, message);
-
               }
             });
-
             this.protocol.listen(this, "onTimeout", function (sip, message) {
               this.notificationsCenter.fire("onTimeout", message.method, 408, message);
               var transac = this.transactions[message.callId];
+
               if (transac) {
                 this.closeTransaction(transac, transac.to.name);
               }
             });
-
             this.protocol.listen(this, "onDecline", function (message) {
               if (message.callId in this.transactions) {
                 var transac = this.transactions[message.callId];
@@ -34863,20 +28408,18 @@ module.exports = function (stage) {
                 this.closeTransaction(transac);
               }
             });
-
             this.protocol.listen(this, "onError", function (Class, message) {
               this.notificationsCenter.fire("onError", Class, message);
               var transac = this.transactions[message.callId];
+
               if (transac) {
                 this.closeTransaction(transac, transac.to.name);
               }
             });
-
             this.protocol.listen(this, "onQuit", function (protocol) {
               this.fire("onQuit", this);
               this.close();
             });
-
             this.protocol.listen(this, "onInitCall", function (to, dialog, transaction) {
               if (dialog.callId in this.transactions) {
                 var transac = this.transactions[dialog.callId];
@@ -34884,14 +28427,15 @@ module.exports = function (stage) {
                 this.notificationsCenter.fire("onInitCall", transac);
               }
             });
-
             this.protocol.listen(this, "onBye", function (message) {
               var transac = null;
               var name = null;
+
               if (message.callId in this.transactions) {
                 transac = this.transactions[message.callId];
                 name = message.fromName;
               }
+
               if (transac) {
                 this.notificationsCenter.fire("onOnHook", transac, message);
                 this.closeTransaction(transac, name);
@@ -34902,15 +28446,16 @@ module.exports = function (stage) {
                 }
               }
             });
-
             this.protocol.listen(this, "onCall", function (message) {
               var _this4 = this;
 
               var transac = this.transactions[message.callId];
+
               if (message.toNameDisplay) {
                 transac.to.displayName = message.toNameDisplay;
-              }
-              //var from = this.users[message.toName];
+              } //var from = this.users[message.toName];
+
+
               if (message.dialog.status === message.dialog.statusCode.EARLY && message.header["Content-Type"] === "application/sdp") {
                 this.notificationsCenter.fire("onAnwer", message);
                 transac.to.setDescription(message.rawBody);
@@ -34921,18 +28466,19 @@ module.exports = function (stage) {
                 }*/
                 //this.notificationsCenter.fire( "onOffHook", transac , message );
               } else {}
+
               if (message.header["Content-Type"] === "ice/candidate") {
                 if (transac.candidates.length) {
                   var res = JSON.parse(message.rawBody);
 
                   var _loop2 = function _loop2(i) {
                     candidate = new RTCIceCandidate(res[i]);
-
                     transac.RTCPeerConnection.addIceCandidate(candidate, function () {
                       //console.log("Succes Candidate")
                       _this4.logger("WEBRTC ADD remote CANDIDATES :  " + res[i].candidate);
                     }, function (e) {
                       console.log(e);
+
                       _this4.logger("WEBRTC Error CANDIDATES " + res[i].candidate, "ERROR");
                     });
                   };
@@ -34945,32 +28491,33 @@ module.exports = function (stage) {
                 }
               }
             });
-
             this.protocol.listen(this, "onMessage", function (message) {
               this.fire("onMessage", message);
             });
-
             this.protocol.listen(this, "onSend", function (message) {
               this.fire("onSend", message);
             });
-
             this.listen(this, "onError", function (Class, error) {
               switch (true) {
                 case Class instanceof WebRtc:
                   break;
+
                 case Class instanceof stage.media.webrtcTransaction:
                   //console.log(Class.currentTransaction )
                   if (Class.currentTransaction) {
                     var response = Class.currentTransaction.createResponse(500, error.message || error);
                     response.send();
                   }
+
                   this.closeTransaction(Class, Class.to.name);
                   break;
+
                 case Class instanceof Error:
                   break;
               }
             });
             break;
+
           default:
             throw new Error("WEBRTC Protocol not found ");
         }
@@ -35005,8 +28552,9 @@ module.exports = function (stage) {
       value: function unRegister() {
         if (this.protocol) {
           this.protocol.unregister();
-        }
-        //console.log( "WEBRTC unregister")
+        } //console.log( "WEBRTC unregister")
+
+
         this.close();
       }
     }, {
@@ -35018,8 +28566,8 @@ module.exports = function (stage) {
     }, {
       key: "createOffer",
       value: function createOffer(userTo) {
-        var to = new stage.media.userMedia(userTo);
-        //this.users[userTo] = to ;
+        var to = new stage.media.userMedia(userTo); //this.users[userTo] = to ;
+
         var transac = this.createTransaction(to);
         transac.createOffer();
         return transac;
@@ -35041,8 +28589,7 @@ module.exports = function (stage) {
       value: function closeTransaction(transation, name) {
         if (transation) {
           transation.close();
-          delete this.transactions[transation.callId];
-          //delete this.users[name];
+          delete this.transactions[transation.callId]; //delete this.users[name];
         }
       }
     }, {
@@ -35059,11 +28606,13 @@ module.exports = function (stage) {
       key: "clean",
       value: function clean() {
         this.cleanTransactions();
+
         if (this.protocol) {
           this.protocol.clear();
           this.protocol = null;
           delete this.protocol;
         }
+
         this.notificationsCenter.clearNotifications();
       }
     }, {
@@ -35076,6 +28625,7 @@ module.exports = function (stage) {
           } catch (e) {
             this.logger(e, "ERROR");
           }
+
           delete this.transactions[trans];
         }
       }
@@ -35100,170 +28650,169 @@ module.exports = function (stage) {
   !*** ./src/structs/hash/hash.es6 ***!
   \***********************************/
 /*! no static exports found */
-/***/ (function(module, exports, __webpack_require__) {
-
-"use strict";
-
-
-var _createClass = function () { function defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ("value" in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } } return function (Constructor, protoProps, staticProps) { if (protoProps) defineProperties(Constructor.prototype, protoProps); if (staticProps) defineProperties(Constructor, staticProps); return Constructor; }; }();
+/***/ (function(module, exports) {
 
 function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError("Cannot call a class as a function"); } }
 
+function _defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ("value" in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } }
+
+function _createClass(Constructor, protoProps, staticProps) { if (protoProps) _defineProperties(Constructor.prototype, protoProps); if (staticProps) _defineProperties(Constructor, staticProps); return Constructor; }
+
 module.exports = function (stage) {
+  'use strict';
 
-	'use strict';
+  var ea = function () {
+    if (stage.browser.Ie) {
+      return function (callback) {
+        var iterator = 0;
 
-	var ea = function () {
-		if (stage.browser.Ie) {
-			return function (callback) {
-				var iterator = 0;
-				for (var key in this.data) {
-					//if ( ! Array.prototype[key] ){
-					if (this.data.hasOwnProperty(key)) {
-						var value = this.data[key];
-						var pair = [key, value];
-						pair.key = key;
-						pair.value = value;
-						callback(pair, iterator);
-					}
-					iterator++;
-				}
-			};
-		} else {
-			return function (callback) {
-				var iterator = 0;
-				for (var key in this.data) {
-					var value = this.data[key];
-					var pair = [key, value];
-					pair.key = key;
-					pair.value = value;
-					callback(pair, iterator);
-					iterator++;
-				}
-			};
-		}
-	}();
+        for (var key in this.data) {
+          //if ( ! Array.prototype[key] ){
+          if (this.data.hasOwnProperty(key)) {
+            var value = this.data[key];
+            var pair = [key, value];
+            pair.key = key;
+            pair.value = value;
+            callback(pair, iterator);
+          }
 
-	var struct = function () {
-		function struct(data) {
-			_classCallCheck(this, struct);
+          iterator++;
+        }
+      };
+    } else {
+      return function (callback) {
+        var iterator = 0;
 
-			this.data = stage.typeOf(data) === "object" ? stage.extend(true, {}, data) : {};
-		}
+        for (var key in this.data) {
+          var value = this.data[key];
+          var pair = [key, value];
+          pair.key = key;
+          pair.value = value;
+          callback(pair, iterator);
+          iterator++;
+        }
+      };
+    }
+  }();
 
-		_createClass(struct, [{
-			key: "get",
-			value: function get(key) {
-				if (key === null || key === undefined) {
-					return this.data;
-				}
-				if (key in this.data) {
-					return this.data[key];
-				}
-				return false;
-			}
-		}, {
-			key: "set",
-			value: function set(key, value) {
-				if (key !== null || key !== undefined) {
-					return this.data[key] = value;
-				}
-				return false;
-			}
-		}, {
-			key: "unset",
-			value: function unset(key) {
-				if (key in this.data) {
-					delete this.data[key];
-					return true;
-				}
-				return false;
-			}
-		}, {
-			key: "hasKey",
-			value: function hasKey(key) {
-				if (key in this.data) {
-					return true;
-				}
-				return false;
-			}
-		}, {
-			key: "clear",
-			value: function clear() {
-				this.data = {};
-				return true;
-			}
-		}, {
-			key: "clone",
-			value: function clone() {
-				return stage.extend(true, {}, this.data);
-			}
+  var struct =
+  /*#__PURE__*/
+  function () {
+    function struct(data) {
+      _classCallCheck(this, struct);
 
-			//TODO
+      this.data = stage.typeOf(data) === "object" ? stage.extend(true, {}, data) : {};
+    }
 
-		}, {
-			key: "inspect",
-			value: function inspect() {}
+    _createClass(struct, [{
+      key: "get",
+      value: function get(key) {
+        if (key === null || key === undefined) {
+          return this.data;
+        }
 
-			//TODO
+        if (key in this.data) {
+          return this.data[key];
+        }
 
-		}, {
-			key: "keys",
-			value: function keys() {}
+        return false;
+      }
+    }, {
+      key: "set",
+      value: function set(key, value) {
+        if (key !== null || key !== undefined) {
+          return this.data[key] = value;
+        }
 
-			//TODO
+        return false;
+      }
+    }, {
+      key: "unset",
+      value: function unset(key) {
+        if (key in this.data) {
+          delete this.data[key];
+          return true;
+        }
 
-		}, {
-			key: "values",
-			value: function values() {}
-		}, {
-			key: "each",
-			value: function each() {
-				return ea.apply(this, arguments);
-			}
-		}, {
-			key: "clone",
-			value: function clone() {
-				return new struct(this.data);
-			}
-		}, {
-			key: "toObject",
-			value: function toObject(key) {
-				return stage.extend(true, {}, this.data);
-			}
-		}, {
-			key: "merge",
-			value: function merge(hash) {
-				this.data = stage.extend(true, {}, this.data, hash);
-			}
-		}, {
-			key: "toJson",
-			value: function toJson(key) {
-				if (key) return stage.json.stringify(this.get(key));
-				return stage.json.stringify(this.data);
-			}
+        return false;
+      }
+    }, {
+      key: "hasKey",
+      value: function hasKey(key) {
+        if (key in this.data) {
+          return true;
+        }
 
-			//TODO
+        return false;
+      }
+    }, {
+      key: "clear",
+      value: function clear() {
+        this.data = {};
+        return true;
+      }
+    }, {
+      key: "clone",
+      value: function clone() {
+        return stage.extend(true, {}, this.data);
+      } //TODO
 
-		}, {
-			key: "toQueryString",
-			value: function toQueryString() {}
-		}]);
+    }, {
+      key: "inspect",
+      value: function inspect() {} //TODO
 
-		return struct;
-	}();
+    }, {
+      key: "keys",
+      value: function keys() {} //TODO
 
-	var obj = {
-		struct: struct,
-		local: {
-			createHash: function createHash(data) {
-				return new struct(data);
-			}
-		}
-	};
+    }, {
+      key: "values",
+      value: function values() {}
+    }, {
+      key: "each",
+      value: function each() {
+        return ea.apply(this, arguments);
+      }
+    }, {
+      key: "clone",
+      value: function clone() {
+        return new struct(this.data);
+      }
+    }, {
+      key: "toObject",
+      value: function toObject(key) {
+        return stage.extend(true, {}, this.data);
+      }
+    }, {
+      key: "merge",
+      value: function merge(hash) {
+        this.data = stage.extend(true, {}, this.data, hash);
+      }
+    }, {
+      key: "toJson",
+      value: function toJson(key) {
+        if (key) return stage.json.stringify(this.get(key));
+        return stage.json.stringify(this.data);
+      } //TODO
 
-	stage.structs.hash = obj;
-	return obj;
+    }, {
+      key: "toQueryString",
+      value: function toQueryString() {}
+    }]);
+
+    return struct;
+  }();
+
+  var obj = {
+    struct: struct,
+    local: {
+      createHash: function createHash(data) {
+        return new struct(data);
+      }
+    }
+  };
+  stage.structs.hash = obj;
+  return obj;
 };
 
 /***/ }),
@@ -35273,199 +28822,199 @@ module.exports = function (stage) {
   !*** ./src/structs/queue/queue.es6 ***!
   \*************************************/
 /*! no static exports found */
-/***/ (function(module, exports, __webpack_require__) {
-
-"use strict";
-
-
-var _createClass = function () { function defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ("value" in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } } return function (Constructor, protoProps, staticProps) { if (protoProps) defineProperties(Constructor.prototype, protoProps); if (staticProps) defineProperties(Constructor, staticProps); return Constructor; }; }();
+/***/ (function(module, exports) {
 
 function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError("Cannot call a class as a function"); } }
 
+function _defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ("value" in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } }
+
+function _createClass(Constructor, protoProps, staticProps) { if (protoProps) _defineProperties(Constructor.prototype, protoProps); if (staticProps) _defineProperties(Constructor, staticProps); return Constructor; }
+
 module.exports = function (stage) {
+  'use strict';
 
-	'use strict';
+  var defaultSettings = {
+    type: "FIFO",
+    active: true
+  };
+  var codeError = {
+    empty: 0,
+    notFound: 1,
+    stopped: 2
+  };
+  /*
+  	*
+  	*
+  	*
+  	*  EVENTS QUEUE : 
+  	*	onQueued(queue) :	// fire when add value to queue
+  	*	onDeQueued(queue) :	// fire when add value to queue
+  	*	onRunStart:(queue)	// fire when begin to run along the queue
+  	*	onRunFinish:(queue)	// fire when finish to run along the queue
+  	*	onError(queue, error, errorCode):	// fire when an error 
+  	*
+  	*  ERROR CODES :
+  	*	0 : 	empty
+  	*	1 :	notFound
+  	*	2 :	stopped
+  	*
+  	*  SETTINGS : default
+  	*	type : "FIFO"  // "LIFO"
+  	*
+  	*
+  	*
+  	*/
 
-	var defaultSettings = {
-		type: "FIFO",
-		active: true
-	};
+  var struct =
+  /*#__PURE__*/
+  function () {
+    function struct(localSettings) {
+      _classCallCheck(this, struct);
 
-	var codeError = {
-		empty: 0,
-		notFound: 1,
-		stopped: 2
-	};
+      // Manage settings
+      this.settings = stage.extend(true, {}, defaultSettings, localSettings);
+      this.data = [];
+      this.error = null;
+      this.eventsQueue = stage.createEventsManager();
+    }
 
-	/*
- 	*
- 	*
- 	*
- 	*  EVENTS QUEUE : 
- 	*	onQueued(queue) :	// fire when add value to queue
- 	*	onDeQueued(queue) :	// fire when add value to queue
- 	*	onRunStart:(queue)	// fire when begin to run along the queue
- 	*	onRunFinish:(queue)	// fire when finish to run along the queue
- 	*	onError(queue, error, errorCode):	// fire when an error 
- 	*
- 	*  ERROR CODES :
- 	*	0 : 	empty
- 	*	1 :	notFound
- 	*	2 :	stopped
- 	*
- 	*  SETTINGS : default
- 	*	type : "FIFO"  // "LIFO"
- 	*
- 	*
- 	*
- 	*/
-	var struct = function () {
-		function struct(localSettings) {
-			_classCallCheck(this, struct);
+    _createClass(struct, [{
+      key: "listen",
+      value: function listen(context, eventName, callback) {
+        return this.eventsQueue.listen(context, eventName, callback);
+      } // TODO LIFO
 
-			// Manage settings
-			this.settings = stage.extend(true, {}, defaultSettings, localSettings);
-			this.data = [];
-			this.error = null;
-			this.eventsQueue = stage.createEventsManager();
-		}
+    }, {
+      key: "enqueue",
+      value: function enqueue(value) {
+        if (this.settings.active) {
+          var ret = this.data.push(value);
+          this.eventsQueue.fireEvent("onQueued", this);
+          return ret;
+        } else {
+          this.error = new Error("QUEUE is stoped");
+          this.eventsQueue.fireEvent("onError", this, this.error, codeError.stopped);
+          return null;
+        }
+      }
+    }, {
+      key: "remove",
+      value: function remove(data) {
+        if (this.isEmpty()) {
+          this.error = new Error("QUEUE is empty");
+          this.eventsQueue.fireEvent("onError", this, this.error, codeError.empty);
+          return null;
+        }
 
-		_createClass(struct, [{
-			key: "listen",
-			value: function listen(context, eventName, callback) {
-				return this.eventsQueue.listen(context, eventName, callback);
-			}
+        if (stage.array.contain(this.data, data)) return stage.array.remove(this.data, data);
+        this.error = new Error(data + " Not found");
+        this.eventsQueue.fireEvent("onError", this, this.error, codeError.notFound);
+        return null;
+      } // TODO LIFO
 
-			// TODO LIFO
+    }, {
+      key: "dequeue",
+      value: function dequeue() {
+        if (this.settings.active) {
+          if (this.isEmpty()) {
+            this.error = new Error("QUEUE is empty");
+            this.eventsQueue.fireEvent("onError", this, this.error, codeError.empty);
+            return null;
+          }
 
-		}, {
-			key: "enqueue",
-			value: function enqueue(value) {
-				if (this.settings.active) {
-					var ret = this.data.push(value);
-					this.eventsQueue.fireEvent("onQueued", this);
-					return ret;
-				} else {
-					this.error = new Error("QUEUE is stoped");
-					this.eventsQueue.fireEvent("onError", this, this.error, codeError.stopped);
-					return null;
-				}
-			}
-		}, {
-			key: "remove",
-			value: function remove(data) {
-				if (this.isEmpty()) {
-					this.error = new Error("QUEUE is empty");
-					this.eventsQueue.fireEvent("onError", this, this.error, codeError.empty);
-					return null;
-				}
-				if (stage.array.contain(this.data, data)) return stage.array.remove(this.data, data);
-				this.error = new Error(data + " Not found");
-				this.eventsQueue.fireEvent("onError", this, this.error, codeError.notFound);
-				return null;
-			}
+          var value = this.data[0];
+          stage.array.removeIndexOf(this.data, 0);
+          this.eventsQueue.fireEvent("onDeQueued", this);
+          return value;
+        } else {
+          this.error = new Error("QUEUE is stoped");
+          this.eventsQueue.fireEvent("onError", this, this.error, codeError.stopped);
+          return null;
+        }
+      }
+    }, {
+      key: "peek",
+      value: function peek(data) {
+        if (this.isEmpty()) {
+          return null;
+        }
 
-			// TODO LIFO
+        return this.data[0];
+      }
+    }, {
+      key: "purge",
+      value: function purge() {
+        this.data.length = 0;
+      }
+    }, {
+      key: "isEmpty",
+      value: function isEmpty() {
+        return this.data.length === 0;
+      }
+    }, {
+      key: "count",
+      value: function count() {
+        return this.data.length;
+      }
+    }, {
+      key: "getQueue",
+      value: function getQueue() {
+        return this.data;
+      }
+    }, {
+      key: "start",
+      value: function start() {
+        this.settings.active = true;
+      }
+    }, {
+      key: "stop",
+      value: function stop() {
+        this.settings.active = false;
+      }
+    }, {
+      key: "run",
+      value: function run(callback) {
+        if (this.settings.active) {
+          this.eventsQueue.fireEvent("onRunStart", this);
+          stage.each(this.data, callback);
+          this.eventsQueue.fireEvent("onRunFinish", this);
+        } else {
+          this.error = new Error("QUEUE is stoped");
+          this.eventsQueue.fireEvent("onError", this, this.error, codeError.stopped);
+          return null;
+        }
+      }
+    }]);
 
-		}, {
-			key: "dequeue",
-			value: function dequeue() {
-				if (this.settings.active) {
-					if (this.isEmpty()) {
-						this.error = new Error("QUEUE is empty");
-						this.eventsQueue.fireEvent("onError", this, this.error, codeError.empty);
-						return null;
-					}
-					var value = this.data[0];
-					stage.array.removeIndexOf(this.data, 0);
-					this.eventsQueue.fireEvent("onDeQueued", this);
-					return value;
-				} else {
-					this.error = new Error("QUEUE is stoped");
-					this.eventsQueue.fireEvent("onError", this, this.error, codeError.stopped);
-					return null;
-				}
-			}
-		}, {
-			key: "peek",
-			value: function peek(data) {
-				if (this.isEmpty()) {
-					return null;
-				}
-				return this.data[0];
-			}
-		}, {
-			key: "purge",
-			value: function purge() {
-				this.data.length = 0;
-			}
-		}, {
-			key: "isEmpty",
-			value: function isEmpty() {
-				return this.data.length === 0;
-			}
-		}, {
-			key: "count",
-			value: function count() {
-				return this.data.length;
-			}
-		}, {
-			key: "getQueue",
-			value: function getQueue() {
-				return this.data;
-			}
-		}, {
-			key: "start",
-			value: function start() {
-				this.settings.active = true;
-			}
-		}, {
-			key: "stop",
-			value: function stop() {
-				this.settings.active = false;
-			}
-		}, {
-			key: "run",
-			value: function run(callback) {
-				if (this.settings.active) {
-					this.eventsQueue.fireEvent("onRunStart", this);
-					stage.each(this.data, callback);
-					this.eventsQueue.fireEvent("onRunFinish", this);
-				} else {
-					this.error = new Error("QUEUE is stoped");
-					this.eventsQueue.fireEvent("onError", this, this.error, codeError.stopped);
-					return null;
-				}
-			}
-		}]);
+    return struct;
+  }();
 
-		return struct;
-	}();
+  var createStruct = function createStruct(localSettings) {
+    var Structs = new struct(localSettings);
+    Structs.eventsQueue.settingsToListen(localSettings);
 
-	var createStruct = function createStruct(localSettings) {
-		var Structs = new struct(localSettings);
-		Structs.eventsQueue.settingsToListen(localSettings);
-		if (Structs.error) {
-			Structs.eventsQueue.fireEvent("onError", Structs, Structs.error);
-			return Structs;
-		}
-		return Structs;
-	};
+    if (Structs.error) {
+      Structs.eventsQueue.fireEvent("onError", Structs, Structs.error);
+      return Structs;
+    }
 
-	var obj = {
-		struct: struct,
-		local: {
-			createQueue: function createQueue(localSettings) {
-				if (!localSettings) {
-					localSettings = {};
-				}
-				return createStruct(localSettings);
-			}
-		}
-	};
+    return Structs;
+  };
 
-	stage.structs.queues = obj;
-	return obj;
+  var obj = {
+    struct: struct,
+    local: {
+      createQueue: function createQueue(localSettings) {
+        if (!localSettings) {
+          localSettings = {};
+        }
+
+        return createStruct(localSettings);
+      }
+    }
+  };
+  stage.structs.queues = obj;
+  return obj;
 };
 
 /***/ }),
@@ -35475,20 +29024,29 @@ module.exports = function (stage) {
   !*** ./src/syslog/syslog.es6 ***!
   \*******************************/
 /*! no static exports found */
-/***/ (function(module, exports, __webpack_require__) {
+/***/ (function(module, exports) {
 
-"use strict";
+function _typeof(obj) { if (typeof Symbol === "function" && typeof Symbol.iterator === "symbol") { _typeof = function _typeof(obj) { return typeof obj; }; } else { _typeof = function _typeof(obj) { return obj && typeof Symbol === "function" && obj.constructor === Symbol && obj !== Symbol.prototype ? "symbol" : typeof obj; }; } return _typeof(obj); }
 
+function _possibleConstructorReturn(self, call) { if (call && (_typeof(call) === "object" || typeof call === "function")) { return call; } return _assertThisInitialized(self); }
 
-var _get = function get(object, property, receiver) { if (object === null) object = Function.prototype; var desc = Object.getOwnPropertyDescriptor(object, property); if (desc === undefined) { var parent = Object.getPrototypeOf(object); if (parent === null) { return undefined; } else { return get(parent, property, receiver); } } else if ("value" in desc) { return desc.value; } else { var getter = desc.get; if (getter === undefined) { return undefined; } return getter.call(receiver); } };
+function _assertThisInitialized(self) { if (self === void 0) { throw new ReferenceError("this hasn't been initialised - super() hasn't been called"); } return self; }
 
-var _createClass = function () { function defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ("value" in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } } return function (Constructor, protoProps, staticProps) { if (protoProps) defineProperties(Constructor.prototype, protoProps); if (staticProps) defineProperties(Constructor, staticProps); return Constructor; }; }();
+function _inherits(subClass, superClass) { if (typeof superClass !== "function" && superClass !== null) { throw new TypeError("Super expression must either be null or a function"); } subClass.prototype = Object.create(superClass && superClass.prototype, { constructor: { value: subClass, writable: true, configurable: true } }); if (superClass) _setPrototypeOf(subClass, superClass); }
 
-function _possibleConstructorReturn(self, call) { if (!self) { throw new ReferenceError("this hasn't been initialised - super() hasn't been called"); } return call && (typeof call === "object" || typeof call === "function") ? call : self; }
+function _setPrototypeOf(o, p) { _setPrototypeOf = Object.setPrototypeOf || function _setPrototypeOf(o, p) { o.__proto__ = p; return o; }; return _setPrototypeOf(o, p); }
 
-function _inherits(subClass, superClass) { if (typeof superClass !== "function" && superClass !== null) { throw new TypeError("Super expression must either be null or a function, not " + typeof superClass); } subClass.prototype = Object.create(superClass && superClass.prototype, { constructor: { value: subClass, enumerable: false, writable: true, configurable: true } }); if (superClass) Object.setPrototypeOf ? Object.setPrototypeOf(subClass, superClass) : subClass.__proto__ = superClass; }
+function _get(target, property, receiver) { if (typeof Reflect !== "undefined" && Reflect.get) { _get = Reflect.get; } else { _get = function _get(target, property, receiver) { var base = _superPropBase(target, property); if (!base) return; var desc = Object.getOwnPropertyDescriptor(base, property); if (desc.get) { return desc.get.call(receiver); } return desc.value; }; } return _get(target, property, receiver || target); }
+
+function _superPropBase(object, property) { while (!Object.prototype.hasOwnProperty.call(object, property)) { object = _getPrototypeOf(object); if (object === null) break; } return object; }
+
+function _getPrototypeOf(o) { _getPrototypeOf = Object.setPrototypeOf ? Object.getPrototypeOf : function _getPrototypeOf(o) { return o.__proto__ || Object.getPrototypeOf(o); }; return _getPrototypeOf(o); }
 
 function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError("Cannot call a class as a function"); } }
+
+function _defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ("value" in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } }
+
+function _createClass(Constructor, protoProps, staticProps) { if (protoProps) _defineProperties(Constructor.prototype, protoProps); if (staticProps) _defineProperties(Constructor, staticProps); return Constructor; }
 
 /*
  *
@@ -35496,7 +29054,6 @@ function _classCallCheck(instance, Constructor) { if (!(instance instanceof Cons
  *
  */
 module.exports = function (stage) {
-
   'use strict';
   /*
    * default settings
@@ -35521,7 +29078,6 @@ module.exports = function (stage) {
     checkConditions: "&&",
     async: false
   };
-
   /*
    * Severity syslog
    * <pre>
@@ -35535,6 +29091,7 @@ module.exports = function (stage) {
    *    DEBUG       = 7
    * </pre>
    */
+
   var sysLogSeverity = ["EMERGENCY", "ALERT", "CRITIC", "ERROR", "WARNING", "NOTICE", "INFO", "DEBUG"];
   sysLogSeverity["EMERGENCY"] = 0;
   sysLogSeverity["ALERT"] = 1;
@@ -35544,7 +29101,6 @@ module.exports = function (stage) {
   sysLogSeverity["NOTICE"] = 5;
   sysLogSeverity["INFO"] = 6;
   sysLogSeverity["DEBUG"] = 7;
-
   /**
    *  Protocol Data Unit
    * @class  PDU
@@ -35552,34 +29108,45 @@ module.exports = function (stage) {
    * @module library
    * @return {PDU}
    */
+
   var guid = 0;
-  var PDU = function () {
+
+  var PDU =
+  /*#__PURE__*/
+  function () {
     function PDU(pci, severity, moduleName, msgid, msg, date) {
       _classCallCheck(this, PDU);
 
       /* timeStamp @type Date*/
       this.timeStamp = new Date(date).getTime() || new Date().getTime();
       /* uid */
+
       this.uid = ++guid;
       /* severity */
+
       this.severity = translateSeverity(severity);
       /* severityName */
+
       this.severityName = sysLogSeverity[this.severity];
       /* typePayload */
+
       this.typePayload = stage.typeOf(pci);
       /*
        * protocole controle information
        * @type Void
        */
+
       this.payload = pci;
       /* moduleName */
+
       this.moduleName = moduleName;
       /* msgid */
+
       this.msgid = msgid || "";
       /* msg */
+
       this.msg = msg || "";
     }
-
     /**
      * Get Date in string format
      * @method getDate
@@ -35592,7 +29159,6 @@ module.exports = function (stage) {
       value: function getDate() {
         return new Date(this.timeStamp).toTimeString();
       }
-
       /**
        * get a string representating the PDU protocole
        * @method toString
@@ -35608,8 +29174,10 @@ module.exports = function (stage) {
       key: "parseJson",
       value: function parseJson(str) {
         var json = null;
+
         try {
           json = JSON.parse(str);
+
           for (var ele in json) {
             if (ele in this) {
               this[ele] = json[ele];
@@ -35618,6 +29186,7 @@ module.exports = function (stage) {
         } catch (e) {
           throw e;
         }
+
         return json;
       }
     }]);
@@ -35648,7 +29217,6 @@ module.exports = function (stage) {
       return ele2.test(ele1);
     }
   };
-
   var conditionsObj = {
     severity: function severity(pdu, condition) {
       if (condition.operator !== "==") {
@@ -35660,6 +29228,7 @@ module.exports = function (stage) {
           if (sev === pdu.severityName) return true;
         }
       }
+
       return false;
     },
     msgid: function msgid(pdu, condition) {
@@ -35670,94 +29239,115 @@ module.exports = function (stage) {
           if (sev === pdu.msgid) return true;
         }
       }
+
       return false;
     },
     date: function date(pdu, condition) {
       return operators[condition.operator](pdu.timeStamp, condition.data);
     }
   };
-
   var logicCondition = {
     "&&": function _(myConditions, pdu) {
       var res = null;
+
       for (var ele in myConditions) {
-        var res = conditionsObj[ele](pdu, myConditions[ele]);
-        //console.log("condition :" +ele +"  "+res)
+        var res = conditionsObj[ele](pdu, myConditions[ele]); //console.log("condition :" +ele +"  "+res)
+
         if (!res) {
           break;
         }
       }
+
       return res;
     },
     "||": function _(myConditions, pdu) {
       var res = null;
+
       for (var ele in myConditions) {
         var res = conditionsObj[ele](pdu, myConditions[ele]);
+
         if (res) {
           break;
         }
       }
+
       return res;
     }
   };
 
   var checkFormatSeverity = function checkFormatSeverity(ele) {
     var res = false;
+
     switch (stage.typeOf(ele)) {
       case "string":
         res = ele.split(/,| /);
         break;
+
       case "number":
         res = ele;
         break;
+
       default:
         throw new Error("checkFormatSeverity bad format " + stage.typeOf(ele) + " : " + ele);
     }
+
     return res;
   };
 
   var checkFormatDate = function checkFormatDate(ele) {
     var res = false;
+
     switch (stage.typeOf(ele)) {
       case "date":
         res = ele.getTime();
         break;
+
       case "string":
         res = new Date(ele);
         break;
+
       default:
         throw new Error("checkFormatDate bad format " + stage.typeOf(ele) + " : " + ele);
     }
+
     return res;
   };
 
   var checkFormatMsgId = function checkFormatMsgId(ele) {
     var res = false;
+
     switch (stage.typeOf(ele)) {
       case "string":
         res = ele.split(/,| /);
         break;
+
       case "number":
         res = ele;
         break;
+
       case "object":
         if (ele instanceof RegExp) {
           res = ele;
         }
+
         break;
+
       default:
         throw new Error("checkFormatMsgId bad format " + stage.typeOf(ele) + " : " + ele);
     }
+
     return res;
   };
 
   var severityToString = function severityToString(severity) {
     var myint = parseInt(severity, 10);
+
     if (!isNaN(myint)) {
       var ele = sysLogSeverity[myint];
     } else {
       var ele = severity;
     }
+
     if (ele in sysLogSeverity) return ele;
     return false;
   };
@@ -35765,20 +29355,24 @@ module.exports = function (stage) {
   var sanitizeConditions = function sanitizeConditions(settingsCondition) {
     var res = true;
     if (stage.typeOf(settingsCondition) !== "object") return false;
+
     for (var ele in settingsCondition) {
       if (!ele in conditionsObj) {
         return false;
       }
+
       var condi = settingsCondition[ele];
 
       if (condi.operator && !(condi.operator in operators)) {
         throw new Error("Contitions bad operator : " + condi.operator);
       }
+
       if (condi.data) {
         switch (ele) {
           case "severity":
             if (condi.operator) {
               res = checkFormatSeverity(condi.data);
+
               if (res !== false) {
                 condi.data = sysLogSeverity[severityToString(res[0])];
               } else {
@@ -35787,11 +29381,14 @@ module.exports = function (stage) {
             } else {
               condi.operator = "==";
               res = checkFormatSeverity(condi.data);
+
               if (res !== false) {
                 condi.data = {};
+
                 if (stage.typeOf(res) === "array") {
                   for (var i = 0; i < res.length; i++) {
                     var mySeverity = severityToString(res[i]);
+
                     if (mySeverity) {
                       condi.data[mySeverity] = sysLogSeverity[mySeverity];
                     } else {
@@ -35805,15 +29402,20 @@ module.exports = function (stage) {
                 return false;
               }
             }
+
             break;
+
           case "msgid":
             if (!condi.operator) {
               condi.operator = "==";
             }
+
             res = checkFormatMsgId(condi.data);
+
             if (res !== false) {
               if (stage.typeOf(res) === "array") {
                 condi.data = {};
+
                 for (var i = 0; i < res.length; i++) {
                   condi.data[res[i]] = "||";
                 }
@@ -35823,11 +29425,14 @@ module.exports = function (stage) {
             } else {
               return false;
             }
+
             break;
+
           case "date":
             res = checkFormatDate(condi.data);
             if (res) condi.data = res;else return false;
             break;
+
           default:
             return false;
         }
@@ -35835,8 +29440,8 @@ module.exports = function (stage) {
         return false;
       }
     }
-    return settingsCondition;
-    //console.log(settingsCondition);
+
+    return settingsCondition; //console.log(settingsCondition);
   };
 
   var translateSeverity = function translateSeverity(severity) {
@@ -35845,6 +29450,7 @@ module.exports = function (stage) {
     } else {
       if (!severity) return null;else throw new Error("not stage syslog severity :" + severity);
     }
+
     return myseverity;
   };
 
@@ -35854,9 +29460,9 @@ module.exports = function (stage) {
     } else {
       var myseverity = severity;
     }
+
     return new PDU(payload, myseverity, moduleName, msgid, msg);
   };
-
   /**
    * A class for product log in stage.
    * @example
@@ -35911,19 +29517,25 @@ module.exports = function (stage) {
    *    @param {Object} settings The settings to extend.
    *    @return syslog
    */
-  var syslog = function (_stage$notificationsC) {
+
+
+  var syslog =
+  /*#__PURE__*/
+  function (_stage$notificationsC) {
     _inherits(syslog, _stage$notificationsC);
 
     function syslog(settings) {
+      var _this;
+
       _classCallCheck(this, syslog);
 
+      _this = _possibleConstructorReturn(this, _getPrototypeOf(syslog).call(this, settings));
       /**
        * extended settings
        * @property settings
        * @type Object
        * @see defaultSettings
        */
-      var _this = _possibleConstructorReturn(this, (syslog.__proto__ || Object.getPrototypeOf(syslog)).call(this, settings));
 
       _this.settings = stage.extend({}, defaultSettings, settings);
       /**
@@ -35931,31 +29543,35 @@ module.exports = function (stage) {
        * @property ringStack
        * @type Array
        */
+
       _this.ringStack = new Array();
       /**
        * Ratelimit  Management log printed
        * @property burstPrinted
        * @type Number
        */
+
       _this.burstPrinted = 0;
       /**
        * Ratelimit  Management log dropped
        * @property missed
        * @type Number
        */
+
       _this.missed = 0;
       /**
        * Management log invalid
        * @property invalid
        * @type Number
        */
-      _this.invalid = 0;
 
+      _this.invalid = 0;
       /**
        * Counter log valid
        * @property valid
        * @type Number
        */
+
       _this.valid = 0;
       /**
        * Ratelimit  Management begin of burst
@@ -35963,9 +29579,9 @@ module.exports = function (stage) {
        * @private
        * @type Number
        */
-      _this.start = 0;
 
-      _this.fire = _this.settings.async ? _get(syslog.prototype.__proto__ || Object.getPrototypeOf(syslog.prototype), "fireAsync", _this) : _get(syslog.prototype.__proto__ || Object.getPrototypeOf(syslog.prototype), "fire", _this);
+      _this.start = 0;
+      _this.fire = _this.settings.async ? _get(_getPrototypeOf(syslog.prototype), "fireAsync", _assertThisInitialized(_this)) : _get(_getPrototypeOf(syslog.prototype), "fire", _assertThisInitialized(_this));
       return _this;
     }
 
@@ -35975,12 +29591,12 @@ module.exports = function (stage) {
         if (this.ringStack.length === this.settings.maxStack) {
           this.ringStack.shift();
         }
-        var index = this.ringStack.push(pdu);
-        //console.log(this);
+
+        var index = this.ringStack.push(pdu); //console.log(this);
+
         this.valid++;
         return index;
       }
-
       /**
        * logger message
        * @method logger
@@ -35996,11 +29612,13 @@ module.exports = function (stage) {
         if (this.settings.rateLimit) {
           var now = new Date().getTime();
           this.start = this.start || now;
+
           if (now > this.start + this.settings.rateLimit) {
             this.burstPrinted = 0;
             this.missed = 0;
             this.start = 0;
           }
+
           if (this.settings.burstLimit && this.settings.burstLimit > this.burstPrinted) {
             try {
               if (payload instanceof PDU) {
@@ -36013,11 +29631,13 @@ module.exports = function (stage) {
               this.invalid++;
               return "INVALID";
             }
+
             this.pushStack(pdu);
             this.fire("onLog", pdu);
             this.burstPrinted++;
             return "ACCEPTED";
           }
+
           this.missed++;
           return "DROPPED";
         } else {
@@ -36032,12 +29652,12 @@ module.exports = function (stage) {
             this.invalid++;
             return "INVALID";
           }
+
           this.pushStack(pdu);
           this.fire("onLog", pdu);
           return "ACCEPTED";
         }
       }
-
       /**
        * Clear stack of logs
        *
@@ -36052,7 +29672,6 @@ module.exports = function (stage) {
       value: function clearLogStack() {
         this.ringStack.length = 0;
       }
-
       /**
        * get hitory of stack
        * @method getLogStack
@@ -36070,12 +29689,12 @@ module.exports = function (stage) {
         } else {
           var stack = this.ringStack;
         }
+
         if (arguments.length === 0) return stack[stack.length - 1];
         if (!end) return stack.slice(start);
         if (start === end) return stack[stack.length - start - 1];
         return stack.slice(start, end);
       }
-
       /**
        * get logs with conditions
        * @method getLogs
@@ -36087,27 +29706,31 @@ module.exports = function (stage) {
       key: "getLogs",
       value: function getLogs(conditions, stack) {
         var myStack = stack || this.ringStack;
+
         if (conditions.checkConditions && conditions.checkConditions in logicCondition) {
           var myFuncCondition = logicCondition[conditions.checkConditions];
           delete conditions.checkConditions;
         } else {
           var myFuncCondition = logicCondition[this.settings.checkConditions];
         }
+
         var tab = [];
+
         try {
           var Conditions = sanitizeConditions(conditions);
         } catch (e) {
           throw new Error("registreNotification conditions format error: " + e);
         }
+
         if (Conditions) {
           for (var i = 0; i < myStack.length; i++) {
             var res = myFuncCondition(Conditions, myStack[i]);
             if (res) tab.push(myStack[i]);
           }
         }
+
         return tab;
       }
-
       /**
        * take the stack and build a JSON string
        * @method logToJson
@@ -36120,7 +29743,6 @@ module.exports = function (stage) {
         if (conditions) var stack = this.getLogs(conditions);else var stack = this.ringStack;
         return JSON.stringify(stack);
       }
-
       /**
        * load the stack as JSON string
        * @method loadStack
@@ -36134,6 +29756,7 @@ module.exports = function (stage) {
       key: "loadStack",
       value: function loadStack(stack, doEvent, beforeConditions) {
         if (!stack) throw new Error("syslog loadStack : not stack in arguments ");
+
         switch (stage.typeOf(stack)) {
           case "string":
             try {
@@ -36143,7 +29766,9 @@ module.exports = function (stage) {
             } catch (e) {
               throw e;
             }
+
             break;
+
           case "array":
           case "object":
             try {
@@ -36159,13 +29784,16 @@ module.exports = function (stage) {
             } catch (e) {
               throw e;
             }
+
             break;
+
           default:
             throw new Error("syslog loadStack : bad stack in arguments type");
-        };
+        }
+
+        ;
         return st || stack;
       }
-
       /**
        *
        *    @method  listenWithConditions
@@ -36181,19 +29809,24 @@ module.exports = function (stage) {
         } else {
           var myFuncCondition = logicCondition[this.settings.checkConditions];
         }
+
         try {
           var Conditions = sanitizeConditions(conditions);
         } catch (e) {
           throw new Error("registreNotification conditions format error: " + e);
         }
+
         if (Conditions) {
           var func = function func(pdu) {
             var res = myFuncCondition(Conditions, pdu);
+
             if (res) {
               callback.apply(context || this, arguments);
             }
           };
-          _get(syslog.prototype.__proto__ || Object.getPrototypeOf(syslog.prototype), "listen", this).call(this, this, "onLog", func);
+
+          _get(_getPrototypeOf(syslog.prototype), "listen", this).call(this, this, "onLog", func);
+
           return func;
         }
       }
@@ -36201,6 +29834,7 @@ module.exports = function (stage) {
 
     return syslog;
   }(stage.notificationsCenter.notification);
+
   stage.syslog = syslog;
   stage.PDU = PDU;
   return syslog;
@@ -36213,10 +29847,7 @@ module.exports = function (stage) {
   !*** ./src/tools/xml.js ***!
   \**************************/
 /*! no static exports found */
-/***/ (function(module, exports, __webpack_require__) {
-
-"use strict";
-
+/***/ (function(module, exports) {
 
 /*
  *
@@ -36227,181 +29858,200 @@ module.exports = function (stage) {
  *
  *
  */
-
 module.exports = function (stage) {
+  /**
+    	* \brief changes the given string to XML doc.
+    	*
+    	* \param string an XML string
+    	* \return  the document  node root
+    	*/
+  var stringToDocumentXML = function () {
+    if (!document.implementation.createDocument) {
+      return function (str) {
+        var doc = createDocument();
+        doc.async = "false";
+        doc.loadXML(str);
+        return doc;
+      };
+    }
 
-	/**
-   	* \brief changes the given string to XML doc.
-   	*
-   	* \param string an XML string
-   	* \return  the document  node root
-   	*/
-	var stringToDocumentXML = function () {
+    return function (str) {
+      try {
+        var oDomDoc = new DOMParser().parseFromString(str, 'application/xml');
+      } catch (e) {
+        throw Error('xml function stringToDocumentXML : ' + e);
+      }
 
-		if (!document.implementation.createDocument) {
-			return function (str) {
-				var doc = createDocument();
-				doc.async = "false";
-				doc.loadXML(str);
-				return doc;
-			};
-		}
+      return oDomDoc;
+    };
+  }();
 
-		return function (str) {
-			try {
-				var oDomDoc = new DOMParser().parseFromString(str, 'application/xml');
-			} catch (e) {
-				throw Error('xml function stringToDocumentXML : ' + e);
-			}
-			return oDomDoc;
-		};
-	}();
+  var getDocumentRoot = function getDocumentRoot(doc) {
+    var type = stage.typeOf(doc);
 
-	var getDocumentRoot = function getDocumentRoot(doc) {
-		var type = stage.typeOf(doc);
-		if (type === "document") {
-			return doc.documentElement || doc.childNodes[0];
-		}
-		if (type === "element") {
-			var myDoc = doc.ownerDocument;
-			return myDoc.documentElement || myDoc.childNodes[0];
-		}
-	};
+    if (type === "document") {
+      return doc.documentElement || doc.childNodes[0];
+    }
 
-	//parseXML
-	var parseXml = function parseXml(xml) {
-		switch (stage.typeOf(xml)) {
-			case "string":
-				var root = getDocumentRoot(stringToDocumentXML(xml));
-				break;
-			case "document":
-				var root = getDocumentRoot(xml);
-				break;
-			case "element":
-				var root = xml;
-				break;
-			default:
-				throw new Error("parseXml  bad type arguments");
+    if (type === "element") {
+      var myDoc = doc.ownerDocument;
+      return myDoc.documentElement || myDoc.childNodes[0];
+    }
+  }; //parseXML
 
-		}
-		return parseDOM(root);
-	};
 
-	var __force_array = null;
-	var parseDOM = function parseDOM(root) {
-		if (!root) return null;
-		var force_array = null;
-		__force_array = {};
-		if (force_array) {
-			for (var i = 0; i < force_array.length; i++) {
-				__force_array[force_array[i]] = 1;
-			}
-		}
+  var parseXml = function parseXml(xml) {
+    switch (stage.typeOf(xml)) {
+      case "string":
+        var root = getDocumentRoot(stringToDocumentXML(xml));
+        break;
 
-		var json = parseNode(root); // parse root node
-		if (__force_array[root.nodeName]) {
-			json = [json];
-		}
-		if (root.nodeType != 11) {
-			// DOCUMENT_FRAGMENT_NODE
-			var tmp = {};
-			tmp[root.nodeName] = json; // root nodeName
-			json = tmp;
-		}
-		return json;
-	};
+      case "document":
+        var root = getDocumentRoot(xml);
+        break;
 
-	var attr_prefix = "@";
-	var name_space = ":";
-	var parseNode = function parseNode(node) {
-		if (!node) return null;
-		switch (node.nodeType) {
-			// COMMENT_NODE
-			case 7:
-				return null;
-			// TEXT_NODE 
-			case 3:
-			// CDATA_SECTION_NODE
-			case 4:
-				if (node.nodeValue.match(/[^\x00-\x20]/)) return node.nodeValue;
-				return null;
-				break;
-		}
-		var ret = null;
-		var data = {};
+      case "element":
+        var root = xml;
+        break;
 
-		// parse Attributes 
-		if (node.attributes && node.attributes.length) {
-			ret = {};
-			for (var i = 0; i < node.attributes.length; i++) {
-				var key = node.attributes[i].nodeName;
-				if (typeof key !== "string") continue;
-				var val = node.attributes[i].value || node.attributes[i].nodeValue;
-				if (!val) continue;
-				key = attr_prefix + key;
-				if (typeof data[key] == "undefined") data[key] = 0;
-				data[key]++;
-				addNode(ret, key, data[key], val);
-			}
-			//console.log(data)
-		}
+      default:
+        throw new Error("parseXml  bad type arguments");
+    }
 
-		if (node.childNodes && node.childNodes.length) {
-			var textonly = true;
-			if (ret) textonly = false; // some attributes exists
-			for (var i = 0; i < node.childNodes.length && textonly; i++) {
-				var ntype = node.childNodes[i].nodeType;
-				if (ntype == 3 || ntype == 4) continue;
-				textonly = false;
-			}
-			if (textonly) {
-				if (!ret) ret = "";
-				for (var i = 0; i < node.childNodes.length; i++) {
-					ret += node.childNodes[i].nodeValue;
-				}
-			} else {
-				if (!ret) ret = {};
-				for (var i = 0; i < node.childNodes.length; i++) {
-					var key = node.childNodes[i].nodeName;
-					if (typeof key !== "string") continue;
-					var val = parseNode(node.childNodes[i]);
-					if (!val) continue;
-					if (typeof data[key] === "undefined") data[key] = 0;
-					data[key]++;
-					addNode(ret, key, data[key], val);
-				}
-			}
-		}
-		return ret;
-	};
+    return parseDOM(root);
+  };
 
-	var addNode = function addNode(hash, key, cnts, val) {
-		key = removeColon(key);
-		if (__force_array && __force_array[key]) {
-			if (cnts == 1) hash[key] = [];
-			hash[key][hash[key].length] = val; // push
-		} else if (cnts == 1) {
-			// 1st sibling
-			hash[key] = val;
-		} else if (cnts == 2) {
-			// 2nd sibling
-			hash[key] = [hash[key], val];
-		} else {
-			// 3rd sibling and more
-			hash[key][hash[key].length] = val;
-		}
-	};
+  var __force_array = null;
 
-	var removeColon = function removeColon(name) {
-		return name ? name.replace(':', name_space) : name;
-	};
+  var parseDOM = function parseDOM(root) {
+    if (!root) return null;
+    var force_array = null;
+    __force_array = {};
 
-	return stage.xml = {
-		parseXml: parseXml,
-		//parseNode:parseDOM,
-		stringToDocumentXML: stringToDocumentXML
-		//getDocumentRoot :getDocumentRoot
-	};
+    if (force_array) {
+      for (var i = 0; i < force_array.length; i++) {
+        __force_array[force_array[i]] = 1;
+      }
+    }
+
+    var json = parseNode(root); // parse root node
+
+    if (__force_array[root.nodeName]) {
+      json = [json];
+    }
+
+    if (root.nodeType != 11) {
+      // DOCUMENT_FRAGMENT_NODE
+      var tmp = {};
+      tmp[root.nodeName] = json; // root nodeName
+
+      json = tmp;
+    }
+
+    return json;
+  };
+
+  var attr_prefix = "@";
+  var name_space = ":";
+
+  var parseNode = function parseNode(node) {
+    if (!node) return null;
+
+    switch (node.nodeType) {
+      // COMMENT_NODE
+      case 7:
+        return null;
+      // TEXT_NODE 
+
+      case 3: // CDATA_SECTION_NODE
+
+      case 4:
+        if (node.nodeValue.match(/[^\x00-\x20]/)) return node.nodeValue;
+        return null;
+        break;
+    }
+
+    var ret = null;
+    var data = {}; // parse Attributes 
+
+    if (node.attributes && node.attributes.length) {
+      ret = {};
+
+      for (var i = 0; i < node.attributes.length; i++) {
+        var key = node.attributes[i].nodeName;
+        if (typeof key !== "string") continue;
+        var val = node.attributes[i].value || node.attributes[i].nodeValue;
+        if (!val) continue;
+        key = attr_prefix + key;
+        if (typeof data[key] == "undefined") data[key] = 0;
+        data[key]++;
+        addNode(ret, key, data[key], val);
+      } //console.log(data)
+
+    }
+
+    if (node.childNodes && node.childNodes.length) {
+      var textonly = true;
+      if (ret) textonly = false; // some attributes exists
+
+      for (var i = 0; i < node.childNodes.length && textonly; i++) {
+        var ntype = node.childNodes[i].nodeType;
+        if (ntype == 3 || ntype == 4) continue;
+        textonly = false;
+      }
+
+      if (textonly) {
+        if (!ret) ret = "";
+
+        for (var i = 0; i < node.childNodes.length; i++) {
+          ret += node.childNodes[i].nodeValue;
+        }
+      } else {
+        if (!ret) ret = {};
+
+        for (var i = 0; i < node.childNodes.length; i++) {
+          var key = node.childNodes[i].nodeName;
+          if (typeof key !== "string") continue;
+          var val = parseNode(node.childNodes[i]);
+          if (!val) continue;
+          if (typeof data[key] === "undefined") data[key] = 0;
+          data[key]++;
+          addNode(ret, key, data[key], val);
+        }
+      }
+    }
+
+    return ret;
+  };
+
+  var addNode = function addNode(hash, key, cnts, val) {
+    key = removeColon(key);
+
+    if (__force_array && __force_array[key]) {
+      if (cnts == 1) hash[key] = [];
+      hash[key][hash[key].length] = val; // push
+    } else if (cnts == 1) {
+      // 1st sibling
+      hash[key] = val;
+    } else if (cnts == 2) {
+      // 2nd sibling
+      hash[key] = [hash[key], val];
+    } else {
+      // 3rd sibling and more
+      hash[key][hash[key].length] = val;
+    }
+  };
+
+  var removeColon = function removeColon(name) {
+    return name ? name.replace(':', name_space) : name;
+  };
+
+  return stage.xml = {
+    parseXml: parseXml,
+    //parseNode:parseDOM,
+    stringToDocumentXML: stringToDocumentXML //getDocumentRoot :getDocumentRoot
+
+  };
 };
 
 /***/ }),
