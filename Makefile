@@ -32,7 +32,8 @@ all:
 install:
 	npm install
 	$(MAKE)
-	$(MAKE) build -C ./demo/nodefony
+	npm install --prefix ./demo/nodefony
+	npm run build --prefix ./demo/nodefony
 
 build:
 	npm run build-prod
