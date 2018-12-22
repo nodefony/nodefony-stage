@@ -11,7 +11,11 @@ module.exports = function (stage) {
     try {
       if (stage.browser.Webkit) {
         getMediaStream = function (stream) {
-          return URL.createObjectURL(stream);
+          try {
+            return URL.createObjectURL(stream);
+          } catch (e) {
+            return stream;
+          }
         };
         mediaStream = webkitMediaStream;
         // The representation of tracks in a stream is changed in M26.
@@ -29,7 +33,11 @@ module.exports = function (stage) {
       if (stage.browser.Gecko) {
 
         getMediaStream = function (stream) {
-          return window.URL.createObjectURL(stream);
+          try {
+            return window.URL.createObjectURL(stream);
+          } catch (e) {
+            return stream;
+          }
         };
         mediaStream = MediaStream;
         if (MediaStream && !MediaStream.prototype.getVideoTracks) {

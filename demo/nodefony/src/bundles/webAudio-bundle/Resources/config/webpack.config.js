@@ -31,7 +31,9 @@ module.exports = webpackMerge(config, {
     library: "[name]",
     libraryTarget: "umd"
   },
-  externals: {},
+  externals: {
+    "jquery": "jQuery"
+  },
   resolve: {},
   module: {
     rules: [{
@@ -54,7 +56,7 @@ module.exports = webpackMerge(config, {
         loader: "expose-loader?$!expose-loader?jQuery"
       }, {
         test: /jquery\..*\.js/,
-        loader: "imports?$=jquery,jQuery=jquery,this=>window"
+        loader: "imports-loader?$=jquery,jQuery=jquery,this=>window"
       }, {
         test: /\.(sa|sc|c)ss$/,
         use: [
@@ -71,7 +73,7 @@ module.exports = webpackMerge(config, {
           }, {
             loader: 'postcss-loader', // Run post css actions
             options: {
-              plugins: function() { // post css plugins, can be exported to postcss.config.js
+              plugins: function () { // post css plugins, can be exported to postcss.config.js
                 return [
                   require('precss'),
                   require('autoprefixer')

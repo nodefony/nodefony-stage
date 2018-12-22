@@ -13,7 +13,7 @@ require('jquery');
 const stage = require("../../../../../../src/core.js");
 require('../css/demo.css');
 
-module.exports = function() {
+module.exports = function () {
   window.stage = stage;
   /*
    *	Class
@@ -23,17 +23,7 @@ module.exports = function() {
    */
   const demo = class demo {
 
-    constructor() {
-
-      $(document).ready(() => {
-        let md = new stage.media.mediaStream($("#myvideo").get(0));
-        md.getUserMedia({}, (media) => {
-          media.attachMediaStream();
-          //media.getVideoTracks();
-        });
-
-      });
-    }
+    constructor() {}
   };
 
   return new demo();

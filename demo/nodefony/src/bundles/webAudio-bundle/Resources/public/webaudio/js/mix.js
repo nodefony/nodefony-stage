@@ -1,15 +1,15 @@
 require("./excanvas.js");
-//require("./jquery.knob.js");
+require("./jquery.knob.js");
 require("./bootstrap-slider.js");
 require("./bootstrap-slider.js");
 
 require("../css/bootstrap-slider.css");
 require("../css/wai.css");
 
-module.exports = function() {
+module.exports = function () {
 
 
-  var drawSpectrum = function(myAudioAnalyser) {
+  var drawSpectrum = function (myAudioAnalyser) {
 
     var canvas = $(this).get(0);
     var ctx = canvas.getContext('2d');
@@ -132,7 +132,7 @@ module.exports = function() {
         content.find(".tagMediaType").empty().append(track.media);
       }
 
-      content.find('.play i.fa').click(function() {
+      content.find('.play i.fa').click(function () {
         if ($(this).hasClass('fa-play')) {
           $(this).removeClass('fa-play');
           $(this).addClass('fa-pause');
@@ -155,7 +155,7 @@ module.exports = function() {
           }
 
           if (track.settings.analyser) {
-            track.intervalSpectrumId = setInterval(function() {
+            track.intervalSpectrumId = setInterval(function () {
               drawSpectrum.call(content.find('.spectrum canvas'), track.audioNodes.analyser);
             }, 30);
           }
@@ -164,7 +164,7 @@ module.exports = function() {
 
       content.find('.mute input[type=checkbox]')
         .attr('checked', track.muted)
-        .on('click', function(ev) {
+        .on('click', function (ev) {
           if (ev.currentTarget.checked) {
             track.mute();
           } else {
@@ -182,7 +182,7 @@ module.exports = function() {
           thickness: 0.5,
           cursor: 50,
           displayInput: false,
-          change: function(value) {
+          change: function (value) {
             var val = Number(((value / 50) - 1).toFixed(1));
             track.audioNodes.panner.pan.value = val;
           }
@@ -196,7 +196,7 @@ module.exports = function() {
         step: 10,
         orientation: "vertical",
         value: track.getGain() * 100,
-      }).change(function(ev) {
+      }).change(function (ev) {
         track.setGain(ev.value.newValue / 100);
       });
 
@@ -206,25 +206,25 @@ module.exports = function() {
       });
 
       switch (true) {
-        case track.media instanceof stage.media.mediaStream:
-          var tag = content.find(track.mediaType == 'video' ? 'video' : 'audio');
-          track.media.attachMediaStream(tag.get(0));
-          tag.prop('muted', true);
-          break;
-        case track.mediaType === "video":
-          var tag = content.find(track.mediaType);
-          tag.get(0).src = track.urlStream;
-          tag.prop('muted', true);
-          break;
-        case track.mediaType === "audio":
-          //track.play(0, true);
-          break;
-        case track.mediaType === "audioNode":
-          //track.play(0, true);
-          break;
-        case track.mediaType === "domElement":
-          //console.log(track.media)
-          break;
+      case track.media instanceof stage.media.mediaStream:
+        var tag = content.find(track.mediaType == 'video' ? 'video' : 'audio');
+        track.media.attachMediaStream(tag.get(0));
+        tag.prop('muted', true);
+        break;
+      case track.mediaType === "video":
+        var tag = content.find(track.mediaType);
+        tag.get(0).src = track.urlStream;
+        tag.prop('muted', true);
+        break;
+      case track.mediaType === "audio":
+        //track.play(0, true);
+        break;
+      case track.mediaType === "audioNode":
+        //track.play(0, true);
+        break;
+      case track.mediaType === "domElement":
+        //console.log(track.media)
+        break;
       }
     }
   };
@@ -273,11 +273,11 @@ module.exports = function() {
 
     start() {
 
-      this.ring = this.addTrack('AJAX WAV', '/demo-bundle/webaudio/music/marimba.wav');
-      this.addTrack('AJAX MP3 ', '/demo-bundle/webaudio/music/Chico_Buarque.mp3');
-      this.addTrack('AJAX webm', '/demo-bundle/webaudio/music/oceans-clip.webm');
+      this.ring = this.addTrack('AJAX WAV', '/webAudio-bundle/webaudio/music/marimba.wav');
+      this.addTrack('AJAX MP3 ', '/webAudio-bundle/webaudio/music/Chico_Buarque.mp3');
+      this.addTrack('AJAX webm', '/webAudio-bundle/webaudio/music/oceans-clip.webm');
 
-      var domEle = $("<video src='/demo-bundle/webaudio/music/oceans-clip.webm' />")
+      var domEle = $("<video src='/webAudio-bundle/webaudio/music/oceans-clip.webm' />")
       this.addTrack('DOM ELEMENT', domEle.get(0));
 
       this.LA = this.build440();
@@ -351,14 +351,14 @@ module.exports = function() {
       } else {
         var ti = 10000;
       }
-      var interval = setInterval(function() {
+      var interval = setInterval(function () {
         if (this.LA.muted) {
           this.LA.unmute();
         } else {
           this.LA.mute();
         }
       }.bind(this), blink)
-      setTimeout(function() {
+      setTimeout(function () {
         clearInterval(interval);
         this.LA.pause(0);
       }.bind(this), ti)
@@ -368,7 +368,7 @@ module.exports = function() {
       var touch = key + ""
       if (touch in this.dtmf) {
         this.dtmf[touch].play(0)
-        setTimeout(function() {
+        setTimeout(function () {
           this.dtmf[touch].pause()
         }.bind(this), duration || 500)
       }
@@ -376,7 +376,7 @@ module.exports = function() {
 
     playRing(duration) {
       this.ring.play(0, true);
-      setTimeout(function() {
+      setTimeout(function () {
         this.ring.pause()
       }.bind(this), duration || 10000)
     }

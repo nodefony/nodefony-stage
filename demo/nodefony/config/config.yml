@@ -71,7 +71,8 @@ system:
   #       bundles:
   #         hello-bundle                 : "file:src/bundles/hello-bundle"
   #         my-bundle                    : ~
-  bundles                       : ~
+  bundles                       :
+    mixer                       : "file:src/bundles/webAudio-bundle"
 
   #################
   # SYSLOG NODEFONY
