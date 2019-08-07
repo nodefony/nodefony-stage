@@ -3,37 +3,25 @@
  *	@constructor
  *	@param {class} container
  *	@param {class} context
- *
+ *  @Route ("/mixer")
  */
 module.exports = class defaultController extends nodefony.controller {
 
   constructor(container, context) {
     super(container, context);
+    // start session
+    this.startSession();
   }
 
   /**
-   *
-   *	@method indexAction
-   *
+   *    @Route ("",
+   *      name="route-webAudio-bundle-webAudio")
    */
   indexAction() {
-    try {
-      return this.render("webAudio-bundle::index.html.twig", {
-        name: "webAudio-bundle"
-      });
-    } catch (e) {
-      throw e;
-    }
+    return this.render("webAudio-bundle:mixer:mix.html.twig", {
+      name: this.bundle.name,
+      description: this.bundle.package.description
+    });
+
   }
-
-  /**
-   *
-   *	@method mixAction
-   *
-   */
-  mixAction() {
-    return this.render("webAudio-bundle:mixer:mix.html.twig");
-  }
-
-
 };

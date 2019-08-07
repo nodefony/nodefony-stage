@@ -1,31 +1,18 @@
-{% extends '/app/Resources/views/base.html.twig' %}
+{% extends './base.html.twig' %}
 
-{% block title %}Welcome {{name}}! {% endblock %}
-{% block stylesheets %}
-  {{ parent() }}
-  <!-- WEBPACK BUNDLE -->
-{% endblock %}
+{% set error = getFlashBag("error") %}
+{% set info = getFlashBag("info") %}
+
 {% block body %}
-  {% block header %}
-    {{ render( controller('app:app:header' )) }}
-  {% endblock %}
-  <div class='container' style='margin-top:100px'>
-    <div class='row'>
-      <div class='col text-center'>
-        <img src='{{CDN("image")}}/app/images/app-logo.png'>
-        <a href='{{url('documentation')}}'>
-          <strong style='font-size:45px'>{{name}}</strong>
-        </a>
-        <p class='display-4 mt-5'>{{trans('welcome')}}</p>
-        <p>{{binding}}</p>
-        </div>
-    </div>
-  </div>
-  {% block footer %}
-    {{ render( controller('app:app:footer' )) }}
-  {% endblock %}
-{% endblock %}
-{% block javascripts %}
-  {{ parent() }}
-  <!-- WEBPACK BUNDLE -->
+
+<div class="hello">
+
+  <img class=displayed src=/framework-bundle/images/nodefony-logo.png>
+  <h1>{{ name }}</h1>
+  <h2>{{ description }}</h2>
+  <img class="displayed"  style=" width:10%; height:10%" src="/framework-bundle/images/nodejs/nodejs-new-pantone-black.png">
+  <img class="displayed" style=" width:15%; height:15%" src="/framework-bundle/images/webpack/webpack.svg">
+
+</div>
+
 {% endblock %}

@@ -1,23 +1,16 @@
-/*
+/**
  *
- *	ROUTING BUNDLE webAudio-bundle
+ * ===============================================================================
+ *      ROUTING BUNDLE webAudio-bundle
+ *
+ *  Copyright © /2019     | 
  *
  * ===============================================================================
  *
- *  Copyright © 2018/2018    admin | admin@nodefony.com
+ *        GENERATE BY stage-starter BUILDER
  *
- * ===============================================================================
- *
- *        GENERATE BY stage-demo BUILDER
- *
- *        stage-demo ROUTING  webAudio-bundle
- */
+ *        webAudio ROUTING  webAudio-bundle
+ **/
 
-module.exports = {
-  webAudio: {
-    pattern: "/mixer",
-    defaults: {
-      controller: "webAudio-bundle:default:mix"
-    }
-  }
-};
+
+  module.exports = {};

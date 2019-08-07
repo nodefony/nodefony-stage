@@ -1,16 +1,11 @@
-// WEBPACK DEV CONFIGURATION
-//const webpack = require('webpack');
-const CleanWebpackPlugin = require('clean-webpack-plugin');
-const public = path.resolve(__dirname, "..", "..", "public");
+const { CleanWebpackPlugin } = require('clean-webpack-plugin');
 
 module.exports = {
   mode: "development",
   devtool: "source-map",
-  resolve: {},
   plugins: [
-    new CleanWebpackPlugin(['assets'], {
-      verbose: kernel.debug,
-      root: public
+    new CleanWebpackPlugin({
+      verbose: kernel.debug
     })
     //new webpack.NamedModulesPlugin(),
     //new webpack.HotModuleReplacementPlugin()

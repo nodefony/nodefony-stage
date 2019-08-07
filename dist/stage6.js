@@ -116,7 +116,7 @@ return /******/ (function(modules) { // webpackBootstrap
 /***/ (function(module, exports, __webpack_require__) {
 
 var __WEBPACK_AMD_DEFINE_ARRAY__, __WEBPACK_AMD_DEFINE_RESULT__;/*!
- * jQuery JavaScript Library v3.3.1
+ * jQuery JavaScript Library v3.4.1
  * https://jquery.com/
  *
  * Includes Sizzle.js
@@ -126,7 +126,7 @@ var __WEBPACK_AMD_DEFINE_ARRAY__, __WEBPACK_AMD_DEFINE_RESULT__;/*!
  * Released under the MIT license
  * https://jquery.org/license
  *
- * Date: 2018-01-20T17:24Z
+ * Date: 2019-05-01T21:04Z
  */
 ( function( global, factory ) {
 
@@ -208,20 +208,33 @@ var isWindow = function isWindow( obj ) {
 	var preservedScriptAttributes = {
 		type: true,
 		src: true,
+		nonce: true,
 		noModule: true
 	};
 
-	function DOMEval( code, doc, node ) {
+	function DOMEval( code, node, doc ) {
 		doc = doc || document;
 
-		var i,
+		var i, val,
 			script = doc.createElement( "script" );
 
 		script.text = code;
 		if ( node ) {
 			for ( i in preservedScriptAttributes ) {
-				if ( node[ i ] ) {
-					script[ i ] = node[ i ];
+
+				// Support: Firefox 64+, Edge 18+
+				// Some browsers don't support the "nonce" property on scripts.
+				// On the other hand, just using `getAttribute` is not enough as
+				// the `nonce` attribute is reset to an empty string whenever it
+				// becomes browsing-context connected.
+				// See https://github.com/whatwg/html/issues/2369
+				// See https://html.spec.whatwg.org/#nonce-attributes
+				// The `node.getAttribute` check was added for the sake of
+				// `jQuery.globalEval` so that it can fake a nonce-containing node
+				// via an object.
+				val = node[ i ] || node.getAttribute && node.getAttribute( i );
+				if ( val ) {
+					script.setAttribute( i, val );
 				}
 			}
 		}
@@ -246,7 +259,7 @@ function toType( obj ) {
 
 
 var
-	version = "3.3.1",
+	version = "3.4.1",
 
 	// Define a local copy of jQuery
 	jQuery = function( selector, context ) {
@@ -375,25 +388,28 @@ jQuery.extend = jQuery.fn.extend = function() {
 
 			// Extend the base object
 			for ( name in options ) {
-				src = target[ name ];
 				copy = options[ name ];
 
+				// Prevent Object.prototype pollution
 				// Prevent never-ending loop
-				if ( target === copy ) {
+				if ( name === "__proto__" || target === copy ) {
 					continue;
 				}
 
 				// Recurse if we're merging plain objects or arrays
 				if ( deep && copy && ( jQuery.isPlainObject( copy ) ||
 					( copyIsArray = Array.isArray( copy ) ) ) ) {
+					src = target[ name ];
 
-					if ( copyIsArray ) {
-						copyIsArray = false;
-						clone = src && Array.isArray( src ) ? src : [];
-
+					// Ensure proper type for the source value
+					if ( copyIsArray && !Array.isArray( src ) ) {
+						clone = [];
+					} else if ( !copyIsArray && !jQuery.isPlainObject( src ) ) {
+						clone = {};
 					} else {
-						clone = src && jQuery.isPlainObject( src ) ? src : {};
+						clone = src;
 					}
+					copyIsArray = false;
 
 					// Never move original objects, clone them
 					target[ name ] = jQuery.extend( deep, clone, copy );
@@ -446,9 +462,6 @@ jQuery.extend( {
 	},
 
 	isEmptyObject: function( obj ) {
-
-		/* eslint-disable no-unused-vars */
-		// See https://github.com/eslint/eslint/issues/6125
 		var name;
 
 		for ( name in obj ) {
@@ -458,8 +471,8 @@ jQuery.extend( {
 	},
 
 	// Evaluates a script in a global context
-	globalEval: function( code ) {
-		DOMEval( code );
+	globalEval: function( code, options ) {
+		DOMEval( code, { nonce: options && options.nonce } );
 	},
 
 	each: function( obj, callback ) {
@@ -615,14 +628,14 @@ function isArrayLike( obj ) {
 }
 var Sizzle =
 /*!
- * Sizzle CSS Selector Engine v2.3.3
+ * Sizzle CSS Selector Engine v2.3.4
  * https://sizzlejs.com/
  *
- * Copyright jQuery Foundation and other contributors
+ * Copyright JS Foundation and other contributors
  * Released under the MIT license
- * http://jquery.org/license
+ * https://js.foundation/
  *
- * Date: 2016-08-08
+ * Date: 2019-04-08
  */
 (function( window ) {
 
@@ -656,6 +669,7 @@ var i,
 	classCache = createCache(),
 	tokenCache = createCache(),
 	compilerCache = createCache(),
+	nonnativeSelectorCache = createCache(),
 	sortOrder = function( a, b ) {
 		if ( a === b ) {
 			hasDuplicate = true;
@@ -717,8 +731,7 @@ var i,
 
 	rcomma = new RegExp( "^" + whitespace + "*," + whitespace + "*" ),
 	rcombinators = new RegExp( "^" + whitespace + "*([>+~]|" + whitespace + ")" + whitespace + "*" ),
-
-	rattributeQuotes = new RegExp( "=" + whitespace + "*([^\\]'\"]*?)" + whitespace + "*\\]", "g" ),
+	rdescend = new RegExp( whitespace + "|>" ),
 
 	rpseudo = new RegExp( pseudos ),
 	ridentifier = new RegExp( "^" + identifier + "$" ),
@@ -739,6 +752,7 @@ var i,
 			whitespace + "*((?:-\\d)?\\d*)" + whitespace + "*\\)|)(?=[^-]|$)", "i" )
 	},
 
+	rhtml = /HTML$/i,
 	rinputs = /^(?:input|select|textarea|button)$/i,
 	rheader = /^h\d$/i,
 
@@ -793,9 +807,9 @@ var i,
 		setDocument();
 	},
 
-	disabledAncestor = addCombinator(
+	inDisabledFieldset = addCombinator(
 		function( elem ) {
-			return elem.disabled === true && ("form" in elem || "label" in elem);
+			return elem.disabled === true && elem.nodeName.toLowerCase() === "fieldset";
 		},
 		{ dir: "parentNode", next: "legend" }
 	);
@@ -908,18 +922,22 @@ function Sizzle( selector, context, results, seed ) {
 
 			// Take advantage of querySelectorAll
 			if ( support.qsa &&
-				!compilerCache[ selector + " " ] &&
-				(!rbuggyQSA || !rbuggyQSA.test( selector )) ) {
+				!nonnativeSelectorCache[ selector + " " ] &&
+				(!rbuggyQSA || !rbuggyQSA.test( selector )) &&
 
-				if ( nodeType !== 1 ) {
-					newContext = context;
-					newSelector = selector;
-
-				// qSA looks outside Element context, which is not what we want
-				// Thanks to Andrew Dupont for this workaround technique
-				// Support: IE <=8
+				// Support: IE 8 only
 				// Exclude object elements
-				} else if ( context.nodeName.toLowerCase() !== "object" ) {
+				(nodeType !== 1 || context.nodeName.toLowerCase() !== "object") ) {
+
+				newSelector = selector;
+				newContext = context;
+
+				// qSA considers elements outside a scoping root when evaluating child or
+				// descendant combinators, which is not what we want.
+				// In such cases, we work around the behavior by prefixing every selector in the
+				// list with an ID selector referencing the scope context.
+				// Thanks to Andrew Dupont for this technique.
+				if ( nodeType === 1 && rdescend.test( selector ) ) {
 
 					// Capture the context ID, setting it first if necessary
 					if ( (nid = context.getAttribute( "id" )) ) {
@@ -941,17 +959,16 @@ function Sizzle( selector, context, results, seed ) {
 						context;
 				}
 
-				if ( newSelector ) {
-					try {
-						push.apply( results,
-							newContext.querySelectorAll( newSelector )
-						);
-						return results;
-					} catch ( qsaError ) {
-					} finally {
-						if ( nid === expando ) {
-							context.removeAttribute( "id" );
-						}
+				try {
+					push.apply( results,
+						newContext.querySelectorAll( newSelector )
+					);
+					return results;
+				} catch ( qsaError ) {
+					nonnativeSelectorCache( selector, true );
+				} finally {
+					if ( nid === expando ) {
+						context.removeAttribute( "id" );
 					}
 				}
 			}
@@ -1115,7 +1132,7 @@ function createDisabledPseudo( disabled ) {
 					// Where there is no isDisabled, check manually
 					/* jshint -W018 */
 					elem.isDisabled !== !disabled &&
-						disabledAncestor( elem ) === disabled;
+						inDisabledFieldset( elem ) === disabled;
 			}
 
 			return elem.disabled === disabled;
@@ -1172,10 +1189,13 @@ support = Sizzle.support = {};
  * @returns {Boolean} True iff elem is a non-HTML XML node
  */
 isXML = Sizzle.isXML = function( elem ) {
-	// documentElement is verified for cases where it doesn't yet exist
-	// (such as loading iframes in IE - #4833)
-	var documentElement = elem && (elem.ownerDocument || elem).documentElement;
-	return documentElement ? documentElement.nodeName !== "HTML" : false;
+	var namespace = elem.namespaceURI,
+		docElem = (elem.ownerDocument || elem).documentElement;
+
+	// Support: IE <=8
+	// Assume HTML when documentElement doesn't yet exist, such as inside loading iframes
+	// https://bugs.jquery.com/ticket/4833
+	return !rhtml.test( namespace || docElem && docElem.nodeName || "HTML" );
 };
 
 /**
@@ -1597,11 +1617,8 @@ Sizzle.matchesSelector = function( elem, expr ) {
 		setDocument( elem );
 	}
 
-	// Make sure that attribute selectors are quoted
-	expr = expr.replace( rattributeQuotes, "='$1']" );
-
 	if ( support.matchesSelector && documentIsHTML &&
-		!compilerCache[ expr + " " ] &&
+		!nonnativeSelectorCache[ expr + " " ] &&
 		( !rbuggyMatches || !rbuggyMatches.test( expr ) ) &&
 		( !rbuggyQSA     || !rbuggyQSA.test( expr ) ) ) {
 
@@ -1615,7 +1632,9 @@ Sizzle.matchesSelector = function( elem, expr ) {
 					elem.document && elem.document.nodeType !== 11 ) {
 				return ret;
 			}
-		} catch (e) {}
+		} catch (e) {
+			nonnativeSelectorCache( expr, true );
+		}
 	}
 
 	return Sizzle( expr, document, null, [ elem ] ).length > 0;
@@ -2074,7 +2093,7 @@ Expr = Sizzle.selectors = {
 		"contains": markFunction(function( text ) {
 			text = text.replace( runescape, funescape );
 			return function( elem ) {
-				return ( elem.textContent || elem.innerText || getText( elem ) ).indexOf( text ) > -1;
+				return ( elem.textContent || getText( elem ) ).indexOf( text ) > -1;
 			};
 		}),
 
@@ -2213,7 +2232,11 @@ Expr = Sizzle.selectors = {
 		}),
 
 		"lt": createPositionalPseudo(function( matchIndexes, length, argument ) {
-			var i = argument < 0 ? argument + length : argument;
+			var i = argument < 0 ?
+				argument + length :
+				argument > length ?
+					length :
+					argument;
 			for ( ; --i >= 0; ) {
 				matchIndexes.push( i );
 			}
@@ -3263,18 +3286,18 @@ jQuery.each( {
 		return siblings( elem.firstChild );
 	},
 	contents: function( elem ) {
-        if ( nodeName( elem, "iframe" ) ) {
-            return elem.contentDocument;
-        }
+		if ( typeof elem.contentDocument !== "undefined" ) {
+			return elem.contentDocument;
+		}
 
-        // Support: IE 9 - 11 only, iOS 7 only, Android Browser <=4.3 only
-        // Treat the template element as a regular one in browsers that
-        // don't support it.
-        if ( nodeName( elem, "template" ) ) {
-            elem = elem.content || elem;
-        }
+		// Support: IE 9 - 11 only, iOS 7 only, Android Browser <=4.3 only
+		// Treat the template element as a regular one in browsers that
+		// don't support it.
+		if ( nodeName( elem, "template" ) ) {
+			elem = elem.content || elem;
+		}
 
-        return jQuery.merge( [], elem.childNodes );
+		return jQuery.merge( [], elem.childNodes );
 	}
 }, function( name, fn ) {
 	jQuery.fn[ name ] = function( until, selector ) {
@@ -4583,6 +4606,26 @@ var rcssNum = new RegExp( "^(?:([+-])=|)(" + pnum + ")([a-z%]*)$", "i" );
 
 var cssExpand = [ "Top", "Right", "Bottom", "Left" ];
 
+var documentElement = document.documentElement;
+
+
+
+	var isAttached = function( elem ) {
+			return jQuery.contains( elem.ownerDocument, elem );
+		},
+		composed = { composed: true };
+
+	// Support: IE 9 - 11+, Edge 12 - 18+, iOS 10.0 - 10.2 only
+	// Check attachment across shadow DOM boundaries when possible (gh-3504)
+	// Support: iOS 10.0-10.2 only
+	// Early iOS 10 versions support `attachShadow` but not `getRootNode`,
+	// leading to errors. We need to check for `getRootNode`.
+	if ( documentElement.getRootNode ) {
+		isAttached = function( elem ) {
+			return jQuery.contains( elem.ownerDocument, elem ) ||
+				elem.getRootNode( composed ) === elem.ownerDocument;
+		};
+	}
 var isHiddenWithinTree = function( elem, el ) {
 
 		// isHiddenWithinTree might be called from jQuery#filter function;
@@ -4597,7 +4640,7 @@ var isHiddenWithinTree = function( elem, el ) {
 			// Support: Firefox <=43 - 45
 			// Disconnected elements can have computed display: none, so first confirm that elem is
 			// in the document.
-			jQuery.contains( elem.ownerDocument, elem ) &&
+			isAttached( elem ) &&
 
 			jQuery.css( elem, "display" ) === "none";
 	};
@@ -4639,7 +4682,8 @@ function adjustCSS( elem, prop, valueParts, tween ) {
 		unit = valueParts && valueParts[ 3 ] || ( jQuery.cssNumber[ prop ] ? "" : "px" ),
 
 		// Starting value computation is required for potential unit mismatches
-		initialInUnit = ( jQuery.cssNumber[ prop ] || unit !== "px" && +initial ) &&
+		initialInUnit = elem.nodeType &&
+			( jQuery.cssNumber[ prop ] || unit !== "px" && +initial ) &&
 			rcssNum.exec( jQuery.css( elem, prop ) );
 
 	if ( initialInUnit && initialInUnit[ 3 ] !== unit ) {
@@ -4786,7 +4830,7 @@ jQuery.fn.extend( {
 } );
 var rcheckableType = ( /^(?:checkbox|radio)$/i );
 
-var rtagName = ( /<([a-z][^\/\0>\x20\t\r\n\f]+)/i );
+var rtagName = ( /<([a-z][^\/\0>\x20\t\r\n\f]*)/i );
 
 var rscriptType = ( /^$|^module$|\/(?:java|ecma)script/i );
 
@@ -4858,7 +4902,7 @@ function setGlobalEval( elems, refElements ) {
 var rhtml = /<|&#?\w+;/;
 
 function buildFragment( elems, context, scripts, selection, ignored ) {
-	var elem, tmp, tag, wrap, contains, j,
+	var elem, tmp, tag, wrap, attached, j,
 		fragment = context.createDocumentFragment(),
 		nodes = [],
 		i = 0,
@@ -4922,13 +4966,13 @@ function buildFragment( elems, context, scripts, selection, ignored ) {
 			continue;
 		}
 
-		contains = jQuery.contains( elem.ownerDocument, elem );
+		attached = isAttached( elem );
 
 		// Append to fragment
 		tmp = getAll( fragment.appendChild( elem ), "script" );
 
 		// Preserve script evaluation history
-		if ( contains ) {
+		if ( attached ) {
 			setGlobalEval( tmp );
 		}
 
@@ -4971,8 +5015,6 @@ function buildFragment( elems, context, scripts, selection, ignored ) {
 	div.innerHTML = "<textarea>x</textarea>";
 	support.noCloneChecked = !!div.cloneNode( true ).lastChild.defaultValue;
 } )();
-var documentElement = document.documentElement;
-
 
 
 var
@@ -4988,8 +5030,19 @@ function returnFalse() {
 	return false;
 }
 
+// Support: IE <=9 - 11+
+// focus() and blur() are asynchronous, except when they are no-op.
+// So expect focus to be synchronous when the element is already active,
+// and blur to be synchronous when the element is not already active.
+// (focus and blur are always synchronous in other supported browsers,
+// this just defines when we can count on it).
+function expectSync( elem, type ) {
+	return ( elem === safeActiveElement() ) === ( type === "focus" );
+}
+
 // Support: IE <=9 only
-// See #13393 for more info
+// Accessing document.activeElement can throw unexpectedly
+// https://bugs.jquery.com/ticket/13393
 function safeActiveElement() {
 	try {
 		return document.activeElement;
@@ -5289,9 +5342,10 @@ jQuery.event = {
 			while ( ( handleObj = matched.handlers[ j++ ] ) &&
 				!event.isImmediatePropagationStopped() ) {
 
-				// Triggered event must either 1) have no namespace, or 2) have namespace(s)
-				// a subset or equal to those in the bound event (both can have no namespace).
-				if ( !event.rnamespace || event.rnamespace.test( handleObj.namespace ) ) {
+				// If the event is namespaced, then each handler is only invoked if it is
+				// specially universal or its namespaces are a superset of the event's.
+				if ( !event.rnamespace || handleObj.namespace === false ||
+					event.rnamespace.test( handleObj.namespace ) ) {
 
 					event.handleObj = handleObj;
 					event.data = handleObj.data;
@@ -5415,39 +5469,51 @@ jQuery.event = {
 			// Prevent triggered image.load events from bubbling to window.load
 			noBubble: true
 		},
-		focus: {
-
-			// Fire native event if possible so blur/focus sequence is correct
-			trigger: function() {
-				if ( this !== safeActiveElement() && this.focus ) {
-					this.focus();
-					return false;
-				}
-			},
-			delegateType: "focusin"
-		},
-		blur: {
-			trigger: function() {
-				if ( this === safeActiveElement() && this.blur ) {
-					this.blur();
-					return false;
-				}
-			},
-			delegateType: "focusout"
-		},
 		click: {
 
-			// For checkbox, fire native event so checked state will be right
-			trigger: function() {
-				if ( this.type === "checkbox" && this.click && nodeName( this, "input" ) ) {
-					this.click();
-					return false;
+			// Utilize native event to ensure correct state for checkable inputs
+			setup: function( data ) {
+
+				// For mutual compressibility with _default, replace `this` access with a local var.
+				// `|| data` is dead code meant only to preserve the variable through minification.
+				var el = this || data;
+
+				// Claim the first handler
+				if ( rcheckableType.test( el.type ) &&
+					el.click && nodeName( el, "input" ) ) {
+
+					// dataPriv.set( el, "click", ... )
+					leverageNative( el, "click", returnTrue );
 				}
+
+				// Return false to allow normal processing in the caller
+				return false;
+			},
+			trigger: function( data ) {
+
+				// For mutual compressibility with _default, replace `this` access with a local var.
+				// `|| data` is dead code meant only to preserve the variable through minification.
+				var el = this || data;
+
+				// Force setup before triggering a click
+				if ( rcheckableType.test( el.type ) &&
+					el.click && nodeName( el, "input" ) ) {
+
+					leverageNative( el, "click" );
+				}
+
+				// Return non-false to allow normal event-path propagation
+				return true;
 			},
 
-			// For cross-browser consistency, don't fire native .click() on links
+			// For cross-browser consistency, suppress native .click() on links
+			// Also prevent it if we're currently inside a leveraged native-event stack
 			_default: function( event ) {
-				return nodeName( event.target, "a" );
+				var target = event.target;
+				return rcheckableType.test( target.type ) &&
+					target.click && nodeName( target, "input" ) &&
+					dataPriv.get( target, "click" ) ||
+					nodeName( target, "a" );
 			}
 		},
 
@@ -5463,6 +5529,93 @@ jQuery.event = {
 		}
 	}
 };
+
+// Ensure the presence of an event listener that handles manually-triggered
+// synthetic events by interrupting progress until reinvoked in response to
+// *native* events that it fires directly, ensuring that state changes have
+// already occurred before other listeners are invoked.
+function leverageNative( el, type, expectSync ) {
+
+	// Missing expectSync indicates a trigger call, which must force setup through jQuery.event.add
+	if ( !expectSync ) {
+		if ( dataPriv.get( el, type ) === undefined ) {
+			jQuery.event.add( el, type, returnTrue );
+		}
+		return;
+	}
+
+	// Register the controller as a special universal handler for all event namespaces
+	dataPriv.set( el, type, false );
+	jQuery.event.add( el, type, {
+		namespace: false,
+		handler: function( event ) {
+			var notAsync, result,
+				saved = dataPriv.get( this, type );
+
+			if ( ( event.isTrigger & 1 ) && this[ type ] ) {
+
+				// Interrupt processing of the outer synthetic .trigger()ed event
+				// Saved data should be false in such cases, but might be a leftover capture object
+				// from an async native handler (gh-4350)
+				if ( !saved.length ) {
+
+					// Store arguments for use when handling the inner native event
+					// There will always be at least one argument (an event object), so this array
+					// will not be confused with a leftover capture object.
+					saved = slice.call( arguments );
+					dataPriv.set( this, type, saved );
+
+					// Trigger the native event and capture its result
+					// Support: IE <=9 - 11+
+					// focus() and blur() are asynchronous
+					notAsync = expectSync( this, type );
+					this[ type ]();
+					result = dataPriv.get( this, type );
+					if ( saved !== result || notAsync ) {
+						dataPriv.set( this, type, false );
+					} else {
+						result = {};
+					}
+					if ( saved !== result ) {
+
+						// Cancel the outer synthetic event
+						event.stopImmediatePropagation();
+						event.preventDefault();
+						return result.value;
+					}
+
+				// If this is an inner synthetic event for an event with a bubbling surrogate
+				// (focus or blur), assume that the surrogate already propagated from triggering the
+				// native event and prevent that from happening again here.
+				// This technically gets the ordering wrong w.r.t. to `.trigger()` (in which the
+				// bubbling surrogate propagates *after* the non-bubbling base), but that seems
+				// less bad than duplication.
+				} else if ( ( jQuery.event.special[ type ] || {} ).delegateType ) {
+					event.stopPropagation();
+				}
+
+			// If this is a native event triggered above, everything is now in order
+			// Fire an inner synthetic event with the original arguments
+			} else if ( saved.length ) {
+
+				// ...and capture the result
+				dataPriv.set( this, type, {
+					value: jQuery.event.trigger(
+
+						// Support: IE <=9 - 11+
+						// Extend with the prototype to reset the above stopImmediatePropagation()
+						jQuery.extend( saved[ 0 ], jQuery.Event.prototype ),
+						saved.slice( 1 ),
+						this
+					)
+				} );
+
+				// Abort handling of the native event
+				event.stopImmediatePropagation();
+			}
+		}
+	} );
+}
 
 jQuery.removeEvent = function( elem, type, handle ) {
 
@@ -5576,6 +5729,7 @@ jQuery.each( {
 	shiftKey: true,
 	view: true,
 	"char": true,
+	code: true,
 	charCode: true,
 	key: true,
 	keyCode: true,
@@ -5621,6 +5775,33 @@ jQuery.each( {
 		return event.which;
 	}
 }, jQuery.event.addProp );
+
+jQuery.each( { focus: "focusin", blur: "focusout" }, function( type, delegateType ) {
+	jQuery.event.special[ type ] = {
+
+		// Utilize native event if possible so blur/focus sequence is correct
+		setup: function() {
+
+			// Claim the first handler
+			// dataPriv.set( this, "focus", ... )
+			// dataPriv.set( this, "blur", ... )
+			leverageNative( this, type, expectSync );
+
+			// Return false to allow normal processing in the caller
+			return false;
+		},
+		trigger: function() {
+
+			// Force setup before trigger
+			leverageNative( this, type );
+
+			// Return non-false to allow normal event-path propagation
+			return true;
+		},
+
+		delegateType: delegateType
+	};
+} );
 
 // Create mouseenter/leave events using mouseover/out and event-time checks
 // so that event delegation works in jQuery.
@@ -5872,11 +6053,13 @@ function domManip( collection, args, callback, ignored ) {
 						if ( node.src && ( node.type || "" ).toLowerCase()  !== "module" ) {
 
 							// Optional AJAX dependency, but won't run scripts if not present
-							if ( jQuery._evalUrl ) {
-								jQuery._evalUrl( node.src );
+							if ( jQuery._evalUrl && !node.noModule ) {
+								jQuery._evalUrl( node.src, {
+									nonce: node.nonce || node.getAttribute( "nonce" )
+								} );
 							}
 						} else {
-							DOMEval( node.textContent.replace( rcleanScript, "" ), doc, node );
+							DOMEval( node.textContent.replace( rcleanScript, "" ), node, doc );
 						}
 					}
 				}
@@ -5898,7 +6081,7 @@ function remove( elem, selector, keepData ) {
 		}
 
 		if ( node.parentNode ) {
-			if ( keepData && jQuery.contains( node.ownerDocument, node ) ) {
+			if ( keepData && isAttached( node ) ) {
 				setGlobalEval( getAll( node, "script" ) );
 			}
 			node.parentNode.removeChild( node );
@@ -5916,7 +6099,7 @@ jQuery.extend( {
 	clone: function( elem, dataAndEvents, deepDataAndEvents ) {
 		var i, l, srcElements, destElements,
 			clone = elem.cloneNode( true ),
-			inPage = jQuery.contains( elem.ownerDocument, elem );
+			inPage = isAttached( elem );
 
 		// Fix IE cloning issues
 		if ( !support.noCloneChecked && ( elem.nodeType === 1 || elem.nodeType === 11 ) &&
@@ -6212,8 +6395,10 @@ var rboxStyle = new RegExp( cssExpand.join( "|" ), "i" );
 
 		// Support: IE 9 only
 		// Detect overflow:scroll screwiness (gh-3699)
+		// Support: Chrome <=64
+		// Don't get tricked when zoom affects offsetWidth (gh-4029)
 		div.style.position = "absolute";
-		scrollboxSizeVal = div.offsetWidth === 36 || "absolute";
+		scrollboxSizeVal = roundPixelMeasures( div.offsetWidth / 3 ) === 12;
 
 		documentElement.removeChild( container );
 
@@ -6284,7 +6469,7 @@ function curCSS( elem, name, computed ) {
 	if ( computed ) {
 		ret = computed.getPropertyValue( name ) || computed[ name ];
 
-		if ( ret === "" && !jQuery.contains( elem.ownerDocument, elem ) ) {
+		if ( ret === "" && !isAttached( elem ) ) {
 			ret = jQuery.style( elem, name );
 		}
 
@@ -6340,29 +6525,12 @@ function addGetHookIf( conditionFn, hookFn ) {
 }
 
 
-var
+var cssPrefixes = [ "Webkit", "Moz", "ms" ],
+	emptyStyle = document.createElement( "div" ).style,
+	vendorProps = {};
 
-	// Swappable if display is none or starts with table
-	// except "table", "table-cell", or "table-caption"
-	// See here for display values: https://developer.mozilla.org/en-US/docs/CSS/display
-	rdisplayswap = /^(none|table(?!-c[ea]).+)/,
-	rcustomProp = /^--/,
-	cssShow = { position: "absolute", visibility: "hidden", display: "block" },
-	cssNormalTransform = {
-		letterSpacing: "0",
-		fontWeight: "400"
-	},
-
-	cssPrefixes = [ "Webkit", "Moz", "ms" ],
-	emptyStyle = document.createElement( "div" ).style;
-
-// Return a css property mapped to a potentially vendor prefixed property
+// Return a vendor-prefixed property or undefined
 function vendorPropName( name ) {
-
-	// Shortcut for names that are not vendor prefixed
-	if ( name in emptyStyle ) {
-		return name;
-	}
 
 	// Check for vendor prefixed names
 	var capName = name[ 0 ].toUpperCase() + name.slice( 1 ),
@@ -6376,15 +6544,32 @@ function vendorPropName( name ) {
 	}
 }
 
-// Return a property mapped along what jQuery.cssProps suggests or to
-// a vendor prefixed property.
+// Return a potentially-mapped jQuery.cssProps or vendor prefixed property
 function finalPropName( name ) {
-	var ret = jQuery.cssProps[ name ];
-	if ( !ret ) {
-		ret = jQuery.cssProps[ name ] = vendorPropName( name ) || name;
+	var final = jQuery.cssProps[ name ] || vendorProps[ name ];
+
+	if ( final ) {
+		return final;
 	}
-	return ret;
+	if ( name in emptyStyle ) {
+		return name;
+	}
+	return vendorProps[ name ] = vendorPropName( name ) || name;
 }
+
+
+var
+
+	// Swappable if display is none or starts with table
+	// except "table", "table-cell", or "table-caption"
+	// See here for display values: https://developer.mozilla.org/en-US/docs/CSS/display
+	rdisplayswap = /^(none|table(?!-c[ea]).+)/,
+	rcustomProp = /^--/,
+	cssShow = { position: "absolute", visibility: "hidden", display: "block" },
+	cssNormalTransform = {
+		letterSpacing: "0",
+		fontWeight: "400"
+	};
 
 function setPositiveNumber( elem, value, subtract ) {
 
@@ -6457,7 +6642,10 @@ function boxModelAdjustment( elem, dimension, box, isBorderBox, styles, computed
 			delta -
 			extra -
 			0.5
-		) );
+
+		// If offsetWidth/offsetHeight is unknown, then we can't determine content-box scroll gutter
+		// Use an explicit zero to avoid NaN (gh-3964)
+		) ) || 0;
 	}
 
 	return delta;
@@ -6467,9 +6655,16 @@ function getWidthOrHeight( elem, dimension, extra ) {
 
 	// Start with computed style
 	var styles = getStyles( elem ),
+
+		// To avoid forcing a reflow, only fetch boxSizing if we need it (gh-4322).
+		// Fake content-box until we know it's needed to know the true value.
+		boxSizingNeeded = !support.boxSizingReliable() || extra,
+		isBorderBox = boxSizingNeeded &&
+			jQuery.css( elem, "boxSizing", false, styles ) === "border-box",
+		valueIsBorderBox = isBorderBox,
+
 		val = curCSS( elem, dimension, styles ),
-		isBorderBox = jQuery.css( elem, "boxSizing", false, styles ) === "border-box",
-		valueIsBorderBox = isBorderBox;
+		offsetProp = "offset" + dimension[ 0 ].toUpperCase() + dimension.slice( 1 );
 
 	// Support: Firefox <=54
 	// Return a confounding non-pixel value or feign ignorance, as appropriate.
@@ -6480,22 +6675,29 @@ function getWidthOrHeight( elem, dimension, extra ) {
 		val = "auto";
 	}
 
-	// Check for style in case a browser which returns unreliable values
-	// for getComputedStyle silently falls back to the reliable elem.style
-	valueIsBorderBox = valueIsBorderBox &&
-		( support.boxSizingReliable() || val === elem.style[ dimension ] );
 
 	// Fall back to offsetWidth/offsetHeight when value is "auto"
 	// This happens for inline elements with no explicit setting (gh-3571)
 	// Support: Android <=4.1 - 4.3 only
 	// Also use offsetWidth/offsetHeight for misreported inline dimensions (gh-3602)
-	if ( val === "auto" ||
-		!parseFloat( val ) && jQuery.css( elem, "display", false, styles ) === "inline" ) {
+	// Support: IE 9-11 only
+	// Also use offsetWidth/offsetHeight for when box sizing is unreliable
+	// We use getClientRects() to check for hidden/disconnected.
+	// In those cases, the computed value can be trusted to be border-box
+	if ( ( !support.boxSizingReliable() && isBorderBox ||
+		val === "auto" ||
+		!parseFloat( val ) && jQuery.css( elem, "display", false, styles ) === "inline" ) &&
+		elem.getClientRects().length ) {
 
-		val = elem[ "offset" + dimension[ 0 ].toUpperCase() + dimension.slice( 1 ) ];
+		isBorderBox = jQuery.css( elem, "boxSizing", false, styles ) === "border-box";
 
-		// offsetWidth/offsetHeight provide border-box values
-		valueIsBorderBox = true;
+		// Where available, offsetWidth/offsetHeight approximate border box dimensions.
+		// Where not available (e.g., SVG), assume unreliable box-sizing and interpret the
+		// retrieved value as a content box dimension.
+		valueIsBorderBox = offsetProp in elem;
+		if ( valueIsBorderBox ) {
+			val = elem[ offsetProp ];
+		}
 	}
 
 	// Normalize "" and auto
@@ -6541,6 +6743,13 @@ jQuery.extend( {
 		"flexGrow": true,
 		"flexShrink": true,
 		"fontWeight": true,
+		"gridArea": true,
+		"gridColumn": true,
+		"gridColumnEnd": true,
+		"gridColumnStart": true,
+		"gridRow": true,
+		"gridRowEnd": true,
+		"gridRowStart": true,
 		"lineHeight": true,
 		"opacity": true,
 		"order": true,
@@ -6596,7 +6805,9 @@ jQuery.extend( {
 			}
 
 			// If a number was passed in, add the unit (except for certain CSS properties)
-			if ( type === "number" ) {
+			// The isCustomProp check can be removed in jQuery 4.0 when we only auto-append
+			// "px" to a few hardcoded values.
+			if ( type === "number" && !isCustomProp ) {
 				value += ret && ret[ 3 ] || ( jQuery.cssNumber[ origName ] ? "" : "px" );
 			}
 
@@ -6696,18 +6907,29 @@ jQuery.each( [ "height", "width" ], function( i, dimension ) {
 		set: function( elem, value, extra ) {
 			var matches,
 				styles = getStyles( elem ),
-				isBorderBox = jQuery.css( elem, "boxSizing", false, styles ) === "border-box",
-				subtract = extra && boxModelAdjustment(
-					elem,
-					dimension,
-					extra,
-					isBorderBox,
-					styles
-				);
+
+				// Only read styles.position if the test has a chance to fail
+				// to avoid forcing a reflow.
+				scrollboxSizeBuggy = !support.scrollboxSize() &&
+					styles.position === "absolute",
+
+				// To avoid forcing a reflow, only fetch boxSizing if we need it (gh-3991)
+				boxSizingNeeded = scrollboxSizeBuggy || extra,
+				isBorderBox = boxSizingNeeded &&
+					jQuery.css( elem, "boxSizing", false, styles ) === "border-box",
+				subtract = extra ?
+					boxModelAdjustment(
+						elem,
+						dimension,
+						extra,
+						isBorderBox,
+						styles
+					) :
+					0;
 
 			// Account for unreliable border-box dimensions by comparing offset* to computed and
 			// faking a content-box to get border and padding (gh-3699)
-			if ( isBorderBox && support.scrollboxSize() === styles.position ) {
+			if ( isBorderBox && scrollboxSizeBuggy ) {
 				subtract -= Math.ceil(
 					elem[ "offset" + dimension[ 0 ].toUpperCase() + dimension.slice( 1 ) ] -
 					parseFloat( styles[ dimension ] ) -
@@ -6875,9 +7097,9 @@ Tween.propHooks = {
 			// Use .style if available and use plain properties where available.
 			if ( jQuery.fx.step[ tween.prop ] ) {
 				jQuery.fx.step[ tween.prop ]( tween );
-			} else if ( tween.elem.nodeType === 1 &&
-				( tween.elem.style[ jQuery.cssProps[ tween.prop ] ] != null ||
-					jQuery.cssHooks[ tween.prop ] ) ) {
+			} else if ( tween.elem.nodeType === 1 && (
+					jQuery.cssHooks[ tween.prop ] ||
+					tween.elem.style[ finalPropName( tween.prop ) ] != null ) ) {
 				jQuery.style( tween.elem, tween.prop, tween.now + tween.unit );
 			} else {
 				tween.elem[ tween.prop ] = tween.now;
@@ -8584,6 +8806,10 @@ jQuery.param = function( a, traditional ) {
 				encodeURIComponent( value == null ? "" : value );
 		};
 
+	if ( a == null ) {
+		return "";
+	}
+
 	// If an array was passed in, assume that it is an array of form elements.
 	if ( Array.isArray( a ) || ( a.jquery && !jQuery.isPlainObject( a ) ) ) {
 
@@ -9086,12 +9312,14 @@ jQuery.extend( {
 						if ( !responseHeaders ) {
 							responseHeaders = {};
 							while ( ( match = rheaders.exec( responseHeadersString ) ) ) {
-								responseHeaders[ match[ 1 ].toLowerCase() ] = match[ 2 ];
+								responseHeaders[ match[ 1 ].toLowerCase() + " " ] =
+									( responseHeaders[ match[ 1 ].toLowerCase() + " " ] || [] )
+										.concat( match[ 2 ] );
 							}
 						}
-						match = responseHeaders[ key.toLowerCase() ];
+						match = responseHeaders[ key.toLowerCase() + " " ];
 					}
-					return match == null ? null : match;
+					return match == null ? null : match.join( ", " );
 				},
 
 				// Raw string
@@ -9480,7 +9708,7 @@ jQuery.each( [ "get", "post" ], function( i, method ) {
 } );
 
 
-jQuery._evalUrl = function( url ) {
+jQuery._evalUrl = function( url, options ) {
 	return jQuery.ajax( {
 		url: url,
 
@@ -9490,7 +9718,16 @@ jQuery._evalUrl = function( url ) {
 		cache: true,
 		async: false,
 		global: false,
-		"throws": true
+
+		// Only evaluate the response if it is successful (gh-4126)
+		// dataFilter is not invoked for failure responses, so using it instead
+		// of the default converter is kludgy but it works.
+		converters: {
+			"text script": function() {}
+		},
+		dataFilter: function( response ) {
+			jQuery.globalEval( response, options );
+		}
 	} );
 };
 
@@ -9773,24 +10010,21 @@ jQuery.ajaxPrefilter( "script", function( s ) {
 // Bind script tag hack transport
 jQuery.ajaxTransport( "script", function( s ) {
 
-	// This transport only deals with cross domain requests
-	if ( s.crossDomain ) {
+	// This transport only deals with cross domain or forced-by-attrs requests
+	if ( s.crossDomain || s.scriptAttrs ) {
 		var script, callback;
 		return {
 			send: function( _, complete ) {
-				script = jQuery( "<script>" ).prop( {
-					charset: s.scriptCharset,
-					src: s.url
-				} ).on(
-					"load error",
-					callback = function( evt ) {
+				script = jQuery( "<script>" )
+					.attr( s.scriptAttrs || {} )
+					.prop( { charset: s.scriptCharset, src: s.url } )
+					.on( "load error", callback = function( evt ) {
 						script.remove();
 						callback = null;
 						if ( evt ) {
 							complete( evt.type === "error" ? 404 : 200, evt.type );
 						}
-					}
-				);
+					} );
 
 				// Use native DOM manipulation to avoid our domManip AJAX trickery
 				document.head.appendChild( script[ 0 ] );
@@ -10534,6 +10768,7 @@ return jQuery;
 module.exports = function (random, alphabet, size) {
   var mask = (2 << Math.log(alphabet.length - 1) / Math.LN2) - 1
   var step = Math.ceil(1.6 * mask * size / alphabet.length)
+  size = +size
 
   var id = ''
   while (true) {
@@ -10564,7 +10799,10 @@ module.exports = function (random, alphabet, size) {
 /*! no static exports found */
 /***/ (function(module, exports, __webpack_require__) {
 
-/* WEBPACK VAR INJECTION */(function(process) {// Copyright Joyent, Inc. and other Node contributors.
+/* WEBPACK VAR INJECTION */(function(process) {// .dirname, .basename, and .extname methods are extracted from Node.js v8.11.1,
+// backported and transplited with Babel, with backwards-compat fixes
+
+// Copyright Joyent, Inc. and other Node contributors.
 //
 // Permission is hereby granted, free of charge, to any person obtaining a
 // copy of this software and associated documentation files (the
@@ -10614,14 +10852,6 @@ function normalizeArray(parts, allowAboveRoot) {
 
   return parts;
 }
-
-// Split a filename into [root, dir, basename, ext], unix version
-// 'root' is just a slash, or nothing.
-var splitPathRe =
-    /^(\/?|)([\s\S]*?)((?:\.{1,2}|[^\/]+?|)(\.[^.\/]*|))(?:[\/]*)$/;
-var splitPath = function(filename) {
-  return splitPathRe.exec(filename).slice(1);
-};
 
 // path.resolve([from ...], to)
 // posix version
@@ -10738,37 +10968,120 @@ exports.relative = function(from, to) {
 exports.sep = '/';
 exports.delimiter = ':';
 
-exports.dirname = function(path) {
-  var result = splitPath(path),
-      root = result[0],
-      dir = result[1];
-
-  if (!root && !dir) {
-    // No dirname whatsoever
-    return '.';
+exports.dirname = function (path) {
+  if (typeof path !== 'string') path = path + '';
+  if (path.length === 0) return '.';
+  var code = path.charCodeAt(0);
+  var hasRoot = code === 47 /*/*/;
+  var end = -1;
+  var matchedSlash = true;
+  for (var i = path.length - 1; i >= 1; --i) {
+    code = path.charCodeAt(i);
+    if (code === 47 /*/*/) {
+        if (!matchedSlash) {
+          end = i;
+          break;
+        }
+      } else {
+      // We saw the first non-path separator
+      matchedSlash = false;
+    }
   }
 
-  if (dir) {
-    // It has a dirname, strip trailing slash
-    dir = dir.substr(0, dir.length - 1);
+  if (end === -1) return hasRoot ? '/' : '.';
+  if (hasRoot && end === 1) {
+    // return '//';
+    // Backwards-compat fix:
+    return '/';
   }
-
-  return root + dir;
+  return path.slice(0, end);
 };
 
+function basename(path) {
+  if (typeof path !== 'string') path = path + '';
 
-exports.basename = function(path, ext) {
-  var f = splitPath(path)[2];
-  // TODO: make this comparison case-insensitive on windows?
+  var start = 0;
+  var end = -1;
+  var matchedSlash = true;
+  var i;
+
+  for (i = path.length - 1; i >= 0; --i) {
+    if (path.charCodeAt(i) === 47 /*/*/) {
+        // If we reached a path separator that was not part of a set of path
+        // separators at the end of the string, stop now
+        if (!matchedSlash) {
+          start = i + 1;
+          break;
+        }
+      } else if (end === -1) {
+      // We saw the first non-path separator, mark this as the end of our
+      // path component
+      matchedSlash = false;
+      end = i + 1;
+    }
+  }
+
+  if (end === -1) return '';
+  return path.slice(start, end);
+}
+
+// Uses a mixed approach for backwards-compatibility, as ext behavior changed
+// in new Node.js versions, so only basename() above is backported here
+exports.basename = function (path, ext) {
+  var f = basename(path);
   if (ext && f.substr(-1 * ext.length) === ext) {
     f = f.substr(0, f.length - ext.length);
   }
   return f;
 };
 
+exports.extname = function (path) {
+  if (typeof path !== 'string') path = path + '';
+  var startDot = -1;
+  var startPart = 0;
+  var end = -1;
+  var matchedSlash = true;
+  // Track the state of characters (if any) we see before our first dot and
+  // after any path separator we find
+  var preDotState = 0;
+  for (var i = path.length - 1; i >= 0; --i) {
+    var code = path.charCodeAt(i);
+    if (code === 47 /*/*/) {
+        // If we reached a path separator that was not part of a set of path
+        // separators at the end of the string, stop now
+        if (!matchedSlash) {
+          startPart = i + 1;
+          break;
+        }
+        continue;
+      }
+    if (end === -1) {
+      // We saw the first non-path separator, mark this as the end of our
+      // extension
+      matchedSlash = false;
+      end = i + 1;
+    }
+    if (code === 46 /*.*/) {
+        // If this is our first dot, mark it as the start of our extension
+        if (startDot === -1)
+          startDot = i;
+        else if (preDotState !== 1)
+          preDotState = 1;
+    } else if (startDot !== -1) {
+      // We saw a non-dot and non-path separator before our dot, so we should
+      // have a good chance at having a non-empty extension
+      preDotState = -1;
+    }
+  }
 
-exports.extname = function(path) {
-  return splitPath(path)[3];
+  if (startDot === -1 || end === -1 ||
+      // We saw a non-dot character immediately before the dot
+      preDotState === 0 ||
+      // The (right-most) trimmed path component is exactly '..'
+      preDotState === 1 && startDot === end - 1 && startDot === startPart + 1) {
+    return '';
+  }
+  return path.slice(startDot, end);
 };
 
 function filter (xs, f) {
@@ -12865,7 +13178,7 @@ module.exports = function(window, edgeVersion) {
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
- /* eslint-env node */
+/* eslint-env node */
 
 
 // SDP helpers.
@@ -13045,8 +13358,8 @@ SDPUtils.parseExtmap = function(line) {
 SDPUtils.writeExtmap = function(headerExtension) {
   return 'a=extmap:' + (headerExtension.id || headerExtension.preferredId) +
       (headerExtension.direction && headerExtension.direction !== 'sendrecv'
-          ? '/' + headerExtension.direction
-          : '') +
+        ? '/' + headerExtension.direction
+        : '') +
       ' ' + headerExtension.uri + '\r\n';
 };
 
@@ -13161,7 +13474,7 @@ SDPUtils.parseFingerprint = function(line) {
 //   get the fingerprint line as input. See also getIceParameters.
 SDPUtils.getDtlsParameters = function(mediaSection, sessionpart) {
   var lines = SDPUtils.matchPrefix(mediaSection + sessionpart,
-      'a=fingerprint:');
+    'a=fingerprint:');
   // Note: a=setup line is ignored since we use the 'auto' role.
   // Note2: 'algorithm' is not case sensitive except in Edge.
   return {
@@ -13215,15 +13528,15 @@ SDPUtils.parseRtpParameters = function(mediaSection) {
   for (var i = 3; i < mline.length; i++) { // find all codecs from mline[3..]
     var pt = mline[i];
     var rtpmapline = SDPUtils.matchPrefix(
-        mediaSection, 'a=rtpmap:' + pt + ' ')[0];
+      mediaSection, 'a=rtpmap:' + pt + ' ')[0];
     if (rtpmapline) {
       var codec = SDPUtils.parseRtpMap(rtpmapline);
       var fmtps = SDPUtils.matchPrefix(
-          mediaSection, 'a=fmtp:' + pt + ' ');
+        mediaSection, 'a=fmtp:' + pt + ' ');
       // Only the first a=fmtp:<pt> is considered.
       codec.parameters = fmtps.length ? SDPUtils.parseFmtp(fmtps[0]) : {};
       codec.rtcpFeedback = SDPUtils.matchPrefix(
-          mediaSection, 'a=rtcp-fb:' + pt + ' ')
+        mediaSection, 'a=rtcp-fb:' + pt + ' ')
         .map(SDPUtils.parseRtcpFb);
       description.codecs.push(codec);
       // parse FEC mechanisms from rtpmap lines.
@@ -13299,22 +13612,22 @@ SDPUtils.parseRtpEncodingParameters = function(mediaSection) {
 
   // filter a=ssrc:... cname:, ignore PlanB-msid
   var ssrcs = SDPUtils.matchPrefix(mediaSection, 'a=ssrc:')
-  .map(function(line) {
-    return SDPUtils.parseSsrcMedia(line);
-  })
-  .filter(function(parts) {
-    return parts.attribute === 'cname';
-  });
+    .map(function(line) {
+      return SDPUtils.parseSsrcMedia(line);
+    })
+    .filter(function(parts) {
+      return parts.attribute === 'cname';
+    });
   var primarySsrc = ssrcs.length > 0 && ssrcs[0].ssrc;
   var secondarySsrc;
 
   var flows = SDPUtils.matchPrefix(mediaSection, 'a=ssrc-group:FID')
-  .map(function(line) {
-    var parts = line.substr(17).split(' ');
-    return parts.map(function(part) {
-      return parseInt(part, 10);
+    .map(function(line) {
+      var parts = line.substr(17).split(' ');
+      return parts.map(function(part) {
+        return parseInt(part, 10);
+      });
     });
-  });
   if (flows.length > 0 && flows[0].length > 1 && flows[0][0] === primarySsrc) {
     secondarySsrc = flows[0][1];
   }
@@ -13371,12 +13684,12 @@ SDPUtils.parseRtcpParameters = function(mediaSection) {
   // Gets the first SSRC. Note tha with RTX there might be multiple
   // SSRCs.
   var remoteSsrc = SDPUtils.matchPrefix(mediaSection, 'a=ssrc:')
-      .map(function(line) {
-        return SDPUtils.parseSsrcMedia(line);
-      })
-      .filter(function(obj) {
-        return obj.attribute === 'cname';
-      })[0];
+    .map(function(line) {
+      return SDPUtils.parseSsrcMedia(line);
+    })
+    .filter(function(obj) {
+      return obj.attribute === 'cname';
+    })[0];
   if (remoteSsrc) {
     rtcpParameters.cname = remoteSsrc.value;
     rtcpParameters.ssrc = remoteSsrc.ssrc;
@@ -13406,16 +13719,76 @@ SDPUtils.parseMsid = function(mediaSection) {
     return {stream: parts[0], track: parts[1]};
   }
   var planB = SDPUtils.matchPrefix(mediaSection, 'a=ssrc:')
-  .map(function(line) {
-    return SDPUtils.parseSsrcMedia(line);
-  })
-  .filter(function(msidParts) {
-    return msidParts.attribute === 'msid';
-  });
+    .map(function(line) {
+      return SDPUtils.parseSsrcMedia(line);
+    })
+    .filter(function(msidParts) {
+      return msidParts.attribute === 'msid';
+    });
   if (planB.length > 0) {
     parts = planB[0].value.split(' ');
     return {stream: parts[0], track: parts[1]};
   }
+};
+
+// SCTP
+// parses draft-ietf-mmusic-sctp-sdp-26 first and falls back
+// to draft-ietf-mmusic-sctp-sdp-05
+SDPUtils.parseSctpDescription = function(mediaSection) {
+  var mline = SDPUtils.parseMLine(mediaSection);
+  var maxSizeLine = SDPUtils.matchPrefix(mediaSection, 'a=max-message-size:');
+  var maxMessageSize;
+  if (maxSizeLine.length > 0) {
+    maxMessageSize = parseInt(maxSizeLine[0].substr(19), 10);
+  }
+  if (isNaN(maxMessageSize)) {
+    maxMessageSize = 65536;
+  }
+  var sctpPort = SDPUtils.matchPrefix(mediaSection, 'a=sctp-port:');
+  if (sctpPort.length > 0) {
+    return {
+      port: parseInt(sctpPort[0].substr(12), 10),
+      protocol: mline.fmt,
+      maxMessageSize: maxMessageSize
+    };
+  }
+  var sctpMapLines = SDPUtils.matchPrefix(mediaSection, 'a=sctpmap:');
+  if (sctpMapLines.length > 0) {
+    var parts = SDPUtils.matchPrefix(mediaSection, 'a=sctpmap:')[0]
+      .substr(10)
+      .split(' ');
+    return {
+      port: parseInt(parts[0], 10),
+      protocol: parts[1],
+      maxMessageSize: maxMessageSize
+    };
+  }
+};
+
+// SCTP
+// outputs the draft-ietf-mmusic-sctp-sdp-26 version that all browsers
+// support by now receiving in this format, unless we originally parsed
+// as the draft-ietf-mmusic-sctp-sdp-05 format (indicated by the m-line
+// protocol of DTLS/SCTP -- without UDP/ or TCP/)
+SDPUtils.writeSctpDescription = function(media, sctp) {
+  var output = [];
+  if (media.protocol !== 'DTLS/SCTP') {
+    output = [
+      'm=' + media.kind + ' 9 ' + media.protocol + ' ' + sctp.protocol + '\r\n',
+      'c=IN IP4 0.0.0.0\r\n',
+      'a=sctp-port:' + sctp.port + '\r\n'
+    ];
+  } else {
+    output = [
+      'm=' + media.kind + ' 9 ' + media.protocol + ' ' + sctp.port + '\r\n',
+      'c=IN IP4 0.0.0.0\r\n',
+      'a=sctpmap:' + sctp.port + ' ' + sctp.protocol + ' 65535\r\n'
+    ];
+  }
+  if (sctp.maxMessageSize !== undefined) {
+    output.push('a=max-message-size:' + sctp.maxMessageSize + '\r\n');
+  }
+  return output.join('');
 };
 
 // Generate a session ID for SDP.
@@ -13453,12 +13826,12 @@ SDPUtils.writeMediaSection = function(transceiver, caps, type, stream) {
 
   // Map ICE parameters (ufrag, pwd) to SDP.
   sdp += SDPUtils.writeIceParameters(
-      transceiver.iceGatherer.getLocalParameters());
+    transceiver.iceGatherer.getLocalParameters());
 
   // Map DTLS parameters to SDP.
   sdp += SDPUtils.writeDtlsParameters(
-      transceiver.dtlsTransport.getLocalParameters(),
-      type === 'offer' ? 'actpass' : 'active');
+    transceiver.dtlsTransport.getLocalParameters(),
+    type === 'offer' ? 'actpass' : 'active');
 
   sdp += 'a=mid:' + transceiver.mid + '\r\n';
 
@@ -14313,7 +14686,7 @@ module.exports = __webpack_require__(3)();
 // This file handles creating the Twig library
 module.exports = function factory() {
     var Twig = {
-        VERSION: '1.13.1',
+        VERSION: '1.13.3',
     };
 
     __webpack_require__(4)(Twig);
@@ -20028,9 +20401,7 @@ module.exports = function (Twig) {
         embed:     'Twig.logic.type.embed',
         endembed:  'Twig.logic.type.endembed',
         'with':     'Twig.logic.type.with',
-        endwith:  'Twig.logic.type.endwith',
-        verbatim:     'Twig.logic.type.verbatim',
-        endverbatim:  'Twig.logic.type.endverbatim'
+        endwith:  'Twig.logic.type.endwith'
     };
 
 
@@ -21238,30 +21609,6 @@ module.exports = function (Twig) {
             regex: /^endwith$/,
             next: [ ],
             open: false
-        },
-        {
-            type: Twig.logic.type.verbatim,
-            regex: /^verbatim/,
-            next: [
-                Twig.logic.type.endverbatim
-            ],
-            open: true,
-
-            // Return the output without any parse
-            parse: function (token, context, chain) {
-                return {
-                    chain: chain,
-                    output: context
-                };
-            }
-        },
-
-        // Add the {% endverbatim %} token
-        {
-            type: Twig.logic.type.endverbatim,
-            regex: /^endverbatim$/,
-            next: [ ],
-            open: false
         }
 
     ];
@@ -21485,32 +21832,33 @@ module.exports = function (Twig) {
      * the previously registered namespaces.
      *
      * @param  {string} template The Twig Template
-     * @param  {string} file     The file path, may be relative and may contain namespaces.
+     * @param  {string} _file    The file path, may be relative and may contain namespaces.
      *
      * @return {string}          The canonical version of the path
      */
-     Twig.path.parsePath = function(template, _file) {
+    Twig.path.parsePath = function (template, _file) {
         var k = null,
-            value = null,
             namespaces = template.options.namespaces,
             file = _file || "",
-            hasNamespaces = namespaces && typeof namespaces === 'object';
+            hasNamespaces = namespaces && typeof namespaces === "object";
 
-        if (hasNamespaces){
+        if (hasNamespaces) {
             for (k in namespaces) {
-               if (file.indexOf(k) === -1) {
-                  continue
-               }
+                if (file.indexOf(k) === -1) {
+                    continue
+                }
 
                 // check if keyed namespace exists at path's start
-                var colon = new RegExp('^' + k + '::');
-                var atSign = new RegExp('^@' + k);
+                var colon = new RegExp("^" + k + "::");
+                var atSign = new RegExp("^@" + k + "/");
+                // add slash to the end of path
+                var namespacePath = namespaces[k].replace(/([^\/])$/, "$1/");
 
                 if (colon.test(file)) {
-                    file = file.replace(k + '::', namespaces[k]);
+                    file = file.replace(colon, namespacePath);
                     return file;
                 } else if (atSign.test(file)) {
-                    file = file.replace('@' + k, namespaces[k]);
+                    file = file.replace(atSign, namespacePath);
                     return file;
                 }
             }
@@ -21523,21 +21871,22 @@ module.exports = function (Twig) {
      * Generate the relative canonical version of a url based on the given base path and file path.
      *
      * @param {Twig.Template} template The Twig.Template.
-     * @param {string} file The file path, relative to the base path.
+     * @param {string} _file The file path, relative to the base path.
      *
      * @return {string} The canonical version of the path.
      */
-    Twig.path.relativePath = function(template, file) {
+    Twig.path.relativePath = function (template, _file) {
         var base,
             base_path,
             sep_chr = "/",
             new_path = [],
-            file = file || "",
+            file = _file || "",
             val;
 
         if (template.url) {
-            if (typeof template.base !== 'undefined') {
-                base = template.base + ((template.base.charAt(template.base.length-1) === '/') ? '' : '/');
+            if (typeof template.base !== "undefined") {
+                // add slash to the end of path
+                base = template.base.replace(/([^\/])$/, "$1/");
             } else {
                 base = template.url;
             }
@@ -21549,15 +21898,15 @@ module.exports = function (Twig) {
             file = file.replace(/\//g, sep);
 
             if (template.base !== undefined && file.match(relative) == null) {
-                file = file.replace(template.base, '');
+                file = file.replace(template.base, "");
                 base = template.base + sep;
             } else {
                 base = path.normalize(template.path);
             }
 
-            base = base.replace(sep+sep, sep);
+            base = base.replace(sep + sep, sep);
             sep_chr = sep;
-        } else if ((template.name || template.id) && template.method && template.method !== 'fs' && template.method !== 'ajax') {
+        } else if ((template.name || template.id) && template.method && template.method !== "fs" && template.method !== "ajax") {
             // Custom registered loader
             base = template.base || template.name || template.id;
         } else {
@@ -21572,9 +21921,9 @@ module.exports = function (Twig) {
 
         while (base_path.length > 0) {
             val = base_path.shift();
-            if (val == ".") {
+            if (val === ".") {
                 // Ignore
-            } else if (val == ".." && new_path.length > 0 && new_path[new_path.length-1] != "..") {
+            } else if (val === ".." && new_path.length > 0 && new_path[new_path.length - 1] !== "..") {
                 new_path.pop();
             } else {
                 new_path.push(val);
@@ -22370,6 +22719,7 @@ function adapterFactory({window} = {}, options = {
       _chrome_chrome_shim__WEBPACK_IMPORTED_MODULE_1__["shimOnTrack"](window);
       _chrome_chrome_shim__WEBPACK_IMPORTED_MODULE_1__["shimAddTrackRemoveTrack"](window);
       _chrome_chrome_shim__WEBPACK_IMPORTED_MODULE_1__["shimGetSendersWithDtmf"](window);
+      _chrome_chrome_shim__WEBPACK_IMPORTED_MODULE_1__["shimGetStats"](window);
       _chrome_chrome_shim__WEBPACK_IMPORTED_MODULE_1__["shimSenderReceiverGetStats"](window);
       _chrome_chrome_shim__WEBPACK_IMPORTED_MODULE_1__["fixNegotiationNeeded"](window);
 
@@ -22458,7 +22808,7 @@ function adapterFactory({window} = {}, options = {
 /*!******************************************************************!*\
   !*** ./node_modules/webrtc-adapter/src/js/chrome/chrome_shim.js ***!
   \******************************************************************/
-/*! exports provided: shimGetUserMedia, shimGetDisplayMedia, shimMediaStream, shimOnTrack, shimGetSendersWithDtmf, shimSenderReceiverGetStats, shimAddTrackRemoveTrackWithNative, shimAddTrackRemoveTrack, shimPeerConnection, fixNegotiationNeeded */
+/*! exports provided: shimGetUserMedia, shimGetDisplayMedia, shimMediaStream, shimOnTrack, shimGetSendersWithDtmf, shimGetStats, shimSenderReceiverGetStats, shimAddTrackRemoveTrackWithNative, shimAddTrackRemoveTrack, shimPeerConnection, fixNegotiationNeeded */
 /***/ (function(module, __webpack_exports__, __webpack_require__) {
 
 "use strict";
@@ -22466,6 +22816,7 @@ __webpack_require__.r(__webpack_exports__);
 /* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "shimMediaStream", function() { return shimMediaStream; });
 /* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "shimOnTrack", function() { return shimOnTrack; });
 /* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "shimGetSendersWithDtmf", function() { return shimGetSendersWithDtmf; });
+/* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "shimGetStats", function() { return shimGetStats; });
 /* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "shimSenderReceiverGetStats", function() { return shimSenderReceiverGetStats; });
 /* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "shimAddTrackRemoveTrackWithNative", function() { return shimAddTrackRemoveTrackWithNative; });
 /* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "shimAddTrackRemoveTrack", function() { return shimAddTrackRemoveTrack; });
@@ -22489,47 +22840,6 @@ __webpack_require__.r(__webpack_exports__);
  /* eslint-env node */
 
 
-
-/* iterates the stats graph recursively. */
-function walkStats(stats, base, resultSet) {
-  if (!base || resultSet.has(base.id)) {
-    return;
-  }
-  resultSet.set(base.id, base);
-  Object.keys(base).forEach(name => {
-    if (name.endsWith('Id')) {
-      walkStats(stats, stats.get(base[name]), resultSet);
-    } else if (name.endsWith('Ids')) {
-      base[name].forEach(id => {
-        walkStats(stats, stats.get(id), resultSet);
-      });
-    }
-  });
-}
-
-/* filter getStats for a sender/receiver track. */
-function filterStats(result, track, outbound) {
-  const streamStatsType = outbound ? 'outbound-rtp' : 'inbound-rtp';
-  const filteredResult = new Map();
-  if (track === null) {
-    return filteredResult;
-  }
-  const trackStats = [];
-  result.forEach(value => {
-    if (value.type === 'track' &&
-        value.trackIdentifier === track.id) {
-      trackStats.push(value);
-    }
-  });
-  trackStats.forEach(trackStat => {
-    result.forEach(stats => {
-      if (stats.type === streamStatsType && stats.trackId === trackStat.id) {
-        walkStats(result, stats, filteredResult);
-      }
-    });
-  });
-  return filteredResult;
-}
 
 
 
@@ -22556,47 +22866,48 @@ function shimOnTrack(window) {
     });
     const origSetRemoteDescription =
         window.RTCPeerConnection.prototype.setRemoteDescription;
-    window.RTCPeerConnection.prototype.setRemoteDescription = function() {
-      if (!this._ontrackpoly) {
-        this._ontrackpoly = (e) => {
-          // onaddstream does not fire when a track is added to an existing
-          // stream. But stream.onaddtrack is implemented so we use that.
-          e.stream.addEventListener('addtrack', te => {
-            let receiver;
-            if (window.RTCPeerConnection.prototype.getReceivers) {
-              receiver = this.getReceivers()
-                .find(r => r.track && r.track.id === te.track.id);
-            } else {
-              receiver = {track: te.track};
-            }
+    window.RTCPeerConnection.prototype.setRemoteDescription =
+      function setRemoteDescription() {
+        if (!this._ontrackpoly) {
+          this._ontrackpoly = (e) => {
+            // onaddstream does not fire when a track is added to an existing
+            // stream. But stream.onaddtrack is implemented so we use that.
+            e.stream.addEventListener('addtrack', te => {
+              let receiver;
+              if (window.RTCPeerConnection.prototype.getReceivers) {
+                receiver = this.getReceivers()
+                  .find(r => r.track && r.track.id === te.track.id);
+              } else {
+                receiver = {track: te.track};
+              }
 
-            const event = new Event('track');
-            event.track = te.track;
-            event.receiver = receiver;
-            event.transceiver = {receiver};
-            event.streams = [e.stream];
-            this.dispatchEvent(event);
-          });
-          e.stream.getTracks().forEach(track => {
-            let receiver;
-            if (window.RTCPeerConnection.prototype.getReceivers) {
-              receiver = this.getReceivers()
-                .find(r => r.track && r.track.id === track.id);
-            } else {
-              receiver = {track};
-            }
-            const event = new Event('track');
-            event.track = track;
-            event.receiver = receiver;
-            event.transceiver = {receiver};
-            event.streams = [e.stream];
-            this.dispatchEvent(event);
-          });
-        };
-        this.addEventListener('addstream', this._ontrackpoly);
-      }
-      return origSetRemoteDescription.apply(this, arguments);
-    };
+              const event = new Event('track');
+              event.track = te.track;
+              event.receiver = receiver;
+              event.transceiver = {receiver};
+              event.streams = [e.stream];
+              this.dispatchEvent(event);
+            });
+            e.stream.getTracks().forEach(track => {
+              let receiver;
+              if (window.RTCPeerConnection.prototype.getReceivers) {
+                receiver = this.getReceivers()
+                  .find(r => r.track && r.track.id === track.id);
+              } else {
+                receiver = {track};
+              }
+              const event = new Event('track');
+              event.track = track;
+              event.receiver = receiver;
+              event.transceiver = {receiver};
+              event.streams = [e.stream];
+              this.dispatchEvent(event);
+            });
+          };
+          this.addEventListener('addstream', this._ontrackpoly);
+        }
+        return origSetRemoteDescription.apply(this, arguments);
+      };
   } else {
     // even if RTCRtpTransceiver is in window, it is only used and
     // emitted in unified-plan. Unfortunately this means we need
@@ -22635,31 +22946,33 @@ function shimGetSendersWithDtmf(window) {
 
     // augment addTrack when getSenders is not available.
     if (!window.RTCPeerConnection.prototype.getSenders) {
-      window.RTCPeerConnection.prototype.getSenders = function() {
+      window.RTCPeerConnection.prototype.getSenders = function getSenders() {
         this._senders = this._senders || [];
         return this._senders.slice(); // return a copy of the internal state.
       };
       const origAddTrack = window.RTCPeerConnection.prototype.addTrack;
-      window.RTCPeerConnection.prototype.addTrack = function(track, stream) {
-        let sender = origAddTrack.apply(this, arguments);
-        if (!sender) {
-          sender = shimSenderWithDtmf(this, track);
-          this._senders.push(sender);
-        }
-        return sender;
-      };
+      window.RTCPeerConnection.prototype.addTrack =
+        function addTrack(track, stream) {
+          let sender = origAddTrack.apply(this, arguments);
+          if (!sender) {
+            sender = shimSenderWithDtmf(this, track);
+            this._senders.push(sender);
+          }
+          return sender;
+        };
 
       const origRemoveTrack = window.RTCPeerConnection.prototype.removeTrack;
-      window.RTCPeerConnection.prototype.removeTrack = function(sender) {
-        origRemoveTrack.apply(this, arguments);
-        const idx = this._senders.indexOf(sender);
-        if (idx !== -1) {
-          this._senders.splice(idx, 1);
-        }
-      };
+      window.RTCPeerConnection.prototype.removeTrack =
+        function removeTrack(sender) {
+          origRemoveTrack.apply(this, arguments);
+          const idx = this._senders.indexOf(sender);
+          if (idx !== -1) {
+            this._senders.splice(idx, 1);
+          }
+        };
     }
     const origAddStream = window.RTCPeerConnection.prototype.addStream;
-    window.RTCPeerConnection.prototype.addStream = function(stream) {
+    window.RTCPeerConnection.prototype.addStream = function addStream(stream) {
       this._senders = this._senders || [];
       origAddStream.apply(this, [stream]);
       stream.getTracks().forEach(track => {
@@ -22668,24 +22981,25 @@ function shimGetSendersWithDtmf(window) {
     };
 
     const origRemoveStream = window.RTCPeerConnection.prototype.removeStream;
-    window.RTCPeerConnection.prototype.removeStream = function(stream) {
-      this._senders = this._senders || [];
-      origRemoveStream.apply(this, [stream]);
+    window.RTCPeerConnection.prototype.removeStream =
+      function removeStream(stream) {
+        this._senders = this._senders || [];
+        origRemoveStream.apply(this, [stream]);
 
-      stream.getTracks().forEach(track => {
-        const sender = this._senders.find(s => s.track === track);
-        if (sender) { // remove sender
-          this._senders.splice(this._senders.indexOf(sender), 1);
-        }
-      });
-    };
+        stream.getTracks().forEach(track => {
+          const sender = this._senders.find(s => s.track === track);
+          if (sender) { // remove sender
+            this._senders.splice(this._senders.indexOf(sender), 1);
+          }
+        });
+      };
   } else if (typeof window === 'object' && window.RTCPeerConnection &&
              'getSenders' in window.RTCPeerConnection.prototype &&
              'createDTMFSender' in window.RTCPeerConnection.prototype &&
              window.RTCRtpSender &&
              !('dtmf' in window.RTCRtpSender.prototype)) {
     const origGetSenders = window.RTCPeerConnection.prototype.getSenders;
-    window.RTCPeerConnection.prototype.getSenders = function() {
+    window.RTCPeerConnection.prototype.getSenders = function getSenders() {
       const senders = origGetSenders.apply(this, []);
       senders.forEach(sender => sender._pc = this);
       return senders;
@@ -22706,6 +23020,73 @@ function shimGetSendersWithDtmf(window) {
   }
 }
 
+function shimGetStats(window) {
+  if (!window.RTCPeerConnection) {
+    return;
+  }
+
+  const origGetStats = window.RTCPeerConnection.prototype.getStats;
+  window.RTCPeerConnection.prototype.getStats = function getStats() {
+    const [selector, onSucc, onErr] = arguments;
+
+    // If selector is a function then we are in the old style stats so just
+    // pass back the original getStats format to avoid breaking old users.
+    if (arguments.length > 0 && typeof selector === 'function') {
+      return origGetStats.apply(this, arguments);
+    }
+
+    // When spec-style getStats is supported, return those when called with
+    // either no arguments or the selector argument is null.
+    if (origGetStats.length === 0 && (arguments.length === 0 ||
+        typeof selector !== 'function')) {
+      return origGetStats.apply(this, []);
+    }
+
+    const fixChromeStats_ = function(response) {
+      const standardReport = {};
+      const reports = response.result();
+      reports.forEach(report => {
+        const standardStats = {
+          id: report.id,
+          timestamp: report.timestamp,
+          type: {
+            localcandidate: 'local-candidate',
+            remotecandidate: 'remote-candidate'
+          }[report.type] || report.type
+        };
+        report.names().forEach(name => {
+          standardStats[name] = report.stat(name);
+        });
+        standardReport[standardStats.id] = standardStats;
+      });
+
+      return standardReport;
+    };
+
+    // shim getStats with maplike support
+    const makeMapStats = function(stats) {
+      return new Map(Object.keys(stats).map(key => [key, stats[key]]));
+    };
+
+    if (arguments.length >= 2) {
+      const successCallbackWrapper_ = function(response) {
+        onSucc(makeMapStats(fixChromeStats_(response)));
+      };
+
+      return origGetStats.apply(this, [successCallbackWrapper_,
+        selector]);
+    }
+
+    // promise-support
+    return new Promise((resolve, reject) => {
+      origGetStats.apply(this, [
+        function(response) {
+          resolve(makeMapStats(fixChromeStats_(response)));
+        }, reject]);
+    }).then(onSucc, onErr);
+  };
+}
+
 function shimSenderReceiverGetStats(window) {
   if (!(typeof window === 'object' && window.RTCPeerConnection &&
       window.RTCRtpSender && window.RTCRtpReceiver)) {
@@ -22716,7 +23097,7 @@ function shimSenderReceiverGetStats(window) {
   if (!('getStats' in window.RTCRtpSender.prototype)) {
     const origGetSenders = window.RTCPeerConnection.prototype.getSenders;
     if (origGetSenders) {
-      window.RTCPeerConnection.prototype.getSenders = function() {
+      window.RTCPeerConnection.prototype.getSenders = function getSenders() {
         const senders = origGetSenders.apply(this, []);
         senders.forEach(sender => sender._pc = this);
         return senders;
@@ -22725,20 +23106,20 @@ function shimSenderReceiverGetStats(window) {
 
     const origAddTrack = window.RTCPeerConnection.prototype.addTrack;
     if (origAddTrack) {
-      window.RTCPeerConnection.prototype.addTrack = function() {
+      window.RTCPeerConnection.prototype.addTrack = function addTrack() {
         const sender = origAddTrack.apply(this, arguments);
         sender._pc = this;
         return sender;
       };
     }
-    window.RTCRtpSender.prototype.getStats = function() {
+    window.RTCRtpSender.prototype.getStats = function getStats() {
       const sender = this;
       return this._pc.getStats().then(result =>
         /* Note: this will include stats of all senders that
          *   send a track with the same id as sender.track as
          *   it is not possible to identify the RTCRtpSender.
          */
-        filterStats(result, sender.track, true));
+        _utils_js__WEBPACK_IMPORTED_MODULE_0__["filterStats"](result, sender.track, true));
     };
   }
 
@@ -22746,20 +23127,21 @@ function shimSenderReceiverGetStats(window) {
   if (!('getStats' in window.RTCRtpReceiver.prototype)) {
     const origGetReceivers = window.RTCPeerConnection.prototype.getReceivers;
     if (origGetReceivers) {
-      window.RTCPeerConnection.prototype.getReceivers = function() {
-        const receivers = origGetReceivers.apply(this, []);
-        receivers.forEach(receiver => receiver._pc = this);
-        return receivers;
-      };
+      window.RTCPeerConnection.prototype.getReceivers =
+        function getReceivers() {
+          const receivers = origGetReceivers.apply(this, []);
+          receivers.forEach(receiver => receiver._pc = this);
+          return receivers;
+        };
     }
     _utils_js__WEBPACK_IMPORTED_MODULE_0__["wrapPeerConnectionEvent"](window, 'track', e => {
       e.receiver._pc = e.srcElement;
       return e;
     });
-    window.RTCRtpReceiver.prototype.getStats = function() {
+    window.RTCRtpReceiver.prototype.getStats = function getStats() {
       const receiver = this;
       return this._pc.getStats().then(result =>
-        filterStats(result, receiver.track, false));
+        _utils_js__WEBPACK_IMPORTED_MODULE_0__["filterStats"](result, receiver.track, false));
     };
   }
 
@@ -22770,7 +23152,7 @@ function shimSenderReceiverGetStats(window) {
 
   // shim RTCPeerConnection.getStats(track).
   const origGetStats = window.RTCPeerConnection.prototype.getStats;
-  window.RTCPeerConnection.prototype.getStats = function() {
+  window.RTCPeerConnection.prototype.getStats = function getStats() {
     if (arguments.length > 0 &&
         arguments[0] instanceof window.MediaStreamTrack) {
       const track = arguments[0];
@@ -22817,30 +23199,32 @@ function shimAddTrackRemoveTrackWithNative(window) {
   // shim addTrack/removeTrack with native variants in order to make
   // the interactions with legacy getLocalStreams behave as in other browsers.
   // Keeps a mapping stream.id => [stream, rtpsenders...]
-  window.RTCPeerConnection.prototype.getLocalStreams = function() {
-    this._shimmedLocalStreams = this._shimmedLocalStreams || {};
-    return Object.keys(this._shimmedLocalStreams)
-      .map(streamId => this._shimmedLocalStreams[streamId][0]);
-  };
+  window.RTCPeerConnection.prototype.getLocalStreams =
+    function getLocalStreams() {
+      this._shimmedLocalStreams = this._shimmedLocalStreams || {};
+      return Object.keys(this._shimmedLocalStreams)
+        .map(streamId => this._shimmedLocalStreams[streamId][0]);
+    };
 
   const origAddTrack = window.RTCPeerConnection.prototype.addTrack;
-  window.RTCPeerConnection.prototype.addTrack = function(track, stream) {
-    if (!stream) {
-      return origAddTrack.apply(this, arguments);
-    }
-    this._shimmedLocalStreams = this._shimmedLocalStreams || {};
+  window.RTCPeerConnection.prototype.addTrack =
+    function addTrack(track, stream) {
+      if (!stream) {
+        return origAddTrack.apply(this, arguments);
+      }
+      this._shimmedLocalStreams = this._shimmedLocalStreams || {};
 
-    const sender = origAddTrack.apply(this, arguments);
-    if (!this._shimmedLocalStreams[stream.id]) {
-      this._shimmedLocalStreams[stream.id] = [stream, sender];
-    } else if (this._shimmedLocalStreams[stream.id].indexOf(sender) === -1) {
-      this._shimmedLocalStreams[stream.id].push(sender);
-    }
-    return sender;
-  };
+      const sender = origAddTrack.apply(this, arguments);
+      if (!this._shimmedLocalStreams[stream.id]) {
+        this._shimmedLocalStreams[stream.id] = [stream, sender];
+      } else if (this._shimmedLocalStreams[stream.id].indexOf(sender) === -1) {
+        this._shimmedLocalStreams[stream.id].push(sender);
+      }
+      return sender;
+    };
 
   const origAddStream = window.RTCPeerConnection.prototype.addStream;
-  window.RTCPeerConnection.prototype.addStream = function(stream) {
+  window.RTCPeerConnection.prototype.addStream = function addStream(stream) {
     this._shimmedLocalStreams = this._shimmedLocalStreams || {};
 
     stream.getTracks().forEach(track => {
@@ -22858,28 +23242,30 @@ function shimAddTrackRemoveTrackWithNative(window) {
   };
 
   const origRemoveStream = window.RTCPeerConnection.prototype.removeStream;
-  window.RTCPeerConnection.prototype.removeStream = function(stream) {
-    this._shimmedLocalStreams = this._shimmedLocalStreams || {};
-    delete this._shimmedLocalStreams[stream.id];
-    return origRemoveStream.apply(this, arguments);
-  };
+  window.RTCPeerConnection.prototype.removeStream =
+    function removeStream(stream) {
+      this._shimmedLocalStreams = this._shimmedLocalStreams || {};
+      delete this._shimmedLocalStreams[stream.id];
+      return origRemoveStream.apply(this, arguments);
+    };
 
   const origRemoveTrack = window.RTCPeerConnection.prototype.removeTrack;
-  window.RTCPeerConnection.prototype.removeTrack = function(sender) {
-    this._shimmedLocalStreams = this._shimmedLocalStreams || {};
-    if (sender) {
-      Object.keys(this._shimmedLocalStreams).forEach(streamId => {
-        const idx = this._shimmedLocalStreams[streamId].indexOf(sender);
-        if (idx !== -1) {
-          this._shimmedLocalStreams[streamId].splice(idx, 1);
-        }
-        if (this._shimmedLocalStreams[streamId].length === 1) {
-          delete this._shimmedLocalStreams[streamId];
-        }
-      });
-    }
-    return origRemoveTrack.apply(this, arguments);
-  };
+  window.RTCPeerConnection.prototype.removeTrack =
+    function removeTrack(sender) {
+      this._shimmedLocalStreams = this._shimmedLocalStreams || {};
+      if (sender) {
+        Object.keys(this._shimmedLocalStreams).forEach(streamId => {
+          const idx = this._shimmedLocalStreams[streamId].indexOf(sender);
+          if (idx !== -1) {
+            this._shimmedLocalStreams[streamId].splice(idx, 1);
+          }
+          if (this._shimmedLocalStreams[streamId].length === 1) {
+            delete this._shimmedLocalStreams[streamId];
+          }
+        });
+      }
+      return origRemoveTrack.apply(this, arguments);
+    };
 }
 
 function shimAddTrackRemoveTrack(window) {
@@ -22897,14 +23283,15 @@ function shimAddTrackRemoveTrack(window) {
   // to return the original streams.
   const origGetLocalStreams = window.RTCPeerConnection.prototype
       .getLocalStreams;
-  window.RTCPeerConnection.prototype.getLocalStreams = function() {
-    const nativeStreams = origGetLocalStreams.apply(this);
-    this._reverseStreams = this._reverseStreams || {};
-    return nativeStreams.map(stream => this._reverseStreams[stream.id]);
-  };
+  window.RTCPeerConnection.prototype.getLocalStreams =
+    function getLocalStreams() {
+      const nativeStreams = origGetLocalStreams.apply(this);
+      this._reverseStreams = this._reverseStreams || {};
+      return nativeStreams.map(stream => this._reverseStreams[stream.id]);
+    };
 
   const origAddStream = window.RTCPeerConnection.prototype.addStream;
-  window.RTCPeerConnection.prototype.addStream = function(stream) {
+  window.RTCPeerConnection.prototype.addStream = function addStream(stream) {
     this._streams = this._streams || {};
     this._reverseStreams = this._reverseStreams || {};
 
@@ -22927,61 +23314,63 @@ function shimAddTrackRemoveTrack(window) {
   };
 
   const origRemoveStream = window.RTCPeerConnection.prototype.removeStream;
-  window.RTCPeerConnection.prototype.removeStream = function(stream) {
-    this._streams = this._streams || {};
-    this._reverseStreams = this._reverseStreams || {};
+  window.RTCPeerConnection.prototype.removeStream =
+    function removeStream(stream) {
+      this._streams = this._streams || {};
+      this._reverseStreams = this._reverseStreams || {};
 
-    origRemoveStream.apply(this, [(this._streams[stream.id] || stream)]);
-    delete this._reverseStreams[(this._streams[stream.id] ?
-        this._streams[stream.id].id : stream.id)];
-    delete this._streams[stream.id];
-  };
+      origRemoveStream.apply(this, [(this._streams[stream.id] || stream)]);
+      delete this._reverseStreams[(this._streams[stream.id] ?
+          this._streams[stream.id].id : stream.id)];
+      delete this._streams[stream.id];
+    };
 
-  window.RTCPeerConnection.prototype.addTrack = function(track, stream) {
-    if (this.signalingState === 'closed') {
-      throw new DOMException(
-        'The RTCPeerConnection\'s signalingState is \'closed\'.',
-        'InvalidStateError');
-    }
-    const streams = [].slice.call(arguments, 1);
-    if (streams.length !== 1 ||
-        !streams[0].getTracks().find(t => t === track)) {
-      // this is not fully correct but all we can manage without
-      // [[associated MediaStreams]] internal slot.
-      throw new DOMException(
-        'The adapter.js addTrack polyfill only supports a single ' +
-        ' stream which is associated with the specified track.',
-        'NotSupportedError');
-    }
+  window.RTCPeerConnection.prototype.addTrack =
+    function addTrack(track, stream) {
+      if (this.signalingState === 'closed') {
+        throw new DOMException(
+          'The RTCPeerConnection\'s signalingState is \'closed\'.',
+          'InvalidStateError');
+      }
+      const streams = [].slice.call(arguments, 1);
+      if (streams.length !== 1 ||
+          !streams[0].getTracks().find(t => t === track)) {
+        // this is not fully correct but all we can manage without
+        // [[associated MediaStreams]] internal slot.
+        throw new DOMException(
+          'The adapter.js addTrack polyfill only supports a single ' +
+          ' stream which is associated with the specified track.',
+          'NotSupportedError');
+      }
 
-    const alreadyExists = this.getSenders().find(s => s.track === track);
-    if (alreadyExists) {
-      throw new DOMException('Track already exists.',
-          'InvalidAccessError');
-    }
+      const alreadyExists = this.getSenders().find(s => s.track === track);
+      if (alreadyExists) {
+        throw new DOMException('Track already exists.',
+            'InvalidAccessError');
+      }
 
-    this._streams = this._streams || {};
-    this._reverseStreams = this._reverseStreams || {};
-    const oldStream = this._streams[stream.id];
-    if (oldStream) {
-      // this is using odd Chrome behaviour, use with caution:
-      // https://bugs.chromium.org/p/webrtc/issues/detail?id=7815
-      // Note: we rely on the high-level addTrack/dtmf shim to
-      // create the sender with a dtmf sender.
-      oldStream.addTrack(track);
+      this._streams = this._streams || {};
+      this._reverseStreams = this._reverseStreams || {};
+      const oldStream = this._streams[stream.id];
+      if (oldStream) {
+        // this is using odd Chrome behaviour, use with caution:
+        // https://bugs.chromium.org/p/webrtc/issues/detail?id=7815
+        // Note: we rely on the high-level addTrack/dtmf shim to
+        // create the sender with a dtmf sender.
+        oldStream.addTrack(track);
 
-      // Trigger ONN async.
-      Promise.resolve().then(() => {
-        this.dispatchEvent(new Event('negotiationneeded'));
-      });
-    } else {
-      const newStream = new window.MediaStream([track]);
-      this._streams[stream.id] = newStream;
-      this._reverseStreams[newStream.id] = stream;
-      this.addStream(newStream);
-    }
-    return this.getSenders().find(s => s.track === track);
-  };
+        // Trigger ONN async.
+        Promise.resolve().then(() => {
+          this.dispatchEvent(new Event('negotiationneeded'));
+        });
+      } else {
+        const newStream = new window.MediaStream([track]);
+        this._streams[stream.id] = newStream;
+        this._reverseStreams[newStream.id] = stream;
+        this.addStream(newStream);
+      }
+      return this.getSenders().find(s => s.track === track);
+    };
 
   // replace the internal stream id with the external one and
   // vice versa.
@@ -23013,7 +23402,7 @@ function shimAddTrackRemoveTrack(window) {
   }
   ['createOffer', 'createAnswer'].forEach(function(method) {
     const nativeMethod = window.RTCPeerConnection.prototype[method];
-    window.RTCPeerConnection.prototype[method] = function() {
+    const methodObj = {[method]() {
       const args = arguments;
       const isLegacyCall = arguments.length &&
           typeof arguments[0] === 'function';
@@ -23032,18 +23421,20 @@ function shimAddTrackRemoveTrack(window) {
       }
       return nativeMethod.apply(this, arguments)
       .then(description => replaceInternalStreamId(this, description));
-    };
+    }};
+    window.RTCPeerConnection.prototype[method] = methodObj[method];
   });
 
   const origSetLocalDescription =
       window.RTCPeerConnection.prototype.setLocalDescription;
-  window.RTCPeerConnection.prototype.setLocalDescription = function() {
-    if (!arguments.length || !arguments[0].type) {
+  window.RTCPeerConnection.prototype.setLocalDescription =
+    function setLocalDescription() {
+      if (!arguments.length || !arguments[0].type) {
+        return origSetLocalDescription.apply(this, arguments);
+      }
+      arguments[0] = replaceExternalStreamId(this, arguments[0]);
       return origSetLocalDescription.apply(this, arguments);
-    }
-    arguments[0] = replaceExternalStreamId(this, arguments[0]);
-    return origSetLocalDescription.apply(this, arguments);
-  };
+    };
 
   // TODO: mangle getStats: https://w3c.github.io/webrtc-stats/#dom-rtcmediastreamstats-streamidentifier
 
@@ -23060,50 +23451,53 @@ function shimAddTrackRemoveTrack(window) {
         }
       });
 
-  window.RTCPeerConnection.prototype.removeTrack = function(sender) {
-    if (this.signalingState === 'closed') {
-      throw new DOMException(
-        'The RTCPeerConnection\'s signalingState is \'closed\'.',
-        'InvalidStateError');
-    }
-    // We can not yet check for sender instanceof RTCRtpSender
-    // since we shim RTPSender. So we check if sender._pc is set.
-    if (!sender._pc) {
-      throw new DOMException('Argument 1 of RTCPeerConnection.removeTrack ' +
-          'does not implement interface RTCRtpSender.', 'TypeError');
-    }
-    const isLocal = sender._pc === this;
-    if (!isLocal) {
-      throw new DOMException('Sender was not created by this connection.',
-          'InvalidAccessError');
-    }
-
-    // Search for the native stream the senders track belongs to.
-    this._streams = this._streams || {};
-    let stream;
-    Object.keys(this._streams).forEach(streamid => {
-      const hasTrack = this._streams[streamid].getTracks()
-        .find(track => sender.track === track);
-      if (hasTrack) {
-        stream = this._streams[streamid];
+  window.RTCPeerConnection.prototype.removeTrack =
+    function removeTrack(sender) {
+      if (this.signalingState === 'closed') {
+        throw new DOMException(
+          'The RTCPeerConnection\'s signalingState is \'closed\'.',
+          'InvalidStateError');
       }
-    });
-
-    if (stream) {
-      if (stream.getTracks().length === 1) {
-        // if this is the last track of the stream, remove the stream. This
-        // takes care of any shimmed _senders.
-        this.removeStream(this._reverseStreams[stream.id]);
-      } else {
-        // relying on the same odd chrome behaviour as above.
-        stream.removeTrack(sender.track);
+      // We can not yet check for sender instanceof RTCRtpSender
+      // since we shim RTPSender. So we check if sender._pc is set.
+      if (!sender._pc) {
+        throw new DOMException('Argument 1 of RTCPeerConnection.removeTrack ' +
+            'does not implement interface RTCRtpSender.', 'TypeError');
       }
-      this.dispatchEvent(new Event('negotiationneeded'));
-    }
-  };
+      const isLocal = sender._pc === this;
+      if (!isLocal) {
+        throw new DOMException('Sender was not created by this connection.',
+            'InvalidAccessError');
+      }
+
+      // Search for the native stream the senders track belongs to.
+      this._streams = this._streams || {};
+      let stream;
+      Object.keys(this._streams).forEach(streamid => {
+        const hasTrack = this._streams[streamid].getTracks()
+          .find(track => sender.track === track);
+        if (hasTrack) {
+          stream = this._streams[streamid];
+        }
+      });
+
+      if (stream) {
+        if (stream.getTracks().length === 1) {
+          // if this is the last track of the stream, remove the stream. This
+          // takes care of any shimmed _senders.
+          this.removeStream(this._reverseStreams[stream.id]);
+        } else {
+          // relying on the same odd chrome behaviour as above.
+          stream.removeTrack(sender.track);
+        }
+        this.dispatchEvent(new Event('negotiationneeded'));
+      }
+    };
 }
 
 function shimPeerConnection(window) {
+  const browserDetails = _utils_js__WEBPACK_IMPORTED_MODULE_0__["detectBrowser"](window);
+
   if (!window.RTCPeerConnection && window.webkitRTCPeerConnection) {
     // very basic support for old versions.
     window.RTCPeerConnection = window.webkitRTCPeerConnection;
@@ -23112,92 +23506,40 @@ function shimPeerConnection(window) {
     return;
   }
 
-  const origGetStats = window.RTCPeerConnection.prototype.getStats;
-  window.RTCPeerConnection.prototype.getStats = function(selector,
-      successCallback, errorCallback) {
-    const args = arguments;
-
-    // If selector is a function then we are in the old style stats so just
-    // pass back the original getStats format to avoid breaking old users.
-    if (arguments.length > 0 && typeof selector === 'function') {
-      return origGetStats.apply(this, arguments);
-    }
-
-    // When spec-style getStats is supported, return those when called with
-    // either no arguments or the selector argument is null.
-    if (origGetStats.length === 0 && (arguments.length === 0 ||
-        typeof arguments[0] !== 'function')) {
-      return origGetStats.apply(this, []);
-    }
-
-    const fixChromeStats_ = function(response) {
-      const standardReport = {};
-      const reports = response.result();
-      reports.forEach(report => {
-        const standardStats = {
-          id: report.id,
-          timestamp: report.timestamp,
-          type: {
-            localcandidate: 'local-candidate',
-            remotecandidate: 'remote-candidate'
-          }[report.type] || report.type
-        };
-        report.names().forEach(name => {
-          standardStats[name] = report.stat(name);
-        });
-        standardReport[standardStats.id] = standardStats;
-      });
-
-      return standardReport;
-    };
-
-    // shim getStats with maplike support
-    const makeMapStats = function(stats) {
-      return new Map(Object.keys(stats).map(key => [key, stats[key]]));
-    };
-
-    if (arguments.length >= 2) {
-      const successCallbackWrapper_ = function(response) {
-        args[1](makeMapStats(fixChromeStats_(response)));
-      };
-
-      return origGetStats.apply(this, [successCallbackWrapper_,
-        arguments[0]]);
-    }
-
-    // promise-support
-    return new Promise((resolve, reject) => {
-      origGetStats.apply(this, [
-        function(response) {
-          resolve(makeMapStats(fixChromeStats_(response)));
-        }, reject]);
-    }).then(successCallback, errorCallback);
-  };
-
   // shim implicit creation of RTCSessionDescription/RTCIceCandidate
-  ['setLocalDescription', 'setRemoteDescription', 'addIceCandidate']
-      .forEach(function(method) {
-        const nativeMethod = window.RTCPeerConnection.prototype[method];
-        window.RTCPeerConnection.prototype[method] = function() {
-          arguments[0] = new ((method === 'addIceCandidate') ?
-              window.RTCIceCandidate :
-              window.RTCSessionDescription)(arguments[0]);
-          return nativeMethod.apply(this, arguments);
-        };
-      });
+  if (browserDetails.version < 53) {
+    ['setLocalDescription', 'setRemoteDescription', 'addIceCandidate']
+        .forEach(function(method) {
+          const nativeMethod = window.RTCPeerConnection.prototype[method];
+          const methodObj = {[method]() {
+            arguments[0] = new ((method === 'addIceCandidate') ?
+                window.RTCIceCandidate :
+                window.RTCSessionDescription)(arguments[0]);
+            return nativeMethod.apply(this, arguments);
+          }};
+          window.RTCPeerConnection.prototype[method] = methodObj[method];
+        });
+  }
 
   // support for addIceCandidate(null or undefined)
   const nativeAddIceCandidate =
       window.RTCPeerConnection.prototype.addIceCandidate;
-  window.RTCPeerConnection.prototype.addIceCandidate = function() {
-    if (!arguments[0]) {
-      if (arguments[1]) {
-        arguments[1].apply(null);
+  window.RTCPeerConnection.prototype.addIceCandidate =
+    function addIceCandidate() {
+      if (!arguments[0]) {
+        if (arguments[1]) {
+          arguments[1].apply(null);
+        }
+        return Promise.resolve();
       }
-      return Promise.resolve();
-    }
-    return nativeAddIceCandidate.apply(this, arguments);
-  };
+      // Firefox 68+ emits and processes {candidate: "", ...}, ignore
+      // in older versions. Native support planned for Chrome M77.
+      if (browserDetails.version < 78 &&
+        arguments[0] && arguments[0].candidate === '') {
+        return Promise.resolve();
+      }
+      return nativeAddIceCandidate.apply(this, arguments);
+    };
 }
 
 function fixNegotiationNeeded(window) {
@@ -23247,29 +23589,31 @@ function shimGetDisplayMedia(window, getSourceId) {
         'a function');
     return;
   }
-  window.navigator.mediaDevices.getDisplayMedia = function(constraints) {
-    return getSourceId(constraints)
-      .then(sourceId => {
-        const widthSpecified = constraints.video && constraints.video.width;
-        const heightSpecified = constraints.video && constraints.video.height;
-        const frameRateSpecified = constraints.video &&
-          constraints.video.frameRate;
-        constraints.video = {
-          mandatory: {
-            chromeMediaSource: 'desktop',
-            chromeMediaSourceId: sourceId,
-            maxFrameRate: frameRateSpecified || 3
+  window.navigator.mediaDevices.getDisplayMedia =
+    function getDisplayMedia(constraints) {
+      return getSourceId(constraints)
+        .then(sourceId => {
+          const widthSpecified = constraints.video && constraints.video.width;
+          const heightSpecified = constraints.video &&
+            constraints.video.height;
+          const frameRateSpecified = constraints.video &&
+            constraints.video.frameRate;
+          constraints.video = {
+            mandatory: {
+              chromeMediaSource: 'desktop',
+              chromeMediaSourceId: sourceId,
+              maxFrameRate: frameRateSpecified || 3
+            }
+          };
+          if (widthSpecified) {
+            constraints.video.mandatory.maxWidth = widthSpecified;
           }
-        };
-        if (widthSpecified) {
-          constraints.video.mandatory.maxWidth = widthSpecified;
-        }
-        if (heightSpecified) {
-          constraints.video.mandatory.maxHeight = heightSpecified;
-        }
-        return window.navigator.mediaDevices.getUserMedia(constraints);
-      });
-  };
+          if (heightSpecified) {
+            constraints.video.mandatory.maxHeight = heightSpecified;
+          }
+          return window.navigator.mediaDevices.getUserMedia(constraints);
+        });
+    };
 }
 
 
@@ -23459,20 +23803,22 @@ function shimGetUserMedia(window) {
   // Even though Chrome 45 has navigator.mediaDevices and a getUserMedia
   // function which returns a Promise, it does not accept spec-style
   // constraints.
-  const origGetUserMedia = navigator.mediaDevices.getUserMedia.
-      bind(navigator.mediaDevices);
-  navigator.mediaDevices.getUserMedia = function(cs) {
-    return shimConstraints_(cs, c => origGetUserMedia(c).then(stream => {
-      if (c.audio && !stream.getAudioTracks().length ||
-          c.video && !stream.getVideoTracks().length) {
-        stream.getTracks().forEach(track => {
-          track.stop();
-        });
-        throw new DOMException('', 'NotFoundError');
-      }
-      return stream;
-    }, e => Promise.reject(shimError_(e))));
-  };
+  if (navigator.mediaDevices.getUserMedia) {
+    const origGetUserMedia = navigator.mediaDevices.getUserMedia.
+        bind(navigator.mediaDevices);
+    navigator.mediaDevices.getUserMedia = function(cs) {
+      return shimConstraints_(cs, c => origGetUserMedia(c).then(stream => {
+        if (c.audio && !stream.getAudioTracks().length ||
+            c.video && !stream.getVideoTracks().length) {
+          stream.getTracks().forEach(track => {
+            track.stop();
+          });
+          throw new DOMException('', 'NotFoundError');
+        }
+        return stream;
+      }, e => Promise.reject(shimError_(e))));
+    };
+  }
 }
 
 
@@ -23517,7 +23863,7 @@ function shimRTCIceCandidate(window) {
   }
 
   const NativeRTCIceCandidate = window.RTCIceCandidate;
-  window.RTCIceCandidate = function(args) {
+  window.RTCIceCandidate = function RTCIceCandidate(args) {
     // Remove the a= which shouldn't be part of the candidate string.
     if (typeof args === 'object' && args.candidate &&
         args.candidate.indexOf('a=') === 0) {
@@ -23533,7 +23879,7 @@ function shimRTCIceCandidate(window) {
           parsedCandidate);
 
       // Add a serializer that does not serialize the extra attributes.
-      augmentedCandidate.toJSON = function() {
+      augmentedCandidate.toJSON = function toJSON() {
         return {
           candidate: augmentedCandidate.candidate,
           sdpMid: augmentedCandidate.sdpMid,
@@ -23561,7 +23907,7 @@ function shimRTCIceCandidate(window) {
 }
 
 function shimMaxMessageSize(window) {
-  if (window.RTCSctpTransport || !window.RTCPeerConnection) {
+  if (!window.RTCPeerConnection) {
     return;
   }
   const browserDetails = _utils__WEBPACK_IMPORTED_MODULE_1__["detectBrowser"](window);
@@ -23575,6 +23921,9 @@ function shimMaxMessageSize(window) {
   }
 
   const sctpInDescription = function(description) {
+    if (!description || !description.sdp) {
+      return false;
+    }
     const sections = sdp__WEBPACK_IMPORTED_MODULE_0___default.a.splitSections(description.sdp);
     sections.shift();
     return sections.some(mediaSection => {
@@ -23656,42 +24005,58 @@ function shimMaxMessageSize(window) {
 
   const origSetRemoteDescription =
       window.RTCPeerConnection.prototype.setRemoteDescription;
-  window.RTCPeerConnection.prototype.setRemoteDescription = function() {
-    this._sctp = null;
-
-    if (sctpInDescription(arguments[0])) {
-      // Check if the remote is FF.
-      const isFirefox = getRemoteFirefoxVersion(arguments[0]);
-
-      // Get the maximum message size the local peer is capable of sending
-      const canSendMMS = getCanSendMaxMessageSize(isFirefox);
-
-      // Get the maximum message size of the remote peer.
-      const remoteMMS = getMaxMessageSize(arguments[0], isFirefox);
-
-      // Determine final maximum message size
-      let maxMessageSize;
-      if (canSendMMS === 0 && remoteMMS === 0) {
-        maxMessageSize = Number.POSITIVE_INFINITY;
-      } else if (canSendMMS === 0 || remoteMMS === 0) {
-        maxMessageSize = Math.max(canSendMMS, remoteMMS);
-      } else {
-        maxMessageSize = Math.min(canSendMMS, remoteMMS);
+  window.RTCPeerConnection.prototype.setRemoteDescription =
+    function setRemoteDescription() {
+      this._sctp = null;
+      // Chrome decided to not expose .sctp in plan-b mode.
+      // As usual, adapter.js has to do an 'ugly worakaround'
+      // to cover up the mess.
+      if (browserDetails.browser === 'chrome' && browserDetails.version >= 76) {
+        const {sdpSemantics} = this.getConfiguration();
+        if (sdpSemantics === 'plan-b') {
+          Object.defineProperty(this, 'sctp', {
+            get() {
+              return typeof this._sctp === 'undefined' ? null : this._sctp;
+            },
+            enumerable: true,
+            configurable: true,
+          });
+        }
       }
 
-      // Create a dummy RTCSctpTransport object and the 'maxMessageSize'
-      // attribute.
-      const sctp = {};
-      Object.defineProperty(sctp, 'maxMessageSize', {
-        get() {
-          return maxMessageSize;
-        }
-      });
-      this._sctp = sctp;
-    }
+      if (sctpInDescription(arguments[0])) {
+        // Check if the remote is FF.
+        const isFirefox = getRemoteFirefoxVersion(arguments[0]);
 
-    return origSetRemoteDescription.apply(this, arguments);
-  };
+        // Get the maximum message size the local peer is capable of sending
+        const canSendMMS = getCanSendMaxMessageSize(isFirefox);
+
+        // Get the maximum message size of the remote peer.
+        const remoteMMS = getMaxMessageSize(arguments[0], isFirefox);
+
+        // Determine final maximum message size
+        let maxMessageSize;
+        if (canSendMMS === 0 && remoteMMS === 0) {
+          maxMessageSize = Number.POSITIVE_INFINITY;
+        } else if (canSendMMS === 0 || remoteMMS === 0) {
+          maxMessageSize = Math.max(canSendMMS, remoteMMS);
+        } else {
+          maxMessageSize = Math.min(canSendMMS, remoteMMS);
+        }
+
+        // Create a dummy RTCSctpTransport object and the 'maxMessageSize'
+        // attribute.
+        const sctp = {};
+        Object.defineProperty(sctp, 'maxMessageSize', {
+          get() {
+            return maxMessageSize;
+          }
+        });
+        this._sctp = sctp;
+      }
+
+      return origSetRemoteDescription.apply(this, arguments);
+    };
 }
 
 function shimSendThrowTypeError(window) {
@@ -23706,7 +24071,7 @@ function shimSendThrowTypeError(window) {
 
   function wrapDcSend(dc, pc) {
     const origDataChannelSend = dc.send;
-    dc.send = function() {
+    dc.send = function send() {
       const data = arguments[0];
       const length = data.length || data.size || data.byteLength;
       if (dc.readyState === 'open' &&
@@ -23719,11 +24084,12 @@ function shimSendThrowTypeError(window) {
   }
   const origCreateDataChannel =
     window.RTCPeerConnection.prototype.createDataChannel;
-  window.RTCPeerConnection.prototype.createDataChannel = function() {
-    const dataChannel = origCreateDataChannel.apply(this, arguments);
-    wrapDcSend(dataChannel, this);
-    return dataChannel;
-  };
+  window.RTCPeerConnection.prototype.createDataChannel =
+    function createDataChannel() {
+      const dataChannel = origCreateDataChannel.apply(this, arguments);
+      wrapDcSend(dataChannel, this);
+      return dataChannel;
+    };
   _utils__WEBPACK_IMPORTED_MODULE_1__["wrapPeerConnectionEvent"](window, 'datachannel', e => {
     wrapDcSend(e.channel, e.target);
     return e;
@@ -23804,7 +24170,8 @@ function removeAllowExtmapMixed(window) {
     return;
   }
   const nativeSRD = window.RTCPeerConnection.prototype.setRemoteDescription;
-  window.RTCPeerConnection.prototype.setRemoteDescription = function(desc) {
+  window.RTCPeerConnection.prototype.setRemoteDescription =
+  function setRemoteDescription(desc) {
     if (desc && desc.sdp && desc.sdp.indexOf('\na=extmap-allow-mixed') !== -1) {
       desc.sdp = desc.sdp.split('\n').filter((line) => {
         return line.trim() !== 'a=extmap-allow-mixed';
@@ -23860,12 +24227,12 @@ function shimPeerConnection(window) {
 
   if (window.RTCIceGatherer) {
     if (!window.RTCIceCandidate) {
-      window.RTCIceCandidate = function(args) {
+      window.RTCIceCandidate = function RTCIceCandidate(args) {
         return args;
       };
     }
     if (!window.RTCSessionDescription) {
-      window.RTCSessionDescription = function(args) {
+      window.RTCSessionDescription = function RTCSessionDescription(args) {
         return args;
       };
     }
@@ -23910,7 +24277,7 @@ function shimPeerConnection(window) {
 
   const RTCPeerConnectionShim = rtcpeerconnection_shim__WEBPACK_IMPORTED_MODULE_2___default()(window,
       browserDetails.version);
-  window.RTCPeerConnection = function(config) {
+  window.RTCPeerConnection = function RTCPeerConnection(config) {
     if (config && config.iceServers) {
       config.iceServers = Object(_filtericeservers__WEBPACK_IMPORTED_MODULE_1__["filterIceServers"])(config.iceServers,
         browserDetails.version);
@@ -24142,30 +24509,42 @@ function shimPeerConnection(window) {
     window.RTCPeerConnection = window.mozRTCPeerConnection;
   }
 
-  // shim away need for obsolete RTCIceCandidate/RTCSessionDescription.
-  ['setLocalDescription', 'setRemoteDescription', 'addIceCandidate']
-      .forEach(function(method) {
-        const nativeMethod = window.RTCPeerConnection.prototype[method];
-        window.RTCPeerConnection.prototype[method] = function() {
-          arguments[0] = new ((method === 'addIceCandidate') ?
-              window.RTCIceCandidate :
-              window.RTCSessionDescription)(arguments[0]);
-          return nativeMethod.apply(this, arguments);
-        };
-      });
+  if (browserDetails.version < 53) {
+    // shim away need for obsolete RTCIceCandidate/RTCSessionDescription.
+    ['setLocalDescription', 'setRemoteDescription', 'addIceCandidate']
+        .forEach(function(method) {
+          const nativeMethod = window.RTCPeerConnection.prototype[method];
+          const methodObj = {[method]() {
+            arguments[0] = new ((method === 'addIceCandidate') ?
+                window.RTCIceCandidate :
+                window.RTCSessionDescription)(arguments[0]);
+            return nativeMethod.apply(this, arguments);
+          }};
+          window.RTCPeerConnection.prototype[method] = methodObj[method];
+        });
+  }
 
   // support for addIceCandidate(null or undefined)
-  const nativeAddIceCandidate =
-      window.RTCPeerConnection.prototype.addIceCandidate;
-  window.RTCPeerConnection.prototype.addIceCandidate = function() {
-    if (!arguments[0]) {
-      if (arguments[1]) {
-        arguments[1].apply(null);
+  // as well as ignoring {sdpMid, candidate: ""}
+  if (browserDetails.version < 68) {
+    const nativeAddIceCandidate =
+        window.RTCPeerConnection.prototype.addIceCandidate;
+    window.RTCPeerConnection.prototype.addIceCandidate =
+    function addIceCandidate() {
+      if (!arguments[0]) {
+        if (arguments[1]) {
+          arguments[1].apply(null);
+        }
+        return Promise.resolve();
       }
-      return Promise.resolve();
-    }
-    return nativeAddIceCandidate.apply(this, arguments);
-  };
+      // Firefox 68+ emits and processes {candidate: "", ...}, ignore
+      // in older versions.
+      if (arguments[0] && arguments[0].candidate === '') {
+        return Promise.resolve();
+      }
+      return nativeAddIceCandidate.apply(this, arguments);
+    };
+  }
 
   const modernStatsTypes = {
     inboundrtp: 'inbound-rtp',
@@ -24176,11 +24555,8 @@ function shimPeerConnection(window) {
   };
 
   const nativeGetStats = window.RTCPeerConnection.prototype.getStats;
-  window.RTCPeerConnection.prototype.getStats = function(
-    selector,
-    onSucc,
-    onErr
-  ) {
+  window.RTCPeerConnection.prototype.getStats = function getStats() {
+    const [selector, onSucc, onErr] = arguments;
     return nativeGetStats.apply(this, [selector || null])
       .then(stats => {
         if (browserDetails.version < 53 && !onSucc) {
@@ -24218,7 +24594,7 @@ function shimSenderGetStats(window) {
   }
   const origGetSenders = window.RTCPeerConnection.prototype.getSenders;
   if (origGetSenders) {
-    window.RTCPeerConnection.prototype.getSenders = function() {
+    window.RTCPeerConnection.prototype.getSenders = function getSenders() {
       const senders = origGetSenders.apply(this, []);
       senders.forEach(sender => sender._pc = this);
       return senders;
@@ -24227,13 +24603,13 @@ function shimSenderGetStats(window) {
 
   const origAddTrack = window.RTCPeerConnection.prototype.addTrack;
   if (origAddTrack) {
-    window.RTCPeerConnection.prototype.addTrack = function() {
+    window.RTCPeerConnection.prototype.addTrack = function addTrack() {
       const sender = origAddTrack.apply(this, arguments);
       sender._pc = this;
       return sender;
     };
   }
-  window.RTCRtpSender.prototype.getStats = function() {
+  window.RTCRtpSender.prototype.getStats = function getStats() {
     return this.track ? this._pc.getStats(this.track) :
         Promise.resolve(new Map());
   };
@@ -24249,7 +24625,7 @@ function shimReceiverGetStats(window) {
   }
   const origGetReceivers = window.RTCPeerConnection.prototype.getReceivers;
   if (origGetReceivers) {
-    window.RTCPeerConnection.prototype.getReceivers = function() {
+    window.RTCPeerConnection.prototype.getReceivers = function getReceivers() {
       const receivers = origGetReceivers.apply(this, []);
       receivers.forEach(receiver => receiver._pc = this);
       return receivers;
@@ -24259,7 +24635,7 @@ function shimReceiverGetStats(window) {
     e.receiver._pc = e.srcElement;
     return e;
   });
-  window.RTCRtpReceiver.prototype.getStats = function() {
+  window.RTCRtpReceiver.prototype.getStats = function getStats() {
     return this._pc.getStats(this.track);
   };
 }
@@ -24269,14 +24645,15 @@ function shimRemoveStream(window) {
       'removeStream' in window.RTCPeerConnection.prototype) {
     return;
   }
-  window.RTCPeerConnection.prototype.removeStream = function(stream) {
-    _utils__WEBPACK_IMPORTED_MODULE_0__["deprecated"]('removeStream', 'removeTrack');
-    this.getSenders().forEach(sender => {
-      if (sender.track && stream.getTracks().includes(sender.track)) {
-        this.removeTrack(sender);
-      }
-    });
-  };
+  window.RTCPeerConnection.prototype.removeStream =
+    function removeStream(stream) {
+      _utils__WEBPACK_IMPORTED_MODULE_0__["deprecated"]('removeStream', 'removeTrack');
+      this.getSenders().forEach(sender => {
+        if (sender.track && stream.getTracks().includes(sender.track)) {
+          this.removeTrack(sender);
+        }
+      });
+    };
 }
 
 function shimRTCDataChannel(window) {
@@ -24318,22 +24695,23 @@ function shimGetDisplayMedia(window, preferredMediaSource) {
   if (!(window.navigator.mediaDevices)) {
     return;
   }
-  window.navigator.mediaDevices.getDisplayMedia = function(constraints) {
-    if (!(constraints && constraints.video)) {
-      const err = new DOMException('getDisplayMedia without video ' +
-          'constraints is undefined');
-      err.name = 'NotFoundError';
-      // from https://heycam.github.io/webidl/#idl-DOMException-error-names
-      err.code = 8;
-      return Promise.reject(err);
-    }
-    if (constraints.video === true) {
-      constraints.video = {mediaSource: preferredMediaSource};
-    } else {
-      constraints.video.mediaSource = preferredMediaSource;
-    }
-    return window.navigator.mediaDevices.getUserMedia(constraints);
-  };
+  window.navigator.mediaDevices.getDisplayMedia =
+    function getDisplayMedia(constraints) {
+      if (!(constraints && constraints.video)) {
+        const err = new DOMException('getDisplayMedia without video ' +
+            'constraints is undefined');
+        err.name = 'NotFoundError';
+        // from https://heycam.github.io/webidl/#idl-DOMException-error-names
+        err.code = 8;
+        return Promise.reject(err);
+      }
+      if (constraints.video === true) {
+        constraints.video = {mediaSource: preferredMediaSource};
+      } else {
+        constraints.video.mediaSource = preferredMediaSource;
+      }
+      return window.navigator.mediaDevices.getUserMedia(constraints);
+    };
 }
 
 
@@ -24455,53 +24833,62 @@ function shimLocalStreamsAPI(window) {
     return;
   }
   if (!('getLocalStreams' in window.RTCPeerConnection.prototype)) {
-    window.RTCPeerConnection.prototype.getLocalStreams = function() {
-      if (!this._localStreams) {
-        this._localStreams = [];
-      }
-      return this._localStreams;
-    };
+    window.RTCPeerConnection.prototype.getLocalStreams =
+      function getLocalStreams() {
+        if (!this._localStreams) {
+          this._localStreams = [];
+        }
+        return this._localStreams;
+      };
   }
   if (!('addStream' in window.RTCPeerConnection.prototype)) {
     const _addTrack = window.RTCPeerConnection.prototype.addTrack;
-    window.RTCPeerConnection.prototype.addStream = function(stream) {
+    window.RTCPeerConnection.prototype.addStream = function addStream(stream) {
       if (!this._localStreams) {
         this._localStreams = [];
       }
       if (!this._localStreams.includes(stream)) {
         this._localStreams.push(stream);
       }
-      stream.getTracks().forEach(track => _addTrack.call(this, track, stream));
+      // Try to emulate Chrome's behaviour of adding in audio-video order.
+      // Safari orders by track id.
+      stream.getAudioTracks().forEach(track => _addTrack.call(this, track,
+        stream));
+      stream.getVideoTracks().forEach(track => _addTrack.call(this, track,
+        stream));
     };
 
-    window.RTCPeerConnection.prototype.addTrack = function(track, stream) {
-      if (stream) {
-        if (!this._localStreams) {
-          this._localStreams = [stream];
-        } else if (!this._localStreams.includes(stream)) {
-          this._localStreams.push(stream);
+    window.RTCPeerConnection.prototype.addTrack =
+      function addTrack(track) {
+        const stream = arguments[1];
+        if (stream) {
+          if (!this._localStreams) {
+            this._localStreams = [stream];
+          } else if (!this._localStreams.includes(stream)) {
+            this._localStreams.push(stream);
+          }
         }
-      }
-      return _addTrack.call(this, track, stream);
-    };
+        return _addTrack.apply(this, arguments);
+      };
   }
   if (!('removeStream' in window.RTCPeerConnection.prototype)) {
-    window.RTCPeerConnection.prototype.removeStream = function(stream) {
-      if (!this._localStreams) {
-        this._localStreams = [];
-      }
-      const index = this._localStreams.indexOf(stream);
-      if (index === -1) {
-        return;
-      }
-      this._localStreams.splice(index, 1);
-      const tracks = stream.getTracks();
-      this.getSenders().forEach(sender => {
-        if (tracks.includes(sender.track)) {
-          this.removeTrack(sender);
+    window.RTCPeerConnection.prototype.removeStream =
+      function removeStream(stream) {
+        if (!this._localStreams) {
+          this._localStreams = [];
         }
-      });
-    };
+        const index = this._localStreams.indexOf(stream);
+        if (index === -1) {
+          return;
+        }
+        this._localStreams.splice(index, 1);
+        const tracks = stream.getTracks();
+        this.getSenders().forEach(sender => {
+          if (tracks.includes(sender.track)) {
+            this.removeTrack(sender);
+          }
+        });
+      };
   }
 }
 
@@ -24510,9 +24897,10 @@ function shimRemoteStreamsAPI(window) {
     return;
   }
   if (!('getRemoteStreams' in window.RTCPeerConnection.prototype)) {
-    window.RTCPeerConnection.prototype.getRemoteStreams = function() {
-      return this._remoteStreams ? this._remoteStreams : [];
-    };
+    window.RTCPeerConnection.prototype.getRemoteStreams =
+      function getRemoteStreams() {
+        return this._remoteStreams ? this._remoteStreams : [];
+      };
   }
   if (!('onaddstream' in window.RTCPeerConnection.prototype)) {
     Object.defineProperty(window.RTCPeerConnection.prototype, 'onaddstream', {
@@ -24543,26 +24931,27 @@ function shimRemoteStreamsAPI(window) {
     });
     const origSetRemoteDescription =
       window.RTCPeerConnection.prototype.setRemoteDescription;
-    window.RTCPeerConnection.prototype.setRemoteDescription = function() {
-      const pc = this;
-      if (!this._onaddstreampoly) {
-        this.addEventListener('track', this._onaddstreampoly = function(e) {
-          e.streams.forEach(stream => {
-            if (!pc._remoteStreams) {
-              pc._remoteStreams = [];
-            }
-            if (pc._remoteStreams.indexOf(stream) >= 0) {
-              return;
-            }
-            pc._remoteStreams.push(stream);
-            const event = new Event('addstream');
-            event.stream = stream;
-            pc.dispatchEvent(event);
+    window.RTCPeerConnection.prototype.setRemoteDescription =
+      function setRemoteDescription() {
+        const pc = this;
+        if (!this._onaddstreampoly) {
+          this.addEventListener('track', this._onaddstreampoly = function(e) {
+            e.streams.forEach(stream => {
+              if (!pc._remoteStreams) {
+                pc._remoteStreams = [];
+              }
+              if (pc._remoteStreams.indexOf(stream) >= 0) {
+                return;
+              }
+              pc._remoteStreams.push(stream);
+              const event = new Event('addstream');
+              event.stream = stream;
+              pc.dispatchEvent(event);
+            });
           });
-        });
-      }
-      return origSetRemoteDescription.apply(pc, arguments);
-    };
+        }
+        return origSetRemoteDescription.apply(pc, arguments);
+      };
   }
 }
 
@@ -24571,31 +24960,33 @@ function shimCallbacksAPI(window) {
     return;
   }
   const prototype = window.RTCPeerConnection.prototype;
-  const createOffer = prototype.createOffer;
-  const createAnswer = prototype.createAnswer;
+  const origCreateOffer = prototype.createOffer;
+  const origCreateAnswer = prototype.createAnswer;
   const setLocalDescription = prototype.setLocalDescription;
   const setRemoteDescription = prototype.setRemoteDescription;
   const addIceCandidate = prototype.addIceCandidate;
 
-  prototype.createOffer = function(successCallback, failureCallback) {
-    const options = (arguments.length >= 2) ? arguments[2] : arguments[0];
-    const promise = createOffer.apply(this, [options]);
-    if (!failureCallback) {
-      return promise;
-    }
-    promise.then(successCallback, failureCallback);
-    return Promise.resolve();
-  };
+  prototype.createOffer =
+    function createOffer(successCallback, failureCallback) {
+      const options = (arguments.length >= 2) ? arguments[2] : arguments[0];
+      const promise = origCreateOffer.apply(this, [options]);
+      if (!failureCallback) {
+        return promise;
+      }
+      promise.then(successCallback, failureCallback);
+      return Promise.resolve();
+    };
 
-  prototype.createAnswer = function(successCallback, failureCallback) {
-    const options = (arguments.length >= 2) ? arguments[2] : arguments[0];
-    const promise = createAnswer.apply(this, [options]);
-    if (!failureCallback) {
-      return promise;
-    }
-    promise.then(successCallback, failureCallback);
-    return Promise.resolve();
-  };
+  prototype.createAnswer =
+    function createAnswer(successCallback, failureCallback) {
+      const options = (arguments.length >= 2) ? arguments[2] : arguments[0];
+      const promise = origCreateAnswer.apply(this, [options]);
+      if (!failureCallback) {
+        return promise;
+      }
+      promise.then(successCallback, failureCallback);
+      return Promise.resolve();
+    };
 
   let withCallback = function(description, successCallback, failureCallback) {
     const promise = setLocalDescription.apply(this, [description]);
@@ -24642,7 +25033,7 @@ function shimGetUserMedia(window) {
 
   if (!navigator.getUserMedia && navigator.mediaDevices &&
     navigator.mediaDevices.getUserMedia) {
-    navigator.getUserMedia = function(constraints, cb, errcb) {
+    navigator.getUserMedia = function getUserMedia(constraints, cb, errcb) {
       navigator.mediaDevices.getUserMedia(constraints)
       .then(cb, errcb);
     }.bind(navigator);
@@ -24663,26 +25054,27 @@ function shimConstraints(constraints) {
 function shimRTCIceServerUrls(window) {
   // migrate from non-spec RTCIceServer.url to RTCIceServer.urls
   const OrigPeerConnection = window.RTCPeerConnection;
-  window.RTCPeerConnection = function(pcConfig, pcConstraints) {
-    if (pcConfig && pcConfig.iceServers) {
-      const newIceServers = [];
-      for (let i = 0; i < pcConfig.iceServers.length; i++) {
-        let server = pcConfig.iceServers[i];
-        if (!server.hasOwnProperty('urls') &&
-            server.hasOwnProperty('url')) {
-          _utils__WEBPACK_IMPORTED_MODULE_0__["deprecated"]('RTCIceServer.url', 'RTCIceServer.urls');
-          server = JSON.parse(JSON.stringify(server));
-          server.urls = server.url;
-          delete server.url;
-          newIceServers.push(server);
-        } else {
-          newIceServers.push(pcConfig.iceServers[i]);
+  window.RTCPeerConnection =
+    function RTCPeerConnection(pcConfig, pcConstraints) {
+      if (pcConfig && pcConfig.iceServers) {
+        const newIceServers = [];
+        for (let i = 0; i < pcConfig.iceServers.length; i++) {
+          let server = pcConfig.iceServers[i];
+          if (!server.hasOwnProperty('urls') &&
+              server.hasOwnProperty('url')) {
+            _utils__WEBPACK_IMPORTED_MODULE_0__["deprecated"]('RTCIceServer.url', 'RTCIceServer.urls');
+            server = JSON.parse(JSON.stringify(server));
+            server.urls = server.url;
+            delete server.url;
+            newIceServers.push(server);
+          } else {
+            newIceServers.push(pcConfig.iceServers[i]);
+          }
         }
+        pcConfig.iceServers = newIceServers;
       }
-      pcConfig.iceServers = newIceServers;
-    }
-    return new OrigPeerConnection(pcConfig, pcConstraints);
-  };
+      return new OrigPeerConnection(pcConfig, pcConstraints);
+    };
   window.RTCPeerConnection.prototype = OrigPeerConnection.prototype;
   // wrap static methods. Currently just generateCertificate.
   if ('generateCertificate' in window.RTCPeerConnection) {
@@ -24696,11 +25088,9 @@ function shimRTCIceServerUrls(window) {
 
 function shimTrackEventTransceiver(window) {
   // Add event.transceiver member over deprecated event.receiver
-  if (typeof window === 'object' && window.RTCPeerConnection &&
-      ('receiver' in window.RTCTrackEvent.prototype) &&
-      // can't check 'transceiver' in window.RTCTrackEvent.prototype, as it is
-      // defined for some reason even when window.RTCTransceiver is not.
-      !window.RTCTransceiver) {
+  if (typeof window === 'object' && window.RTCTrackEvent &&
+      'receiver' in window.RTCTrackEvent.prototype &&
+      !('transceiver' in window.RTCTrackEvent.prototype)) {
     Object.defineProperty(window.RTCTrackEvent.prototype, 'transceiver', {
       get() {
         return {receiver: this.receiver};
@@ -24711,62 +25101,63 @@ function shimTrackEventTransceiver(window) {
 
 function shimCreateOfferLegacy(window) {
   const origCreateOffer = window.RTCPeerConnection.prototype.createOffer;
-  window.RTCPeerConnection.prototype.createOffer = function(offerOptions) {
-    if (offerOptions) {
-      if (typeof offerOptions.offerToReceiveAudio !== 'undefined') {
-        // support bit values
-        offerOptions.offerToReceiveAudio = !!offerOptions.offerToReceiveAudio;
-      }
-      const audioTransceiver = this.getTransceivers().find(transceiver =>
-        transceiver.sender.track &&
-        transceiver.sender.track.kind === 'audio');
-      if (offerOptions.offerToReceiveAudio === false && audioTransceiver) {
-        if (audioTransceiver.direction === 'sendrecv') {
-          if (audioTransceiver.setDirection) {
-            audioTransceiver.setDirection('sendonly');
-          } else {
-            audioTransceiver.direction = 'sendonly';
-          }
-        } else if (audioTransceiver.direction === 'recvonly') {
-          if (audioTransceiver.setDirection) {
-            audioTransceiver.setDirection('inactive');
-          } else {
-            audioTransceiver.direction = 'inactive';
-          }
+  window.RTCPeerConnection.prototype.createOffer =
+    function createOffer(offerOptions) {
+      if (offerOptions) {
+        if (typeof offerOptions.offerToReceiveAudio !== 'undefined') {
+          // support bit values
+          offerOptions.offerToReceiveAudio =
+            !!offerOptions.offerToReceiveAudio;
         }
-      } else if (offerOptions.offerToReceiveAudio === true &&
-          !audioTransceiver) {
-        this.addTransceiver('audio');
-      }
+        const audioTransceiver = this.getTransceivers().find(transceiver =>
+          transceiver.receiver.track.kind === 'audio');
+        if (offerOptions.offerToReceiveAudio === false && audioTransceiver) {
+          if (audioTransceiver.direction === 'sendrecv') {
+            if (audioTransceiver.setDirection) {
+              audioTransceiver.setDirection('sendonly');
+            } else {
+              audioTransceiver.direction = 'sendonly';
+            }
+          } else if (audioTransceiver.direction === 'recvonly') {
+            if (audioTransceiver.setDirection) {
+              audioTransceiver.setDirection('inactive');
+            } else {
+              audioTransceiver.direction = 'inactive';
+            }
+          }
+        } else if (offerOptions.offerToReceiveAudio === true &&
+            !audioTransceiver) {
+          this.addTransceiver('audio');
+        }
 
-      if (typeof offerOptions.offerToReceiveVideo !== 'undefined') {
-        // support bit values
-        offerOptions.offerToReceiveVideo = !!offerOptions.offerToReceiveVideo;
-      }
-      const videoTransceiver = this.getTransceivers().find(transceiver =>
-        transceiver.sender.track &&
-        transceiver.sender.track.kind === 'video');
-      if (offerOptions.offerToReceiveVideo === false && videoTransceiver) {
-        if (videoTransceiver.direction === 'sendrecv') {
-          if (videoTransceiver.setDirection) {
-            videoTransceiver.setDirection('sendonly');
-          } else {
-            videoTransceiver.direction = 'sendonly';
-          }
-        } else if (videoTransceiver.direction === 'recvonly') {
-          if (videoTransceiver.setDirection) {
-            videoTransceiver.setDirection('inactive');
-          } else {
-            videoTransceiver.direction = 'inactive';
-          }
+        if (typeof offerOptions.offerToReceiveVideo !== 'undefined') {
+          // support bit values
+          offerOptions.offerToReceiveVideo =
+            !!offerOptions.offerToReceiveVideo;
         }
-      } else if (offerOptions.offerToReceiveVideo === true &&
-          !videoTransceiver) {
-        this.addTransceiver('video');
+        const videoTransceiver = this.getTransceivers().find(transceiver =>
+          transceiver.receiver.track.kind === 'video');
+        if (offerOptions.offerToReceiveVideo === false && videoTransceiver) {
+          if (videoTransceiver.direction === 'sendrecv') {
+            if (videoTransceiver.setDirection) {
+              videoTransceiver.setDirection('sendonly');
+            } else {
+              videoTransceiver.direction = 'sendonly';
+            }
+          } else if (videoTransceiver.direction === 'recvonly') {
+            if (videoTransceiver.setDirection) {
+              videoTransceiver.setDirection('inactive');
+            } else {
+              videoTransceiver.direction = 'inactive';
+            }
+          }
+        } else if (offerOptions.offerToReceiveVideo === true &&
+            !videoTransceiver) {
+          this.addTransceiver('video');
+        }
       }
-    }
-    return origCreateOffer.apply(this, arguments);
-  };
+      return origCreateOffer.apply(this, arguments);
+    };
 }
 
 
@@ -24776,7 +25167,7 @@ function shimCreateOfferLegacy(window) {
 /*!*****************************************************!*\
   !*** ./node_modules/webrtc-adapter/src/js/utils.js ***!
   \*****************************************************/
-/*! exports provided: extractVersion, wrapPeerConnectionEvent, disableLog, disableWarnings, log, deprecated, detectBrowser, compactObject */
+/*! exports provided: extractVersion, wrapPeerConnectionEvent, disableLog, disableWarnings, log, deprecated, detectBrowser, compactObject, walkStats, filterStats */
 /***/ (function(module, __webpack_exports__, __webpack_require__) {
 
 "use strict";
@@ -24789,6 +25180,8 @@ __webpack_require__.r(__webpack_exports__);
 /* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "deprecated", function() { return deprecated; });
 /* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "detectBrowser", function() { return detectBrowser; });
 /* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "compactObject", function() { return compactObject; });
+/* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "walkStats", function() { return walkStats; });
+/* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "filterStats", function() { return filterStats; });
 /*
  *  Copyright (c) 2016 The WebRTC project authors. All Rights Reserved.
  *
@@ -24939,9 +25332,13 @@ function detectBrowser(window) {
     result.browser = 'firefox';
     result.version = extractVersion(navigator.userAgent,
         /Firefox\/(\d+)\./, 1);
-  } else if (navigator.webkitGetUserMedia) {
+  } else if (navigator.webkitGetUserMedia ||
+      (window.isSecureContext === false && window.webkitRTCPeerConnection &&
+       !window.RTCIceGatherer)) {
     // Chrome, Chromium, Webview, Opera.
     // Version matches Chrome/WebRTC version.
+    // Chrome 74 removed webkitGetUserMedia on http as well so we need the
+    // more complicated fallback to webkitRTCPeerConnection.
     result.browser = 'chrome';
     result.version = extractVersion(navigator.userAgent,
         /Chrom(e|ium)\/(\d+)\./, 2);
@@ -24955,6 +25352,8 @@ function detectBrowser(window) {
     result.browser = 'safari';
     result.version = extractVersion(navigator.userAgent,
         /AppleWebKit\/(\d+)\./, 1);
+    result.supportsUnifiedPlan = window.RTCRtpTransceiver &&
+        'currentDirection' in window.RTCRtpTransceiver.prototype;
   } else { // Default fallthrough: not supported.
     result.browser = 'Not a supported browser.';
     return result;
@@ -24964,26 +25363,77 @@ function detectBrowser(window) {
 }
 
 /**
+ * Checks if something is an object.
+ *
+ * @param {*} val The something you want to check.
+ * @return true if val is an object, false otherwise.
+ */
+function isObject(val) {
+  return Object.prototype.toString.call(val) === '[object Object]';
+}
+
+/**
  * Remove all empty objects and undefined values
  * from a nested object -- an enhanced and vanilla version
  * of Lodash's `compact`.
  */
 function compactObject(data) {
-  if (typeof data !== 'object') {
+  if (!isObject(data)) {
     return data;
   }
 
   return Object.keys(data).reduce(function(accumulator, key) {
-    const isObject = typeof data[key] === 'object';
-    const value = isObject ? compactObject(data[key]) : data[key];
-    const isEmptyObject = isObject && !Object.keys(value).length;
+    const isObj = isObject(data[key]);
+    const value = isObj ? compactObject(data[key]) : data[key];
+    const isEmptyObject = isObj && !Object.keys(value).length;
     if (value === undefined || isEmptyObject) {
       return accumulator;
     }
-
     return Object.assign(accumulator, {[key]: value});
   }, {});
 }
+
+/* iterates the stats graph recursively. */
+function walkStats(stats, base, resultSet) {
+  if (!base || resultSet.has(base.id)) {
+    return;
+  }
+  resultSet.set(base.id, base);
+  Object.keys(base).forEach(name => {
+    if (name.endsWith('Id')) {
+      walkStats(stats, stats.get(base[name]), resultSet);
+    } else if (name.endsWith('Ids')) {
+      base[name].forEach(id => {
+        walkStats(stats, stats.get(id), resultSet);
+      });
+    }
+  });
+}
+
+/* filter getStats for a sender/receiver track. */
+function filterStats(result, track, outbound) {
+  const streamStatsType = outbound ? 'outbound-rtp' : 'inbound-rtp';
+  const filteredResult = new Map();
+  if (track === null) {
+    return filteredResult;
+  }
+  const trackStats = [];
+  result.forEach(value => {
+    if (value.type === 'track' &&
+        value.trackIdentifier === track.id) {
+      trackStats.push(value);
+    }
+  });
+  trackStats.forEach(trackStat => {
+    result.forEach(stats => {
+      if (stats.type === streamStatsType && stats.trackId === trackStat.id) {
+        walkStats(result, stats, filteredResult);
+      }
+    });
+  });
+  return filteredResult;
+}
+
 
 
 /***/ }),
@@ -24995,7 +25445,7 @@ function compactObject(data) {
 /*! exports provided: name, version, description, browser, main, private, scripts, keywords, repository, bugs, license, licenses, dependencies, devDependencies, author, readmeFilename, contributors, default */
 /***/ (function(module) {
 
-module.exports = {"name":"@nodefony/stage","version":"0.1.18","description":"Nodefony Framework Client Side Nodefony web developpement","browser":"dist/stage6.min.js","main":"src/core.js","private":false,"scripts":{"build-dev":"WEBPACK_ENV=dev webpack --verbose","build-prod":"WEBPACK_ENV=prod webpack --verbose","start":"npm start --prefix ./demo/nodefony"},"keywords":["javascript","webpack","nodefony","webrtc","sip","opensip","kamailio","webaudio"],"repository":{"type":"git","url":"git@github.com:nodefony/nodefony-stage.git"},"bugs":{"url":"https://github.com/nodefony/nodefony-stage/issues"},"license":"CECILL-B","licenses":[{"type":"CECILL-B","url":"http://www.cecill.info/licences/Licence_CeCILL-B_V1-en.html"}],"dependencies":{"ascii-table":"0.0.9","asciify":"^1.3.5","jquery":"^3.3.1","opn":"^5.5.0","shortid":"^2.2.14","twig":"^1.13.2","webrtc-adapter":"^7.2.1"},"devDependencies":{"@babel/core":"^7.4.0","@babel/preset-env":"^7.4.2","babel-loader":"^8.0.5","chai":"^4.1.2","css-loader":"^2.1.1","exports-loader":"^0.7.0","expose-loader":"^0.7.5","file-loader":"^3.0.1","imports-loader":"^0.8.0","jshint":"^2.10.2","jshint-loader":"0.8.4","json-loader":"^0.5.7","mocha":"^6.0.2","node-sass":"^4.11.0","optimize-css-assets-webpack-plugin":"^5.0.1","raw-loader":"^2.0.0","sass-loader":"^7.1.0","should":"^13.2.3","sinon":"^7.3.0","sinon-chai":"^3.3.0","terser-webpack-plugin":"^1.2.3","to-string-loader":"1.1.5","tokenizer":"1.1.2","url-loader":"^1.1.2","webpack":"^4.29.6","webpack-cli":"^3.3.0","webpack-dev-server":"^3.2.1","webpack-merge":"^4.2.1"},"author":"cci <christophe.camensuli@gmail.com>","readmeFilename":"README.md","contributors":[{}]};
+module.exports = JSON.parse("{\"name\":\"@nodefony/stage\",\"version\":\"0.2.0\",\"description\":\"Nodefony Framework Client Side Nodefony web developpement\",\"browser\":\"dist/stage6.min.js\",\"main\":\"src/core.js\",\"private\":false,\"scripts\":{\"webpack\":\"webpack\",\"stage\":\"stage\",\"install-demo\":\"npm install --prefix ./demo/nodefony ;npm run build --prefix ./demo/nodefony\",\"demo\":\"npm start --prefix ./demo/nodefony\",\"start\":\"node ./bin/stage\",\"build\":\"WEBPACK_ENV=prod webpack; WEBPACK_ENV=dev webpack --verbose\",\"build-dev\":\"WEBPACK_ENV=dev webpack --verbose\",\"build-prod\":\"WEBPACK_ENV=prod webpack --verbose\",\"test\":\"mocha  --require @babel/register --recursive src/tests\"},\"keywords\":[\"javascript\",\"webpack\",\"nodefony\",\"webrtc\",\"sip\",\"opensip\",\"kamailio\",\"webaudio\"],\"repository\":{\"type\":\"git\",\"url\":\"git@github.com:nodefony/nodefony-stage.git\"},\"bugs\":{\"url\":\"https://github.com/nodefony/nodefony-stage/issues\"},\"license\":\"CECILL-B\",\"licenses\":[{\"type\":\"CECILL-B\",\"url\":\"http://www.cecill.info/licences/Licence_CeCILL-B_V1-en.html\"}],\"dependencies\":{\"ascii-table\":\"0.0.9\",\"asciify\":\"^1.3.5\",\"jquery\":\"^3.3.1\",\"opn\":\"^6.0.0\",\"shortid\":\"^2.2.14\",\"twig\":\"^1.13.2\",\"webrtc-adapter\":\"^7.2.9\"},\"devDependencies\":{\"@babel/cli\":\"^7.5.5\",\"@babel/core\":\"^7.5.5\",\"@babel/preset-env\":\"^7.5.5\",\"@babel/register\":\"^7.5.5\",\"chai\":\"^4.1.2\",\"css-loader\":\"^3.2.0\",\"exports-loader\":\"^0.7.0\",\"expose-loader\":\"^0.7.5\",\"file-loader\":\"^4.1.0\",\"imports-loader\":\"^0.8.0\",\"jshint\":\"^2.10.2\",\"jshint-loader\":\"0.8.4\",\"json-loader\":\"^0.5.7\",\"mocha\":\"^6.2.0\",\"node-sass\":\"^4.11.0\",\"nodefony\":\"^5.0.2\",\"optimize-css-assets-webpack-plugin\":\"^5.0.1\",\"raw-loader\":\"^3.1.0\",\"sass-loader\":\"^7.1.0\",\"should\":\"^13.2.3\",\"sinon\":\"^7.3.0\",\"sinon-chai\":\"^3.3.0\",\"terser-webpack-plugin\":\"^1.4.1\",\"to-string-loader\":\"1.1.5\",\"tokenizer\":\"1.1.2\",\"url-loader\":\"^2.1.0\",\"webpack\":\"^4.39.1\",\"webpack-cli\":\"^3.3.6\",\"webpack-dev-server\":\"^3.2.1\",\"webpack-merge\":\"^4.2.1\"},\"author\":\"cci <christophe.camensuli@gmail.com>\",\"readmeFilename\":\"README.md\",\"contributors\":[{}]}");
 
 /***/ }),
 

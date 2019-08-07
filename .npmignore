@@ -33,3 +33,9 @@ demo
 .gitmodules
 .bithoundrc
 .grenrc.json
+
+
+node_modules
+node_modules/**
+**/node_modules/**
+/node_modules

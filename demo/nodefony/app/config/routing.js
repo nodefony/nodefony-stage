@@ -1,29 +1,16 @@
-// ROUTING
+/**
+ *
+ * ===============================================================================
+ *      ROUTING BUNDLE app
+ *
+ *  Copyright © 2019/    admin | admin@nodefony.com
+ *
+ * ===============================================================================
+ *
+ *        GENERATE BY  BUILDER
+ *
+ *        stage-starter ROUTING  app
+ **/
 
-module.exports = {
-  home: {
-    pattern: "/",
-    defaults: {
-      controller: "app:app:index"
-    }
-  },
-  login: {
-    pattern: "/login/{type}",
-    defaults: {
-      controller: "app:login:login",
-      type: "nodefony"
-    }
-  },
-  logout: {
-    pattern: "/logout",
-    defaults: {
-      controller: "app:login:logout"
-    }
-  },
-  lang: {
-    pattern: "/lang",
-    defaults: {
-      controller: "app:app:lang"
-    }
-  }
-};
+
+  module.exports = {};

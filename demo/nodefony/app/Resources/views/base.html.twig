@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="{{nodefony.local}}">
+<html lang="{{nodefony.local|escape}}">
   <head>
     {% block head %}{% endblock %}
     {% block meta %}
@@ -10,19 +10,18 @@
       <meta name="generator" content="Nodefony (https://nodefony.net)">
       <meta name="keywords" content="web,Framework,realtime,node.js,symfony,javascript,npm,linux">
       <link rel="icon" type="image/x-icon" href="/app/favicon.ico"/>
-      <link rel="manifest" href="/app/manifest.json">
     {% endblock %}
     {% block description %}
       <meta name="description" content="Node.js full-stack web framework Symfony Like">
     {% endblock %}
     <title>
-      {% block title %}NODEFONY{% endblock %}
+      {% block title %}{{nodefony.name|escape}}{% endblock %}
     </title>
     {% block stylesheets %}
       <!-- WEBPACK BUNDLE -->
       <link rel="stylesheet" href="{{CDN('stylesheet')}}/app/assets/css/app.css"/>
       <link rel="stylesheet" href="{{CDN('stylesheet')}}/app/assets/css/demo.css"/>
-    {% endblock %}
+{% endblock %}
   </head>
   <body>
     {% block body %}{% endblock %}
@@ -30,6 +29,6 @@
       <!-- WEBPACK BUNDLE -->
       <script type="text/javascript" src="{{CDN('javascript')}}/app/assets/js/app.js"></script>
       <script type="text/javascript" src="{{CDN('javascript')}}/app/assets/js/demo.js"></script>
-    {% endblock %}
+{% endblock %}
   </body>
 </html>

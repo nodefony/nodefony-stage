@@ -1,21 +1,15 @@
 {% extends './base.html.twig' %}
+
 {% set error = getFlashBag("error") %}
-
-{% block title %}
-  {{nodefony.name}}
-{% endblock %}
-
-
+{% set info = getFlashBag("info") %}
 
 {% block body %}
 
-  {% block header %}
-    {{ render( controller("app:app:header" )) }}
-  {% endblock %}
+<div class="hello">
 
   <div class="container text-center mt-8" >
-        <img class="mb-4" src="{{CDN("image")}}/app/images/app-logo.png" alt="">
-        <h1 class="h1 mb-3 font-weight-normal"style="color:#0167b8">{{nodefony.name|upper}}</h1>
+        <img class=displayed src=/framework-bundle/images/nodefony-logo.png>
+        <h1>{{ name }}</h1>
         <p class="h2 mt-3 mb-5">Stage Version :
           {{version}}
         </p>
@@ -46,22 +40,13 @@
         <div>{{readme}}</div>
         {% endif %}
   </div>
+</div>
 
-  {% block footer %}
-    {{ render( controller("app:app:footer" )) }}
-  {% endblock %}
+{% block javascripts %}
+  {{ parent() }}
+  <script>
 
-  {% block javascripts %}
-    {{ parent() }}
-    <script>
-      $(document).ready(() => {
-        let md = new stage.media.mediaStream($("#myvideo").get(0));
-        md.getUserMedia({}, (media) => {
-          media.attachMediaStream();
-          //media.getVideoTracks();
-        });
-      });
-    </script>
-  {% endblock %}
+  </script>
+{% endblock %}
 
 {% endblock %}

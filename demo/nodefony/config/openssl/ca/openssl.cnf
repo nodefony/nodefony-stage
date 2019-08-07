@@ -5,7 +5,7 @@
 # than one openssl command.
 
 [ default ]
-ca                      = demo-ca				# CA name
+ca                      = stage-starter-ca				# CA name
 dir                     = ./config/certificates			# Top dir
 
 # The next part of the configuration file is used by the openssl req command.
@@ -25,12 +25,12 @@ x509_extensions         = v3_ca
 
 [ ca_dn ]
 0.domainComponent       = "com"
-1.domainComponent       = "demo"
-organizationalUnitName  = "demo Root CA"
+1.domainComponent       = "stage-starter"
+organizationalUnitName  = "stage-starter Root CA"
 countryName		= FR
 stateOrProvinceName	= BDR
 localityName		= Marseille
-organizationName	= demo Signing Authority
+organizationName	= stage-starter Signing Authority
 organizationalUnitName	= Development
 emailAddress		= admin@nodefony.com
 commonName              = "0.0.0.0"
@@ -115,8 +115,8 @@ subjectAltName		= @alt_names
 IP.1			= 127.0.0.1
 IP.2			= 0.0.0.0
 DNS.1			= localhost
-DNS.2			= docker.demo.com
-DNS.3			= demo.com
+DNS.2			= docker.stage-starter.com
+DNS.3			= stage-starter.com
 
 [ usr_cert ]
 # Extensions for client certificates (`man x509v3_config`).

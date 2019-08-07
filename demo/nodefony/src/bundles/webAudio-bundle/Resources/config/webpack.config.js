@@ -1,12 +1,19 @@
+//const bundleName = path.basename(path.resolve(__dirname, ".."));
+
 const path = require("path");
 //const webpack = require('webpack');
 const MiniCssExtractPlugin = require("mini-css-extract-plugin");
 const webpackMerge = require('webpack-merge');
 
-const context = path.resolve(__dirname, "..", "public");
+
+// Default context <bundle base directory>
+//const context = path.resolve(__dirname, "..", "public");
 const public = path.resolve(__dirname, "..", "public", "assets");
-const bundleName = path.basename(path.resolve(__dirname, "..", ".."));
-const publicPath = bundleName + "/assets/";
+const package = require(path.resolve("package.json"));
+
+const bundleConfig = require(path.resolve(__dirname, "config.js"));
+const bundleName = package.name;
+const publicPath = `/${bundleName}/assets/`;
 
 let config = null;
 let dev = true;
@@ -18,22 +25,20 @@ if (kernel.environment === "dev") {
 }
 
 module.exports = webpackMerge(config, {
-  context: context,
+  //context: context,
   target: "web",
   entry: {
-    webaudio: ["./js/webAudio.js"],
-    mixer: ["./webaudio/js/mix.js"]
+    webAudio:["./Resources/js/webAudio.js"],
+    mixer: ["./Resources/webaudio/js/mix.js"]
   },
   output: {
     path: public,
     publicPath: publicPath,
     filename: "./js/[name].js",
     library: "[name]",
-    libraryTarget: "umd"
+    libraryExport: "default"
   },
-  externals: {
-    "jquery": "jQuery"
-  },
+  externals: {},
   resolve: {},
   module: {
     rules: [{
@@ -46,17 +51,19 @@ module.exports = webpackMerge(config, {
             presets: ['@babel/preset-env']
           }
         }]
-      },
+      }, {
       /*
        *	JQUERY EXPOSE BROWSER CONTEXT
        *
        */
-      {
-        test: require.resolve("jquery"),
-        loader: "expose-loader?$!expose-loader?jQuery"
-      }, {
-        test: /jquery\..*\.js/,
-        loader: "imports-loader?$=jquery,jQuery=jquery,this=>window"
+        test: require.resolve('jquery'),
+        use: [{
+          loader: 'expose-loader',
+          options: 'jQuery'
+        }, {
+          loader: 'expose-loader',
+          options: '$'
+        }]
       }, {
         test: /\.(sa|sc|c)ss$/,
         use: [
@@ -73,12 +80,7 @@ module.exports = webpackMerge(config, {
           }, {
             loader: 'postcss-loader', // Run post css actions
             options: {
-              plugins: function () { // post css plugins, can be exported to postcss.config.js
-                return [
-                  require('precss'),
-                  require('autoprefixer')
-                ];
-              }
+              plugins: () => [require('precss'), require('autoprefixer')]
             }
           }, {
             loader: "sass-loader",
@@ -94,52 +96,29 @@ module.exports = webpackMerge(config, {
           options: {
             name: '[name].[ext]',
             outputPath: 'fonts/', // where the fonts will go
-            publicPath: `/${bundleName}/assets/fonts/` // override the default path
+            publicPath: `${publicPath}/fonts/` // override the default path
           }
         }]
       }, {
         // IMAGES
         test: /\.(gif|png|jpe?g|svg)$/i,
         use: [{
-          loader: "file-loader",
-          options: {
-            name: "[name].[ext]",
-            publicPath: `/${bundleName}/assets/images/`,
-            outputPath: "/images/"
-          }
-        }, {
-          loader: 'image-webpack-loader',
-          options: {
-            disable: dev,
-            mozjpeg: {
-              progressive: true,
-              quality: 65
-            },
-            // optipng.enabled: false will disable optipng
-            optipng: {
-              enabled: false,
-            },
-            pngquant: {
-              quality: '65-90',
-              speed: 4
-            },
-            gifsicle: {
-              interlaced: false,
-            },
-            // the webp option will enable WEBP
-            webp: {
-              quality: 75
+            loader: "file-loader",
+            options: {
+              name: "[name].[ext]",
+              publicPath: `${publicPath}/images/`,
+              outputPath: "/images/"
             }
-          }
-        }]
+          }]
       }
     ]
   },
   plugins: [
     new MiniCssExtractPlugin({
+      fallback: "style-loader",
       filename: "./css/[name].css",
       allChunks: true
-    })
+    }),
   ],
   devServer: {
     inline: true,

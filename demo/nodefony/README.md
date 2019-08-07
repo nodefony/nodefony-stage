@@ -1,11 +1,11 @@
 <p align="center">
   <img src="https://github.com/nodefony/nodefony-core/raw/master/src/nodefony/bundles/framework-bundle/Resources/public/images/nodefony-logo.png"><br>
 </p>
-<h1 align="center">NODEFONY V4</h1>
+<h1 align="center">NODEFONY V5</h1>
 
 [![npm package](https://nodei.co/npm/nodefony.png?downloads=true&downloadRank=true&stars=true)](https://nodei.co/npm/nodefony)
 
-[![Issues Status](https://img.shields.io/github/issues/nodefony/nodefony.svg)](https://github.com/nodefony/nodefony/issues) [![Build Status](https://travis-ci.org/nodefony/nodefony.svg?branch=master)](https://travis-ci.org/nodefony/nodefony) [![CII Best Practices](https://bestpractices.coreinfrastructure.org/projects/495/badge)](https://bestpractices.coreinfrastructure.org/projects/495)
+[![Issues Status](https://img.shields.io/github/issues/nodefony/nodefony.svg)](https://github.com/nodefony/nodefony/issues) [![Build Status](https://api.travis-ci.org/nodefony/nodefony-core.svg?branch=master)](https://travis-ci.org/nodefony/nodefony-core) [![CII Best Practices](https://bestpractices.coreinfrastructure.org/projects/495/badge)](https://bestpractices.coreinfrastructure.org/projects/495)
 
 Nodefony is Node.js full-stack web framework.  
 
@@ -19,7 +19,10 @@ Nodefony is not an exhaustive port of symfony !
 
 -   [Features](#features)
 -   [Requirements](#requirements)
--   [Install](#install)
+-   [Linux OSX Installation](#install)
+-   [Windows Installation ](#installwin32)
+-   [Build Nodefony Project with CLI (Command Line Interface)](#buildcli)
+-   [Build Nodefony Project with STARTER](#buildstarter)
 -   [Start Development Mode](#start)
 -   [Start Production Mode](#start_prod)
 -   [Configurations](#configurations)
@@ -36,13 +39,13 @@ Nodefony is not an exhaustive port of symfony !
 -   [HTTP2](https://nodejs.org/api/http2.html)  http2 ready node module provides an implementation of the HTTP/2 (push server ready).
 -   Dynamics routing
 -   ORM ([Sequelize](http://docs.sequelizejs.com/), [mongoose](http://mongoosejs.com/index.html))
--   Simple Databases connection (mongo, ...)
+-   Simple Databases Services connections (Redis, Mongo, Elasticsearch, mysql, sqlite ...).
 -   MVC templating ([Twig](https://github.com/twigjs/twig.js))
 -   Notion of real-time context in Action Controller (websocket).
--   Notion of synchronous or asynchronous execution in Action Controller (Promise).
+-   Notion of synchronous or asynchronous execution in Action Controller (Promise, Async, Await).
 -   Services Containers, Dependency Injection (Design Patterns)
 -   Sessions Manager (ORM, memcached)
--   Authentication Manager (Digest, Basic, oAuth, Local, ldap, jwf)
+-   Authentication Manager (Digest, Basic, oAuth, Local, ldap, jwt, openid)
 -   WAF ( Web application firewall )
 -   Cross-Origin Resource Sharing ([CORS](https://www.w3.org/TR/cors/))
 -   Production Management ([PM2](https://github.com/Unitech/pm2/))
@@ -62,20 +65,19 @@ Nodefony is not an exhaustive port of symfony !
 -   [PM2](http://pm2.keymetrics.io/) Production Process Manager for Node.js .
 -   [Passport](http://passportjs.org/) Simple, unobtrusive authentication for Node.js .
 -   ~~[Angular](https://github.com/angular/angular-cli) Experimental Bundle Generator ( Angular cli no longer allows the ejection of a webpack config)~~
--   [React](https://github.com/facebookincubator/create-react-app) Experimental Bundle Generator ( Now an React Project can be merge into a Nodefony Bundle )
--   [Vue.js](https://vuejs.org) Experimental Bundle Generator ( Now an Vue.js Project can be merge into a Nodefony Bundle )
 
-**Nodefony 4  adds the following features** :
+**Nodefony 5  adds the following features** :
 
 -   C++ Addons (Binding in Bundle)
 -   Authorisations
 -   HTTP2
 -   WEBPACK 4  
+-   [React](https://github.com/facebookincubator/create-react-app) Experimental Bundle Generator ( Now an React Project can be merge into a Nodefony Bundle )
+-   [Vue.js](https://vuejs.org) Experimental Bundle Generator ( Now an Vue.js Project can be merge into a Nodefony Bundle )
 
 
-Now in this version  4 Beta,  Nodefony is evolved to a stable version without major fundamental changes.
+Evolution priorities for the next version will focus on robustness, unit testing, documentation and security.
 
-Evolution priorities up to the stable version will focus on robustness, unit testing, documentation and security.
 
 #### Nodefony is ported with ECMAScript 6 ( Class, Inheritance ).
 
@@ -106,7 +108,7 @@ You can follow Nodefony build on travis at **<https://travis-ci.org/nodefony/nod
 
 -   **[GNU Bash](https://www.gnu.org/software/bash/)** Bash is the GNU Project's shell
 
-#### Operating Systems : **[Install Node.js via Package](https://nodejs.org/en/download/package-manager)**
+#### Operating Systems :
 
 -   LINUX
     -   Debian, Ubuntu (Checked, Tested)
@@ -114,38 +116,42 @@ You can follow Nodefony build on travis at **<https://travis-ci.org/nodefony/nod
 
 -   MACOS (Checked, Tested)
 
+-   WINDOWS (Checked)
+
 -   FreeBSD (Checked)
-    -   pkg install bash rsync gmake gcc6
+    -   pkg install bash gmake gcc6
     -   setenv CC "/usr/local/bin/gcc"
     -   setenv CXX "/usr/local/bin/g++"
     -   cd /usr/local/bin/ ;ln -s pythonx.x python
 
 -   ~~OpenBSD (Not Checked yet )~~
 
--   ~~WINDOWS (Not ported yet )~~
-
 -   ~~[ELECTRON](https://github.com/nodefony/nodefony-electron) Experimental Nodefony Electron  ( Now an Electron Context can be use in Nodefony Project )~~
 
 -   EMBEDDED SYSTEM ( Very difficult : large memory footprint )  
 
-## <a name="install"></a>Install
+## <a name="install"></a> Linux or OSX Installation (Recommanded)
 
-**Install Node.js** :
- -   [nvm](https://github.com/creationix/nvm) Node Version Manager - Simple bash script to manage multiple active node.js versions
+**[NVM](https://github.com/creationix/nvm) Installation (Node Version Manager )** :
+ -   [NVM](https://github.com/creationix/nvm) Node Version Manager - Simple bash script to manage multiple active node.js versions
 
-  To install or update nvm, you can use the install script using cURL:
-
+  To install or update nvm, you can use the install script:
 ```sh
-curl -o- https://raw.githubusercontent.com/creationix/nvm/v0.33.11/install.sh | bash
+curl -o- https://raw.githubusercontent.com/creationix/nvm/v0.34.0/install.sh | bash
+# or
+wget -qO- https://raw.githubusercontent.com/creationix/nvm/v0.34.0/install.sh | bash
+
+$ source ~/.bashrc # or source ~/.bash_profile
+$ nvm ls-remote # show all remote versions  
+$ nvm ls # show local versions
 ```
 
-or Wget:
-
+**[Node.js](https://nodejs.org/) Installation with [NVM](https://github.com/creationix/nvm)** :
 ```sh
-wget -qO- https://raw.githubusercontent.com/creationix/nvm/v0.33.11/install.sh | bash
+nvm install node # "node" is an alias for the latest version
 ```
 
-**Install Nodefony Excutable (globally)** :
+**[Nodefony](https://nodefony.net) Excutable Installation (Globally Recommanded)** :
 
 ```bash
 npm -g install nodefony
@@ -155,37 +161,45 @@ npm -g install nodefony
 yarn global add nodefony
 ```
 
-**likely error** :
+**Error that you can usually find** :
 
 - EACCES error  [See Global install How to Prevent Permissions Errors](https://docs.npmjs.com/getting-started/fixing-npm-permissions) (Reinstall npm with a Node Version Manager)
 - Different Node.js version (NODE_MODULE_VERSION XX) use 'nodefony rebuild'
 
-## Build Project with nodefony cli (recommended):
+## <a name="installwin32"></a> Windows Installation
 
- ```bash
- #  CLI generate project name : myproject
+**[Node.js](https://nodejs.org/en/) Installation** :
+ [nvm-windows](https://github.com/coreybutler/nvm-windows#node-version-manager-nvm-for-windows)
+ to easily switch Node versions between different projects.
+ or To install or update Node.js, you can download installer here [Node.js](https://nodejs.org/en/)
 
- $ nodefony create myproject
- $ cd myproject
- ```
+**[Nodefony](https://nodefony.net) Excutable Installation** :
 
-**Cli Usage** :
-
+ Launch a CMD terminal
 ```bash
-$ nodefony -h
-nodefony                                                                                              
-    create [-i] name [path]                       Create New Nodefony Project                  
+npm -g install nodefony
 
-# OR YOU CAN USE CLI INTERACTIVE MODE (nodefony without args)
+# or with yarn
 
+yarn global add nodefony
+```
+**Add NPM global bin in $Path windows** :
+
+  On the Windows System Property Menu, configure *Path* environment variable by adding :
+
+  ```bash
+C:\Users\myuser\AppData\Roaming\npm
+or
+C:\Users\myuser\AppData\Roaming\npm\bin
+  ```
+
+## <a name="buildcli"></a> Build Project with nodefony cli (recommended):
+
+**Cli Usage INTERACTIVE MODE** :
+
+YOU CAN USE CLI INTERACTIVE MODE (nodefony without args) :
+```bash
 $ nodefony
- _   _    ___    ____    _____   _____    ___    _   _  __   __
-| \ | |  / _ \  |  _ \  | ____| |  ___|  / _ \  | \ | | \ \ / /
-|  \| | | | | | | | | | |  _|   | |_    | | | | |  \| |  \ V /
-| |\  | | |_| | | |_| | | |___  |  _|   | |_| | | |\  |   | |  
-|_| \_|  \___/  |____/  |_____| |_|      \___/  |_| \_|   |_|  
-
-Version : 4.0.0-beta.5 Platform : darwin Process : nodefony PID : 16368
 
 ?  Nodefony CLI :  (Use arrow keys)
 ❯ Create Nodefony Project
@@ -194,30 +208,60 @@ Version : 4.0.0-beta.5 Platform : darwin Process : nodefony PID : 16368
   Help
   Quit
 ```
+**Cli Usage NO INTERRATIVE** :
 
-## Build Project with Github Starter :
+YOU CAN USE CLI NO INTERACTIVE (nodefony with args) :
 
+```bash
+#  CLI generate project name : myproject
+
+$ nodefony create myproject
+$ cd myproject
+ ```
+
+**Cli Help** :
+
+```bash
+$ nodefony -h
+
+nodefony                                                                                              
+    create [-i] name [path]                       Create New Nodefony Project                  
+```
+
+## <a name="buildstarter"></a> Build Project with Github Starter :
+
+**CLI** :
+
+  Clone nodefony starter
  ```bash
- #  Clone nodefony starter
-
  $ git clone https://github.com/nodefony/nodefony.git
  $ cd nodefony
  $ nodefony build
+   ...
+   ...
+ $ npm start
  ```
- **Cli Usage** :
+ **CLI INTERATIVE** :
+
+  YOU CAN USE CLI INTERACTIVE MODE TO BUILD PROJECT (nodefony without args)
  ```bash
- # OR YOU CAN USE CLI INTERACTIVE MODE TO BUILD PROJECT (nodefony without args)
+ $ git clone https://github.com/nodefony/nodefony.git
+ $ cd nodefony
+ $ ls -l
+ -rw-r--r--     1 cci  staff   21306 27 mar 19:22 README.md
+ drwxr-xr-x    12 cci  staff     384 27 mar 19:25 app
+ drwxr-xr-x     3 cci  staff      96 27 mar 19:22 bin
+ drwxr-xr-x     7 cci  staff     224 27 mar 19:26 config
+ drwxr-xr-x     3 cci  staff      96 27 mar 19:22 doc
+ drwxr-xr-x  1342 cci  staff   42944 27 mar 19:24 node_modules
+ -rw-r--r--     1 cci  staff     997 27 mar 19:22 package.json
+ drwxr-xr-x     3 cci  staff      96 27 mar 19:22 src
+ drwxr-xr-x     4 cci  staff     128 29 mar 11:13 tmp
+ drwxr-xr-x    12 cci  staff     384 29 mar 11:01 web
+ -rw-r--r--     1 cci  staff  542660 27 mar 19:24 yarn.lock
+
  $ nodefony
-              _   _    ___    ____    _____   _____    ___    _   _  __   __
-             | \ | |  / _ \  |  _ \  | ____| |  ___|  / _ \  | \ | | \ \ / /
-             |  \| | | | | | | | | | |  _|   | |_    | | | | |  \| |  \ V /
-             | |\  | | |_| | | |_| | | |___  |  _|   | |_| | | |\  |   | |  
-             |_| \_|  \___/  |____/  |_____| |_|      \___/  |_| \_|   |_|  
 
-
-          Version : 4.0.0-beta.6 Platform : darwin Process : nodefony PID : 51362
-
- Fri Sep 14 2018 14:46:14 INFO nodefony : WELCOME PROJECT : myproject 1.0.0
 ?  Nodefony CLI :  (Use arrow keys)
 ❯ Build Project
   Generater
@@ -239,6 +283,7 @@ $ nodefony dev
 $ <ctrl-c>
 ```
 **Starting Development Servers in Debug Mode (-d)** :
+
 ```bash
 $ nodefony -d dev
 
@@ -246,8 +291,8 @@ $ nodefony -d dev
 $ <ctrl-c>
 ```
 
+OR YOU CAN USE CLI INTERACTIVE MODE (nodefony without args)
 ```bash
-# OR YOU CAN USE CLI INTERACTIVE MODE (nodefony without args)
  _   _    ___    ____    _____   _____    ___    _   _  __   __
 | \ | |  / _ \  |  _ \  | ____| |  ___|  / _ \  | \ | | \ \ / /
 |  \| | | | | | | | | | |  _|   | |_    | | | | |  \| |  \ V /
@@ -312,14 +357,19 @@ $ nodefony preprod
 
 ## <a name="https"></a>Serving a Nodefony project with HTTPS
 
-By default nodefony listen secure port in 5152 @see config/config.yml
+By default nodefony listen secure port in 5152 @see config/config.js
 
 During the installation process all the openssl parts were generated ( self-signed localhost certificate ).
 
 You can Change default openssl configuration in :
+```bash
+ls -l config/openssl
 
-    config/openssl
-
+├── ca
+│   └── openssl.cnf
+└── ca_intermediate
+    └── openssl.cnf
+```
 You must Add a Trusted CA in your Browser : projectName-root-ca.crt.pem
 You can find certificate authority (ca) here:
 
@@ -332,86 +382,115 @@ You can find certificate authority (ca) here:
 
 ## <a name="configurations"></a>Framework Configurations
 
-Open **[config/config.yml](https://github.com/nodefony/nodefony-core/blob/master/config/config.yml)**  if you want change httpPort, domain ,servers, add bundle, locale ...
+Open **[config/config.js](https://github.com/nodefony/nodefony-core/blob/master/config/config.js)**  if you want change httpPort, domain ,servers, add bundle, locale ...
 
-```yml
-#####################
-#  NODEFONY FRAMEWORK
-#
-#       KERNEL CONFIG
-#
-#   Domain listen : Nodefony can listen only one domain ( no vhost )
-#     Example :
-#      domain :  0.0.0.0      # for all interfaces
-#      domain :  [::1]        # for IPV6 only
-#      domain :  192.168.1.1  # IPV4
-#      domain :  mydomain.com # DNS
-#
-#   Domain Alias : string only "<<regexp>>" use domainCheck : true
-#     Example :
-#      domainAlias:
-#        - "^127.0.0.1$"
-#        - "^localhost$"
-#        - ".*\\.nodefony\\.com"
-#        - "^nodefony\\.eu$"
-#        - "^.*\\.nodefony\\.eu$"
-#
-system:
-  domain                        : 0.0.0.0
-  domainAlias:
-    - "^127.0.0.1$"
-    - "^localhost$"
-  httpPort                      : 5151
-  httpsPort                     : 5152
-  domainCheck                   : true
-  statics                       : true
-  security                      : true
-  realtime                      : true
-  monitoring                    : true
-  documentation                 : true
-  unitTest                      : true
-  demo                          : true
-  locale                        : "en_en"
-  servers:
-    protocol                    : "2.0"             #  2.0 || 1.1
-    http                        : true
-    https                       : true
-    ws                          : true
-    wss			                    : true
-    certificats:
-      key                       : "config/certificates/server/privkey.pem"
-      cert                      : "config/certificates/server/fullchain.pem"
-      ca                        : "config/certificates/ca/projectName-root-ca.crt.pem"
-      options:
-        rejectUnauthorized      : true
-  devServer:
-    inline                      : true
-    hot                         : false
-    hotOnly                     : false
-    overlay                     : true
-    logLevel                    : info        # none, error, warning or info
-    progress                    : false
-    protocol                    : https
-    websocket                   : true
-  bundles:
-    hello-bundle                : "file:src/bundles/hello-bundle"
+```js
+/**
+ *  NODEFONY FRAMEWORK
+ *
+ *       KERNEL CONFIG
+ *
+ *   Domain listen : Nodefony can listen only one domain ( no vhost )
+ *     Example :
+ *      domain :  0.0.0.0      // for all interfaces
+ *      domain :  [::1]        // for IPV6 only
+ *      domain :  192.168.1.1  // IPV4
+ *      domain :  mydomain.com // DNS
+ *
+ *   Domain Alias : string only "<<regexp>>" use domainCheck : true
+ *     Example :
+ *      domainAlias:[
+ *        "^127.0.0.1$",
+ *        "^localhost$",
+ *        ".*\\.nodefony\\.com",
+ *        "^nodefony\\.eu$",
+ *        "^.*\\.nodefony\\.eu$"
+ *      ]
+ */
+const path = require("path");
+
+module.exports = {
+  system: {
+    domain: "0.0.0.0",
+    domainAlias: [
+      "^127.0.0.1$",
+      "^localhost$"
+    ],
+    httpPort: 5151,
+    httpsPort: 5152,
+    domainCheck: false,
+    locale: "en_en",
+    /**
+     * BUNDLES CORE
+     */
+    security: true,
+    realtime: true,
+    monitoring: true,
+    mail: true,
+    documentation: false,
+    unitTest: true,
+    redis: false,
+    mongo: false,
+    elastic: false,
+    /**
+     * SERVERS
+     */
+    servers: {
+      statics: true,
+      protocol: "2.0", //  2.0 || 1.1
+      http: true,
+      https: true,
+      ws: true,
+      wss: true,
+      certificats: {
+        key: path.resolve("config", "certificates", "server", "privkey.pem"),
+        cert: path.resolve("config", "certificates", "server", "fullchain.pem"),
+        ca: path.resolve("config", "certificates", "ca", "nodefony-root-ca.crt.pem"),
+        options: {
+          rejectUnauthorized: true
+        }
+      }
+    },
+    /**
+     * DEV SERVER
+     */
+    devServer: {
+      inline: true,
+      hot: false,
+      hotOnly: false,
+      overlay: true,
+      logLevel: "info", // none, error, warning or info
+      progress: false,
+      protocol: "https",
+      websocket: true
+    },
+    /**
+     *  BUNDLES LOCAL REGISTRATION
+     *    Example :
+     *       bundles: {
+     *         hello-bundle : "file:src/bundles/hello-bundle",
+     *         test-bundle  : path.resolve("src","bundles","test-bundle")
+     *       }
+     */
+    bundles: {}
+    ...
 ```
 
 ## <a name="bundles"></a>Quick Start
 
-### Install Nodefony  :
+### Install Nodefony :
 ```
 $ npm -g install nodefony
 ```
 [See Global install How to Prevent Permissions Errors](https://docs.npmjs.com/getting-started/fixing-npm-permissions)
 
-### Install Project  :
+### Create Project :
 ```
 $ nodefony create myproject
 $ cd myproject
 ```
 
-### Generating a New Bundle  :
+### Generating a New Bundle :
 
 CLI Generate new bundle : default path src/bundles
 
@@ -439,6 +518,8 @@ $ nodefony
 ### Starting Servers to check new Bundle hello:
 
 ```bash
+$ npm start
+or
 $ nodefony dev
 ```
 Access to bundle route with URL : <http://localhost:5151/hello>
@@ -451,17 +532,21 @@ Access to bundle route with URL : <https://localhost:5152/hello>
 
 ```js
 module.exports = class defaultController extends nodefony.controller {
+
   constructor (container, context){
     super(container, context);
   }
-  indexAction() {
-    try {
-      return this.render("hello-bundle::index.html.twig", {
-        name: "hello-bundle"
-      });
-    } catch (e) {
-      throw e;
-    }
+  /**
+   *
+   *  @method indexAction
+   *
+   */
+  indexAction (){
+    return this.render("hello-bundle::index.html.twig", {
+      name: "hello-bundle"    
+    }).catch((e) =>{
+      throw e ;
+    });
   }
 };
 ```
@@ -470,25 +555,32 @@ module.exports = class defaultController extends nodefony.controller {
 
 ```twig
 {% extends '/app/Resources/views/base.html.twig' %}
-
 {% block title %}Welcome {{name}}! {% endblock %}
-
 {% block stylesheets %}
   {{ parent() }}
   <!-- WEBPACK BUNDLE -->
   <link rel='stylesheet' href='{{CDN("stylesheet")}}/hello-bundle/assets/css/hello.css' />
 {% endblock %}
-
 {% block body %}
-      <img class='displayed' src='{{CDN("image")}}/framework-bundle/images/nodefony-logo-white.png'>
-      <h1 class='success'>
+  {% block header %}
+    {{ render( controller('app:app:header' )) }}
+  {% endblock %}
+  <div class='container' style='margin-top:100px'>
+    <div class='row'>
+      <div class='col text-center'>
+        <img src='{{CDN("image")}}/app/images/app-logo.png'>
         <a href='{{url('documentation')}}'>
-          <strong style='font-size:45px'>NODEFONY</strong>
+          <strong style='font-size:45px'>{{name}}</strong>
         </a>
-        <p>{{trans('welcome')}} {{name}}</p>
-      </h1>
+        <p class='display-4 mt-5'>{{trans('welcome')}}</p>
+        <p>{{binding}}</p>
+        </div>
+    </div>
+  </div>
+  {% block footer %}
+    {{ render( controller('app:app:footer' )) }}
+  {% endblock %}
 {% endblock %}
-
 {% block javascripts %}
   {{ parent() }}
   <!-- WEBPACK BUNDLE -->
@@ -504,33 +596,54 @@ module.exports = class defaultController extends nodefony.controller {
 
 #### without having to reboot the server.
 
-You can see hello-bundle config   : src/bundles/hello-bundle/Resources/config/config.yml
+You can see hello-bundle config   : src/bundles/hello-bundle/Resources/config/config.js
 
-```yml
-########## nodefony CONFIG BUNDLE  hello-bundle  ############
-name :                          hello-bundle
-version:                        "1.0.0"
-locale :                        en_en
-
-#
-#  WATCHERS
-#
-#    watchers Listen to changes, deletion, renaming of files and directories
-#    of different components
-#
-#    For watch all components
-#
-#      watch:			true
-#    or
-#      watch:
-#        controller:	true
-#        config:        true		# only  routing
-#        views:         true
-#        translations:  true
-#        webpack:       true
-#        services:      true
-#
-watch:                          true
+```js
+/**
+*
+*
+*  nodefony-starter CONFIG BUNDLE  hello-bundle
+*
+* ===============================================================================
+*
+*  Copyright © 2019/2019        admin | admin@nodefony.com
+*
+* ===============================================================================
+*
+*        GENERATE BY nodefony-starter BUILDER
+*/
+module.exports = {
+  type        : "nodefony",
+  locale      : "en_en",
+  /**
+   *    WATCHERS
+   *
+   *  watchers Listen to changes, deletion, renaming of files and directories
+   *  of different components
+   *
+   *  For watch all components
+   *      watch:                    true
+   *  or
+   *      watch:{
+   *        controller:             true,
+   *        config:                 true,        // only  routing.js
+   *        views:                  true,
+   *        translations:           true,
+   *        webpack:                true
+   *      }
+   *
+   */
+  watch: true
+  /**
+   *
+   *  Insert here the bundle-specific configurations
+   *
+   *  You can also override config of another bundle
+   *  with the name of the bundle
+   *
+   *  example : create an other database connector
+   */
+};
 ```
 
 ### Webpack Module bundler :
@@ -546,22 +659,45 @@ watch:                          true
 You can see hello-bundle config webpack : src/bundles/hello-bundle/Resources/config/webpack.config.js
 
 ```js
-module.exports = webpackMerge({
-  context: context,
+const path = require("path");
+const MiniCssExtractPlugin = require("mini-css-extract-plugin");
+const webpackMerge = require('webpack-merge');
+
+// Default context <bundle base directory>
+//const context = path.resolve(__dirname, "..", "Resources", "public");
+const public = path.resolve(__dirname, "..", "public", "assets");
+const bundleName = path.basename(path.resolve(__dirname, "..", ".."));
+const publicPath = bundleName + "/assets/";
+
+let config = null;
+let dev = true;
+if (kernel.environment === "dev") {
+  config = require("./webpack/webpack.dev.config.js");
+} else {
+  config = require("./webpack/webpack.prod.config.js");
+  dev = false;
+}
+module.exports = webpackMerge(config, {
+  //context: context,
   target: "web",
-  entry       : {
-    hello  : [ "./js/hello.js" ]
+  entry: {
+    hello  : [ "./Resources/public/js/hello.js" ]
   },
   output: {
     path: public,
     publicPath: publicPath,
     filename: "./js/[name].js",
     library: "[name]",
-    libraryTarget: "umd"
+    libraryExport: "default"
   },
-  externals: {},
-  resolve: {},
-  module: {...}
+  externals: {...},
+  resolve: {...},
+  module: {...},
+  plugins: [...],
+  devServer: {
+    inline: true,
+    hot: false
+  }
 });
 ```
 
@@ -569,7 +705,7 @@ module.exports = webpackMerge({
 
 Access to monitoring route with URL : <http://localhost:5151/nodefony>
 
-[![MONITORING](https://raw.githubusercontent.com/nodefony/nodefony-core/master/src/nodefony/doc/default/cluster.png)](https://nodefony.net/nodefony)
+[![MONITORING](https://raw.githubusercontent.com/nodefony/nodefony-core/master/src/nodefony/doc/cluster.png)](https://nodefony.net/nodefony)
 
 Monitoring in progress !!!
 

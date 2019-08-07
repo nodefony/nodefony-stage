@@ -1,17 +1,20 @@
 {
-  "name": "stage-demo",
+  "name": "stage-starter",
   "version": "1.0.0",
-  "description": "Project demo",
+  "description": "Project Description",
   "main": "nodefony",
   "scripts": {
     "nodefony": "nodefony",
     "pm2": "pm2",
     "start": "nodefony",
-    "stop": "nodefony stop",
     "build": "nodefony build",
+    "dev": "nodefony dev",
+    "rebuild": "nodefony rebuild",
+    "stop": "nodefony stop",
     "prod": "nodefony prod",
     "kill": "nodefony kill",
-    "test": "nodefony test"
+    "test": "nodefony test",
+    "help": "nodefony -h"
   },
   "private": true,
   "keywords": [
@@ -30,14 +33,15 @@
     "node": ">=8"
   },
   "dependencies": {
-    "mongoose": "^5.4.0",
-    "nodefony": "^4.2.0-beta.2",
-    "sequelize": "5.0.0-beta.15",
-    "webpack": "^4.28.2",
-    "webpack-dev-server": "^3.1.12"
+    "mongoose": "^5.6.8",
+    "nodefony": "^5.0.2",
+    "sequelize": "^5.12.3",
+    "webpack": "^4.39.1",
+    "webpack-dev-server": "^3.7.2"
   },
   "devDependencies": {
-    "node-pre-gyp": "^0.12.0"
+    "node-gyp": "^5.0.2",
+    "node-pre-gyp": "^0.13.0"
   },
   "author": "admin <admin@nodefony.com>",
   "readmeFilename": "README.md",
