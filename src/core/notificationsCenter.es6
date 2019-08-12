@@ -1,8 +1,8 @@
-module.exports = function (stage) {
+module.exports = function(stage) {
 
   'use strict';
 
-  var regListenOn = /^on(.*)$/;
+  const regListenOn = /^on(.*)$/;
 
   /**
    *      Events
@@ -16,7 +16,7 @@ module.exports = function (stage) {
    *
    *
    */
-  const Notification = class Notification {
+  class Notification {
 
     constructor(settings, context) {
       this.events = {};
@@ -32,38 +32,38 @@ module.exports = function (stage) {
      *
      */
     listen(context, eventName, callback) {
-      var event = arguments[1];
-      var ContextClosure = this;
+      let event = arguments[1];
+      let ContextClosure = this;
       if (!this.events[eventName]) {
         this.events[eventName] = [];
         this.garbageEvent[eventName] = [];
       }
       if (typeof callback === 'function') {
         this.garbageEvent[eventName].push(callback);
-        this.events[eventName].push(function (args) {
+        this.events[eventName].push(function(args) {
           callback.apply(context, args);
         });
       }
-      return function () {
+      return function() {
         Array.prototype.unshift.call(arguments, event);
         return ContextClosure.fire.apply(ContextClosure, arguments);
       };
     }
 
     on(eventName, callback) {
-      var event = arguments[1];
-      var ContextClosure = this;
+      let event = arguments[1];
+      let ContextClosure = this;
       if (!this.events[eventName]) {
         this.events[eventName] = [];
         this.garbageEvent[eventName] = [];
       }
       if (typeof callback === 'function') {
         this.garbageEvent[eventName].push(callback);
-        this.events[eventName].push(function (args) {
+        this.events[eventName].push(function(args) {
           callback(args);
         });
       }
-      return function () {
+      return function() {
         Array.prototype.unshift.call(arguments, event);
         return ContextClosure.fire.apply(ContextClosure, arguments);
       };
@@ -98,10 +98,10 @@ module.exports = function (stage) {
      *
      */
     fire(eventName) {
-      var ret = true;
+      let ret = true;
       if (this.events[eventName]) {
-        var args = Array.prototype.slice.call(arguments, 1);
-        for (var i = 0; i < this.events[eventName].length; i++) {
+        let args = Array.prototype.slice.call(arguments, 1);
+        for (let i = 0; i < this.events[eventName].length; i++) {
           try {
             ret = this.events[eventName][i](args);
             if (ret) {
@@ -122,8 +122,8 @@ module.exports = function (stage) {
      *
      */
     settingsToListen(localSettings, context) {
-      for (var i in localSettings) {
-        var res = regListenOn.exec(i);
+      for (let i in localSettings) {
+        let res = regListenOn.exec(i);
         if (!res) {
           continue;
         }
@@ -134,7 +134,7 @@ module.exports = function (stage) {
     unListen(eventName, callback) {
       if (this.events[eventName]) {
         if (callback) {
-          for (var i = 0; i < this.garbageEvent[eventName].length; i++) {
+          for (let i = 0; i < this.garbageEvent[eventName].length; i++) {
             if (this.garbageEvent[eventName][i] === callback) {
               this.events[eventName].splice(i, 1);
               this.garbageEvent[eventName].splice(i, 1);
@@ -147,11 +147,11 @@ module.exports = function (stage) {
         return this.clearNotifications();
       }
     }
-  };
+  }
 
   stage.notificationsCenter = {
     notification: Notification,
-    create: function (settings, context) {
+    create: function(settings, context) {
       return new Notification(settings, context);
     }
   };

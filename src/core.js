@@ -40,8 +40,8 @@
 const stage = require('./core/stage.es6')();
 require('./core/notificationsCenter.es6')(stage);
 require('./syslog/syslog.es6')(stage);
-require('./kernel/service.es6')(stage);
-require('./kernel/container.es6')(stage);
+require('./core/service.es6')(stage);
+require('./core/container.es6')(stage);
 
 
 // TOOLS

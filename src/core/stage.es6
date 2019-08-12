@@ -1,4 +1,4 @@
-module.exports = function () {
+module.exports = function() {
 
   //const config = require("../../package.json");
   'use strict';
@@ -7,13 +7,13 @@ module.exports = function () {
   // Traf indexOf IE8
   const arrayProto = Array.prototype;
 
-  const indexOf = function () {
+  const indexOf = function() {
     if (arrayProto.indexOf) {
       return arrayProto.indexOf;
     }
-    arrayProto.indexOf = function (value, startIndex) {
-      var index = (startIndex) === null ? 0 : (startIndex < 0 ? Math.max(0, this.length + startIndex) : startIndex);
-      for (var i = index; i < this.length; i++) {
+    arrayProto.indexOf = function(value, startIndex) {
+      let index = (startIndex) === null ? 0 : (startIndex < 0 ? Math.max(0, this.length + startIndex) : startIndex);
+      for (let i = index; i < this.length; i++) {
         if (i in this && this[i] === value) {
           return i;
         }
@@ -23,8 +23,8 @@ module.exports = function () {
     return arrayProto.indexOf;
   }();
 
-  const typeOf = function (value) {
-    var t = typeof value;
+  const typeOf = function(value) {
+    let t = typeof value;
     if (t === 'object') {
       if (value === null) {
         return "object";
@@ -76,7 +76,7 @@ module.exports = function () {
     return t;
   };
 
-  const getBrowser = function () {
+  const getBrowser = function() {
     if (navigator.userAgent.indexOf('MSIE') > -1) {
       return "MSIE";
     }
@@ -98,7 +98,7 @@ module.exports = function () {
     return "undefined";
   }();
 
-  const getBrowserVersion = function () {
+  const getBrowserVersion = function() {
 
     if (/MSIE (\d+\.\d+);/.test(navigator.userAgent)) {
       return parseInt(RegExp.$1, 10);

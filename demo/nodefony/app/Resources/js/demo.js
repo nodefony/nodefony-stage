@@ -11,26 +11,33 @@ require('../css/demo.css');
 /*
  *	Class Bundle App
  */
-class Demo {
+class Demo extends stage.Service {
   constructor() {
+    super("DEMO");
+    this.initSyslog();
     $(document).ready(() => {
-        let md = new stage.media.mediaStream($("#myvideo").get(0));
-        md.getUserMedia({}, (media) => {
-          media.attachMediaStream();
-          //media.getVideoTracks();
-        });
+      let md = new stage.media.mediaStream($("#myvideo").get(0));
+      md.getUserMedia({}, (media) => {
+        media.attachMediaStream();
+        //media.getVideoTracks();
       });
-    }
-  }
-
-  /*
-   * HMR
-   */
-  if (module.hot) {
-    module.hot.accept((err) => {
-      if (err) {
-        console.error('Cannot apply HMR update.', err);
-      }
+      this.log("LOG DEMO INFO", "INFO");
+      this.log("LOG DEMO ERROR", "ERROR");
+      this.logger("LOG DEMO WARNING", "WARNING");
+      this.logger("LOG DEMO DEBUG", "DEBUG");
     });
   }
-  export default new Demo();
+
+}
+
+/*
+ * HMR
+ */
+if (module.hot) {
+  module.hot.accept((err) => {
+    if (err) {
+      console.error('Cannot apply HMR update.', err);
+    }
+  });
+}
+export default new Demo();

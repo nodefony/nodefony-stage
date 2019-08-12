@@ -71,7 +71,7 @@
     "nodefony": "^5.0.2",
     "optimize-css-assets-webpack-plugin": "^5.0.1",
     "raw-loader": "^3.1.0",
-    "sass-loader": "^7.1.0",
+    "sass-loader": "^7.2.0",
     "should": "^13.2.3",
     "sinon": "^7.3.0",
     "sinon-chai": "^3.3.0",
@@ -81,7 +81,7 @@
     "url-loader": "^2.1.0",
     "webpack": "^4.39.1",
     "webpack-cli": "^3.3.6",
-    "webpack-dev-server": "^3.7.2",
+    "webpack-dev-server": "^3.8.0",
     "webpack-merge": "^4.2.1"
   },
   "author": "cci <christophe.camensuli@gmail.com>",

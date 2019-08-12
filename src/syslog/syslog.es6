@@ -3,7 +3,7 @@
  *
  *
  */
-module.exports = function (stage) {
+module.exports = function(stage) {
 
   'use strict';
   /*
@@ -19,7 +19,7 @@ module.exports = function (stage) {
    *
    * </pre>
    */
-  var defaultSettings = {
+  let defaultSettings = {
     moduleName: "SYSLOG",
     maxStack: 100,
     rateLimit: false,
@@ -42,7 +42,7 @@ module.exports = function (stage) {
    *    DEBUG       = 7
    * </pre>
    */
-  var sysLogSeverity = [
+  const sysLogSeverity = [
     "EMERGENCY",
     "ALERT",
     "CRITIC",
@@ -52,14 +52,14 @@ module.exports = function (stage) {
     "INFO",
     "DEBUG"
   ];
-  sysLogSeverity["EMERGENCY"] = 0;
-  sysLogSeverity["ALERT"] = 1;
-  sysLogSeverity["CRITIC"] = 2;
-  sysLogSeverity["ERROR"] = 3;
-  sysLogSeverity["WARNING"] = 4;
-  sysLogSeverity["NOTICE"] = 5;
-  sysLogSeverity["INFO"] = 6;
-  sysLogSeverity["DEBUG"] = 7;
+  sysLogSeverity.EMERGENCY = 0;
+  sysLogSeverity.ALERT = 1;
+  sysLogSeverity.CRITIC = 2;
+  sysLogSeverity.ERROR = 3;
+  sysLogSeverity.WARNING = 4;
+  sysLogSeverity.NOTICE = 5;
+  sysLogSeverity.INFO = 6;
+  sysLogSeverity.DEBUG = 7;
 
   /**
    *  Protocol Data Unit
@@ -68,8 +68,8 @@ module.exports = function (stage) {
    * @module library
    * @return {PDU}
    */
-  var guid = 0;
-  var PDU = class PDU {
+  let guid = 0;
+  class PDU {
     constructor(pci, severity, moduleName, msgid, msg, date) {
       /* timeStamp @type Date*/
       this.timeStamp = new Date(date).getTime() || new Date().getTime();
@@ -119,10 +119,10 @@ module.exports = function (stage) {
     }
 
     parseJson(str) {
-      var json = null;
+      let json = null;
       try {
         json = JSON.parse(str);
-        for (var ele in json) {
+        for (let ele in json) {
           if (ele in this) {
             this[ele] = json[ele];
           }
@@ -132,252 +132,260 @@ module.exports = function (stage) {
       }
       return json;
     }
-  };
-
-  var operators = {
-    "<": function (ele1, ele2) {
-      return ele1 < ele2
-    },
-    ">": function (ele1, ele2) {
-      return ele1 > ele2
-    },
-    "<=": function (ele1, ele2) {
-      return ele1 <= ele2
-    },
-    ">=": function (ele1, ele2) {
-      return ele1 >= ele2
-    },
-    "==": function (ele1, ele2) {
-      return ele1 === ele2
-    },
-    "!=": function (ele1, ele2) {
-      return ele1 !== ele2
-    },
-    "RegExp": function (ele1, ele2) {
-      return (ele2.test(ele1))
-    }
   }
 
-  var conditionsObj = {
-    severity: function (pdu, condition) {
+  const operators = {
+    "<": function(ele1, ele2) {
+      return ele1 < ele2;
+    },
+    ">": function(ele1, ele2) {
+      return ele1 > ele2;
+    },
+    "<=": function(ele1, ele2) {
+      return ele1 <= ele2;
+    },
+    ">=": function(ele1, ele2) {
+      return ele1 >= ele2;
+    },
+    "==": function(ele1, ele2) {
+      return ele1 === ele2;
+    },
+    "!=": function(ele1, ele2) {
+      return ele1 !== ele2;
+    },
+    "RegExp": function(ele1, ele2) {
+      return (ele2.test(ele1));
+    }
+  };
+
+  const conditionsObj = {
+    severity: function(pdu, condition) {
       if (condition.operator !== "==") {
         //console.log(pdu.severity);
         //console.log(condition.data)
-        return operators[condition.operator](pdu.severity, condition.data)
+        return operators[condition.operator](pdu.severity, condition.data);
       } else {
-        for (var sev in condition.data) {
-          if (sev === pdu.severityName)
-            return true
+        for (let sev in condition.data) {
+          if (sev === pdu.severityName) {
+            return true;
+          }
         }
       }
-      return false
+      return false;
     },
-    msgid: function (pdu, condition) {
+    msgid: function(pdu, condition) {
       if (condition.operator !== "==") {
-        return operators[condition.operator](pdu.msgid, condition.data)
+        return operators[condition.operator](pdu.msgid, condition.data);
       } else {
-        for (var sev in condition.data) {
-          if (sev === pdu.msgid)
-            return true
+        for (let sev in condition.data) {
+          if (sev === pdu.msgid) {
+            return true;
+          }
         }
       }
-      return false
+      return false;
     },
-    date: function (pdu, condition) {
-      return operators[condition.operator](pdu.timeStamp, condition.data)
+    date: function(pdu, condition) {
+      return operators[condition.operator](pdu.timeStamp, condition.data);
     }
-  }
+  };
 
-  var logicCondition = {
-    "&&": function (myConditions, pdu) {
-      var res = null
-      for (var ele in myConditions) {
-        var res = conditionsObj[ele](pdu, myConditions[ele])
+  const logicCondition = {
+    "&&": function(myConditions, pdu) {
+      let res = null;
+      for (let ele in myConditions) {
+        res = conditionsObj[ele](pdu, myConditions[ele]);
         //console.log("condition :" +ele +"  "+res)
         if (!res) {
           break;
         }
       }
-      return res
+      return res;
     },
-    "||": function (myConditions, pdu) {
-      var res = null
-      for (var ele in myConditions) {
-        var res = conditionsObj[ele](pdu, myConditions[ele])
+    "||": function(myConditions, pdu) {
+      let res = null;
+      for (let ele in myConditions) {
+        res = conditionsObj[ele](pdu, myConditions[ele]);
         if (res) {
           break;
         }
       }
-      return res
+      return res;
     }
-  }
+  };
 
-  var checkFormatSeverity = function (ele) {
-    var res = false;
+  const checkFormatSeverity = function(ele) {
+    let res = false;
     switch (stage.typeOf(ele)) {
-    case "string":
-      res = ele.split(/,| /);
-      break;
-    case "number":
-      res = ele;
-      break;
-    default:
-      throw new Error("checkFormatSeverity bad format " + stage.typeOf(ele) + " : " + ele);
-    }
-    return res;
-  }
-
-  var checkFormatDate = function (ele) {
-    var res = false;
-    switch (stage.typeOf(ele)) {
-    case "date":
-      res = ele.getTime();
-      break;
-    case "string":
-      res = new Date(ele);
-      break;
-    default:
-      throw new Error("checkFormatDate bad format " + stage.typeOf(ele) + " : " + ele);
-    }
-    return res;
-  }
-
-  var checkFormatMsgId = function (ele) {
-    var res = false;
-    switch (stage.typeOf(ele)) {
-    case "string":
-      res = ele.split(/,| /);
-      break;
-    case "number":
-      res = ele;
-      break;
-    case "object":
-      if (ele instanceof RegExp) {
+      case "string":
+        res = ele.split(/,| /);
+        break;
+      case "number":
         res = ele;
-      }
-      break;
-    default:
-      throw new Error("checkFormatMsgId bad format " + stage.typeOf(ele) + " : " + ele);
+        break;
+      default:
+        throw new Error("checkFormatSeverity bad format " + stage.typeOf(ele) + " : " + ele);
     }
     return res;
+  };
 
-  }
-
-  var severityToString = function (severity) {
-    var myint = parseInt(severity, 10);
-    if (!isNaN(myint)) {
-      var ele = sysLogSeverity[myint];
-    } else {
-      var ele = severity;
+  const checkFormatDate = function(ele) {
+    let res = false;
+    switch (stage.typeOf(ele)) {
+      case "date":
+        res = ele.getTime();
+        break;
+      case "string":
+        res = new Date(ele);
+        break;
+      default:
+        throw new Error("checkFormatDate bad format " + stage.typeOf(ele) + " : " + ele);
     }
-    if (ele in sysLogSeverity)
+    return res;
+  };
+
+  const checkFormatMsgId = function(ele) {
+    let res = false;
+    switch (stage.typeOf(ele)) {
+      case "string":
+        res = ele.split(/,| /);
+        break;
+      case "number":
+        res = ele;
+        break;
+      case "object":
+        if (ele instanceof RegExp) {
+          res = ele;
+        }
+        break;
+      default:
+        throw new Error("checkFormatMsgId bad format " + stage.typeOf(ele) + " : " + ele);
+    }
+    return res;
+  };
+
+  const severityToString = function(severity) {
+    let myint = parseInt(severity, 10);
+    let ele = null;
+    if (!isNaN(myint)) {
+      ele = sysLogSeverity[myint];
+    } else {
+      ele = severity;
+    }
+    if (ele in sysLogSeverity) {
       return ele;
+    }
     return false;
   };
 
 
-  var sanitizeConditions = function (settingsCondition) {
-    var res = true;
-    if (stage.typeOf(settingsCondition) !== "object")
+  const sanitizeConditions = function(settingsCondition) {
+    let res = true;
+    if (stage.typeOf(settingsCondition) !== "object") {
       return false;
-    for (var ele in settingsCondition) {
-      if (!ele in conditionsObj) {
+    }
+    for (let ele in settingsCondition) {
+      if (!(ele in conditionsObj)) {
         return false;
       }
-      var condi = settingsCondition[ele];
-
+      let condi = settingsCondition[ele];
       if (condi.operator && !(condi.operator in operators)) {
         throw new Error("Contitions bad operator : " + condi.operator);
       }
       if (condi.data) {
         switch (ele) {
-        case "severity":
-          if (condi.operator) {
-            res = checkFormatSeverity(condi.data);
-            if (res !== false) {
-              condi.data = sysLogSeverity[severityToString(res[0])];
-            } else {
-              return false
-            }
-          } else {
-            condi.operator = "==";
-            res = checkFormatSeverity(condi.data);
-            if (res !== false) {
-              condi.data = {};
-              if (stage.typeOf(res) === "array") {
-                for (var i = 0; i < res.length; i++) {
-                  var mySeverity = severityToString(res[i]);
-                  if (mySeverity) {
-                    condi.data[mySeverity] = sysLogSeverity[mySeverity];
-                  } else {
-                    return false;
-                  }
-                }
+          case "severity":
+            if (condi.operator) {
+              res = checkFormatSeverity(condi.data);
+              if (res !== false) {
+                condi.data = sysLogSeverity[severityToString(res[0])];
               } else {
                 return false;
               }
             } else {
-              return false
+              condi.operator = "==";
+              res = checkFormatSeverity(condi.data);
+              if (res !== false) {
+                condi.data = {};
+                if (stage.typeOf(res) === "array") {
+                  for (let i = 0; i < res.length; i++) {
+                    let mySeverity = severityToString(res[i]);
+                    if (mySeverity) {
+                      condi.data[mySeverity] = sysLogSeverity[mySeverity];
+                    } else {
+                      return false;
+                    }
+                  }
+                } else {
+                  return false;
+                }
+              } else {
+                return false;
+              }
             }
-          }
-          break;
-        case "msgid":
-          if (!condi.operator) {
-            condi.operator = "==";
-          }
-          res = checkFormatMsgId(condi.data);
-          if (res !== false) {
-            if (stage.typeOf(res) === "array") {
-              condi.data = {};
-              for (var i = 0; i < res.length; i++) {
-                condi.data[res[i]] = "||";
+            break;
+          case "msgid":
+            if (!condi.operator) {
+              condi.operator = "==";
+            }
+            res = checkFormatMsgId(condi.data);
+            if (res !== false) {
+              if (stage.typeOf(res) === "array") {
+                condi.data = {};
+                for (let i = 0; i < res.length; i++) {
+                  condi.data[res[i]] = "||";
+                }
+              } else {
+                condi.data = res;
               }
             } else {
-              condi.data = res;
+              return false;
             }
-          } else {
-            return false
-          }
-          break;
-        case "date":
-          res = checkFormatDate(condi.data);
-          if (res)
-            condi.data = res;
-          else
+            break;
+          case "date":
+            res = checkFormatDate(condi.data);
+            if (res) {
+              condi.data = res;
+            } else {
+              return false;
+            }
+            break;
+          default:
             return false;
-          break;
-        default:
-          return false;
         }
       } else {
         return false;
       }
     }
-    return settingsCondition;
     //console.log(settingsCondition);
+    return settingsCondition;
   };
 
 
-  var translateSeverity = function (severity) {
+  const translateSeverity = function(severity) {
+    let myseverity = null;
     if (severity in sysLogSeverity) {
-      if (typeof severity === 'number')
-        var myseverity = sysLogSeverity[sysLogSeverity[severity]]
-      else
-        var myseverity = sysLogSeverity[severity];
+      if (typeof severity === 'number') {
+        myseverity = sysLogSeverity[sysLogSeverity[severity]];
+      } else {
+        myseverity = sysLogSeverity[severity];
+      }
     } else {
-      if (!severity)
+      if (!severity) {
         return null;
-      else
+      } else {
         throw new Error("not stage syslog severity :" + severity);
+      }
     }
     return myseverity;
   };
 
-  var createPDU = function (payload, severity, moduleName, msgid, msg) {
+  const createPDU = function(payload, severity, moduleName, msgid, msg) {
+    let myseverity = null;
     if (!severity) {
-      var myseverity = sysLogSeverity[this.settings.defaultSeverity];
+      myseverity = sysLogSeverity[this.settings.defaultSeverity];
     } else {
-      var myseverity = severity;
+      myseverity = severity;
     }
     return new PDU(payload, myseverity,
       moduleName,
@@ -439,7 +447,7 @@ module.exports = function (stage) {
    *    @param {Object} settings The settings to extend.
    *    @return syslog
    */
-  var syslog = class syslog extends stage.notificationsCenter.notification {
+  class syslog extends stage.notificationsCenter.notification {
 
     constructor(settings) {
 
@@ -456,7 +464,7 @@ module.exports = function (stage) {
        * @property ringStack
        * @type Array
        */
-      this.ringStack = new Array();
+      this.ringStack = [];
       /**
        * Ratelimit  Management log printed
        * @property burstPrinted
@@ -497,7 +505,7 @@ module.exports = function (stage) {
       if (this.ringStack.length === this.settings.maxStack) {
         this.ringStack.shift();
       }
-      var index = this.ringStack.push(pdu);
+      let index = this.ringStack.push(pdu);
       //console.log(this);
       this.valid++;
       return index;
@@ -512,8 +520,9 @@ module.exports = function (stage) {
      * @param {String} msg  message to add in log. example (I18N)
      */
     logger(payload, severity, msgid, msg) {
+      let pdu = null;
       if (this.settings.rateLimit) {
-        var now = new Date().getTime();
+        let now = new Date().getTime();
         this.start = this.start || now;
         if (now > this.start + this.settings.rateLimit) {
           this.burstPrinted = 0;
@@ -523,14 +532,14 @@ module.exports = function (stage) {
         if (this.settings.burstLimit && this.settings.burstLimit > this.burstPrinted) {
           try {
             if (payload instanceof PDU) {
-              var pdu = payload
+              pdu = payload;
             } else {
-              var pdu = createPDU.call(this, payload, severity, this.settings.moduleName, msgid, msg);
+              pdu = createPDU.call(this, payload, severity, this.settings.moduleName, msgid, msg);
             }
           } catch (e) {
             console.error(e);
             this.invalid++;
-            return "INVALID"
+            return "INVALID";
           }
           this.pushStack(pdu);
           this.fire("onLog", pdu);
@@ -542,9 +551,9 @@ module.exports = function (stage) {
       } else {
         try {
           if (payload instanceof PDU) {
-            var pdu = payload;
+            pdu = payload;
           } else {
-            var pdu = createPDU.call(this, payload, severity, this.settings.moduleName, msgid, msg);
+            pdu = createPDU.call(this, payload, severity, this.settings.moduleName, msgid, msg);
           }
         } catch (e) {
           console.error(e);
@@ -578,17 +587,21 @@ module.exports = function (stage) {
      * @return {PDU} pdu
      */
     getLogStack(start, end, contition) {
+      let stack = null;
       if (contition) {
-        var stack = this.getLogs(contition);
+        stack = this.getLogs(contition);
       } else {
-        var stack = this.ringStack;
+        stack = this.ringStack;
       }
-      if (arguments.length === 0)
+      if (arguments.length === 0) {
         return stack[stack.length - 1];
-      if (!end)
+      }
+      if (!end) {
         return stack.slice(start);
-      if (start === end)
+      }
+      if (start === end) {
         return stack[stack.length - start - 1];
+      }
       return stack.slice(start, end);
     }
 
@@ -600,24 +613,27 @@ module.exports = function (stage) {
      * @return {array} new array with matches conditions
      */
     getLogs(conditions, stack) {
-      var myStack = stack || this.ringStack;
+      let myStack = stack || this.ringStack;
+      let myFuncCondition = null;
       if (conditions.checkConditions && conditions.checkConditions in logicCondition) {
-        var myFuncCondition = logicCondition[conditions.checkConditions];
+        myFuncCondition = logicCondition[conditions.checkConditions];
         delete conditions.checkConditions;
       } else {
-        var myFuncCondition = logicCondition[this.settings.checkConditions];
+        myFuncCondition = logicCondition[this.settings.checkConditions];
       }
-      var tab = [];
+      let tab = [];
+      let Conditions = null;
       try {
-        var Conditions = sanitizeConditions(conditions);
+        Conditions = sanitizeConditions(conditions);
       } catch (e) {
         throw new Error("registreNotification conditions format error: " + e);
       }
       if (Conditions) {
-        for (var i = 0; i < myStack.length; i++) {
-          var res = myFuncCondition(Conditions, myStack[i])
-          if (res)
+        for (let i = 0; i < myStack.length; i++) {
+          let res = myFuncCondition(Conditions, myStack[i]);
+          if (res) {
             tab.push(myStack[i]);
+          }
         }
       }
       return tab;
@@ -630,10 +646,12 @@ module.exports = function (stage) {
      * @return {String} string in JSON format
      */
     logToJson(conditions) {
-      if (conditions)
-        var stack = this.getLogs(conditions)
-      else
-        var stack = this.ringStack
+      let stack = null;
+      if (conditions) {
+        stack = this.getLogs(conditions);
+      } else {
+        stack = this.ringStack;
+      }
       return JSON.stringify(stack);
     }
 
@@ -646,41 +664,42 @@ module.exports = function (stage) {
      * @return {String}
      */
     loadStack(stack, doEvent, beforeConditions) {
-      if (!stack)
-        throw new Error("syslog loadStack : not stack in arguments ")
+      if (!stack) {
+        throw new Error("syslog loadStack : not stack in arguments ");
+      }
+      let st = null;
       switch (stage.typeOf(stack)) {
-      case "string":
-        try {
-          //console.log(stack);
-          var st = JSON.parse(stack);
-          return arguments.callee.call(this, st, doEvent);
-        } catch (e) {
-          throw e;
-        }
-        break;
-      case "array":
-      case "object":
-        try {
-          for (var i = 0; i < stack.length; i++) {
-            var pdu = new PDU(stack[i].payload, stack[i].severity, stack[i].moduleName || this.settings.moduleName, stack[i].msgid, stack[i].msg, stack[i].timeStamp)
-            this.pushStack(pdu);
-
-            if (doEvent) {
-              if (beforeConditions && typeof beforeConditions === "function")
-                beforeConditions.call(this, pdu, stack[i]);
-              this.fire("onLog", pdu);
-            }
+        case "string":
+          try {
+            //console.log(stack);
+            st = JSON.parse(stack);
+            return this.loadStack(st, doEvent);
+          } catch (e) {
+            throw e;
           }
-        } catch (e) {
-          throw e;
-        }
-        break;
-      default:
-        throw new Error("syslog loadStack : bad stack in arguments type")
-      };
+          break;
+        case "array":
+        case "object":
+          try {
+            for (let i = 0; i < stack.length; i++) {
+              let pdu = new PDU(stack[i].payload, stack[i].severity, stack[i].moduleName || this.settings.moduleName, stack[i].msgid, stack[i].msg, stack[i].timeStamp);
+              this.pushStack(pdu);
+              if (doEvent) {
+                if (beforeConditions && typeof beforeConditions === "function") {
+                  beforeConditions.call(this, pdu, stack[i]);
+                }
+                this.fire("onLog", pdu);
+              }
+            }
+          } catch (e) {
+            throw e;
+          }
+          break;
+        default:
+          throw new Error("syslog loadStack : bad stack in arguments type");
+      }
       return st || stack;
     }
-
 
     /**
      *
@@ -688,22 +707,24 @@ module.exports = function (stage) {
      *
      */
     listenWithConditions(context, conditions, callback) {
+      let myFuncCondition = null;
       if (conditions.checkConditions && conditions.checkConditions in logicCondition) {
-        var myFuncCondition = logicCondition[conditions.checkConditions];
+        myFuncCondition = logicCondition[conditions.checkConditions];
         delete conditions.checkConditions;
       } else {
-        var myFuncCondition = logicCondition[this.settings.checkConditions];
+        myFuncCondition = logicCondition[this.settings.checkConditions];
       }
+      let Conditions = null;
       try {
-        var Conditions = sanitizeConditions(conditions);
+        Conditions = sanitizeConditions(conditions);
       } catch (e) {
         throw new Error("registreNotification conditions format error: " + e);
       }
       if (Conditions) {
-        var func = function (pdu) {
-          var res = myFuncCondition(Conditions, pdu);
+        const func = function(pdu) {
+          let res = myFuncCondition(Conditions, pdu);
           if (res) {
-            callback.apply(context || this, arguments)
+            callback.apply(context || this, arguments);
           }
         };
         super.listen(this, "onLog", func);

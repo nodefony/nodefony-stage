@@ -25442,10 +25442,10 @@ function filterStats(result, track, outbound) {
 /*!**********************!*\
   !*** ./package.json ***!
   \**********************/
-/*! exports provided: name, version, description, browser, main, private, scripts, keywords, repository, bugs, license, licenses, dependencies, devDependencies, author, readmeFilename, contributors, default */
+/*! exports provided: name, version, description, browser, main, private, scripts, bin, keywords, repository, bugs, license, licenses, dependencies, devDependencies, author, readmeFilename, contributors, default */
 /***/ (function(module) {
 
-module.exports = JSON.parse("{\"name\":\"@nodefony/stage\",\"version\":\"0.2.0\",\"description\":\"Nodefony Framework Client Side Nodefony web developpement\",\"browser\":\"dist/stage6.min.js\",\"main\":\"src/core.js\",\"private\":false,\"scripts\":{\"webpack\":\"webpack\",\"stage\":\"stage\",\"install-demo\":\"npm install --prefix ./demo/nodefony ;npm run build --prefix ./demo/nodefony\",\"demo\":\"npm start --prefix ./demo/nodefony\",\"start\":\"node ./bin/stage\",\"build\":\"WEBPACK_ENV=prod webpack; WEBPACK_ENV=dev webpack --verbose\",\"build-dev\":\"WEBPACK_ENV=dev webpack --verbose\",\"build-prod\":\"WEBPACK_ENV=prod webpack --verbose\",\"test\":\"mocha  --require @babel/register --recursive src/tests\"},\"keywords\":[\"javascript\",\"webpack\",\"nodefony\",\"webrtc\",\"sip\",\"opensip\",\"kamailio\",\"webaudio\"],\"repository\":{\"type\":\"git\",\"url\":\"git@github.com:nodefony/nodefony-stage.git\"},\"bugs\":{\"url\":\"https://github.com/nodefony/nodefony-stage/issues\"},\"license\":\"CECILL-B\",\"licenses\":[{\"type\":\"CECILL-B\",\"url\":\"http://www.cecill.info/licences/Licence_CeCILL-B_V1-en.html\"}],\"dependencies\":{\"ascii-table\":\"0.0.9\",\"asciify\":\"^1.3.5\",\"jquery\":\"^3.3.1\",\"opn\":\"^6.0.0\",\"shortid\":\"^2.2.14\",\"twig\":\"^1.13.2\",\"webrtc-adapter\":\"^7.2.9\"},\"devDependencies\":{\"@babel/cli\":\"^7.5.5\",\"@babel/core\":\"^7.5.5\",\"@babel/preset-env\":\"^7.5.5\",\"@babel/register\":\"^7.5.5\",\"chai\":\"^4.1.2\",\"css-loader\":\"^3.2.0\",\"exports-loader\":\"^0.7.0\",\"expose-loader\":\"^0.7.5\",\"file-loader\":\"^4.1.0\",\"imports-loader\":\"^0.8.0\",\"jshint\":\"^2.10.2\",\"jshint-loader\":\"0.8.4\",\"json-loader\":\"^0.5.7\",\"mocha\":\"^6.2.0\",\"node-sass\":\"^4.11.0\",\"nodefony\":\"^5.0.2\",\"optimize-css-assets-webpack-plugin\":\"^5.0.1\",\"raw-loader\":\"^3.1.0\",\"sass-loader\":\"^7.1.0\",\"should\":\"^13.2.3\",\"sinon\":\"^7.3.0\",\"sinon-chai\":\"^3.3.0\",\"terser-webpack-plugin\":\"^1.4.1\",\"to-string-loader\":\"1.1.5\",\"tokenizer\":\"1.1.2\",\"url-loader\":\"^2.1.0\",\"webpack\":\"^4.39.1\",\"webpack-cli\":\"^3.3.6\",\"webpack-dev-server\":\"^3.2.1\",\"webpack-merge\":\"^4.2.1\"},\"author\":\"cci <christophe.camensuli@gmail.com>\",\"readmeFilename\":\"README.md\",\"contributors\":[{}]}");
+module.exports = JSON.parse("{\"name\":\"@nodefony/stage\",\"version\":\"0.2.0\",\"description\":\"Nodefony Framework Client Side Nodefony web developpement\",\"browser\":\"dist/stage6.min.js\",\"main\":\"src/core.js\",\"private\":false,\"scripts\":{\"webpack\":\"webpack\",\"stage\":\"stage\",\"install-demo\":\"npm install --prefix ./demo/nodefony ;npm run build --prefix ./demo/nodefony\",\"demo\":\"npm start --prefix ./demo/nodefony\",\"start\":\"node ./bin/stage\",\"build\":\"WEBPACK_ENV=prod webpack; WEBPACK_ENV=dev webpack --verbose\",\"build-dev\":\"WEBPACK_ENV=dev webpack --verbose\",\"build-prod\":\"WEBPACK_ENV=prod webpack --verbose\",\"test\":\"mocha  --require @babel/register --recursive src/tests\"},\"bin\":{\"stage\":\"./bin/stage\"},\"keywords\":[\"javascript\",\"webpack\",\"nodefony\",\"webrtc\",\"sip\",\"opensip\",\"kamailio\",\"webaudio\"],\"repository\":{\"type\":\"git\",\"url\":\"git@github.com:nodefony/nodefony-stage.git\"},\"bugs\":{\"url\":\"https://github.com/nodefony/nodefony-stage/issues\"},\"license\":\"CECILL-B\",\"licenses\":[{\"type\":\"CECILL-B\",\"url\":\"http://www.cecill.info/licences/Licence_CeCILL-B_V1-en.html\"}],\"dependencies\":{\"ascii-table\":\"^0.0.9\",\"asciify\":\"^1.3.5\",\"jquery\":\"^3.3.1\",\"opn\":\"^6.0.0\",\"shortid\":\"^2.2.14\",\"twig\":\"^1.13.2\",\"webrtc-adapter\":\"^7.2.9\"},\"devDependencies\":{\"@babel/cli\":\"^7.5.5\",\"@babel/core\":\"^7.5.5\",\"@babel/preset-env\":\"^7.5.5\",\"@babel/register\":\"^7.5.5\",\"chai\":\"^4.1.2\",\"css-loader\":\"^3.2.0\",\"exports-loader\":\"^0.7.0\",\"expose-loader\":\"^0.7.5\",\"file-loader\":\"^4.2.0\",\"imports-loader\":\"^0.8.0\",\"jshint\":\"^2.10.2\",\"jshint-loader\":\"^0.8.4\",\"json-loader\":\"^0.5.7\",\"mocha\":\"^6.2.0\",\"node-sass\":\"^4.11.0\",\"nodefony\":\"^5.0.2\",\"optimize-css-assets-webpack-plugin\":\"^5.0.1\",\"raw-loader\":\"^3.1.0\",\"sass-loader\":\"^7.2.0\",\"should\":\"^13.2.3\",\"sinon\":\"^7.3.0\",\"sinon-chai\":\"^3.3.0\",\"terser-webpack-plugin\":\"^1.4.1\",\"to-string-loader\":\"^1.1.5\",\"tokenizer\":\"^1.1.2\",\"url-loader\":\"^2.1.0\",\"webpack\":\"^4.39.1\",\"webpack-cli\":\"^3.3.6\",\"webpack-dev-server\":\"^3.8.0\",\"webpack-merge\":\"^4.2.1\"},\"author\":\"cci <christophe.camensuli@gmail.com>\",\"readmeFilename\":\"README.md\",\"contributors\":[{}]}");
 
 /***/ }),
 
@@ -25500,9 +25500,9 @@ __webpack_require__(/*! ./core/notificationsCenter.es6 */ "./src/core/notificati
 
 __webpack_require__(/*! ./syslog/syslog.es6 */ "./src/syslog/syslog.es6")(stage);
 
-__webpack_require__(/*! ./kernel/service.es6 */ "./src/kernel/service.es6")(stage);
+__webpack_require__(/*! ./core/service.es6 */ "./src/core/service.es6")(stage);
 
-__webpack_require__(/*! ./kernel/container.es6 */ "./src/kernel/container.es6")(stage); // TOOLS
+__webpack_require__(/*! ./core/container.es6 */ "./src/core/container.es6")(stage); // TOOLS
 
 
 __webpack_require__(/*! ./tools/xml.js */ "./src/tools/xml.js")(stage);
@@ -25574,6 +25574,368 @@ __webpack_require__(/*! ./kernel/translationService.es6 */ "./src/kernel/transla
 
 
 module.exports = stage;
+
+/***/ }),
+
+/***/ "./src/core/container.es6":
+/*!********************************!*\
+  !*** ./src/core/container.es6 ***!
+  \********************************/
+/*! no static exports found */
+/***/ (function(module, exports, __webpack_require__) {
+
+function _possibleConstructorReturn(self, call) { if (call && (_typeof(call) === "object" || typeof call === "function")) { return call; } return _assertThisInitialized(self); }
+
+function _assertThisInitialized(self) { if (self === void 0) { throw new ReferenceError("this hasn't been initialised - super() hasn't been called"); } return self; }
+
+function _get(target, property, receiver) { if (typeof Reflect !== "undefined" && Reflect.get) { _get = Reflect.get; } else { _get = function _get(target, property, receiver) { var base = _superPropBase(target, property); if (!base) return; var desc = Object.getOwnPropertyDescriptor(base, property); if (desc.get) { return desc.get.call(receiver); } return desc.value; }; } return _get(target, property, receiver || target); }
+
+function _superPropBase(object, property) { while (!Object.prototype.hasOwnProperty.call(object, property)) { object = _getPrototypeOf(object); if (object === null) break; } return object; }
+
+function _getPrototypeOf(o) { _getPrototypeOf = Object.setPrototypeOf ? Object.getPrototypeOf : function _getPrototypeOf(o) { return o.__proto__ || Object.getPrototypeOf(o); }; return _getPrototypeOf(o); }
+
+function _inherits(subClass, superClass) { if (typeof superClass !== "function" && superClass !== null) { throw new TypeError("Super expression must either be null or a function"); } subClass.prototype = Object.create(superClass && superClass.prototype, { constructor: { value: subClass, writable: true, configurable: true } }); if (superClass) _setPrototypeOf(subClass, superClass); }
+
+function _setPrototypeOf(o, p) { _setPrototypeOf = Object.setPrototypeOf || function _setPrototypeOf(o, p) { o.__proto__ = p; return o; }; return _setPrototypeOf(o, p); }
+
+function _typeof(obj) { if (typeof Symbol === "function" && typeof Symbol.iterator === "symbol") { _typeof = function _typeof(obj) { return typeof obj; }; } else { _typeof = function _typeof(obj) { return obj && typeof Symbol === "function" && obj.constructor === Symbol && obj !== Symbol.prototype ? "symbol" : typeof obj; }; } return _typeof(obj); }
+
+function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError("Cannot call a class as a function"); } }
+
+function _defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ("value" in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } }
+
+function _createClass(Constructor, protoProps, staticProps) { if (protoProps) _defineProperties(Constructor.prototype, protoProps); if (staticProps) _defineProperties(Constructor, staticProps); return Constructor; }
+
+var shortId = __webpack_require__(/*! shortid */ "./node_modules/shortid/index.js");
+
+module.exports = function (stage) {
+  'use strict';
+
+  var ISDefined = function ISDefined(ele) {
+    if (ele !== null && ele !== undefined) {
+      return true;
+    }
+
+    return false;
+  };
+
+  var generateId = function generateId() {
+    return shortId.generate();
+  };
+
+  var parseParameterString = function parseParameterString(str, value) {
+    var ns = null;
+
+    switch (stage.typeOf(str)) {
+      case "string":
+        return parseParameterString.call(this, str.split("."), value);
+
+      case "array":
+        switch (str.length) {
+          case 1:
+            ns = Array.prototype.shift.call(str);
+
+            if (!this[ns]) {
+              this[ns] = value;
+            } else {
+              if (ISDefined(value)) {
+                this[ns] = value;
+              } else {
+                return this[ns];
+              }
+            }
+
+            return value;
+
+          default:
+            ns = Array.prototype.shift.call(str);
+
+            if (!this[ns] && ISDefined(value)) {
+              this[ns] = {};
+            }
+
+            return parseParameterString.call(this[ns], str, value);
+        }
+
+        break;
+
+      default:
+        return false;
+    }
+  };
+  /*
+   *
+   *	CONTAINER CLASS
+   *
+   */
+
+
+  var Container =
+  /*#__PURE__*/
+  function () {
+    function Container(services, parameters) {
+      _classCallCheck(this, Container);
+
+      this.protoService = function () {};
+
+      this.protoParameters = function () {};
+
+      this.scope = {};
+      this.services = new this.protoService();
+
+      if (services && _typeof(services) === "object") {
+        for (var service in services) {
+          this.set(service, services[service]);
+        }
+      }
+
+      this.parameters = new this.protoParameters();
+
+      if (parameters && _typeof(parameters) === "object") {
+        for (var parameter in parameters) {
+          this.set(parameter, parameters[parameter]);
+        }
+      }
+    }
+
+    _createClass(Container, [{
+      key: "logger",
+      value: function logger(pci, severity, msgid, msg) {
+        var syslog = this.get("syslog");
+
+        if (!msgid) {
+          msgid = "CONTAINER SERVICES ";
+        }
+
+        return syslog.logger(pci, severity, msgid, msg);
+      }
+    }, {
+      key: "set",
+      value: function set(name, object) {
+        return this.protoService.prototype[name] = object;
+      }
+    }, {
+      key: "get",
+      value: function get(name) {
+        if (name in this.services) {
+          return this.services[name];
+        }
+
+        return null; //this.logger("GET : " + name+" don't exist", "WARNING");
+      }
+    }, {
+      key: "has",
+      value: function has(name) {
+        return this.services[name];
+      }
+    }, {
+      key: "addScope",
+      value: function addScope(name) {
+        if (!this.scope[name]) {
+          return this.scope[name] = {};
+        }
+
+        return this.scope[name];
+      }
+    }, {
+      key: "enterScope",
+      value: function enterScope(name) {
+        var sc = new Scope(name, this);
+        this.scope[name][sc.id] = sc;
+        return sc;
+      }
+    }, {
+      key: "enterScopeExtended",
+      value: function enterScopeExtended(name) {
+        var sc = new ExtendedScope(name, this);
+        this.scope[name][sc.id] = sc;
+        return sc;
+      }
+    }, {
+      key: "leaveScope",
+      value: function leaveScope(scope) {
+        if (this.scope[scope.name]) {
+          var sc = this.scope[scope.name][scope.id];
+
+          if (sc) {
+            sc.clean(); //console.log("pass leaveScope "+ scope.id)
+
+            delete this.scope[scope.name][scope.id];
+            sc = null;
+          } //console.log(this.scope)
+
+        }
+      }
+    }, {
+      key: "removeScope",
+      value: function removeScope(name) {
+        if (this.scope[name]) {
+          for (var scope in this.scope[name]) {
+            this.leaveScope(this.scope[name][scope]);
+          }
+
+          delete this.scope[name];
+        }
+      }
+    }, {
+      key: "setParameters",
+      value: function setParameters(name, str) {
+        if (typeof name !== "string") {
+          this.logger(new Error("setParameters : container parameter name must be a string"));
+          return false;
+        }
+
+        if (!ISDefined(str)) {
+          this.logger(new Error("setParameters : " + name + " container parameter value must be define"));
+          return false;
+        }
+
+        if (parseParameterString.call(this.protoParameters.prototype, name, str) === str) {
+          return str;
+        } else {
+          this.logger(new Error("container parameter " + name + " parse error"));
+          return false;
+        }
+      }
+    }, {
+      key: "getParameters",
+      value: function getParameters(name) {
+        if (typeof name !== "string") {
+          this.logger(new Error("container parameter name must be a string"));
+          return false;
+        } //return parseParameterString.call(this.protoParameters.prototype, name, null);
+
+
+        return parseParameterString.call(this.parameters, name, null);
+      }
+    }]);
+
+    return Container;
+  }();
+  /*
+   *
+   *	SCOPE CLASS
+   *
+   */
+
+
+  var Scope =
+  /*#__PURE__*/
+  function (_Container) {
+    _inherits(Scope, _Container);
+
+    function Scope(name, parent) {
+      var _this;
+
+      _classCallCheck(this, Scope);
+
+      _this = _possibleConstructorReturn(this, _getPrototypeOf(Scope).call(this));
+      _this.name = name;
+      _this.parent = parent;
+      _this.services = new parent.protoService();
+      _this.parameters = new parent.protoParameters();
+      _this.scope = parent.scope;
+      _this.id = generateId();
+      return _this;
+    }
+
+    _createClass(Scope, [{
+      key: "set",
+      value: function set(name, obj) {
+        this.services[name] = obj;
+        return _get(_getPrototypeOf(Scope.prototype), "set", this).call(this, name, obj);
+      }
+    }, {
+      key: "clean",
+      value: function clean() {
+        this.services = null;
+        delete this.services;
+        this.parameters = null;
+        delete this.parameters;
+      }
+    }, {
+      key: "setParameters",
+      value: function setParameters(name, str) {
+        if (parseParameterString.call(this.parameters, name, str) === str) {
+          return _get(_getPrototypeOf(Scope.prototype), "setParameters", this).call(this, name, str);
+        } else {
+          this.logger(new Error("container parameter " + name + " parse error"));
+          return false;
+        }
+      }
+    }]);
+
+    return Scope;
+  }(Container);
+  /*
+   *
+   *	ExtendedScope CLASS
+   *
+   */
+
+
+  var ExtendedScope =
+  /*#__PURE__*/
+  function (_Container2) {
+    _inherits(ExtendedScope, _Container2);
+
+    function ExtendedScope(name, parent) {
+      var _this2;
+
+      _classCallCheck(this, ExtendedScope);
+
+      _this2 = _possibleConstructorReturn(this, _getPrototypeOf(ExtendedScope).call(this));
+      _this2.name = name;
+      _this2.parent = parent;
+      _this2.services = new parent.protoService();
+      _this2.parameters = new parent.protoParameters();
+      _this2.scope = parent.scope;
+      _this2.id = generateId();
+
+      _this2.protoService = function () {};
+
+      _this2.protoService.prototype = stage.extend({}, _this2.parent.protoService.prototype);
+
+      _this2.protoParameters = function () {};
+
+      _this2.protoParameters.prototype = stage.extend({}, _this2.parent.protoParameters.prototype);
+      return _this2;
+    }
+
+    _createClass(ExtendedScope, [{
+      key: "clean",
+      value: function clean() {
+        this.services = null;
+        delete this.services;
+        this.parameters = null;
+        delete this.parameters;
+        this.protoService = null;
+        this.protoParameters = null;
+      }
+    }, {
+      key: "set",
+      value: function set(name, obj) {
+        this.services[name] = obj;
+        return _get(_getPrototypeOf(ExtendedScope.prototype), "set", this).call(this, name, obj);
+      }
+    }, {
+      key: "setParameters",
+      value: function setParameters(name, str) {
+        if (parseParameterString.call(this.parameters, name, str) === str) {
+          return _get(_getPrototypeOf(ExtendedScope.prototype), "setParameters", this).call(this, name, str);
+        } else {
+          this.logger(new Error("container parameter " + name + " parse error"));
+          return false;
+        }
+      }
+    }]);
+
+    return ExtendedScope;
+  }(Container);
+
+  stage.Container = Container;
+  return Container;
+};
 
 /***/ }),
 
@@ -25778,6 +26140,271 @@ module.exports = function (stage) {
     }
   };
   return Notification;
+};
+
+/***/ }),
+
+/***/ "./src/core/service.es6":
+/*!******************************!*\
+  !*** ./src/core/service.es6 ***!
+  \******************************/
+/*! no static exports found */
+/***/ (function(module, exports) {
+
+function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError("Cannot call a class as a function"); } }
+
+function _defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ("value" in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } }
+
+function _createClass(Constructor, protoProps, staticProps) { if (protoProps) _defineProperties(Constructor.prototype, protoProps); if (staticProps) _defineProperties(Constructor, staticProps); return Constructor; }
+
+module.exports = function (stage) {
+  'use strict';
+
+  var settingsSyslog = {
+    //rateLimit:100,
+    //burstLimit:10,
+    moduleName: "SERVICE ",
+    defaultSeverity: "INFO"
+  };
+  var defaultOptions = {};
+
+  var Service =
+  /*#__PURE__*/
+  function () {
+    function Service(name, container, notificationsCenter, options) {
+      _classCallCheck(this, Service);
+
+      if (name) {
+        this.name = name;
+      }
+
+      options = stage.extend({}, defaultOptions, options);
+
+      if (container instanceof stage.Container) {
+        this.container = container;
+      } else {
+        if (container) {
+          throw new Error("Service stage container not valid must be instance of stage.Container");
+        }
+
+        this.container = new stage.Container();
+        this.container.set("container", this.container);
+      }
+
+      this.kernel = this.container.get("kernel");
+      this.syslog = this.container.get("syslog");
+
+      if (!this.syslog) {
+        this.settingsSyslog = stage.extend({}, settingsSyslog, {
+          moduleName: this.name
+        }, options.syslog || {});
+        this.syslog = new stage.syslog(this.settingsSyslog);
+        this.set("syslog", this.syslog);
+      } else {
+        this.settingsSyslog = this.syslog.settings;
+      }
+
+      if (notificationsCenter instanceof stage.notificationsCenter.notification) {
+        this.notificationsCenter = notificationsCenter;
+      } else {
+        if (notificationsCenter) {
+          throw new Error("Service stage notificationsCenter not valid must be instance of stage.notificationsCenter.notification");
+        }
+
+        this.notificationsCenter = this.container.get("notificationsCenter");
+
+        if (!this.notificationsCenter) {
+          this.notificationsCenter = stage.notificationsCenter.create(options, this);
+
+          if (!this.kernel) {
+            this.set("notificationsCenter", this.notificationsCenter);
+          } else {
+            if (this.kernel.container !== this.container) {
+              this.set("notificationsCenter", this.notificationsCenter);
+            }
+          }
+        }
+      }
+    }
+
+    _createClass(Service, [{
+      key: "initSyslog",
+      value: function initSyslog() {
+        var options = arguments.length > 0 && arguments[0] !== undefined ? arguments[0] : null;
+        var defaultOptions = {
+          severity: {
+            operator: "<=",
+            data: "7"
+          }
+        };
+        return this.syslog.listenWithConditions(this, options || defaultOptions, function (pdu) {
+          var message = pdu.payload;
+          var date = new Date(pdu.timeStamp);
+          var wrapper = stage.Service.logSeverity(pdu.severityName);
+          wrapper("".concat(date.toDateString(), " ").concat(date.toLocaleTimeString(), " ").concat(pdu.severityName, " ").concat(pdu.msgid, " : ").concat(message));
+        });
+      }
+    }, {
+      key: "getName",
+      value: function getName() {
+        return this.name;
+      }
+    }, {
+      key: "clean",
+      value: function clean() {
+        this.settingsSyslog = null;
+        delete this.settingsSyslog;
+        this.syslog = null;
+        delete this.syslog;
+        this.removeAllListeners();
+        this.notificationsCenter = null;
+        delete this.notificationsCenter;
+        this.container = null;
+        delete this.container;
+        this.kernel = null;
+        delete this.kernel;
+      }
+    }, {
+      key: "logger",
+      value: function logger(pci, severity, msgid, msg) {
+        try {
+          if (!msgid) {
+            msgid = "SERVICE " + this.name + " ";
+          }
+
+          return this.syslog.logger(pci, severity, msgid, msg);
+        } catch (e) {
+          console.log(pci);
+        }
+      }
+    }, {
+      key: "log",
+      value: function log() {
+        return this.logger.apply(this, arguments);
+      }
+      /**
+       *	@method fire
+       *	@param {String} event name
+       *	@param {Arguments} ... arguments to inject
+       */
+
+    }, {
+      key: "fire",
+      value: function fire() {
+        //this.logger(ev, "DEBUG", "EVENT KERNEL")
+        return this.notificationsCenter.fire.apply(this.notificationsCenter, arguments);
+      }
+      /**
+       *	@method listen
+       *	@param {Oject} context
+       *	@param {String} eventName
+       *	@param {Function} listener
+       */
+
+    }, {
+      key: "listen",
+      value: function listen() {
+        return this.notificationsCenter.listen.apply(this.notificationsCenter, arguments);
+      }
+      /**
+       *	@method removeListener
+       *	@param {Oject} eventName
+       *	@param {String} listener
+       */
+
+    }, {
+      key: "removeListener",
+      value: function removeListener() {
+        return this.notificationsCenter.unListen.apply(this.notificationsCenter, arguments);
+      }
+    }, {
+      key: "unListen",
+      value: function unListen() {
+        return this.notificationsCenter.unListen.apply(this.notificationsCenter, arguments);
+      }
+      /**
+       *	@method removeAllListeners
+       */
+
+    }, {
+      key: "removeAllListeners",
+      value: function removeAllListeners() {
+        return this.notificationsCenter.clearNotifications.apply(this.notificationsCenter, arguments);
+      }
+      /**
+       *	@method get
+       *	@param {String} name of service
+       */
+
+    }, {
+      key: "get",
+      value: function get(name) {
+        if (this.container) {
+          return this.container.get(name);
+        }
+
+        return null;
+      }
+      /**
+       *	@method set
+       *	@param {String} name of service
+       *	@param {Object} instance of service
+       */
+
+    }, {
+      key: "set",
+      value: function set(name, obj) {
+        if (this.container) {
+          return this.container.set(name, obj);
+        }
+
+        return null;
+      }
+    }, {
+      key: "getParameters",
+      value: function getParameters() {
+        return this.container.getParameters.apply(this.container, arguments);
+      }
+    }, {
+      key: "setParameters",
+      value: function setParameters() {
+        return this.container.setParameters.apply(this.container, arguments);
+      }
+    }, {
+      key: "has",
+      value: function has() {
+        return this.container.has.apply(this.container, arguments);
+      }
+    }], [{
+      key: "logSeverity",
+      value: function logSeverity(severity) {
+        switch (severity) {
+          case "DEBUG":
+            return console.debug;
+
+          case "INFO":
+            return console.info;
+
+          case "WARNING":
+            return console.warn;
+
+          case "ERROR":
+          case "CRITIC":
+          case "ALERT":
+          case "EMERGENCY":
+            return console.error;
+
+          default:
+            return console.log;
+        }
+      }
+    }]);
+
+    return Service;
+  }();
+
+  stage.Service = Service;
+  return Service;
 };
 
 /***/ }),
@@ -31694,368 +32321,6 @@ module.exports = function (stage) {
 
 /***/ }),
 
-/***/ "./src/kernel/container.es6":
-/*!**********************************!*\
-  !*** ./src/kernel/container.es6 ***!
-  \**********************************/
-/*! no static exports found */
-/***/ (function(module, exports, __webpack_require__) {
-
-function _possibleConstructorReturn(self, call) { if (call && (_typeof(call) === "object" || typeof call === "function")) { return call; } return _assertThisInitialized(self); }
-
-function _assertThisInitialized(self) { if (self === void 0) { throw new ReferenceError("this hasn't been initialised - super() hasn't been called"); } return self; }
-
-function _get(target, property, receiver) { if (typeof Reflect !== "undefined" && Reflect.get) { _get = Reflect.get; } else { _get = function _get(target, property, receiver) { var base = _superPropBase(target, property); if (!base) return; var desc = Object.getOwnPropertyDescriptor(base, property); if (desc.get) { return desc.get.call(receiver); } return desc.value; }; } return _get(target, property, receiver || target); }
-
-function _superPropBase(object, property) { while (!Object.prototype.hasOwnProperty.call(object, property)) { object = _getPrototypeOf(object); if (object === null) break; } return object; }
-
-function _getPrototypeOf(o) { _getPrototypeOf = Object.setPrototypeOf ? Object.getPrototypeOf : function _getPrototypeOf(o) { return o.__proto__ || Object.getPrototypeOf(o); }; return _getPrototypeOf(o); }
-
-function _inherits(subClass, superClass) { if (typeof superClass !== "function" && superClass !== null) { throw new TypeError("Super expression must either be null or a function"); } subClass.prototype = Object.create(superClass && superClass.prototype, { constructor: { value: subClass, writable: true, configurable: true } }); if (superClass) _setPrototypeOf(subClass, superClass); }
-
-function _setPrototypeOf(o, p) { _setPrototypeOf = Object.setPrototypeOf || function _setPrototypeOf(o, p) { o.__proto__ = p; return o; }; return _setPrototypeOf(o, p); }
-
-function _typeof(obj) { if (typeof Symbol === "function" && typeof Symbol.iterator === "symbol") { _typeof = function _typeof(obj) { return typeof obj; }; } else { _typeof = function _typeof(obj) { return obj && typeof Symbol === "function" && obj.constructor === Symbol && obj !== Symbol.prototype ? "symbol" : typeof obj; }; } return _typeof(obj); }
-
-function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError("Cannot call a class as a function"); } }
-
-function _defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ("value" in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } }
-
-function _createClass(Constructor, protoProps, staticProps) { if (protoProps) _defineProperties(Constructor.prototype, protoProps); if (staticProps) _defineProperties(Constructor, staticProps); return Constructor; }
-
-var shortId = __webpack_require__(/*! shortid */ "./node_modules/shortid/index.js");
-
-module.exports = function (stage) {
-  'use strict';
-
-  var ISDefined = function ISDefined(ele) {
-    if (ele !== null && ele !== undefined) {
-      return true;
-    }
-
-    return false;
-  };
-
-  var generateId = function generateId() {
-    return shortId.generate();
-  };
-
-  var parseParameterString = function parseParameterString(str, value) {
-    var ns = null;
-
-    switch (stage.typeOf(str)) {
-      case "string":
-        return parseParameterString.call(this, str.split("."), value);
-
-      case "array":
-        switch (str.length) {
-          case 1:
-            ns = Array.prototype.shift.call(str);
-
-            if (!this[ns]) {
-              this[ns] = value;
-            } else {
-              if (ISDefined(value)) {
-                this[ns] = value;
-              } else {
-                return this[ns];
-              }
-            }
-
-            return value;
-
-          default:
-            ns = Array.prototype.shift.call(str);
-
-            if (!this[ns] && ISDefined(value)) {
-              this[ns] = {};
-            }
-
-            return parseParameterString.call(this[ns], str, value);
-        }
-
-        break;
-
-      default:
-        return false;
-    }
-  };
-  /*
-  	 *
-  	 *	CONTAINER CLASS
-  	 *
-  	 */
-
-
-  var Container =
-  /*#__PURE__*/
-  function () {
-    function Container(services, parameters) {
-      _classCallCheck(this, Container);
-
-      this.protoService = function () {};
-
-      this.protoParameters = function () {};
-
-      this.scope = {};
-      this.services = new this.protoService();
-
-      if (services && _typeof(services) === "object") {
-        for (var service in services) {
-          this.set(service, services[service]);
-        }
-      }
-
-      this.parameters = new this.protoParameters();
-
-      if (parameters && _typeof(parameters) === "object") {
-        for (var parameter in parameters) {
-          this.set(parameter, parameters[parameter]);
-        }
-      }
-    }
-
-    _createClass(Container, [{
-      key: "logger",
-      value: function logger(pci, severity, msgid, msg) {
-        var syslog = this.get("syslog");
-
-        if (!msgid) {
-          msgid = "CONTAINER SERVICES ";
-        }
-
-        return syslog.logger(pci, severity, msgid, msg);
-      }
-    }, {
-      key: "set",
-      value: function set(name, object) {
-        return this.protoService.prototype[name] = object;
-      }
-    }, {
-      key: "get",
-      value: function get(name) {
-        if (name in this.services) {
-          return this.services[name];
-        }
-
-        return null; //this.logger("GET : " + name+" don't exist", "WARNING");	
-      }
-    }, {
-      key: "has",
-      value: function has(name) {
-        return this.services[name];
-      }
-    }, {
-      key: "addScope",
-      value: function addScope(name) {
-        if (!this.scope[name]) {
-          return this.scope[name] = {};
-        }
-
-        return this.scope[name];
-      }
-    }, {
-      key: "enterScope",
-      value: function enterScope(name) {
-        var sc = new Scope(name, this);
-        this.scope[name][sc.id] = sc;
-        return sc;
-      }
-    }, {
-      key: "enterScopeExtended",
-      value: function enterScopeExtended(name) {
-        var sc = new ExtendedScope(name, this);
-        this.scope[name][sc.id] = sc;
-        return sc;
-      }
-    }, {
-      key: "leaveScope",
-      value: function leaveScope(scope) {
-        if (this.scope[scope.name]) {
-          var sc = this.scope[scope.name][scope.id];
-
-          if (sc) {
-            sc.clean(); //console.log("pass leaveScope "+ scope.id)
-
-            delete this.scope[scope.name][scope.id];
-            sc = null;
-          } //console.log(this.scope)
-
-        }
-      }
-    }, {
-      key: "removeScope",
-      value: function removeScope(name) {
-        if (this.scope[name]) {
-          for (var scope in this.scope[name]) {
-            this.leaveScope(this.scope[name][scope]);
-          }
-
-          delete this.scope[name];
-        }
-      }
-    }, {
-      key: "setParameters",
-      value: function setParameters(name, str) {
-        if (typeof name !== "string") {
-          this.logger(new Error("setParameters : container parameter name must be a string"));
-          return false;
-        }
-
-        if (!ISDefined(str)) {
-          this.logger(new Error("setParameters : " + name + " container parameter value must be define"));
-          return false;
-        }
-
-        if (parseParameterString.call(this.protoParameters.prototype, name, str) === str) {
-          return str;
-        } else {
-          this.logger(new Error("container parameter " + name + " parse error"));
-          return false;
-        }
-      }
-    }, {
-      key: "getParameters",
-      value: function getParameters(name) {
-        if (typeof name !== "string") {
-          this.logger(new Error("container parameter name must be a string"));
-          return false;
-        } //return parseParameterString.call(this.protoParameters.prototype, name, null);  
-
-
-        return parseParameterString.call(this.parameters, name, null);
-      }
-    }]);
-
-    return Container;
-  }();
-  /*
-  	 *
-  	 *	SCOPE CLASS
-  	 *
-  	 */
-
-
-  var Scope =
-  /*#__PURE__*/
-  function (_Container) {
-    _inherits(Scope, _Container);
-
-    function Scope(name, parent) {
-      var _this;
-
-      _classCallCheck(this, Scope);
-
-      _this = _possibleConstructorReturn(this, _getPrototypeOf(Scope).call(this));
-      _this.name = name;
-      _this.parent = parent;
-      _this.services = new parent.protoService();
-      _this.parameters = new parent.protoParameters();
-      _this.scope = parent.scope;
-      _this.id = generateId();
-      return _this;
-    }
-
-    _createClass(Scope, [{
-      key: "set",
-      value: function set(name, obj) {
-        this.services[name] = obj;
-        return _get(_getPrototypeOf(Scope.prototype), "set", this).call(this, name, obj);
-      }
-    }, {
-      key: "clean",
-      value: function clean() {
-        this.services = null;
-        delete this.services;
-        this.parameters = null;
-        delete this.parameters;
-      }
-    }, {
-      key: "setParameters",
-      value: function setParameters(name, str) {
-        if (parseParameterString.call(this.parameters, name, str) === str) {
-          return _get(_getPrototypeOf(Scope.prototype), "setParameters", this).call(this, name, str);
-        } else {
-          this.logger(new Error("container parameter " + name + " parse error"));
-          return false;
-        }
-      }
-    }]);
-
-    return Scope;
-  }(Container);
-  /*
-  	 *
-  	 *	ExtendedScope CLASS
-  	 *
-  	 */
-
-
-  var ExtendedScope =
-  /*#__PURE__*/
-  function (_Container2) {
-    _inherits(ExtendedScope, _Container2);
-
-    function ExtendedScope(name, parent) {
-      var _this2;
-
-      _classCallCheck(this, ExtendedScope);
-
-      _this2 = _possibleConstructorReturn(this, _getPrototypeOf(ExtendedScope).call(this));
-      _this2.name = name;
-      _this2.parent = parent;
-      _this2.services = new parent.protoService();
-      _this2.parameters = new parent.protoParameters();
-      _this2.scope = parent.scope;
-      _this2.id = generateId();
-
-      _this2.protoService = function () {};
-
-      _this2.protoService.prototype = stage.extend({}, _this2.parent.protoService.prototype);
-
-      _this2.protoParameters = function () {};
-
-      _this2.protoParameters.prototype = stage.extend({}, _this2.parent.protoParameters.prototype);
-      return _this2;
-    }
-
-    _createClass(ExtendedScope, [{
-      key: "clean",
-      value: function clean() {
-        this.services = null;
-        delete this.services;
-        this.parameters = null;
-        delete this.parameters;
-        this.protoService = null;
-        this.protoParameters = null;
-      }
-    }, {
-      key: "set",
-      value: function set(name, obj) {
-        this.services[name] = obj;
-        return _get(_getPrototypeOf(ExtendedScope.prototype), "set", this).call(this, name, obj);
-      }
-    }, {
-      key: "setParameters",
-      value: function setParameters(name, str) {
-        if (parseParameterString.call(this.parameters, name, str) === str) {
-          return _get(_getPrototypeOf(ExtendedScope.prototype), "setParameters", this).call(this, name, str);
-        } else {
-          this.logger(new Error("container parameter " + name + " parse error"));
-          return false;
-        }
-      }
-    }]);
-
-    return ExtendedScope;
-  }(Container);
-
-  stage.Container = Container;
-  return Container;
-};
-
-/***/ }),
-
 /***/ "./src/kernel/controller.es6":
 /*!***********************************!*\
   !*** ./src/kernel/controller.es6 ***!
@@ -34528,226 +34793,6 @@ module.exports = function (stage) {
 
   stage.router = service;
   return service;
-};
-
-/***/ }),
-
-/***/ "./src/kernel/service.es6":
-/*!********************************!*\
-  !*** ./src/kernel/service.es6 ***!
-  \********************************/
-/*! no static exports found */
-/***/ (function(module, exports) {
-
-function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError("Cannot call a class as a function"); } }
-
-function _defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ("value" in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } }
-
-function _createClass(Constructor, protoProps, staticProps) { if (protoProps) _defineProperties(Constructor.prototype, protoProps); if (staticProps) _defineProperties(Constructor, staticProps); return Constructor; }
-
-module.exports = function (stage) {
-  'use strict';
-
-  var settingsSyslog = {
-    //rateLimit:100,
-    //burstLimit:10,
-    moduleName: "SERVICE ",
-    defaultSeverity: "INFO"
-  };
-  var defaultOptions = {};
-
-  var Service =
-  /*#__PURE__*/
-  function () {
-    function Service(name, container, notificationsCenter, options) {
-      _classCallCheck(this, Service);
-
-      if (name) {
-        this.name = name;
-      }
-
-      options = stage.extend({}, defaultOptions, options);
-
-      if (container instanceof stage.Container) {
-        this.container = container;
-      } else {
-        if (container) {
-          throw new Error("Service stage container not valid must be instance of stage.Container");
-        }
-
-        this.container = new stage.Container();
-        this.container.set("container", this.container);
-      }
-
-      this.kernel = this.container.get("kernel");
-      this.syslog = this.container.get("syslog");
-
-      if (!this.syslog) {
-        this.settingsSyslog = stage.extend({}, settingsSyslog, {
-          moduleName: this.name
-        }, options.syslog || {});
-        this.syslog = new stage.syslog(this.settingsSyslog);
-        this.set("syslog", this.syslog);
-      } else {
-        this.settingsSyslog = this.syslog.settings;
-      }
-
-      if (notificationsCenter instanceof stage.notificationsCenter.notification) {
-        this.notificationsCenter = notificationsCenter;
-      } else {
-        if (notificationsCenter) {
-          throw new Error("Service stage notificationsCenter not valid must be instance of stage.notificationsCenter.notification");
-        }
-
-        this.notificationsCenter = this.container.get("notificationsCenter");
-
-        if (!this.notificationsCenter) {
-          this.notificationsCenter = stage.notificationsCenter.create(options, this);
-
-          if (!this.kernel) {
-            this.set("notificationsCenter", this.notificationsCenter);
-          } else {
-            if (this.kernel.container !== this.container) {
-              this.set("notificationsCenter", this.notificationsCenter);
-            }
-          }
-        }
-      }
-    }
-
-    _createClass(Service, [{
-      key: "getName",
-      value: function getName() {
-        return this.name;
-      }
-    }, {
-      key: "clean",
-      value: function clean() {
-        this.settingsSyslog = null;
-        delete this.settingsSyslog;
-        this.syslog = null;
-        delete this.syslog;
-        this.removeAllListeners();
-        this.notificationsCenter = null;
-        delete this.notificationsCenter;
-        this.container = null;
-        delete this.container;
-        this.kernel = null;
-        delete this.kernel;
-      }
-    }, {
-      key: "logger",
-      value: function logger(pci, severity, msgid, msg) {
-        try {
-          if (!msgid) {
-            msgid = "SERVICE " + this.name + " ";
-          }
-
-          return this.syslog.logger(pci, severity, msgid, msg);
-        } catch (e) {
-          console.log(pci);
-        }
-      }
-      /**
-      	*	@method fire
-      	*	@param {String} event name 
-      	*	@param {Arguments} ... arguments to inject  
-             	*/
-
-    }, {
-      key: "fire",
-      value: function fire() {
-        //this.logger(ev, "DEBUG", "EVENT KERNEL")
-        return this.notificationsCenter.fire.apply(this.notificationsCenter, arguments);
-      }
-      /**
-      	*	@method listen
-      	*	@param {Oject} context
-      	*	@param {String} eventName
-      	*	@param {Function} listener
-             	*/
-
-    }, {
-      key: "listen",
-      value: function listen() {
-        return this.notificationsCenter.listen.apply(this.notificationsCenter, arguments);
-      }
-      /**
-      	*	@method removeListener
-      	*	@param {Oject} eventName 
-      	*	@param {String} listener
-             	*/
-
-    }, {
-      key: "removeListener",
-      value: function removeListener() {
-        return this.notificationsCenter.unListen.apply(this.notificationsCenter, arguments);
-      }
-    }, {
-      key: "unListen",
-      value: function unListen() {
-        return this.notificationsCenter.unListen.apply(this.notificationsCenter, arguments);
-      }
-      /**
-      	*	@method removeAllListeners
-             	*/
-
-    }, {
-      key: "removeAllListeners",
-      value: function removeAllListeners() {
-        return this.notificationsCenter.clearNotifications.apply(this.notificationsCenter, arguments);
-      }
-      /**
-      	 *	@method get
-      	 *	@param {String} name of service
-             	 */
-
-    }, {
-      key: "get",
-      value: function get(name) {
-        if (this.container) {
-          return this.container.get(name);
-        }
-
-        return null;
-      }
-      /**
-      	*	@method set
-      	*	@param {String} name of service
-      	*	@param {Object} instance of service
-             	*/
-
-    }, {
-      key: "set",
-      value: function set(name, obj) {
-        if (this.container) {
-          return this.container.set(name, obj);
-        }
-
-        return null;
-      }
-    }, {
-      key: "getParameters",
-      value: function getParameters() {
-        return this.container.getParameters.apply(this.container, arguments);
-      }
-    }, {
-      key: "setParameters",
-      value: function setParameters() {
-        return this.container.setParameters.apply(this.container, arguments);
-      }
-    }, {
-      key: "has",
-      value: function has() {
-        return this.container.has.apply(this.container, arguments);
-      }
-    }]);
-
-    return Service;
-  }();
-
-  stage.Service = Service;
-  return Service;
 };
 
 /***/ }),
@@ -37596,14 +37641,14 @@ module.exports = function (stage) {
    */
 
   var sysLogSeverity = ["EMERGENCY", "ALERT", "CRITIC", "ERROR", "WARNING", "NOTICE", "INFO", "DEBUG"];
-  sysLogSeverity["EMERGENCY"] = 0;
-  sysLogSeverity["ALERT"] = 1;
-  sysLogSeverity["CRITIC"] = 2;
-  sysLogSeverity["ERROR"] = 3;
-  sysLogSeverity["WARNING"] = 4;
-  sysLogSeverity["NOTICE"] = 5;
-  sysLogSeverity["INFO"] = 6;
-  sysLogSeverity["DEBUG"] = 7;
+  sysLogSeverity.EMERGENCY = 0;
+  sysLogSeverity.ALERT = 1;
+  sysLogSeverity.CRITIC = 2;
+  sysLogSeverity.ERROR = 3;
+  sysLogSeverity.WARNING = 4;
+  sysLogSeverity.NOTICE = 5;
+  sysLogSeverity.INFO = 6;
+  sysLogSeverity.DEBUG = 7;
   /**
    *  Protocol Data Unit
    * @class  PDU
@@ -37728,7 +37773,9 @@ module.exports = function (stage) {
         return operators[condition.operator](pdu.severity, condition.data);
       } else {
         for (var sev in condition.data) {
-          if (sev === pdu.severityName) return true;
+          if (sev === pdu.severityName) {
+            return true;
+          }
         }
       }
 
@@ -37739,7 +37786,9 @@ module.exports = function (stage) {
         return operators[condition.operator](pdu.msgid, condition.data);
       } else {
         for (var sev in condition.data) {
-          if (sev === pdu.msgid) return true;
+          if (sev === pdu.msgid) {
+            return true;
+          }
         }
       }
 
@@ -37754,7 +37803,7 @@ module.exports = function (stage) {
       var res = null;
 
       for (var ele in myConditions) {
-        var res = conditionsObj[ele](pdu, myConditions[ele]); //console.log("condition :" +ele +"  "+res)
+        res = conditionsObj[ele](pdu, myConditions[ele]); //console.log("condition :" +ele +"  "+res)
 
         if (!res) {
           break;
@@ -37767,7 +37816,7 @@ module.exports = function (stage) {
       var res = null;
 
       for (var ele in myConditions) {
-        var res = conditionsObj[ele](pdu, myConditions[ele]);
+        res = conditionsObj[ele](pdu, myConditions[ele]);
 
         if (res) {
           break;
@@ -37844,23 +37893,30 @@ module.exports = function (stage) {
 
   var severityToString = function severityToString(severity) {
     var myint = parseInt(severity, 10);
+    var ele = null;
 
     if (!isNaN(myint)) {
-      var ele = sysLogSeverity[myint];
+      ele = sysLogSeverity[myint];
     } else {
-      var ele = severity;
+      ele = severity;
     }
 
-    if (ele in sysLogSeverity) return ele;
+    if (ele in sysLogSeverity) {
+      return ele;
+    }
+
     return false;
   };
 
   var sanitizeConditions = function sanitizeConditions(settingsCondition) {
     var res = true;
-    if (stage.typeOf(settingsCondition) !== "object") return false;
+
+    if (stage.typeOf(settingsCondition) !== "object") {
+      return false;
+    }
 
     for (var ele in settingsCondition) {
-      if (!ele in conditionsObj) {
+      if (!(ele in conditionsObj)) {
         return false;
       }
 
@@ -37919,8 +37975,8 @@ module.exports = function (stage) {
               if (stage.typeOf(res) === "array") {
                 condi.data = {};
 
-                for (var i = 0; i < res.length; i++) {
-                  condi.data[res[i]] = "||";
+                for (var _i = 0; _i < res.length; _i++) {
+                  condi.data[res[_i]] = "||";
                 }
               } else {
                 condi.data = res;
@@ -37933,7 +37989,13 @@ module.exports = function (stage) {
 
           case "date":
             res = checkFormatDate(condi.data);
-            if (res) condi.data = res;else return false;
+
+            if (res) {
+              condi.data = res;
+            } else {
+              return false;
+            }
+
             break;
 
           default:
@@ -37942,26 +38004,39 @@ module.exports = function (stage) {
       } else {
         return false;
       }
-    }
+    } //console.log(settingsCondition);
 
-    return settingsCondition; //console.log(settingsCondition);
+
+    return settingsCondition;
   };
 
   var translateSeverity = function translateSeverity(severity) {
+    var myseverity = null;
+
     if (severity in sysLogSeverity) {
-      if (typeof severity === 'number') var myseverity = sysLogSeverity[sysLogSeverity[severity]];else var myseverity = sysLogSeverity[severity];
+      if (typeof severity === 'number') {
+        myseverity = sysLogSeverity[sysLogSeverity[severity]];
+      } else {
+        myseverity = sysLogSeverity[severity];
+      }
     } else {
-      if (!severity) return null;else throw new Error("not stage syslog severity :" + severity);
+      if (!severity) {
+        return null;
+      } else {
+        throw new Error("not stage syslog severity :" + severity);
+      }
     }
 
     return myseverity;
   };
 
   var createPDU = function createPDU(payload, severity, moduleName, msgid, msg) {
+    var myseverity = null;
+
     if (!severity) {
-      var myseverity = sysLogSeverity[this.settings.defaultSeverity];
+      myseverity = sysLogSeverity[this.settings.defaultSeverity];
     } else {
-      var myseverity = severity;
+      myseverity = severity;
     }
 
     return new PDU(payload, myseverity, moduleName, msgid, msg);
@@ -38047,7 +38122,7 @@ module.exports = function (stage) {
        * @type Array
        */
 
-      _this.ringStack = new Array();
+      _this.ringStack = [];
       /**
        * Ratelimit  Management log printed
        * @property burstPrinted
@@ -38112,6 +38187,8 @@ module.exports = function (stage) {
     }, {
       key: "logger",
       value: function logger(payload, severity, msgid, msg) {
+        var pdu = null;
+
         if (this.settings.rateLimit) {
           var now = new Date().getTime();
           this.start = this.start || now;
@@ -38125,9 +38202,9 @@ module.exports = function (stage) {
           if (this.settings.burstLimit && this.settings.burstLimit > this.burstPrinted) {
             try {
               if (payload instanceof PDU) {
-                var pdu = payload;
+                pdu = payload;
               } else {
-                var pdu = createPDU.call(this, payload, severity, this.settings.moduleName, msgid, msg);
+                pdu = createPDU.call(this, payload, severity, this.settings.moduleName, msgid, msg);
               }
             } catch (e) {
               console.error(e);
@@ -38146,9 +38223,9 @@ module.exports = function (stage) {
         } else {
           try {
             if (payload instanceof PDU) {
-              var pdu = payload;
+              pdu = payload;
             } else {
-              var pdu = createPDU.call(this, payload, severity, this.settings.moduleName, msgid, msg);
+              pdu = createPDU.call(this, payload, severity, this.settings.moduleName, msgid, msg);
             }
           } catch (e) {
             console.error(e);
@@ -38187,15 +38264,26 @@ module.exports = function (stage) {
     }, {
       key: "getLogStack",
       value: function getLogStack(start, end, contition) {
+        var stack = null;
+
         if (contition) {
-          var stack = this.getLogs(contition);
+          stack = this.getLogs(contition);
         } else {
-          var stack = this.ringStack;
+          stack = this.ringStack;
         }
 
-        if (arguments.length === 0) return stack[stack.length - 1];
-        if (!end) return stack.slice(start);
-        if (start === end) return stack[stack.length - start - 1];
+        if (arguments.length === 0) {
+          return stack[stack.length - 1];
+        }
+
+        if (!end) {
+          return stack.slice(start);
+        }
+
+        if (start === end) {
+          return stack[stack.length - start - 1];
+        }
+
         return stack.slice(start, end);
       }
       /**
@@ -38209,18 +38297,20 @@ module.exports = function (stage) {
       key: "getLogs",
       value: function getLogs(conditions, stack) {
         var myStack = stack || this.ringStack;
+        var myFuncCondition = null;
 
         if (conditions.checkConditions && conditions.checkConditions in logicCondition) {
-          var myFuncCondition = logicCondition[conditions.checkConditions];
+          myFuncCondition = logicCondition[conditions.checkConditions];
           delete conditions.checkConditions;
         } else {
-          var myFuncCondition = logicCondition[this.settings.checkConditions];
+          myFuncCondition = logicCondition[this.settings.checkConditions];
         }
 
         var tab = [];
+        var Conditions = null;
 
         try {
-          var Conditions = sanitizeConditions(conditions);
+          Conditions = sanitizeConditions(conditions);
         } catch (e) {
           throw new Error("registreNotification conditions format error: " + e);
         }
@@ -38228,7 +38318,10 @@ module.exports = function (stage) {
         if (Conditions) {
           for (var i = 0; i < myStack.length; i++) {
             var res = myFuncCondition(Conditions, myStack[i]);
-            if (res) tab.push(myStack[i]);
+
+            if (res) {
+              tab.push(myStack[i]);
+            }
           }
         }
 
@@ -38243,7 +38336,14 @@ module.exports = function (stage) {
     }, {
       key: "logToJson",
       value: function logToJson(conditions) {
-        if (conditions) var stack = this.getLogs(conditions);else var stack = this.ringStack;
+        var stack = null;
+
+        if (conditions) {
+          stack = this.getLogs(conditions);
+        } else {
+          stack = this.ringStack;
+        }
+
         return JSON.stringify(stack);
       }
       /**
@@ -38258,14 +38358,18 @@ module.exports = function (stage) {
     }, {
       key: "loadStack",
       value: function loadStack(stack, doEvent, beforeConditions) {
-        if (!stack) throw new Error("syslog loadStack : not stack in arguments ");
+        if (!stack) {
+          throw new Error("syslog loadStack : not stack in arguments ");
+        }
+
+        var st = null;
 
         switch (stage.typeOf(stack)) {
           case "string":
             try {
               //console.log(stack);
-              var st = JSON.parse(stack);
-              return arguments.callee.call(this, st, doEvent);
+              st = JSON.parse(stack);
+              return this.loadStack(st, doEvent);
             } catch (e) {
               throw e;
             }
@@ -38280,7 +38384,10 @@ module.exports = function (stage) {
                 this.pushStack(pdu);
 
                 if (doEvent) {
-                  if (beforeConditions && typeof beforeConditions === "function") beforeConditions.call(this, pdu, stack[i]);
+                  if (beforeConditions && typeof beforeConditions === "function") {
+                    beforeConditions.call(this, pdu, stack[i]);
+                  }
+
                   this.fire("onLog", pdu);
                 }
               }
@@ -38294,7 +38401,6 @@ module.exports = function (stage) {
             throw new Error("syslog loadStack : bad stack in arguments type");
         }
 
-        ;
         return st || stack;
       }
       /**
@@ -38306,15 +38412,19 @@ module.exports = function (stage) {
     }, {
       key: "listenWithConditions",
       value: function listenWithConditions(context, conditions, callback) {
+        var myFuncCondition = null;
+
         if (conditions.checkConditions && conditions.checkConditions in logicCondition) {
-          var myFuncCondition = logicCondition[conditions.checkConditions];
+          myFuncCondition = logicCondition[conditions.checkConditions];
           delete conditions.checkConditions;
         } else {
-          var myFuncCondition = logicCondition[this.settings.checkConditions];
+          myFuncCondition = logicCondition[this.settings.checkConditions];
         }
 
+        var Conditions = null;
+
         try {
-          var Conditions = sanitizeConditions(conditions);
+          Conditions = sanitizeConditions(conditions);
         } catch (e) {
           throw new Error("registreNotification conditions format error: " + e);
         }

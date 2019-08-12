@@ -69,6 +69,12 @@ module.exports = webpackMerge(config, {
         test: /jquery\..*\.js/,
         use: "imports-loader?$=jquery,jQuery=jquery,this=>window"
       }, {
+        test: require.resolve("../../../../src/core.js"),
+        use: [{
+          loader: 'expose-loader',
+          options: 'stage'
+        }]
+      },{
         test: /\.(sa|sc|c)ss$/,
         use: [
           //'css-hot-loader',
