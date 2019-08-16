@@ -22746,6 +22746,9 @@ function adapterFactory({window} = {}, options = {
       _firefox_firefox_shim__WEBPACK_IMPORTED_MODULE_3__["shimSenderGetStats"](window);
       _firefox_firefox_shim__WEBPACK_IMPORTED_MODULE_3__["shimReceiverGetStats"](window);
       _firefox_firefox_shim__WEBPACK_IMPORTED_MODULE_3__["shimRTCDataChannel"](window);
+      _firefox_firefox_shim__WEBPACK_IMPORTED_MODULE_3__["shimAddTransceiver"](window);
+      _firefox_firefox_shim__WEBPACK_IMPORTED_MODULE_3__["shimCreateOffer"](window);
+      _firefox_firefox_shim__WEBPACK_IMPORTED_MODULE_3__["shimCreateAnswer"](window);
 
       _common_shim__WEBPACK_IMPORTED_MODULE_5__["shimRTCIceCandidate"](window);
       _common_shim__WEBPACK_IMPORTED_MODULE_5__["shimConnectionState"](window);
@@ -24453,7 +24456,7 @@ function shimGetUserMedia(window) {
 /*!********************************************************************!*\
   !*** ./node_modules/webrtc-adapter/src/js/firefox/firefox_shim.js ***!
   \********************************************************************/
-/*! exports provided: shimGetUserMedia, shimGetDisplayMedia, shimOnTrack, shimPeerConnection, shimSenderGetStats, shimReceiverGetStats, shimRemoveStream, shimRTCDataChannel */
+/*! exports provided: shimGetUserMedia, shimGetDisplayMedia, shimOnTrack, shimPeerConnection, shimSenderGetStats, shimReceiverGetStats, shimRemoveStream, shimRTCDataChannel, shimAddTransceiver, shimCreateOffer, shimCreateAnswer */
 /***/ (function(module, __webpack_exports__, __webpack_require__) {
 
 "use strict";
@@ -24464,6 +24467,9 @@ __webpack_require__.r(__webpack_exports__);
 /* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "shimReceiverGetStats", function() { return shimReceiverGetStats; });
 /* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "shimRemoveStream", function() { return shimRemoveStream; });
 /* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "shimRTCDataChannel", function() { return shimRTCDataChannel; });
+/* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "shimAddTransceiver", function() { return shimAddTransceiver; });
+/* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "shimCreateOffer", function() { return shimCreateOffer; });
+/* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "shimCreateAnswer", function() { return shimCreateAnswer; });
 /* harmony import */ var _utils__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! ../utils */ "./node_modules/webrtc-adapter/src/js/utils.js");
 /* harmony import */ var _getusermedia__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(/*! ./getusermedia */ "./node_modules/webrtc-adapter/src/js/firefox/getusermedia.js");
 /* harmony reexport (safe) */ __webpack_require__.d(__webpack_exports__, "shimGetUserMedia", function() { return _getusermedia__WEBPACK_IMPORTED_MODULE_1__["shimGetUserMedia"]; });
@@ -24664,6 +24670,109 @@ function shimRTCDataChannel(window) {
   }
 }
 
+function shimAddTransceiver(window) {
+  // https://github.com/webrtcHacks/adapter/issues/998#issuecomment-516921647
+  // Firefox ignores the init sendEncodings options passed to addTransceiver
+  // https://bugzilla.mozilla.org/show_bug.cgi?id=1396918
+  if (!(typeof window === 'object' && window.RTCPeerConnection)) {
+    return;
+  }
+  const origAddTransceiver = window.RTCPeerConnection.prototype.addTransceiver;
+  if (origAddTransceiver) {
+    window.RTCPeerConnection.prototype.addTransceiver =
+      function addTransceiver() {
+        this.setParametersPromises = [];
+        const initParameters = arguments[1];
+        const shouldPerformCheck = initParameters &&
+                                  'sendEncodings' in initParameters;
+        if (shouldPerformCheck) {
+          // If sendEncodings params are provided, validate grammar
+          initParameters.sendEncodings.forEach((encodingParam) => {
+            if ('rid' in encodingParam) {
+              const ridRegex = /^[a-z0-9]{0,16}$/i;
+              if (!ridRegex.test(encodingParam.rid)) {
+                throw new TypeError('Invalid RID value provided.');
+              }
+            }
+            if ('scaleResolutionDownBy' in encodingParam) {
+              if (!(parseFloat(encodingParam.scaleResolutionDownBy) >= 1.0)) {
+                throw new RangeError('scale_resolution_down_by must be >= 1.0');
+              }
+            }
+            if ('maxFramerate' in encodingParam) {
+              if (!(parseFloat(encodingParam.maxFramerate) >= 0)) {
+                throw new RangeError('max_framerate must be >= 0.0');
+              }
+            }
+          });
+        }
+        const transceiver = origAddTransceiver.apply(this, arguments);
+        if (shouldPerformCheck) {
+          // Check if the init options were applied. If not we do this in an
+          // asynchronous way and save the promise reference in a global object.
+          // This is an ugly hack, but at the same time is way more robust than
+          // checking the sender parameters before and after the createOffer
+          // Also note that after the createoffer we are not 100% sure that
+          // the params were asynchronously applied so we might miss the
+          // opportunity to recreate offer.
+          const {sender} = transceiver;
+          const params = sender.getParameters();
+          if (!('encodings' in params)) {
+            params.encodings = initParameters.sendEncodings;
+            this.setParametersPromises.push(
+              sender.setParameters(params)
+              .catch(() => {})
+            );
+          }
+        }
+        return transceiver;
+      };
+  }
+}
+
+function shimCreateOffer(window) {
+  // https://github.com/webrtcHacks/adapter/issues/998#issuecomment-516921647
+  // Firefox ignores the init sendEncodings options passed to addTransceiver
+  // https://bugzilla.mozilla.org/show_bug.cgi?id=1396918
+  if (!(typeof window === 'object' && window.RTCPeerConnection)) {
+    return;
+  }
+  const origCreateOffer = window.RTCPeerConnection.prototype.createOffer;
+  window.RTCPeerConnection.prototype.createOffer = function createOffer() {
+    if (this.setParametersPromises && this.setParametersPromises.length) {
+      return Promise.all(this.setParametersPromises)
+      .then(() => {
+        return origCreateOffer.apply(this, arguments);
+      })
+      .finally(() => {
+        this.setParametersPromises = [];
+      });
+    }
+    return origCreateOffer.apply(this, arguments);
+  };
+}
+
+function shimCreateAnswer(window) {
+  // https://github.com/webrtcHacks/adapter/issues/998#issuecomment-516921647
+  // Firefox ignores the init sendEncodings options passed to addTransceiver
+  // https://bugzilla.mozilla.org/show_bug.cgi?id=1396918
+  if (!(typeof window === 'object' && window.RTCPeerConnection)) {
+    return;
+  }
+  const origCreateAnswer = window.RTCPeerConnection.prototype.createAnswer;
+  window.RTCPeerConnection.prototype.createAnswer = function createAnswer() {
+    if (this.setParametersPromises && this.setParametersPromises.length) {
+      return Promise.all(this.setParametersPromises)
+      .then(() => {
+        return origCreateAnswer.apply(this, arguments);
+      })
+      .finally(() => {
+        this.setParametersPromises = [];
+      });
+    }
+    return origCreateAnswer.apply(this, arguments);
+  };
+}
 
 /***/ }),
 
@@ -25445,7 +25554,7 @@ function filterStats(result, track, outbound) {
 /*! exports provided: name, version, description, browser, main, private, scripts, bin, keywords, repository, bugs, license, licenses, dependencies, devDependencies, author, readmeFilename, contributors, default */
 /***/ (function(module) {
 
-module.exports = JSON.parse("{\"name\":\"@nodefony/stage\",\"version\":\"0.2.0\",\"description\":\"Nodefony Framework Client Side Nodefony web developpement\",\"browser\":\"dist/stage6.min.js\",\"main\":\"src/core.js\",\"private\":false,\"scripts\":{\"webpack\":\"webpack\",\"stage\":\"stage\",\"install-demo\":\"npm install --prefix ./demo/nodefony ;npm run build --prefix ./demo/nodefony\",\"demo\":\"npm start --prefix ./demo/nodefony\",\"start\":\"node ./bin/stage\",\"build\":\"WEBPACK_ENV=prod webpack; WEBPACK_ENV=dev webpack --verbose\",\"build-dev\":\"WEBPACK_ENV=dev webpack --verbose\",\"build-prod\":\"WEBPACK_ENV=prod webpack --verbose\",\"test\":\"mocha  --require @babel/register --recursive src/tests\"},\"bin\":{\"stage\":\"./bin/stage\"},\"keywords\":[\"javascript\",\"webpack\",\"nodefony\",\"webrtc\",\"sip\",\"opensip\",\"kamailio\",\"webaudio\"],\"repository\":{\"type\":\"git\",\"url\":\"git@github.com:nodefony/nodefony-stage.git\"},\"bugs\":{\"url\":\"https://github.com/nodefony/nodefony-stage/issues\"},\"license\":\"CECILL-B\",\"licenses\":[{\"type\":\"CECILL-B\",\"url\":\"http://www.cecill.info/licences/Licence_CeCILL-B_V1-en.html\"}],\"dependencies\":{\"ascii-table\":\"^0.0.9\",\"asciify\":\"^1.3.5\",\"jquery\":\"^3.3.1\",\"opn\":\"^6.0.0\",\"shortid\":\"^2.2.14\",\"twig\":\"^1.13.2\",\"webrtc-adapter\":\"^7.2.9\"},\"devDependencies\":{\"@babel/cli\":\"^7.5.5\",\"@babel/core\":\"^7.5.5\",\"@babel/preset-env\":\"^7.5.5\",\"@babel/register\":\"^7.5.5\",\"chai\":\"^4.1.2\",\"css-loader\":\"^3.2.0\",\"exports-loader\":\"^0.7.0\",\"expose-loader\":\"^0.7.5\",\"file-loader\":\"^4.2.0\",\"imports-loader\":\"^0.8.0\",\"jshint\":\"^2.10.2\",\"jshint-loader\":\"^0.8.4\",\"json-loader\":\"^0.5.7\",\"mocha\":\"^6.2.0\",\"node-sass\":\"^4.11.0\",\"nodefony\":\"^5.0.2\",\"optimize-css-assets-webpack-plugin\":\"^5.0.1\",\"raw-loader\":\"^3.1.0\",\"sass-loader\":\"^7.2.0\",\"should\":\"^13.2.3\",\"sinon\":\"^7.3.0\",\"sinon-chai\":\"^3.3.0\",\"terser-webpack-plugin\":\"^1.4.1\",\"to-string-loader\":\"^1.1.5\",\"tokenizer\":\"^1.1.2\",\"url-loader\":\"^2.1.0\",\"webpack\":\"^4.39.1\",\"webpack-cli\":\"^3.3.6\",\"webpack-dev-server\":\"^3.8.0\",\"webpack-merge\":\"^4.2.1\"},\"author\":\"cci <christophe.camensuli@gmail.com>\",\"readmeFilename\":\"README.md\",\"contributors\":[{}]}");
+module.exports = JSON.parse("{\"name\":\"@nodefony/stage\",\"version\":\"0.2.0\",\"description\":\"Nodefony Framework Client Side Nodefony web developpement\",\"browser\":\"dist/stage6.min.js\",\"main\":\"src/core.js\",\"private\":false,\"scripts\":{\"webpack\":\"webpack\",\"stage\":\"stage\",\"install-demo\":\"npm install --prefix ./demo/nodefony ;npm run build --prefix ./demo/nodefony\",\"demo\":\"npm start --prefix ./demo/nodefony\",\"start\":\"node ./bin/stage\",\"build\":\"WEBPACK_ENV=prod webpack; WEBPACK_ENV=dev webpack --verbose\",\"build-dev\":\"WEBPACK_ENV=dev webpack --verbose\",\"build-prod\":\"WEBPACK_ENV=prod webpack --verbose\",\"test\":\"mocha  --require @babel/register --recursive src/tests\"},\"bin\":{\"stage\":\"./bin/stage\"},\"keywords\":[\"javascript\",\"webpack\",\"nodefony\",\"webrtc\",\"sip\",\"opensip\",\"kamailio\",\"webaudio\"],\"repository\":{\"type\":\"git\",\"url\":\"git@github.com:nodefony/nodefony-stage.git\"},\"bugs\":{\"url\":\"https://github.com/nodefony/nodefony-stage/issues\"},\"license\":\"CECILL-B\",\"licenses\":[{\"type\":\"CECILL-B\",\"url\":\"http://www.cecill.info/licences/Licence_CeCILL-B_V1-en.html\"}],\"dependencies\":{\"ascii-table\":\"^0.0.9\",\"asciify\":\"^1.3.5\",\"jquery\":\"^3.3.1\",\"shortid\":\"^2.2.14\",\"twig\":\"^1.13.2\",\"webrtc-adapter\":\"^7.3.0\"},\"devDependencies\":{\"@babel/cli\":\"^7.5.5\",\"@babel/core\":\"^7.5.5\",\"@babel/preset-env\":\"^7.5.5\",\"@babel/register\":\"^7.5.5\",\"chai\":\"^4.1.2\",\"css-loader\":\"^3.2.0\",\"exports-loader\":\"^0.7.0\",\"expose-loader\":\"^0.7.5\",\"file-loader\":\"^4.2.0\",\"imports-loader\":\"^0.8.0\",\"jshint\":\"^2.10.2\",\"jshint-loader\":\"^0.8.4\",\"json-loader\":\"^0.5.7\",\"mocha\":\"^6.2.0\",\"node-sass\":\"^4.11.0\",\"nodefony\":\"^5.0.3\",\"open\":\"^6.4.0\",\"optimize-css-assets-webpack-plugin\":\"^5.0.1\",\"raw-loader\":\"^3.1.0\",\"sass-loader\":\"^7.2.0\",\"should\":\"^13.2.3\",\"sinon\":\"^7.3.0\",\"sinon-chai\":\"^3.3.0\",\"terser-webpack-plugin\":\"^1.4.1\",\"to-string-loader\":\"^1.1.5\",\"tokenizer\":\"^1.1.2\",\"url-loader\":\"^2.1.0\",\"webpack\":\"^4.39.2\",\"webpack-cli\":\"^3.3.6\",\"webpack-dev-server\":\"^3.8.0\",\"webpack-merge\":\"^4.2.1\"},\"author\":\"cci <christophe.camensuli@gmail.com>\",\"readmeFilename\":\"README.md\",\"contributors\":[{}]}");
 
 /***/ }),
 
