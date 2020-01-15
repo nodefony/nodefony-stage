@@ -39,6 +39,7 @@
       "XMLHttpRequest":true,
       "URL":true,
       "Blob":true,
-      "AudioNode":true
+      "AudioNode":true,
+      "beforeEach":true
     }
 }

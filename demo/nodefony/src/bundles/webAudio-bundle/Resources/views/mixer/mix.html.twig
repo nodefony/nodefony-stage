@@ -1,26 +1,23 @@
-{% extends "../layout.html.twig" %}
+{% extends "../base.html.twig" %}
 
 {% block title %}
-  WEB AUDIO API ( MIX ){% endblock %}
+  WEB AUDIO API ( MIX )
+{% endblock %}
 
 {% block stylesheets %}
-
   {{ parent() }}
-
   <!-- WEBPACK BUNDLE -->
   <link rel='stylesheet' href='{{CDN("stylesheet")}}/webAudio-bundle/assets/css/mixer.css'/>
 {% endblock %}
 
-{% block javascripts %}
-
-  {{ parent() }}
-
-  <!-- WEBPACK BUNDLE -->
-  <script src='{{CDN("javascript")}}/webAudio-bundle/assets/js/mixer.js'></script>
-
-{% endblock %}
 
 {% block body %}
   {{ parent() }}
   <div class="centered"></div>
+{% endblock %}
+
+{% block javascripts %}
+  {{ parent() }}
+  <!-- WEBPACK BUNDLE -->
+  <script src='{{CDN("javascript")}}/webAudio-bundle/assets/js/mixer.js'></script>
 {% endblock %}
